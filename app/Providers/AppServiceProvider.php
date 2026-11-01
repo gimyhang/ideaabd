@@ -71,7 +71,7 @@ class AppServiceProvider extends ServiceProvider
         if (!app()->runningInConsole()) {
             \Illuminate\Support\Facades\Cache::remember('db_schema_auto_healed_v2', 86400, function () {
                 try {
-                    if (\Illuminate\Support\Facades\Schema::hasTable('blog_posts') && !\Illuminate\Support\Facades\Schema::hasColumn('blog_posts', 'subtitle')) {
+                    if (\App\Support\SchemaCache::has('blog_posts') && !\App\Support\SchemaCache::hasColumn('blog_posts', 'subtitle')) {
                         $driver = \Illuminate\Support\Facades\DB::getDriverName();
                         if ($driver === 'sqlite') {
                             \Illuminate\Support\Facades\DB::statement('ALTER TABLE blog_posts ADD COLUMN subtitle VARCHAR(500) NULL');

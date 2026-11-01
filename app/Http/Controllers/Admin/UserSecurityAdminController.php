@@ -61,7 +61,7 @@ class UserSecurityAdminController extends Controller
                 ->paginate(15, ['*'], 'req_page')
                 ->withQueryString();
         } elseif ($tab === 'activity') {
-            $activity = Schema::hasTable('admin_activity_logs')
+            $activity = \App\Support\SchemaCache::has('admin_activity_logs')
                 ? AdminActivityLog::query()
                     ->with('user:id,name,email')
                     ->whereIn('action_type', self::SECURITY_ACTIONS)
@@ -79,12 +79,14 @@ class UserSecurityAdminController extends Controller
                 ->withQueryString();
         }
 
+        $stats = $this->stats();
+
         return view('admin.users-security', [
             'requests'    => $requests,
             'blockedLogs' => $blockedLogs,
             'activity'    => $activity,
-            'stats'       => $this->stats(),
-            'health'      => $this->health($request),
+            'stats'       => $stats,
+            'health'      => $this->health($request, $stats),
             'threats'     => $this->threatBreakdown(),
             'tab'         => $tab,
             'q'           => $q,
@@ -101,12 +103,23 @@ class UserSecurityAdminController extends Controller
 
     private function stats(): array
     {
+        $reqRow = PasswordResetRequest::selectRaw("
+            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_requests,
+            SUM(CASE WHEN status = 'resolved' THEN 1 ELSE 0 END) as resolved_requests
+        ")->first();
+
+        $secRow = LoginSecurityLog::selectRaw("
+            SUM(CASE WHEN is_security_issue = 1 AND is_blocked = 0 THEN 1 ELSE 0 END) as security_issues,
+            SUM(CASE WHEN is_blocked = 1 THEN 1 ELSE 0 END) as total_blocked_ips,
+            SUM(CASE WHEN is_blocked = 0 AND locked_until > ? THEN 1 ELSE 0 END) as locked_10min_ips
+        ", [Carbon::now()])->first();
+
         return [
-            'pending_requests'  => PasswordResetRequest::where('status', 'pending')->count(),
-            'resolved_requests' => PasswordResetRequest::where('status', 'resolved')->count(),
-            'security_issues'   => LoginSecurityLog::where('is_security_issue', true)->where('is_blocked', false)->count(),
-            'total_blocked_ips' => LoginSecurityLog::where('is_blocked', true)->count(),
-            'locked_10min_ips'  => LoginSecurityLog::where('is_blocked', false)->where('locked_until', '>', Carbon::now())->count(),
+            'pending_requests'  => (int) ($reqRow->pending_requests ?? 0),
+            'resolved_requests' => (int) ($reqRow->resolved_requests ?? 0),
+            'security_issues'   => (int) ($secRow->security_issues ?? 0),
+            'total_blocked_ips' => (int) ($secRow->total_blocked_ips ?? 0),
+            'locked_10min_ips'  => (int) ($secRow->locked_10min_ips ?? 0),
             'forced_changes'    => User::where('must_change_password', true)->count(),
         ];
     }
@@ -158,13 +171,14 @@ class UserSecurityAdminController extends Controller
     /**
      * Security posture checklist. Each check: key, label, state (ok|warn|bad), detail, weight.
      */
-    private function health(Request $request): array
+    private function health(Request $request, ?array $stats = null): array
     {
         $isProd = app()->environment('production');
         $admins = User::where('role', User::ROLE_ADMIN)->get(['id', 'password', 'ip_whitelist', 'is_active']);
 
-        // bcrypt checks are slow: cache the weak-password result briefly.
-        $weakAdmins = Cache::remember('security.weak_admin_pw.' . $admins->pluck('id')->implode('-'), 600, function () use ($admins) {
+        // bcrypt checks are slow: key by password hashes and cache for 24h so it only runs when an admin password actually changes.
+        $pwFingerprint = md5($admins->pluck('password')->implode('|'));
+        $weakAdmins = Cache::remember('security.weak_admin_pw.' . $pwFingerprint, 86400, function () use ($admins) {
             $defaults = ['admin123456', 'admin123', 'password', '12345678', 'Admin@123'];
             return $admins->filter(function ($a) use ($defaults) {
                 foreach ($defaults as $d) {
@@ -179,7 +193,7 @@ class UserSecurityAdminController extends Controller
         $withWhitelist = $admins->filter(fn ($a) => ! empty($a->ip_whitelist))->count();
         $lifetime = (int) config('session.lifetime', 120);
         $cookieSecure = (bool) config('session.secure') || $request->isSecure();
-        $flagged = LoginSecurityLog::where('is_blocked', false)->where('is_security_issue', true)->count();
+        $flagged = $stats['security_issues'] ?? LoginSecurityLog::where('is_blocked', false)->where('is_security_issue', true)->count();
 
         $checks = [
             ['key' => 'debug', 'label' => 'Debug mode off', 'weight' => 20,

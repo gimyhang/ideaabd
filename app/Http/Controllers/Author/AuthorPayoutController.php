@@ -70,17 +70,35 @@ class AuthorPayoutController extends Controller
             'amount.max' => 'আপনার উত্তোলনের জন্য পর্যাপ্ত ওয়ালেট ব্যালেন্স নেই। (সর্বোচ্চ প্রাপ্য: ৳' . number_format($availableBalance, 2) . ')',
         ]);
 
-        AuthorPayoutRequest::create([
-            'author_id'            => $author->id,
-            'user_id'              => $user->id,
-            'amount'               => $validated['amount'],
-            'payment_method'       => $validated['payment_method'],
-            'account_details'      => $validated['account_details'],
-            'tax_deduction_amount' => 0.00,
-            'net_payable_amount'   => $validated['amount'],
-            'status'               => 'pending',
-            'admin_notes'          => $validated['admin_notes'] ?? null,
-        ]);
+        // Lock the author row so two quick clicks cannot both pass the balance check.
+        $created = \Illuminate\Support\Facades\DB::transaction(function () use ($author, $user, $validated) {
+            $locked = \Modules\Author\Models\Author::whereKey($author->id)->lockForUpdate()->first();
+            $pending = (float) AuthorPayoutRequest::where('user_id', $user->id)
+                ->where('status', 'pending')
+                ->sum('amount');
+
+            if ((float) $validated['amount'] > max(0, (float) $locked->wallet_balance - $pending)) {
+                return false;
+            }
+
+            AuthorPayoutRequest::create([
+                'author_id'            => $author->id,
+                'user_id'              => $user->id,
+                'amount'               => $validated['amount'],
+                'payment_method'       => $validated['payment_method'],
+                'account_details'      => $validated['account_details'],
+                'tax_deduction_amount' => 0.00,
+                'net_payable_amount'   => $validated['amount'],
+                'status'               => 'pending',
+                'admin_notes'          => $validated['admin_notes'] ?? null,
+            ]);
+
+            return true;
+        });
+
+        if (!$created) {
+            return back()->with('error', 'Insufficient available balance: a pending payout request already uses part of your wallet.');
+        }
 
         // Save payout preference for next time
         $author->update([

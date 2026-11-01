@@ -20,21 +20,59 @@ class CurrencyService
         });
     }
 
+    /** @var array<string, float>|null */
+    private static ?array $ratesMap = null;
+
+    /**
+     * Get map of currency code => exchange_rate_to_bdt (cached in memory & store).
+     */
+    private function getRatesMap(): array
+    {
+        if (self::$ratesMap !== null) {
+            return self::$ratesMap;
+        }
+
+        $map = [];
+        foreach ($this->getActiveCurrencies() as $row) {
+            $code = strtoupper((string) ($row['code'] ?? ''));
+            if ($code !== '') {
+                $map[$code] = (float) ($row['exchange_rate_to_bdt'] ?? 0);
+            }
+        }
+        // Fallback defaults if not in active list
+        $map += [
+            'BDT' => 1.0,
+            'USD' => 121.5,
+            'EUR' => 131.2,
+            'GBP' => 154.8,
+        ];
+
+        return self::$ratesMap = $map;
+    }
+
     /**
      * Convert an amount in BDT to a target currency code.
      */
     public function convertFromBdt(float $amountBdt, string $targetCode = 'USD'): float
     {
-        if (strtoupper($targetCode) === 'BDT') {
+        $code = strtoupper($targetCode);
+        if ($code === 'BDT') {
             return $amountBdt;
         }
 
-        $currency = CurrencyRate::where('code', strtoupper($targetCode))->first();
-        if (!$currency || $currency->exchange_rate_to_bdt <= 0) {
+        $rates = $this->getRatesMap();
+        $rate = $rates[$code] ?? null;
+        if ($rate === null) {
+            $currency = CurrencyRate::where('code', $code)->first();
+            $rate = $currency ? (float) $currency->exchange_rate_to_bdt : 0.0;
+            self::$ratesMap[$code] = $rate;
+        }
+
+        if ($rate <= 0) {
             return $amountBdt;
         }
 
-        return round($amountBdt / (float)$currency->exchange_rate_to_bdt, 2);
+        return round($amountBdt / $rate, 2);
     }
 
     /**
@@ -42,16 +80,24 @@ class CurrencyService
      */
     public function convertToBdt(float $amountForeign, string $sourceCode = 'USD'): float
     {
-        if (strtoupper($sourceCode) === 'BDT') {
+        $code = strtoupper($sourceCode);
+        if ($code === 'BDT') {
             return $amountForeign;
         }
 
-        $currency = CurrencyRate::where('code', strtoupper($sourceCode))->first();
-        if (!$currency) {
+        $rates = $this->getRatesMap();
+        $rate = $rates[$code] ?? null;
+        if ($rate === null) {
+            $currency = CurrencyRate::where('code', $code)->first();
+            $rate = $currency ? (float) $currency->exchange_rate_to_bdt : 0.0;
+            self::$ratesMap[$code] = $rate;
+        }
+
+        if ($rate <= 0) {
             return $amountForeign;
         }
 
-        return round($amountForeign * (float)$currency->exchange_rate_to_bdt, 2);
+        return round($amountForeign * $rate, 2);
     }
 
     /**

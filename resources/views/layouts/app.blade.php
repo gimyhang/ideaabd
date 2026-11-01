@@ -78,8 +78,12 @@
 
         $currentReqPath = '/' . ltrim(request()->path(), '/');
         $dbSeo = null;
-        if (class_exists(\Modules\SEO\Models\SeoMeta::class)) {
-            $dbSeo = \Modules\SEO\Models\SeoMeta::where('url_path', $currentReqPath)->first();
+        if (class_exists(\Modules\SEO\Models\SeoMeta::class) && \App\Support\SchemaCache::has('seo_metas')) {
+            try {
+                $dbSeo = \Illuminate\Support\Facades\Cache::remember('seo_meta_path_' . md5($currentReqPath), 600, function () use ($currentReqPath) {
+                    return \Modules\SEO\Models\SeoMeta::where('url_path', $currentReqPath)->first();
+                });
+            } catch (\Throwable) {}
         }
 
         $metaPageTitle = View::hasSection('og_title') ? View::getSection('og_title') : ($dbSeo?->meta_title ?: (View::hasSection('title') ? View::getSection('title') : $defaultSiteName));
@@ -544,14 +548,17 @@
         // Prevent Google Translate top frame from pushing down or duplicating topbar
         (function() {
             var resetBodyTop = function() {
-                if (document.body && document.body.style.top !== '0px') {
+                if (document.body && document.body.style.top && document.body.style.top !== '0px') {
                     document.body.style.top = '0px';
                 }
                 var banner = document.querySelector('.goog-te-banner-frame');
-                if (banner) banner.style.display = 'none';
+                if (banner && banner.style.display !== 'none') banner.style.display = 'none';
             };
             window.addEventListener('load', resetBodyTop);
-            setInterval(resetBodyTop, 400);
+            if (window.MutationObserver && document.body) {
+                var gtObserver = new MutationObserver(resetBodyTop);
+                gtObserver.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] });
+            }
         })();
 
         // Global Site Language Switcher
@@ -837,18 +844,16 @@
             }
         })();
 
-        // Global Smart Backspace / Alt+Left Navigation
+        // Global Alt+Left Navigation (Never hijack Backspace)
         document.addEventListener('keydown', function(e) {
             var activeEl = document.activeElement;
             var tag = (activeEl && activeEl.tagName) ? activeEl.tagName.toLowerCase() : '';
             var isInput = tag === 'input' || tag === 'textarea' || tag === 'select' || (activeEl && activeEl.isContentEditable);
             
-            if (!isInput) {
-                if (e.key === 'Backspace' || (e.altKey && e.key === 'ArrowLeft')) {
-                    if (window.history.length > 1 && document.referrer) {
-                        e.preventDefault();
-                        window.history.back();
-                    }
+            if (!isInput && e.altKey && e.key === 'ArrowLeft') {
+                if (window.history.length > 1 && document.referrer) {
+                    e.preventDefault();
+                    window.history.back();
                 }
             }
         });
@@ -945,8 +950,17 @@
                         if (form && trigger.type === 'submit') {
                             form.dataset.confirmed = 'true';
                             form.submit();
-                        } else if (isLink && trigger.href) {
+                        } else if (isLink && trigger.href && !onclickAttr) {
                             window.location.href = trigger.href;
+                        } else {
+                            var origConfirm = window.confirm;
+                            window.confirm = function() { return true; };
+                            try {
+                                trigger.click();
+                            } finally {
+                                window.confirm = origConfirm;
+                                setTimeout(function() { delete trigger.dataset.confirmed; }, 100);
+                            }
                         }
                     }
                 });

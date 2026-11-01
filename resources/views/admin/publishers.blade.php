@@ -389,11 +389,7 @@
                                         </button>
                                     </form>
                                 </div>
-                            </td>                           </button>
-                                    </form>
-                                </div>
                             </td>
-
                         </tr>
                     @empty
                         <tr>

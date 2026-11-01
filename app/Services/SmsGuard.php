@@ -46,7 +46,13 @@ class SmsGuard
     {
         if (self::$tablesReady === null || app()->runningUnitTests()) {
             try {
-                self::$tablesReady = Schema::hasTable('sms_logs') && Schema::hasTable('sms_number_restrictions') && Schema::hasColumn('sms_logs', 'dedupe_key');
+                if (app()->runningUnitTests()) {
+                    self::$tablesReady = Schema::hasTable('sms_logs') && Schema::hasTable('sms_number_restrictions') && Schema::hasColumn('sms_logs', 'dedupe_key');
+                } else {
+                    self::$tablesReady = \App\Support\SchemaCache::has('sms_logs')
+                        && \App\Support\SchemaCache::has('sms_number_restrictions')
+                        && \App\Support\SchemaCache::hasColumn('sms_logs', 'dedupe_key');
+                }
             } catch (\Throwable) {
                 self::$tablesReady = false;
             }

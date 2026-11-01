@@ -87,18 +87,19 @@
                 </div>
             </div>
 
-            {{-- Column 2: Catalog & Menu --}}
+            {{-- Column 2: Dynamic Catalog & Menu --}}
             <div class="col-lg-2 col-md-3 col-6">
                 <h6 class="footer-heading text-white fw-bold mb-3 position-relative pb-2">
                     <span>ক্যাটালগ ও মেনু</span>
                 </h6>
                 <ul class="list-unstyled mb-0 footer-links">
-                    <li><a href="{{ route('book.index') }}"><i class="fa-solid fa-chevron-right footer-link-icon"></i>বই ক্যাটালগ</a></li>
-                    <li><a href="{{ route('ebook.index') }}"><i class="fa-solid fa-chevron-right footer-link-icon"></i>ই-বুক সমাহার</a></li>
-                    <li><a href="{{ route('webzine.index') }}"><i class="fa-solid fa-chevron-right footer-link-icon"></i>ওয়েবজিন</a></li>
-                    <li><a href="{{ route('authors.index') }}"><i class="fa-solid fa-chevron-right footer-link-icon"></i>লেখক তালিকা</a></li>
-                    <li><a href="{{ route('publishers.index') }}"><i class="fa-solid fa-chevron-right footer-link-icon"></i>প্রকাশকবৃন্দ</a></li>
-                    <li><a href="{{ route('blog.index') }}"><i class="fa-solid fa-chevron-right footer-link-icon"></i>আইডিয়াপত্র ব্লগ</a></li>
+                    @php
+                        $footerNav = \App\Support\SiteSetting::headerNav();
+                        $footerNavSlice = array_slice($footerNav, 0, 7);
+                    @endphp
+                    @foreach ($footerNavSlice as $fItem)
+                        <li><a href="{{ $fItem['target_url'] ?? $fItem['url'] ?? '#' }}">{{ $fItem['label'] }}</a></li>
+                    @endforeach
                 </ul>
             </div>
 
@@ -108,12 +109,12 @@
                     <span>নীতিমালা ও সহায়তা</span>
                 </h6>
                 <ul class="list-unstyled mb-0 footer-links">
-                    <li><a href="{{ route('terms') }}"><i class="fa-solid fa-chevron-right footer-link-icon"></i>ব্যবহারের শর্তাবলী</a></li>
-                    <li><a href="{{ route('privacy') }}"><i class="fa-solid fa-chevron-right footer-link-icon"></i>গোপনীয়তা নীতি</a></li>
-                    <li><a href="{{ route('contact') }}"><i class="fa-solid fa-chevron-right footer-link-icon"></i>যোগাযোগ ও সহায়তা</a></li>
-                    <li><a href="{{ route('refund.policy') }}"><i class="fa-solid fa-chevron-right footer-link-icon"></i>রিটার্ন ও মূল্যফেরত নীতি</a></li>
-                    <li><a href="{{ route('faq') }}"><i class="fa-solid fa-chevron-right footer-link-icon"></i>সাধারণ জিজ্ঞাসা ও উত্তর</a></li>
-                    <li><a href="{{ route('blog.write') }}"><i class="fa-solid fa-chevron-right footer-link-icon"></i>লেখা পাঠান ও সম্মাননা</a></li>
+                    <li><a href="{{ route('terms') }}">ব্যবহারের শর্তাবলী</a></li>
+                    <li><a href="{{ route('privacy') }}">গোপনীয়তা নীতি</a></li>
+                    <li><a href="{{ route('contact') }}">যোগাযোগ ও সহায়তা</a></li>
+                    <li><a href="{{ route('refund.policy') }}">রিটার্ন ও মূল্যফেরত নীতি</a></li>
+                    <li><a href="{{ route('faq') }}">সাধারণ জিজ্ঞাসা ও উত্তর</a></li>
+                    <li><a href="{{ route('blog.write') }}">লেখা পাঠান ও সম্মাননা</a></li>
                 </ul>
             </div>
 

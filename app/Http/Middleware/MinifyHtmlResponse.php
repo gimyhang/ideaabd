@@ -69,53 +69,9 @@ class MinifyHtmlResponse
         $token = '___PRESERVED_CHUNK_' . md5(uniqid((string)mt_rand(), true)) . '_';
         $index = 0;
 
-        // 1. Preserve <script> tags FIRST so inner template strings (like <textarea>) aren't matched separately
+        // Preserve <script>, <textarea>, and <pre> blocks verbatim without corrupting template literals or regexes
         $html = preg_replace_callback(
-            '#<script\b([^>]*)>(.*?)</script>#is',
-            function ($matches) use (&$placeholders, $token, &$index) {
-                $attrs = $matches[1];
-                $js = $matches[2];
-
-                // JSON-LD or templates - keep intact
-                if (preg_match('#type=["\'](?:application\/ld\+json|text\/template)["\']#i', $attrs)) {
-                    $key = "{$token}{$index}___";
-                    $placeholders[$key] = $matches[0];
-                    $index++;
-                    return $key;
-                }
-
-                $trimmedJs = trim($js);
-                if ($trimmedJs !== '') {
-                    // Remove multi-line comments /* ... */
-                    $trimmedJs = preg_replace('#/\*(?![\!]).*?\*/#s', '', $trimmedJs);
-
-                    // Safely process lines: trim each line and remove standalone single-line comments
-                    $lines = explode("\n", $trimmedJs);
-                    $cleaned = [];
-                    foreach ($lines as $line) {
-                        $tLine = trim($line);
-                        // Skip pure comments
-                        if (str_starts_with($tLine, '//')) {
-                            continue;
-                        }
-                        if ($tLine !== '') {
-                            $cleaned[] = $tLine;
-                        }
-                    }
-                    $trimmedJs = implode("\n", $cleaned);
-                }
-
-                $key = "{$token}{$index}___";
-                $placeholders[$key] = "<script{$attrs}>" . $trimmedJs . "</script>";
-                $index++;
-                return $key;
-            },
-            $html
-        );
-
-        // 2. Preserve <textarea> and <pre> tags
-        $html = preg_replace_callback(
-            '#<(textarea|pre)\b[^>]*>.*?</\1>#is',
+            '#<(script|textarea|pre)\b[^>]*>.*?</\1>#is',
             function ($matches) use (&$placeholders, $token, &$index) {
                 $key = "{$token}{$index}___";
                 $placeholders[$key] = $matches[0];
@@ -125,19 +81,12 @@ class MinifyHtmlResponse
             $html
         );
 
-        // 3. Compress <style> tags
+        // Compress <style> tags safely
         $html = preg_replace_callback(
             '#<style\b([^>]*)>(.*?)</style>#is',
             function ($matches) use (&$placeholders, $token, &$index) {
                 $attrs = $matches[1];
-                $css = $matches[2];
-                // Strip CSS comments
-                $css = preg_replace('#/\*.*?\*/#s', '', $css);
-                // Collapse whitespaces
-                $css = preg_replace('/\s+/', ' ', $css);
-                $css = preg_replace('/\s*([{}|:;,>~+])\s*/', '$1', $css);
-                $css = trim($css);
-
+                $css = preg_replace('/\s+/', ' ', trim($matches[2]));
                 $key = "{$token}{$index}___";
                 $placeholders[$key] = "<style{$attrs}>" . $css . "</style>";
                 $index++;
@@ -146,16 +95,13 @@ class MinifyHtmlResponse
             $html
         );
 
-        // 4. Remove standard HTML comments (keep IE conditionals if any)
-        $html = preg_replace('/<!--(?!\s*(?:\[if [^\]]+]|<!|>))(?:(?!-->).)*-->/s', '', $html);
-
-        // 5. Remove whitespace and newlines between HTML tags (Facebook style)
+        // Remove whitespace and newlines between HTML tags
         $html = preg_replace('/>\s+</', '><', $html);
 
-        // 6. Collapse remaining extra whitespaces in HTML body
-        $html = preg_replace('/[ \t]+/', ' ', $html);
+        // Collapse remaining extra spaces in HTML body
+        $html = preg_replace('/[ \t]{2,}/', ' ', $html);
 
-        // 7. Restore preserved blocks
+        // Restore preserved blocks
         if (!empty($placeholders)) {
             $html = strtr($html, $placeholders);
         }

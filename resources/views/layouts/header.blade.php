@@ -471,7 +471,6 @@
                        role="button" 
                        data-bs-toggle="dropdown" 
                        aria-expanded="false">
-                        <i class="fa-solid fa-layer-group"></i>
                         <span>বিষয়</span>
                         <i class="fa-solid fa-chevron-down nav-arrow"></i>
                     </a>
@@ -480,7 +479,7 @@
                     <div class="dropdown-menu site-drop site-mega tm-panel" aria-labelledby="navAllCatsMegaDropdown">
                         <section class="tm-subjects">
                             <header class="tm-head">
-                                <span class="tm-title"><i class="fas fa-book-open"></i> বিষয়</span>
+                                <span class="tm-title">বিষয়</span>
                                 <a href="{{ route('book.index') }}" class="tm-all">সব ({{ $headerCategories->count() }}) →</a>
                             </header>
 
@@ -500,123 +499,50 @@
 
                         <aside class="tm-side">
                             <div class="tm-group">
-                                <div class="tm-title"><i class="fa-solid fa-shapes text-info"></i> ধরন</div>
+                                <div class="tm-title">ধরন</div>
                                 <div class="tm-list">
-                                    <a href="{{ route('book.index', ['format' => 'paperback']) }}" class="tm-link"><span><i class="fa-solid fa-book text-primary"></i> পেপারব্যাক</span></a>
-                                    <a href="{{ route('book.index', ['format' => 'hardcover']) }}" class="tm-link"><span><i class="fa-solid fa-book-bookmark"></i> হার্ডকভার</span></a>
-                                    <a href="{{ route('ebook.index') }}" class="tm-link"><span><i class="fa-solid fa-tablet-screen-button text-info"></i> ই-বুক</span><span class="tm-tag is-info">PDF</span></a>
+                                    <a href="{{ route('book.index', ['format' => 'paperback']) }}" class="tm-link"><span>পেপারব্যাক</span></a>
+                                    <a href="{{ route('book.index', ['format' => 'hardcover']) }}" class="tm-link"><span>হার্ডকভার</span></a>
+                                    <a href="{{ route('ebook.index') }}" class="tm-link"><span>ই-বুক</span><span class="tm-tag is-info">PDF</span></a>
                                 </div>
                             </div>
                             <div class="tm-group">
-                                <div class="tm-title"><i class="fa-solid fa-star text-warning"></i> নির্বাচিত</div>
+                                <div class="tm-title">নির্বাচিত</div>
                                 <div class="tm-list">
-                                    <a href="{{ route('book.index', ['sort' => 'bestselling']) }}" class="tm-link"><span><i class="fa-solid fa-fire text-danger"></i> বেস্টসেলার</span></a>
-                                    <a href="{{ route('book.index', ['filter' => 'discounted']) }}" class="tm-link"><span><i class="fa-solid fa-tags text-warning"></i> অফার</span><span class="tm-tag is-sale">Sale</span></a>
-                                    <a href="{{ route('authors.index') }}" class="tm-link"><span><i class="fa-solid fa-feather-pointed text-success"></i> লেখক</span></a>
-                                    <a href="{{ route('publishers.index') }}" class="tm-link"><span><i class="fa-solid fa-building text-secondary"></i> প্রকাশক</span></a>
+                                    <a href="{{ route('book.index', ['sort' => 'bestselling']) }}" class="tm-link"><span>বেস্টসেলার</span></a>
+                                    <a href="{{ route('book.index', ['filter' => 'discounted']) }}" class="tm-link"><span>অফার</span><span class="tm-tag is-sale">Sale</span></a>
+                                    <a href="{{ route('authors.index') }}" class="tm-link"><span>লেখক</span></a>
+                                    <a href="{{ route('publishers.index') }}" class="tm-link"><span>প্রকাশক</span></a>
                                 </div>
                             </div>
                         </aside>
                     </div>
                 </li>
 
-                {{-- 2. [হোম] --}}
-                <li class="nav-item site-nav__item">
-                    <a class="nav-link site-nav__link {{ request()->routeIs('home') ? 'is-active' : '' }}" href="{{ route('home') }}">
-                        <span>হোম</span>
-                    </a>
-                </li>
-
-                {{-- 3. [বুকশপ] --}}
-                <li class="nav-item site-nav__item">
-                    <a class="nav-link site-nav__link {{ request()->routeIs('book.*') && !request()->routeIs('ebook.*') ? 'is-active' : '' }}" href="{{ route('book.index') }}">
-                        <span>বই</span>
-                    </a>
-                </li>
-
-                {{-- 3.1. [ইলেক্ট্রনিক্স] --}}
-                <li class="nav-item site-nav__item">
-                    <a class="nav-link site-nav__link {{ request()->routeIs('products.electronics') || (request()->routeIs('products.show') && request()->route('type') === 'electronics') ? 'is-active' : '' }}" href="{{ route('products.electronics') }}">
-                        <span>ইলেকট্রনিক্স</span>
-                    </a>
-                </li>
-
-                {{-- 3.2. [স্টেশনারি] --}}
-                <li class="nav-item site-nav__item">
-                    <a class="nav-link site-nav__link {{ request()->routeIs('products.stationery') || (request()->routeIs('products.show') && request()->route('type') === 'stationery') ? 'is-active' : '' }}" href="{{ route('products.stationery') }}">
-                        <span>স্টেশনারি</span>
-                    </a>
-                </li>
-
-                {{-- 3.3. [হোম অ্যাপ্লায়েন্স] --}}
-                <li class="nav-item site-nav__item">
-                    <a class="nav-link site-nav__link {{ request()->routeIs('products.appliance') || (request()->routeIs('products.show') && request()->route('type') === 'appliance') ? 'is-active' : '' }}" href="{{ route('products.appliance') }}">
-                        <span>যন্ত্রপাতি</span>
-                    </a>
-                </li>
-
-                {{-- 4. [ই-বুক] --}}
-                <li class="nav-item site-nav__item">
-                    <a class="nav-link site-nav__link {{ request()->routeIs('ebook.*') ? 'is-active' : '' }}" href="{{ route('ebook.index') }}">
-                        <span>ই-বুক</span>
-                    </a>
-                </li>
-
-                {{-- 4. [লেখক] (Direct Link) --}}
-                <li class="nav-item site-nav__item">
-                    <a class="nav-link site-nav__link {{ request()->routeIs('authors.*') ? 'is-active' : '' }}" href="{{ route('authors.index') }}">
-                        <span>লেখক</span>
-                    </a>
-                </li>
-
-                {{-- 5. [প্রকাশক] --}}
-                <li class="nav-item site-nav__item">
-                    <a class="nav-link site-nav__link {{ request()->routeIs('publishers.*') ? 'is-active' : '' }}" href="{{ route('publishers.index') }}">
-                        <span>প্রকাশক</span>
-                    </a>
-                </li>
-
-                {{-- 6. [আইডিয়াপত্র] (Direct Link) --}}
-                <li class="nav-item site-nav__item">
-                    <a class="nav-link site-nav__link {{ request()->routeIs('blog.*') ? 'is-active' : '' }}" href="{{ route('blog.index') }}">
-                        <span>আইডিয়াপত্র</span>
-                    </a>
-                </li>
-
-                {{-- 7. [ওয়েবজিন] --}}
-                <li class="nav-item site-nav__item">
-                    <a class="nav-link site-nav__link {{ request()->routeIs('webzine.*') ? 'is-active' : '' }}" href="{{ Route::has('webzine.index') ? route('webzine.index') : url('/webzines') }}">
-                        <span>ওয়েবজিন</span>
-                    </a>
-                </li>
-
-                {{-- 8. [গবেষণা] --}}
-                <li class="nav-item site-nav__item">
-                    <a class="nav-link site-nav__link {{ request()->is('research*') || request()->routeIs('research.*') ? 'is-active' : '' }}" href="{{ Route::has('research.index') ? route('research.index') : url('/research') }}">
-                        <span>গবেষণা</span>
-                    </a>
-                </li>
-
-                {{-- 9. [আইডিয়া হাব] --}}
-                <li class="nav-item site-nav__item">
-                    <a class="nav-link site-nav__link {{ request()->is('hub*') || request()->routeIs('hub') ? 'is-active' : '' }}" href="{{ Route::has('hub') ? route('hub') : url('/hub') }}">
-                        <span>হাব</span>
-                    </a>
-                </li>
-
-                {{-- 10. [আমাদের সম্পর্কে] --}}
-                <li class="nav-item site-nav__item">
-                    <a class="nav-link site-nav__link {{ request()->routeIs('about') ? 'is-active' : '' }}" href="{{ Route::has('about') ? route('about') : url('/about') }}">
-                        <span>পরিচিতি</span>
-                    </a>
-                </li>
-
-                {{-- 11. [যোগাযোগ] --}}
-                <li class="nav-item site-nav__item">
-                    <a class="nav-link site-nav__link {{ request()->routeIs('contact') ? 'is-active' : '' }}" href="{{ Route::has('contact') ? route('contact') : url('/contact') }}">
-                        <span>যোগাযোগ</span>
-                    </a>
-                </li>
+                {{-- Dynamic Primary Navigation Items (Configurable from Admin Settings) --}}
+                @foreach ($nav as $navItem)
+                    @php
+                        $isActive = false;
+                        if (!empty($navItem['active'])) {
+                            $isActive = request()->routeIs($navItem['active']) || request()->is(trim($navItem['active'], '*'));
+                        } elseif (!empty($navItem['route']) && Route::has($navItem['route'])) {
+                            $isActive = request()->routeIs($navItem['route']) || request()->routeIs($navItem['route'] . '.*');
+                        } elseif (!empty($navItem['url'])) {
+                            $path = trim(parse_url($navItem['url'], PHP_URL_PATH) ?? '', '/');
+                            $isActive = $path === '' ? request()->is('/') : request()->is($path, $path . '/*');
+                        }
+                    @endphp
+                    <li class="nav-item site-nav__item">
+                        <a class="nav-link site-nav__link {{ $isActive ? 'is-active' : '' }}" 
+                           href="{{ $navItem['target_url'] }}"
+                           target="{{ $navItem['target'] ?? '_self' }}">
+                            <span>{{ $navItem['label'] }}</span>
+                            @if (!empty($navItem['badge']))
+                                <span class="badge bg-warning text-dark rounded-pill ms-1 px-1.5 py-0.5" style="font-size: 9.5px;">{{ $navItem['badge'] }}</span>
+                            @endif
+                        </a>
+                    </li>
+                @endforeach
             </ul>
         </div>
     </nav>
@@ -1181,57 +1107,35 @@
         {{-- 2. PRIMARY EXPLORE MENU LIST (Centered & Clean) --}}
         <div class="mb-3">
             <div class="text-uppercase fw-bold text-muted px-1 mb-1.5" style="font-size: 10.5px; letter-spacing: 0.6px;">
-                <i class="fa-solid fa-compass text-primary me-1"></i> Menu
+                Menu
             </div>
             <div class="md-menu">
-                <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('home') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('home') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><i class="fa-solid fa-house text-primary"></i> <span>হোম</span></span>
-                    <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
-                </a>
-                <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('book.*') && !request()->routeIs('ebook.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('book.index') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>বই</span></span>
-                    <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">বই</span>
-                </a>
-                <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('products.electronics') || (request()->routeIs('products.show') && request()->route('type') === 'electronics') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('products.electronics') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>ইলেকট্রনিক্স</span></span>
-                    <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">Gadgets</span>
-                </a>
-                <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('products.stationery') || (request()->routeIs('products.show') && request()->route('type') === 'stationery') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('products.stationery') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>স্টেশনারি</span></span>
-                    <span class="badge bg-success text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">School</span>
-                </a>
-                <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('products.appliance') || (request()->routeIs('products.show') && request()->route('type') === 'appliance') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('products.appliance') }}">
-                    <span class="d-flex align-items-center gap-2.5"><span>যন্ত্রপাতি</span></span>
-                    <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5" style="font-size: 9.5px;">হোম</span>
-                </a>
-                <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('ebook.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('ebook.index') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>ই-বুক</span></span>
-                    <span class="badge bg-info text-dark rounded-pill px-2 py-0.5" style="font-size: 9.5px;">Digital</span>
-                </a>
-                <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('authors.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('authors.index') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>লেখক</span></span>
-                    <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
-                </a>
-                <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('publishers.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('publishers.index') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>প্রকাশক</span></span>
-                    <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
-                </a>
-                <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('blog.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('blog.index') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>আইডিয়াপত্র</span></span>
-                    <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">Magazine</span>
-                </a>
-                <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('webzine.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ Route::has('webzine.index') ? route('webzine.index') : url('/webzines') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>ওয়েবজিন</span></span>
-                    <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
-                </a>
-                <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->is('research*') || request()->routeIs('research.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ Route::has('research.index') ? route('research.index') : url('/research') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>গবেষণা</span></span>
-                    <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
-                </a>
-                <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->is('hub*') || request()->routeIs('hub') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ Route::has('hub') ? route('hub') : url('/hub') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>হাব</span></span>
-                    <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
-                </a>
+                @foreach ($nav as $mItem)
+                    @php
+                        $isMActive = false;
+                        if (!empty($mItem['active'])) {
+                            $isMActive = request()->routeIs($mItem['active']) || request()->is(trim($mItem['active'], '*'));
+                        } elseif (!empty($mItem['route']) && Route::has($mItem['route'])) {
+                            $isMActive = request()->routeIs($mItem['route']) || request()->routeIs($mItem['route'] . '.*');
+                        } elseif (!empty($mItem['url'])) {
+                            $mPath = trim(parse_url($mItem['url'], PHP_URL_PATH) ?? '', '/');
+                            $isMActive = $mPath === '' ? request()->is('/') : request()->is($mPath, $mPath . '/*');
+                        }
+                    @endphp
+                    <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ $isMActive ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" 
+                       href="{{ $mItem['target_url'] }}" 
+                       target="{{ $mItem['target'] ?? '_self' }}" 
+                       style="font-size: 13.5px;">
+                        <span class="d-flex align-items-center gap-2">
+                            <span>{{ $mItem['label'] }}</span>
+                        </span>
+                        @if (!empty($mItem['badge']))
+                            <span class="badge {{ $isMActive ? 'bg-white text-primary' : 'bg-primary text-white' }} rounded-pill px-2 py-0.5" style="font-size: 9.5px;">{{ $mItem['badge'] }}</span>
+                        @else
+                            <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
+                        @endif
+                    </a>
+                @endforeach
             </div>
         </div>
 
@@ -1242,7 +1146,6 @@
                     <h2 class="accordion-header" id="headingMobileCats">
                         <button class="accordion-button collapsed py-2.5 px-3 fw-bold bg-white text-dark shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMobileCats" aria-expanded="false" aria-controls="collapseMobileCats" style="font-size: 13.5px;">
                             <span class="d-flex align-items-center gap-2 text-primary">
-                                <i class="fa-solid fa-layer-group"></i>
                                 <span>Categories</span>
                             </span>
                             <span class="badge bg-primary bg-opacity-10 text-primary ms-auto me-2 rounded-pill px-2 py-0.5" style="font-size: 10px;">@bn($headerCategories->count())</span>
@@ -1262,7 +1165,6 @@
                                     @foreach ($headerCategories as $mCat)
                                         <a href="{{ route('book.index', ['category' => $mCat->slug]) }}" class="d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none text-dark bg-white hover-bg-light transition-all shadow-2xs" style="font-size: 12.5px;">
                                             <span class="d-flex align-items-center gap-2 text-truncate">
-                                                <i class="fa-solid fa-book-bookmark text-primary" style="font-size: 11px;"></i>
                                                 <span class="text-truncate fw-medium">{{ $mCat->name }}</span>
                                             </span>
                                             @if(isset($mCat->books_count) && $mCat->books_count > 0)
@@ -1283,30 +1185,26 @@
         {{-- 4. SPECIAL DEALS & FESTIVAL STRIP --}}
         <div class="mb-3">
             <div class="text-uppercase fw-bold text-muted px-1 mb-1.5" style="font-size: 10.5px; letter-spacing: 0.6px;">
-                <i class="fa-solid fa-tags text-warning me-1"></i> অফার
+                অফার
             </div>
             <div class="row g-2">
                 <div class="col-6">
-                    <a href="{{ route('book.index', ['filter' => 'boimela-2026']) }}" class="btn btn-outline-danger btn-sm rounded-4 w-100 py-2 px-2 d-flex align-items-center justify-content-center gap-1.5 text-nowrap fw-bold shadow-2xs hover-shadow" style="font-size: 12px; background: #fff5f5;">
-                        <i class="fa-solid fa-fire text-danger"></i>
+                    <a href="{{ route('book.index', ['filter' => 'boimela-2026']) }}" class="btn btn-outline-danger btn-sm rounded-4 w-100 py-2 px-2 d-flex align-items-center justify-content-center text-nowrap fw-bold shadow-2xs hover-shadow" style="font-size: 12px; background: #fff5f5;">
                         <span>Fair 2026</span>
                     </a>
                 </div>
                 <div class="col-6">
-                    <a href="{{ route('book.index', ['filter' => 'mega-discount']) }}" class="btn btn-outline-warning btn-sm rounded-4 w-100 py-2 px-2 d-flex align-items-center justify-content-center gap-1.5 text-nowrap fw-bold text-dark shadow-2xs hover-shadow" style="font-size: 12px; background: #fffdf0;">
-                        <i class="fa-solid fa-tags text-warning"></i>
+                    <a href="{{ route('book.index', ['filter' => 'mega-discount']) }}" class="btn btn-outline-warning btn-sm rounded-4 w-100 py-2 px-2 d-flex align-items-center justify-content-center text-nowrap fw-bold text-dark shadow-2xs hover-shadow" style="font-size: 12px; background: #fffdf0;">
                         <span>Mega Sale</span>
                     </a>
                 </div>
                 <div class="col-6">
-                    <a href="{{ route('book.index', ['category' => 'pshcimbnger-bi']) }}" class="btn btn-outline-primary btn-sm rounded-4 w-100 py-2 px-2 d-flex align-items-center justify-content-center gap-1.5 text-nowrap fw-bold shadow-2xs hover-shadow" style="font-size: 12px; background: #f0f9ff;">
-                        <i class="fa-solid fa-book text-primary"></i>
+                    <a href="{{ route('book.index', ['category' => 'pshcimbnger-bi']) }}" class="btn btn-outline-primary btn-sm rounded-4 w-100 py-2 px-2 d-flex align-items-center justify-content-center text-nowrap fw-bold shadow-2xs hover-shadow" style="font-size: 12px; background: #f0f9ff;">
                         <span>Bengal</span>
                     </a>
                 </div>
                 <div class="col-6">
-                    <a href="{{ route('book.index', ['filter' => 'free-shipping']) }}" class="btn btn-outline-success btn-sm rounded-4 w-100 py-2 px-2 d-flex align-items-center justify-content-center gap-1.5 text-nowrap fw-bold shadow-2xs hover-shadow" style="font-size: 12px; background: #f0fdf4;">
-                        <i class="fa-solid fa-truck-fast text-success"></i>
+                    <a href="{{ route('book.index', ['filter' => 'free-shipping']) }}" class="btn btn-outline-success btn-sm rounded-4 w-100 py-2 px-2 d-flex align-items-center justify-content-center text-nowrap fw-bold shadow-2xs hover-shadow" style="font-size: 12px; background: #f0fdf4;">
                         <span>Free Ship</span>
                     </a>
                 </div>
@@ -1317,7 +1215,6 @@
         <div class="mb-3">
             <a href="{{ route('blog.write') }}" class="btn btn-warning rounded-4 fw-bold text-dark w-100 py-2.5 px-3 d-flex align-items-center justify-content-between shadow-sm hover-shadow" style="font-size: 13.5px; background: linear-gradient(135deg, #fef08a 0%, #facc15 100%);">
                 <span class="d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-pen-nib text-dark fs-6"></i>
                     <span>Publish</span>
                 </span>
                 <i class="fa-solid fa-arrow-right small text-dark opacity-75"></i>

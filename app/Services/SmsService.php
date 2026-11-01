@@ -39,11 +39,21 @@ class SmsService
         $settings = \App\Support\SiteSetting::get('sms_gateway_settings', []);
         $settings = is_array($settings) ? $settings : [];
 
+        $dbApiKey = !empty($settings['api_key']) ? trim((string) \App\Support\Secret::open($settings['api_key'])) : '';
+        if ($dbApiKey === '' || in_array(strtolower($dbApiKey), ['your_sms_api_key', 'your_api_key', 'api_key_here'], true)) {
+            $dbApiKey = '';
+        }
+
+        $dbSenderId = trim((string) ($settings['sender_id'] ?? ''));
+        if ($dbSenderId === '' || in_array(strtolower($dbSenderId), ['your_sender_id', 'your_sms_api_key', 'sender_id_here'], true)) {
+            $dbSenderId = '';
+        }
+
         $creds = [
             'provider'  => $settings['provider'] ?? env('SMS_GATEWAY_PROVIDER', 'bulksmsbd'),
             'url'       => $settings['url'] ?? env('SMS_GATEWAY_URL', self::DEFAULT_API_URL),
-            'api_key'   => !empty($settings['api_key']) ? \App\Support\Secret::open($settings['api_key']) : env('SMS_GATEWAY_API_KEY', env('BULKSMSBD_API_KEY', self::DEFAULT_API_KEY)),
-            'sender_id' => $settings['sender_id'] ?? env('SMS_GATEWAY_SENDER_ID', env('BULKSMSBD_SENDER_ID', self::DEFAULT_SENDER_ID)),
+            'api_key'   => $dbApiKey !== '' ? $dbApiKey : env('SMS_GATEWAY_API_KEY', env('BULKSMSBD_API_KEY', self::DEFAULT_API_KEY)),
+            'sender_id' => $dbSenderId !== '' ? $dbSenderId : env('SMS_GATEWAY_SENDER_ID', env('BULKSMSBD_SENDER_ID', self::DEFAULT_SENDER_ID)),
             'client_id' => $settings['client_id'] ?? env('ALAAP_SMS_CLIENT_ID', ''),
         ];
 
@@ -101,6 +111,64 @@ class SmsService
     public static function send($recipient, string $message, array $options = []): array
     {
         return self::sendOneToMany($recipient, $message, $options);
+    }
+
+    /**
+     * Dispatch an SMS without blocking the HTTP response, even on servers without fastcgi_finish_request (e.g. Windows / cli-server).
+     */
+    public static function sendAsync($recipient, string $message, array $options = []): void
+    {
+        if (
+            !app()->runningUnitTests()
+            && !function_exists('fastcgi_finish_request')
+            && !function_exists('litespeed_finish_request')
+            && function_exists('popen')
+        ) {
+            try {
+                $tmpFile = storage_path('framework/cache/sms_async_' . \Illuminate\Support\Str::random(16) . '.json');
+                @file_put_contents($tmpFile, json_encode([
+                    'r' => $recipient,
+                    'm' => $message,
+                    'o' => $options,
+                ], JSON_UNESCAPED_UNICODE));
+
+                $phpBin = defined('PHP_BINARY') && PHP_BINARY ? PHP_BINARY : 'php';
+                $basePath = base_path();
+                $runner = 'require ' . var_export($basePath . '/vendor/autoload.php', true) . ';'
+                    . '$app = require ' . var_export($basePath . '/bootstrap/app.php', true) . ';'
+                    . '$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();'
+                    . '$f = $argv[1] ?? "";'
+                    . 'if ($f && is_file($f)) { $d = json_decode((string) @file_get_contents($f), true); @unlink($f); if (is_array($d)) { \App\Services\SmsService::send($d["r"] ?? "", (string) ($d["m"] ?? ""), (array) ($d["o"] ?? [])); } }';
+
+                if (PHP_OS_FAMILY === 'Windows') {
+                    $cmd = 'start /B "" ' . escapeshellarg($phpBin) . ' -r ' . escapeshellarg($runner) . ' ' . escapeshellarg($tmpFile) . ' > NUL 2>&1';
+                } else {
+                    $cmd = escapeshellarg($phpBin) . ' -r ' . escapeshellarg($runner) . ' ' . escapeshellarg($tmpFile) . ' > /dev/null 2>&1 &';
+                }
+
+                $handle = @popen($cmd, 'r');
+                if (is_resource($handle)) {
+                    @pclose($handle);
+                    return;
+                }
+                @unlink($tmpFile);
+            } catch (\Throwable $e) {
+                Log::warning('Async SMS spawn fallback: ' . $e->getMessage());
+            }
+        }
+
+        defer(function () use ($recipient, $message, $options) {
+            try {
+                if (function_exists('fastcgi_finish_request')) {
+                    @fastcgi_finish_request();
+                } elseif (function_exists('litespeed_finish_request')) {
+                    @litespeed_finish_request();
+                }
+                self::send($recipient, $message, $options);
+            } catch (\Throwable $e) {
+                Log::warning('Deferred SMS failed: ' . $e->getMessage());
+            }
+        });
     }
 
     /**
@@ -322,7 +390,7 @@ class SmsService
                 ];
 
                 try {
-                    $response = Http::timeout(12)->asForm()->post($apiUrl, $payload);
+                    $response = Http::connectTimeout(4)->timeout(8)->asForm()->post($apiUrl, $payload);
                 } catch (ConnectionException $connEx) {
                     // The request never reached the gateway (DNS/TLS/socket problem), so it is safe to try the native client once.
                     $rawCurl = self::executeCurl($apiUrl, $payload);
@@ -349,15 +417,15 @@ class SmsService
                     'message'   => $message,
                     'type'      => $smsType,
                 ];
-                $response = Http::timeout(12)->withToken($apiKey)->asJson()->post($url, $payload);
+                $response = Http::connectTimeout(4)->timeout(8)->withToken($apiKey)->asJson()->post($url, $payload);
             } elseif ($provider === 'greenweb') {
-                $response = Http::timeout(10)->post($url, [
+                $response = Http::connectTimeout(4)->timeout(8)->post($url, [
                     'token'   => $apiKey,
                     'to'      => $formattedNumbers,
                     'message' => $message,
                 ]);
             } else {
-                $response = Http::timeout(10)->post($url, [
+                $response = Http::connectTimeout(4)->timeout(8)->post($url, [
                     'api_key'  => $apiKey,
                     'senderid' => $senderId,
                     'number'   => $formattedNumbers,
@@ -483,13 +551,16 @@ class SmsService
                 'checked_at'    => now()->toDateTimeString(),
             ];
             if ($balance === null) {
-                $result['error'] = $json['error_message'] ?? self::getResponseCodeMessage($json['response_code'] ?? null, 'গেটওয়ে থেকে ব্যালান্স পাওয়া যায়নি');
+            $result['error'] = $json['error_message'] ?? self::getResponseCodeMessage($json['response_code'] ?? null, 'গেটওয়ে থেকে ব্যালান্স পাওয়া যায়নি');
+            Cache::put(self::BALANCE_CACHE_KEY, $result, 60);
 
-                return $result; // not cached: the next page load tries again
-            }
-        } catch (\Throwable $e) {
-            return ['success' => false, 'error' => 'গেটওয়েতে কানেক্ট করা যায়নি', 'balance' => null];
+            return $result;
         }
+    } catch (\Throwable $e) {
+        $errResult = ['success' => false, 'error' => 'গেটওয়েতে কানেক্ট করা যায়নি', 'balance' => null, 'checked_at' => now()->toDateTimeString()];
+        Cache::put(self::BALANCE_CACHE_KEY, $errResult, 60);
+        return $errResult;
+    }
 
         self::recordBalance($balance);
         Cache::put(self::BALANCE_CACHE_KEY, $result, 600);
@@ -873,7 +944,8 @@ BASH,
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
         $response = curl_exec($ch);
         curl_close($ch);
         return $response ?: '';

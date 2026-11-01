@@ -349,17 +349,19 @@ class PublicEventRegistrationController extends Controller
         [$customRules, $customAttributes] = $this->customFieldRules($campaign);
         $validated = $request->validate($rules + $customRules, [], $customAttributes);
 
-        // Photo: mandatory for writers and scholarship applicants; whatever is sent must be a real, reasonably sized image.
+        // Photo: mandatory when configured as required; whatever is sent must be a real, reasonably sized image.
+        $photoReqMode = $campaign->form_settings['photo_required'] ?? 'required';
+        $isPhotoMandatory = ($isWriter && $photoReqMode === 'required') || $isScholarship;
         $hasPhotoData = $request->filled('optimized_photo_data') || $request->hasFile('student_photo');
         if ($hasPhotoData && !$this->photoIsReadable($request)) {
-            return back()->withInput()->with('error', 'The photo could not be read. Please choose a JPG, PNG or WebP picture.');
+            return back()->withInput()->with('error', $isScholarship ? 'The photo could not be read. Please choose a JPG, PNG or WebP picture.' : 'ছবিটি পড়া যায়নি। অনুগ্রহ করে একটি বৈধ JPG, PNG বা WebP ছবি নির্বাচন করুন।');
         }
-        if (($isWriter || $isScholarship) && !$hasPhotoData) {
+        if ($isPhotoMandatory && !$hasPhotoData) {
             $hasEarlierEntry = EventRegistration::where('event_campaign_id', $campaign->id)
                 ->whereIn('phone', PhoneNormalizer::normalize($validated['phone'], $request->input('country_code'))['query_phones'])
                 ->exists();
             if (!$hasEarlierEntry) {
-                return back()->withInput()->with('error', 'Please upload a passport-size photo to complete the registration (photo is mandatory).');
+                return back()->withInput()->with('error', $isScholarship ? 'Please upload a passport-size photo to complete the registration (photo is mandatory).' : 'নিবন্ধন সম্পন্ন করতে অনুগ্রহ করে আপনার ছবি যুক্ত করুন (ছবি আবশ্যক)।');
             }
         }
 
@@ -547,7 +549,13 @@ class PublicEventRegistrationController extends Controller
 
         $authorCatVal = is_array($request->input('author_categories')) ? implode(', ', $request->input('author_categories')) : $request->input('author_category');
         $institution = $validated['institution_or_org'] ?? ($request->input('organization_name') ?: ($request->input('library_name') ?: ($request->input('college_name') ?: ($request->input('magazine_name') ?: null))));
-        $designation = $validated['designation_or_class'] ?? ($authorCatVal ?: ($request->input('art_medium') ?: ($request->input('library_type') ?: ($request->input('assigned_subject') ?: ($request->input('group') ?: null)))));
+        if ($isWriter && $authorCatVal === 'শিল্পী') {
+            $designation = $request->input('art_medium') ?: ($validated['designation_or_class'] ?? 'শিল্পী');
+        } elseif ($isWriter && $authorCatVal === 'সংগঠক') {
+            $designation = $validated['designation_or_class'] ?? 'সংগঠক';
+        } else {
+            $designation = $validated['designation_or_class'] ?? ($authorCatVal ?: ($request->input('art_medium') ?: ($request->input('library_type') ?: ($request->input('assigned_subject') ?: ($request->input('group') ?: null)))));
+        }
         $address = $validated['address'] ?? ($request->input('foreign_address') ?: ($request->input('library_address') ?: ($request->input('present_address') ?: ($request->input('permanent_address') ?: null))));
         $district = $validated['district'] ?? ($request->input('state_or_city') ?: ($request->input('district') ?: ($request->input('present_district') ?: ($request->input('permanent_district') ?: null))));
 
@@ -638,14 +646,8 @@ class PublicEventRegistrationController extends Controller
             } else {
                 $smsText = "আইডিয়া প্রকাশন — '{$campaign->title}'-এ আপনার আবেদন সফল হয়েছে! Reg No: #{$regNumber}। কার্ড ডাউনলোড লিংক: {$downloadUrl} । www.ideaabd.com";
             }
-            // the SMS gateway can take many seconds: send after the visitor already has their page
-            defer(function () use ($localPhone, $smsText) {
-                try {
-                    \App\Services\SmsService::send($localPhone, $smsText);
-                } catch (\Throwable $e) {
-                    Log::warning("Event SMS error: " . $e->getMessage());
-                }
-            });
+            // the SMS gateway can take many seconds: send asynchronously after the visitor already has their page
+            \App\Services\SmsService::sendAsync($localPhone, $smsText);
         } catch (\Throwable $e) {
             Log::warning("Event SMS error: " . $e->getMessage());
         }

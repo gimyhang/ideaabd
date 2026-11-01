@@ -1,6 +1,6 @@
 @php
     $type = $type ?? 'sidebar'; // 'sidebar', 'video-shorts', 'in-article', 'sticky-anchor', 'multiplex', 'compact-banner'
-    $adSettings = \Illuminate\Support\Facades\Schema::hasTable('admin_dashboard_settings')
+    $adSettings = \App\Support\SchemaCache::has('admin_dashboard_settings')
         ? \App\Models\AdminDashboardSetting::where('key', 'advertisement_settings')->value('value')
         : null;
     $adClient = $adSettings['google_adsense_client'] ?? config('services.google_adsense.client_id') ?? env('GOOGLE_ADSENSE_CLIENT_ID', 'ca-pub-4534355865737776');

@@ -90,7 +90,7 @@ class OrderController extends Controller
         $validated['discount_amount'] = max(0, floatval(($book->price - $unitPrice) * $quantity));
         $validated['total_amount'] = $totalAmount;
         $validated['payment_method'] = $validated['payment_method'] ?? 'cod';
-        $validated['payment_status'] = (!empty($validated['transaction_id']) && in_array($validated['payment_method'], ['bkash', 'nagad', 'rocket'])) ? 'paid' : 'pending';
+        $validated['payment_status'] = 'pending';
         $validated['status'] = 'pending';
         $validated['user_id'] = auth()->id();
 
@@ -105,7 +105,9 @@ class OrderController extends Controller
                 $validated['affiliate_id'] = $affiliate->id;
                 $commission = $subtotal * 0.05; // 5% commission
                 $validated['commission_amount'] = $commission;
-                $affiliate->increment('affiliate_balance', $commission);
+                if (Schema::hasColumn('users', 'affiliate_balance')) {
+                    $affiliate->increment('affiliate_balance', $commission);
+                }
             }
         }
 

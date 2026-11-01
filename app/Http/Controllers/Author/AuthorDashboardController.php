@@ -15,6 +15,23 @@ use Modules\Ebook\Models\Ebook;
 
 class AuthorDashboardController extends Controller
 {
+    /** Public author caches plus the admin dashboard counters that show "profile updated" alerts. */
+    protected function forgetAuthorCaches(): void
+    {
+        try {
+            foreach ([
+                'authors_directory_all',
+                'featured_authors_home',
+                'admin_dash_pending_alerts',
+                'admin_dash_pending_records_10',
+                'admin_sidebar_pending_badges',
+            ] as $key) {
+                \Illuminate\Support\Facades\Cache::forget($key);
+            }
+        } catch (\Throwable $e) {
+        }
+    }
+
     /**
      * Get Base Query for Blog Posts belonging to the author or matched by owner info.
      */
@@ -78,10 +95,17 @@ class AuthorDashboardController extends Controller
         // 1. Author's Ebooks stats
         $ebooksQuery = $this->getAuthorEbooksBaseQuery($user, $author);
 
-        $totalEbooks = (clone $ebooksQuery)->count();
-        $publishedEbooks = (clone $ebooksQuery)->where('mod_status', 'approved')->where('is_active', true)->count();
-        $pendingEbooks = (clone $ebooksQuery)->where('mod_status', 'pending')->count();
-        $rejectedEbooks = (clone $ebooksQuery)->where('mod_status', 'rejected')->count();
+        $ebookAgg = (clone $ebooksQuery)->toBase()->selectRaw(
+            "COUNT(*) AS total,
+             COALESCE(SUM(CASE WHEN mod_status = 'approved' AND is_active = 1 THEN 1 ELSE 0 END), 0) AS published,
+             COALESCE(SUM(CASE WHEN mod_status = 'pending' THEN 1 ELSE 0 END), 0) AS pending,
+             COALESCE(SUM(CASE WHEN mod_status = 'rejected' THEN 1 ELSE 0 END), 0) AS rejected"
+        )->first();
+
+        $totalEbooks = (int) ($ebookAgg->total ?? 0);
+        $publishedEbooks = (int) ($ebookAgg->published ?? 0);
+        $pendingEbooks = (int) ($ebookAgg->pending ?? 0);
+        $rejectedEbooks = (int) ($ebookAgg->rejected ?? 0);
 
         // 2. Royalty Stats (E-books)
         $royaltiesQuery = AuthorRoyalty::where(function ($q) use ($user, $author) {
@@ -91,11 +115,13 @@ class AuthorDashboardController extends Controller
             }
         });
 
-        $totalRoyaltyEarned = (clone $royaltiesQuery)->where('status', '!=', 'refunded')->sum('royalty_amount');
-        $totalCopiesSold = (clone $royaltiesQuery)->where('status', '!=', 'refunded')->count();
+        $royaltyAgg = (clone $royaltiesQuery)->toBase()->where('status', '!=', 'refunded')
+            ->selectRaw('COALESCE(SUM(royalty_amount), 0) AS earned, COUNT(*) AS copies')->first();
+        $totalRoyaltyEarned = (float) ($royaltyAgg->earned ?? 0);
+        $totalCopiesSold = (int) ($royaltyAgg->copies ?? 0);
 
         // 3. IdeaPatra Reader Honorariums (পড়ে ভালো লাগা সম্মানি)
-        $hasHonorariumTable = \Illuminate\Support\Facades\Schema::hasTable('author_honorariums');
+        $hasHonorariumTable = \App\Support\SchemaCache::has('author_honorariums');
         $totalHonorariumEarned = 0.00;
         $totalHonorariumCount = 0;
         $recentHonorariums = collect();
@@ -108,8 +134,10 @@ class AuthorDashboardController extends Controller
                 }
             });
 
-            $totalHonorariumEarned = (clone $honorariumsQuery)->where('payment_status', 'completed')->sum('author_amount');
-            $totalHonorariumCount = (clone $honorariumsQuery)->where('payment_status', 'completed')->count();
+            $honAgg = (clone $honorariumsQuery)->toBase()->where('payment_status', 'completed')
+                ->selectRaw('COALESCE(SUM(author_amount), 0) AS earned, COUNT(*) AS cnt')->first();
+            $totalHonorariumEarned = (float) ($honAgg->earned ?? 0);
+            $totalHonorariumCount = (int) ($honAgg->cnt ?? 0);
             $recentHonorariums = (clone $honorariumsQuery)->with('post')->latest('id')->take(6)->get();
         }
 
@@ -135,10 +163,16 @@ class AuthorDashboardController extends Controller
         // 7. IdeaPatra (Blog Articles) Stats & Recent Posts
         $postsQuery = $this->getAuthorPostsBaseQuery($user, $author);
 
-        $totalPosts = (clone $postsQuery)->count();
-        $publishedPosts = (clone $postsQuery)->where('status', 'published')->count();
-        $pendingPosts = (clone $postsQuery)->where('status', 'pending')->count();
-        $draftPosts = (clone $postsQuery)->where('status', 'draft')->count();
+        $postAgg = (clone $postsQuery)->toBase()->selectRaw(
+            "COUNT(*) AS total,
+             COALESCE(SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END), 0) AS published,
+             COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) AS pending,
+             COALESCE(SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END), 0) AS draft"
+        )->first();
+        $totalPosts = (int) ($postAgg->total ?? 0);
+        $publishedPosts = (int) ($postAgg->published ?? 0);
+        $pendingPosts = (int) ($postAgg->pending ?? 0);
+        $draftPosts = (int) ($postAgg->draft ?? 0);
         $recentPosts = (clone $postsQuery)->with('category')->latest('id')->take(5)->get();
 
         return view('author.dashboard', compact(
@@ -338,9 +372,8 @@ class AuthorDashboardController extends Controller
                         'is_verified' => true,
                     ]);
                 } else {
+                    // Never re-enable or re-verify here: activation and verification belong to the admin only.
                     $author->avatar = $avatarPath;
-                    $author->is_active = true;
-                    $author->is_verified = true;
                     if (empty($author->user_id)) {
                         $author->user_id = $user->id;
                     }
@@ -348,11 +381,8 @@ class AuthorDashboardController extends Controller
                 }
             });
 
-            // Clear author cache
-            try {
-                \Illuminate\Support\Facades\Cache::forget('authors_directory_all');
-                \Illuminate\Support\Facades\Cache::forget('featured_authors_home');
-            } catch (\Throwable $e) {}
+            // Clear author cache and refresh the admin "pending profile updates" counters
+            $this->forgetAuthorCaches();
 
             $fullUrl = asset('storage/' . ltrim($avatarPath, '/'));
 
@@ -507,8 +537,7 @@ class AuthorDashboardController extends Controller
                         $author->payout_account_details = $request->input('payout_number');
                     }
                     $author->social_links = !empty($socialLinks) ? $socialLinks : null;
-                    $author->is_active = true;
-                    $author->is_verified = true;
+                    // is_active / is_verified are admin-controlled and are intentionally left untouched.
                     $author->user_id = $user->id;
                     if (!empty($user->avatar)) {
                         $author->avatar = $user->avatar;
@@ -517,11 +546,8 @@ class AuthorDashboardController extends Controller
                 }
             });
 
-            // Clear author cache
-            try {
-                \Illuminate\Support\Facades\Cache::forget('authors_directory_all');
-                \Illuminate\Support\Facades\Cache::forget('featured_authors_home');
-            } catch (\Throwable $e) {}
+            // Clear author cache and refresh the admin "pending profile updates" counters
+            $this->forgetAuthorCaches();
 
             $user->refresh();
 

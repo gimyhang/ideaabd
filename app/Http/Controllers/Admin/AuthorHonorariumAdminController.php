@@ -118,7 +118,29 @@ class AuthorHonorariumAdminController extends Controller
                 if ($oldStatus === 'completed' && in_array($newStatus, ['rejected', 'refunded'], true)) {
                     $honorarium->author->decrement('wallet_balance', $honorarium->author_amount);
                 } elseif ($oldStatus !== 'completed' && $newStatus === 'completed') {
-                    $honorarium->author->increment('wallet_balance', $honorarium->author_amount);
+                    if ($honorarium->author_amount > 0) {
+                        $honorarium->author->increment('wallet_balance', $honorarium->author_amount);
+                    }
+                    if (class_exists('\App\Models\IdeaAccountingEntry')) {
+                        $exists = \App\Models\IdeaAccountingEntry::where('category', 'author_honorarium_reader_tip')
+                            ->where('voucher_no', $honorarium->trx_id)
+                            ->exists();
+                        if (!$exists) {
+                            \App\Models\IdeaAccountingEntry::create([
+                                'entry_no'       => 'INC-' . date('Ymd') . '-' . rand(1000, 9999),
+                                'type'           => 'income',
+                                'category'       => 'author_honorarium_reader_tip',
+                                'title'          => "পাঠক সম্মানি: {$honorarium->author?->name} (পোস্ট: {$honorarium->post?->title})",
+                                'amount'         => $honorarium->amount,
+                                'entry_date'     => now()->toDateString(),
+                                'voucher_no'     => $honorarium->trx_id,
+                                'payment_method' => $honorarium->payment_method ?: 'bkash',
+                                'party_name'     => $honorarium->donor_name ?: 'সম্মানিত পাঠক',
+                                'notes'          => "সম্মানি মোট: ৳{$honorarium->amount} (লেখক: ৳{$honorarium->author_amount}, প্ল্যাটফর্ম ফি: ৳{$honorarium->platform_fee}) | TrxID: {$honorarium->trx_id}",
+                                'created_by'     => auth()->id() ?? 1,
+                            ]);
+                        }
+                    }
                 }
             }
         });

@@ -35,11 +35,9 @@ class AdminController extends Controller
 
         $systemNotice = null;
         try {
-            if (\App\Support\SchemaCache::has('admin_dashboard_settings')) {
-                $setting = \App\Models\AdminDashboardSetting::where('key', 'system_notice')->first();
-                if ($setting && ! empty($setting->value['active'])) {
-                    $systemNotice = $setting->value;
-                }
+            $noticeVal = \App\Support\SiteSetting::get('system_notice');
+            if (is_array($noticeVal) && ! empty($noticeVal['active'])) {
+                $systemNotice = $noticeVal;
             }
         } catch (\Throwable) {}
 
@@ -68,39 +66,9 @@ class AdminController extends Controller
         }
 
         try {
-            $recentBills = $this->dashboard->recentBills(6);
-        } catch (\Throwable) {
-            $recentBills = collect([]);
-        }
-
-        try {
-            $pendingRegs = $this->dashboard->recentRegistrations(5);
-        } catch (\Throwable) {
-            $pendingRegs = collect([]);
-        }
-
-        try {
-            $topSellers = $this->dashboard->topSellers(5);
-        } catch (\Throwable) {
-            $topSellers = collect([]);
-        }
-
-        try {
             $sellersSummary = $this->dashboard->sellersSummary(8);
         } catch (\Throwable) {
             $sellersSummary = collect([]);
-        }
-
-        try {
-            $systemHealth = $this->accessService->systemHealth();
-        } catch (\Throwable) {
-            $systemHealth = ['db' => true, 'storage' => true, 'cache' => true];
-        }
-
-        try {
-            $activityLogs = $this->accessService->recentLogs(8);
-        } catch (\Throwable) {
-            $activityLogs = collect([]);
         }
 
         $pendingData = [];
@@ -126,13 +94,8 @@ class AdminController extends Controller
             'salesChart'     => $salesChart,
             'visitorChart'   => $visitorChart,
             'recentOrders'   => $recentOrders,
-            'recentBills'    => $recentBills,
-            'pendingRegs'    => $pendingRegs,
-            'pendingData'    => $pendingData,
-            'topSellers'     => $topSellers,
             'sellersSummary' => $sellersSummary,
-            'systemHealth'   => $systemHealth,
-            'activityLogs'   => $activityLogs,
+            'pendingData'    => $pendingData,
             'systemNotice'   => $systemNotice,
             'smsInfo'        => $smsInfo,
             'currentPeriod'  => $period,
@@ -238,6 +201,7 @@ class AdminController extends Controller
                         $message = "অর্ডার #{$order->order_number} সফলভাবে কনফার্ম ও প্রসেসিংয়ে নেওয়া হয়েছে।";
                     } elseif ($action === 'complete') {
                         $order->update(['status' => 'completed', 'payment_status' => 'paid']);
+                        \App\Services\RoyaltyService::processOrderRoyalties($order);
                         $message = "অর্ডার #{$order->order_number} সম্পন্ন (Completed) হিসেবে চিহ্নিত করা হয়েছে।";
                     } elseif ($action === 'reject') {
                         $order->update(['status' => 'cancelled']);
@@ -382,10 +346,16 @@ class AdminController extends Controller
                     break;
             }
 
-            // Clear cached pending alerts to return fresh data
+            // Clear cached pending alerts and records to return fresh data
             \Illuminate\Support\Facades\Cache::forget('admin_pending_registrations_count');
             \Illuminate\Support\Facades\Cache::forget('admin_dash_pending_alerts');
             \Illuminate\Support\Facades\Cache::forget('admin_sidebar_pending_badges');
+            foreach ([5, 10, 15, 20, 50] as $lim) {
+                \Illuminate\Support\Facades\Cache::forget('admin_dash_pending_records_' . $lim);
+            }
+            foreach (['all', 'today', 'yesterday', 'week', 'month', 'year'] as $p) {
+                \Illuminate\Support\Facades\Cache::forget('admin_dash_filtered_stats_' . md5('__' . $p));
+            }
 
             // Fresh counts
             $newAlerts = $this->dashboard->getPendingAlerts();
@@ -467,6 +437,10 @@ class AdminController extends Controller
     public function dashboardPendingData(Request $request): \Illuminate\Http\JsonResponse
     {
         $limit = in_array((int)$request->input('limit'), [5, 10, 20, 50], true) ? (int)$request->input('limit') : 15;
+        \Illuminate\Support\Facades\Cache::forget('admin_dash_pending_alerts');
+        \Illuminate\Support\Facades\Cache::forget('admin_dash_pending_records_' . $limit);
+        \Illuminate\Support\Facades\Cache::forget('admin_sidebar_pending_badges');
+
         $data = $this->dashboard->getPendingRecordsData($limit);
         $alerts = $this->dashboard->getPendingAlerts();
 
@@ -512,9 +486,17 @@ class AdminController extends Controller
             'quantity' => 'required|integer|min:0|max:100000',
         ]);
 
+        $qty = (int) $validated['quantity'];
         $book = \Modules\Book\Models\Book::findOrFail($validated['book_id']);
-        $book->stock_quantity = $validated['quantity'];
+        $book->stock_quantity = $qty;
+        if (\App\Support\SchemaCache::hasColumn('books', 'stock_status')) {
+            $book->stock_status = $qty <= 0 ? 'out' : ($qty <= 5 ? 'low' : 'in_stock');
+        }
         $book->save();
+
+        foreach (['all', 'today', 'yesterday', 'week', 'month', 'year'] as $p) {
+            \Illuminate\Support\Facades\Cache::forget('admin_dash_filtered_stats_' . md5('__' . $p));
+        }
 
         return response()->json([
             'success' => true,
@@ -856,6 +838,9 @@ class AdminController extends Controller
 
         $validated['is_gift'] = $request->boolean('is_gift');
         $order->update($validated);
+        if ($validated['payment_status'] === 'paid') {
+            \App\Services\RoyaltyService::processOrderRoyalties($order);
+        }
 
         $this->accessService->log('order_update', "অর্ডার #{$order->order_number} তথ্য আপডেট করা হয়েছে");
 
@@ -873,6 +858,10 @@ class AdminController extends Controller
             'courier_name' => 'nullable|string|max:100',
             'tracking_code' => 'nullable|string|max:100',
         ]);
+
+        if ($validated['status'] === 'delivered' && $order->payment_status !== 'paid') {
+            $validated['payment_status'] = 'paid';
+        }
 
         $order->update($validated);
         $this->accessService->log('order_status_update', "অর্ডার #{$order->order_number} স্ট্যাটাস পরিবর্তন: {$order->status}");
@@ -2263,7 +2252,7 @@ class AdminController extends Controller
                 $searchData = $this->parseSearchKeywords($term);
                 $tokens = $searchData['tokens'];
                 if (!empty($tokens)) {
-                    $query->where(function ($master) use ($tokens) {
+                    $q->where(function ($master) use ($tokens) {
                         foreach ($tokens as $token) {
                             $like = '%' . $token . '%';
                             $master->where(function ($w) use ($like) {
@@ -2832,7 +2821,59 @@ class AdminController extends Controller
     {
         $publisher = \Modules\Publisher\Models\Publisher::findOrFail($id);
 
-         $isIdea = (str_contains($publisher->name, 'আইডিয়া') || $publisher->slug === 'ideaprokashon' || $publisher->id === 2);
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'slug'        => 'nullable|string|max:255|unique:publishers,slug,' . $publisher->id,
+            'phone'       => 'nullable|string|max:50',
+            'email'       => 'nullable|email|max:255',
+            'address'     => 'nullable|string|max:500',
+            'website'     => 'nullable|url|max:255',
+            'description' => 'nullable|string|max:2000',
+            'is_active'   => 'nullable|boolean',
+            'logo_file'   => 'nullable|image|max:3072',
+        ]);
+
+        $updates = [
+            'name'        => $validated['name'],
+            'phone'       => $validated['phone'] ?? null,
+            'email'       => $validated['email'] ?? null,
+            'address'     => $validated['address'] ?? null,
+            'website'     => $validated['website'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'is_active'   => $request->boolean('is_active'),
+        ];
+
+        if (!empty($validated['slug'])) {
+            $updates['slug'] = \Illuminate\Support\Str::slug($validated['slug']);
+        }
+
+        if ($request->hasFile('logo_file')) {
+            $updates['logo'] = \App\Services\ImageOptimizerService::convertAndStore($request->file('logo_file'), 'publishers/logos', 'public');
+        }
+
+        $publisher->update($updates);
+
+        $this->accessService->log('publisher_quick_update', "প্রকাশক '{$publisher->name}' এর তথ্য আপডেট করা হয়েছে");
+
+        return response()->json([
+            'success'   => true,
+            'message'   => "প্রকাশক '{$publisher->name}' এর তথ্য সফলভাবে আপডেট হয়েছে!",
+            'publisher' => $publisher,
+        ]);
+    }
+
+    public function publisherShow(Request $request, $id): View
+    {
+        $publisher = \Modules\Publisher\Models\Publisher::withCount('books')->findOrFail($id);
+
+        $tab = $request->string('tab')->trim()->value() ?: 'books';
+        $search = $request->string('search')->trim()->value();
+        $stock = $request->string('stock')->trim()->value();
+        $category = $request->input('category_id');
+        $sort = $request->string('sort')->trim()->value() ?: 'latest';
+        $perPage = in_array((int) $request->input('per_page'), [10, 20, 50, 100, 200], true) ? (int) $request->input('per_page') : 20;
+
+        $isIdea = (str_contains($publisher->name, 'আইডিয়া') || $publisher->slug === 'ideaprokashon' || $publisher->id === 2);
 
         $booksQuery = \Modules\Book\Models\Book::query()
             ->with(['authorLink', 'authors', 'category'])
@@ -2922,105 +2963,6 @@ class AdminController extends Controller
             'total_po_paid'    => (float) \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)->sum('paid_amount'),
             'total_po_due'     => (float) \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)->sum('due_amount'),
             'total_sold_copies'=> (int) \Modules\Book\Models\Book::where(fn($q) => $isIdea ? $q->where('publisher_id', $publisher->id)->orWhereNull('publisher_id') : $q->where('publisher_id', $publisher->id))->sum('sales_count'),
-            'total_payments'   => \App\Models\PublisherPayment::where('publisher_id', $publisher->id)->count(),
-        ];is->accessService->log('publisher_quick_payment', "প্রকাশক '{$publisher->name}' কে ৳{$validated['amount']} পরিশোধ রেকর্ড করা হয়েছে (#{$paymentNo})");
-
-        return response()->json([
-            'success'    => true,
-            'message'    => "৳" . number_format($validated['amount'], 2) . " পরিশোধ সফলভাবে রেকর্ড করা হয়েছে (ভাউচার #{$paymentNo})!",
-            'payment_no' => $paymentNo,
-        ]);
-    }
-
-    public function publisherShow(Request $request, $id): View
-    {
-        $publisher = \Modules\Publisher\Models\Publisher::withCount('books')->findOrFail($id);
-
-        $tab = $request->string('tab')->trim()->value() ?: 'books';
-        $search = $request->string('search')->trim()->value();
-        $stock = $request->string('stock')->trim()->value();
-        $category = $request->input('category_id');
-        $sort = $request->string('sort')->trim()->value() ?: 'latest';
-        $perPage = in_array((int) $request->input('per_page'), [10, 20, 50, 100, 200], true) ? (int) $request->input('per_page') : 20;
-
-        $booksQuery = \Modules\Book\Models\Book::query()
-            ->with(['authorLink', 'authors', 'category'])
-            ->where('publisher_id', $publisher->id)
-            ->when($search, function ($q, $term) {
-                $searchData = $this->parseSearchKeywords($term);
-                $tokens = $searchData['tokens'];
-                if (!empty($tokens)) {
-                    $q->where(function ($master) use ($tokens) {
-                        foreach ($tokens as $token) {
-                            $like = '%' . $token . '%';
-                            $master->where(function ($w) use ($like) {
-                                $w->where('title', 'like', $like)
-                                  ->orWhere('author_name', 'like', $like)
-                                  ->orWhere('isbn', 'like', $like)
-                                  ->orWhere('sku', 'like', $like)
-                                  ->orWhere('edition', 'like', $like);
-                            });
-                        }
-                    });
-                }
-            })
-            ->when($category, fn($q) => $q->where('category_id', $category))
-            ->when($stock, function ($q, $s) {
-                match ($s) {
-                    'in_stock'  => $q->where('stock_quantity', '>', 5),
-                    'low'       => $q->where('stock_quantity', '>', 0)->where('stock_quantity', '<=', 5),
-                    'out'       => $q->where('stock_quantity', '<=', 0),
-                    'pre_order' => $q->where('stock_status', 'pre_order'),
-                    default     => null,
-                };
-            });
-
-        match ($sort) {
-            'oldest'      => $booksQuery->oldest('id'),
-            'title_asc'   => $booksQuery->orderBy('title', 'asc'),
-            'title_desc'  => $booksQuery->orderBy('title', 'desc'),
-            'price_low'   => $booksQuery->orderBy('price', 'asc'),
-            'price_high'  => $booksQuery->orderBy('price', 'desc'),
-            'stock_low'   => $booksQuery->orderBy('stock_quantity', 'asc'),
-            'stock_high'  => $booksQuery->orderBy('stock_quantity', 'desc'),
-            'sales_high'  => $booksQuery->orderByDesc('sales_count'),
-            default       => $booksQuery->latest('id'),
-        };
-
-        $books = $booksQuery->paginate($perPage)->withQueryString();
-
-        // Invoices / Purchases for this publisher
-        $purchases = \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)
-            ->with(['items', 'payments'])
-            ->latest()
-            ->paginate(15, ['*'], 'purchases_page')
-            ->withQueryString();
-
-        // Payments records for this publisher
-        $payments = \App\Models\PublisherPayment::where('publisher_id', $publisher->id)
-            ->with('purchase')
-            ->latest()
-            ->paginate(15, ['*'], 'payments_page')
-            ->withQueryString();
-
-        // Sales & Top Selling Books
-        $topBooks = \Modules\Book\Models\Book::where('publisher_id', $publisher->id)
-            ->where('sales_count', '>', 0)
-            ->orderByDesc('sales_count')
-            ->take(10)
-            ->get();
-
-        // Publisher-specific stats
-        $stats = [
-            'total_books'      => \Modules\Book\Models\Book::where('publisher_id', $publisher->id)->count(),
-            'in_stock'         => \Modules\Book\Models\Book::where('publisher_id', $publisher->id)->where('stock_quantity', '>', 5)->count(),
-            'low_stock'        => \Modules\Book\Models\Book::where('publisher_id', $publisher->id)->where('stock_quantity', '>', 0)->where('stock_quantity', '<=', 5)->count(),
-            'out_stock'        => \Modules\Book\Models\Book::where('publisher_id', $publisher->id)->where('stock_quantity', '<=', 0)->count(),
-            'total_po'         => \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)->count(),
-            'total_po_sum'     => (float) \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)->sum('grand_total'),
-            'total_po_paid'    => (float) \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)->sum('paid_amount'),
-            'total_po_due'     => (float) \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)->sum('due_amount'),
-            'total_sold_copies'=> (int) \Modules\Book\Models\Book::where('publisher_id', $publisher->id)->sum('sales_count'),
             'total_payments'   => \App\Models\PublisherPayment::where('publisher_id', $publisher->id)->count(),
         ];
 
@@ -3163,26 +3105,73 @@ class AdminController extends Controller
         $publisher = \Modules\Publisher\Models\Publisher::findOrFail($id);
 
         $validated = $request->validate([
-            'amount'         => 'required|numeric|min:1',
-            'payment_method' => 'nullable|string|max:50',
-            'transaction_id' => 'nullable|string|max:100',
-            'notes'          => 'nullable|string|max:500',
+            'amount'          => 'required|numeric|min:1',
+            'payment_date'    => 'nullable|date',
+            'payment_method'  => 'nullable|string|max:50',
+            'transaction_ref' => 'nullable|string|max:100',
+            'transaction_id'  => 'nullable|string|max:100',
+            'note'            => 'nullable|string|max:500',
+            'notes'           => 'nullable|string|max:500',
         ]);
 
-        $payment = \App\Models\PublisherPayment::create([
-            'publisher_id'   => $publisher->id,
-            'amount'         => $validated['amount'],
-            'payment_method' => $validated['payment_method'] ?? 'cash',
-            'transaction_id' => $validated['transaction_id'] ?? null,
-            'notes'          => $validated['notes'] ?? null,
-            'payment_date'   => now(),
-            'created_by'     => auth()->id(),
-        ]);
+        $paymentNo = \App\Models\PublisherPayment::nextPaymentNo();
+        $amount = (float) $validated['amount'];
+        $trxRef = $validated['transaction_ref'] ?? ($validated['transaction_id'] ?? null);
+        $note = $validated['note'] ?? ($validated['notes'] ?? null);
+
+        $payment = DB::transaction(function () use ($publisher, $validated, $paymentNo, $amount, $trxRef, $note) {
+            // Settle oldest unpaid PublisherPurchase invoices FIFO
+            $remaining = $amount;
+            $firstPurchaseId = null;
+
+            $unpaidPurchases = \App\Models\PublisherPurchase::where('publisher_id', $publisher->id)
+                ->where('due_amount', '>', 0)
+                ->orderBy('purchase_date', 'asc')
+                ->orderBy('id', 'asc')
+                ->get();
+
+            foreach ($unpaidPurchases as $purchase) {
+                if ($remaining <= 0) {
+                    break;
+                }
+                if (!$firstPurchaseId) {
+                    $firstPurchaseId = $purchase->id;
+                }
+                $due = (float) $purchase->due_amount;
+                $apply = min($remaining, $due);
+                $newPaid = round((float) $purchase->paid_amount + $apply, 2);
+                $newDue = max(0.0, round($due - $apply, 2));
+
+                $purchase->update([
+                    'paid_amount'    => $newPaid,
+                    'due_amount'     => $newDue,
+                    'payment_status' => $newDue <= 0.001 ? 'paid' : 'partial',
+                ]);
+
+                $remaining = round($remaining - $apply, 2);
+            }
+
+            return \App\Models\PublisherPayment::create([
+                'purchase_id'     => $firstPurchaseId,
+                'publisher_id'    => $publisher->id,
+                'vendor_name'     => $publisher->name,
+                'payment_no'      => $paymentNo,
+                'payment_date'    => $validated['payment_date'] ?? now()->toDateString(),
+                'amount'          => $amount,
+                'payment_method'  => $validated['payment_method'] ?? 'cash',
+                'transaction_ref' => $trxRef,
+                'note'            => $note,
+                'recorded_by'     => auth()->id(),
+            ]);
+        });
+
+        $this->accessService->log('publisher_quick_payment', "প্রকাশক '{$publisher->name}' কে ৳{$amount} পরিশোধ রেকর্ড করা হয়েছে (#{$paymentNo})");
 
         return response()->json([
-            'success' => true,
-            'payment' => $payment,
-            'message' => 'পেমেন্ট সফলভাবে সংরক্ষিত হয়েছে।',
+            'success'    => true,
+            'payment'    => $payment,
+            'payment_no' => $paymentNo,
+            'message'    => "৳" . number_format($amount, 2) . " পরিশোধ সফলভাবে রেকর্ড করা হয়েছে (ভাউচার #{$paymentNo})!",
         ]);
     }
 
@@ -3650,115 +3639,142 @@ class AdminController extends Controller
 
     public function visitorReports(Request $request): View
     {
-        $today = now()->startOfDay();
-        $thisWeek = now()->startOfWeek();
-        $thisMonth = now()->startOfMonth();
-        $liveThreshold = now()->subMinutes(5);
+        $aggregates = \Illuminate\Support\Facades\Cache::remember('admin_visitor_reports_aggregates_v1', 60, function () {
+            $today = now()->startOfDay();
+            $thisWeek = now()->startOfWeek();
+            $thisMonth = now()->startOfMonth();
+            $liveThreshold = now()->subMinutes(5);
+            $trendStart = now()->subDays(13)->startOfDay();
 
-        $stats = [
-            'live_now'        => \App\Models\VisitorLog::where('visited_at', '>=', $liveThreshold)->distinct('ip_address')->count('ip_address'),
-            'today_views'     => \App\Models\VisitorLog::where('visited_at', '>=', $today)->count(),
-            'today_uniques'   => \App\Models\VisitorLog::where('visited_at', '>=', $today)->distinct('ip_address')->count('ip_address'),
-            'week_views'      => \App\Models\VisitorLog::where('visited_at', '>=', $thisWeek)->count(),
-            'month_views'     => \App\Models\VisitorLog::where('visited_at', '>=', $thisMonth)->count(),
-            'total_views'     => \App\Models\VisitorLog::count(),
-            'total_uniques'   => \App\Models\VisitorLog::distinct('ip_address')->count('ip_address'),
-        ];
+            $summaryRow = \App\Models\VisitorLog::selectRaw("
+                COUNT(*) as total_views,
+                COUNT(DISTINCT ip_address) as total_uniques,
+                SUM(CASE WHEN visited_at >= ? THEN 1 ELSE 0 END) as month_views,
+                SUM(CASE WHEN visited_at >= ? THEN 1 ELSE 0 END) as week_views,
+                SUM(CASE WHEN visited_at >= ? THEN 1 ELSE 0 END) as today_views,
+                COUNT(DISTINCT CASE WHEN visited_at >= ? THEN ip_address END) as today_uniques,
+                COUNT(DISTINCT CASE WHEN visited_at >= ? THEN ip_address END) as live_now
+            ", [$thisMonth, $thisWeek, $today, $today, $liveThreshold])->first();
 
-        // 14-Day Traffic Trend Data for Interactive Chart
-        $trendDays = collect(range(13, 0))->map(function ($daysAgo) {
-            $date = now()->subDays($daysAgo)->format('Y-m-d');
-            $views = \App\Models\VisitorLog::whereDate('visited_at', $date)->count();
-            $uniques = \App\Models\VisitorLog::whereDate('visited_at', $date)->distinct('ip_address')->count('ip_address');
-            return [
-                'date'    => now()->subDays($daysAgo)->format('d M'),
-                'views'   => $views,
-                'uniques' => $uniques,
+            $stats = [
+                'live_now'      => (int) ($summaryRow->live_now ?? 0),
+                'today_views'   => (int) ($summaryRow->today_views ?? 0),
+                'today_uniques' => (int) ($summaryRow->today_uniques ?? 0),
+                'week_views'    => (int) ($summaryRow->week_views ?? 0),
+                'month_views'   => (int) ($summaryRow->month_views ?? 0),
+                'total_views'   => (int) ($summaryRow->total_views ?? 0),
+                'total_uniques' => (int) ($summaryRow->total_uniques ?? 0),
             ];
-        });
 
-        // Geographic Country Distribution (Worldwide)
-        $countryRecords = \App\Models\VisitorLog::select(
-                DB::raw("COALESCE(country, 'Bangladesh') as country_name"),
-                DB::raw("COALESCE(country_code, 'BD') as c_code"),
-                DB::raw("count(*) as total")
-            )
-            ->groupBy('country_name', 'c_code')
-            ->orderByDesc('total')
-            ->limit(10)
-            ->get();
+            // 14-Day Traffic Trend Data in 1 single query instead of 28 queries
+            $trendRaw = \App\Models\VisitorLog::where('visited_at', '>=', $trendStart)
+                ->selectRaw("SUBSTR(visited_at, 1, 10) as d, COUNT(*) as views, COUNT(DISTINCT ip_address) as uniques")
+                ->groupBy('d')
+                ->get()
+                ->keyBy('d');
 
-        $totalGeo = max(1, $countryRecords->sum('total'));
-        $countries = $countryRecords->map(function ($item) use ($totalGeo) {
-            $code = strtoupper((string) $item->c_code);
-            $flag = '🌐';
-            if (strlen($code) === 2) {
-                $flag = '';
-                foreach (str_split($code) as $c) {
-                    $flag .= mb_chr(ord($c) + 127397, 'UTF-8');
+            $trendDays = collect(range(13, 0))->map(function ($daysAgo) use ($trendRaw) {
+                $dt = now()->subDays($daysAgo);
+                $key = $dt->format('Y-m-d');
+                $row = $trendRaw->get($key);
+                return [
+                    'date'    => $dt->format('d M'),
+                    'views'   => (int) ($row->views ?? 0),
+                    'uniques' => (int) ($row->uniques ?? 0),
+                ];
+            });
+
+            // Geographic Country Distribution (Worldwide)
+            $countryRecords = \App\Models\VisitorLog::select(
+                    DB::raw("COALESCE(country, 'Bangladesh') as country_name"),
+                    DB::raw("COALESCE(country_code, 'BD') as c_code"),
+                    DB::raw("count(*) as total")
+                )
+                ->groupBy('country_name', 'c_code')
+                ->orderByDesc('total')
+                ->limit(10)
+                ->get();
+
+            $totalGeo = max(1, $countryRecords->sum('total'));
+            $countries = $countryRecords->map(function ($item) use ($totalGeo) {
+                $code = strtoupper((string) $item->c_code);
+                $flag = '🌐';
+                if (strlen($code) === 2) {
+                    $flag = '';
+                    foreach (str_split($code) as $c) {
+                        $flag .= mb_chr(ord($c) + 127397, 'UTF-8');
+                    }
                 }
-            }
-            return [
-                'country' => $item->country_name,
-                'code'    => $code,
-                'flag'    => $flag,
-                'total'   => $item->total,
-                'percent' => round(($item->total / $totalGeo) * 100, 1),
-            ];
+                return [
+                    'country' => $item->country_name,
+                    'code'    => $code,
+                    'flag'    => $flag,
+                    'total'   => $item->total,
+                    'percent' => round(($item->total / $totalGeo) * 100, 1),
+                ];
+            });
+
+            // Acquisition & Traffic Channels
+            $channels = \App\Models\VisitorLog::select(
+                    DB::raw("COALESCE(traffic_source, 'Direct / Organic') as channel_name"),
+                    DB::raw("count(*) as total")
+                )
+                ->groupBy('channel_name')
+                ->orderByDesc('total')
+                ->limit(8)
+                ->get();
+
+            // Device Type Breakdown
+            $devices = \App\Models\VisitorLog::select('device', DB::raw('count(*) as total'))
+                ->groupBy('device')
+                ->pluck('total', 'device')
+                ->toArray();
+
+            // Top Device Models / Hardware Brands
+            $deviceModels = \App\Models\VisitorLog::whereNotNull('device_name')
+                ->select('device_name', DB::raw('count(*) as total'))
+                ->groupBy('device_name')
+                ->orderByDesc('total')
+                ->limit(8)
+                ->get();
+
+            // Browser Breakdown
+            $browsers = \App\Models\VisitorLog::select('browser', DB::raw('count(*) as total'))
+                ->groupBy('browser')
+                ->orderByDesc('total')
+                ->limit(6)
+                ->get();
+
+            // Operating System Breakdown
+            $osList = \App\Models\VisitorLog::select('os', DB::raw('count(*) as total'))
+                ->groupBy('os')
+                ->orderByDesc('total')
+                ->limit(6)
+                ->get();
+
+            // Top Visited Pages (All)
+            $topPages = \App\Models\VisitorLog::select('url', 'page_title', DB::raw('count(*) as views'))
+                ->groupBy('url', 'page_title')
+                ->orderByDesc('views')
+                ->limit(10)
+                ->get();
+
+            // Top Visited Books
+            $topBooks = \App\Models\VisitorLog::where('url', 'like', '%/books/%')
+                ->select('url', 'page_title', DB::raw('count(*) as views'))
+                ->groupBy('url', 'page_title')
+                ->orderByDesc('views')
+                ->limit(8)
+                ->get();
+
+            return compact(
+                'stats', 'trendDays', 'countries', 'channels',
+                'devices', 'deviceModels', 'browsers', 'osList',
+                'topPages', 'topBooks'
+            );
         });
 
-        // Acquisition & Traffic Channels
-        $channels = \App\Models\VisitorLog::select(
-                DB::raw("COALESCE(traffic_source, 'Direct / Organic') as channel_name"),
-                DB::raw("count(*) as total")
-            )
-            ->groupBy('channel_name')
-            ->orderByDesc('total')
-            ->limit(8)
-            ->get();
-
-        // Device Type Breakdown
-        $devices = \App\Models\VisitorLog::select('device', DB::raw('count(*) as total'))
-            ->groupBy('device')
-            ->pluck('total', 'device')
-            ->toArray();
-
-        // Top Device Models / Hardware Brands (e.g. iPhone, Samsung, Xiaomi, Windows PC, Mac)
-        $deviceModels = \App\Models\VisitorLog::whereNotNull('device_name')
-            ->select('device_name', DB::raw('count(*) as total'))
-            ->groupBy('device_name')
-            ->orderByDesc('total')
-            ->limit(8)
-            ->get();
-
-        // Browser Breakdown
-        $browsers = \App\Models\VisitorLog::select('browser', DB::raw('count(*) as total'))
-            ->groupBy('browser')
-            ->orderByDesc('total')
-            ->limit(6)
-            ->get();
-
-        // Operating System Breakdown
-        $osList = \App\Models\VisitorLog::select('os', DB::raw('count(*) as total'))
-            ->groupBy('os')
-            ->orderByDesc('total')
-            ->limit(6)
-            ->get();
-
-        // Top Visited Pages (All)
-        $topPages = \App\Models\VisitorLog::select('url', 'page_title', DB::raw('count(*) as views'))
-            ->groupBy('url', 'page_title')
-            ->orderByDesc('views')
-            ->limit(10)
-            ->get();
-
-        // Top Visited Books
-        $topBooks = \App\Models\VisitorLog::where('url', 'like', '%/books/%')
-            ->select('url', 'page_title', DB::raw('count(*) as views'))
-            ->groupBy('url', 'page_title')
-            ->orderByDesc('views')
-            ->limit(8)
-            ->get();
+        extract($aggregates);
 
         // Filtered Real-Time Logs Stream
         $logs = \App\Models\VisitorLog::with('user')

@@ -56,47 +56,51 @@ class AdminDashboardService
     public function getPendingAlerts(): array
     {
         return $this->swr('admin_dash_pending_alerts', 60, function () {
-            $pendingOrders = (int) $this->safe(fn () => Order::where('status', 'pending')->count(), 0);
-            $pendingRegistrations = (int) $this->safe(fn () => User::whereIn('role', ['seller', 'publisher', 'author'])
-                ->where('reg_status', User::STATUS_PENDING)
-                ->count(), 0);
-            
-            $pendingBooks = 0;
+        $countsRow = $this->safe(function () {
+            $parts = [
+                "(SELECT COUNT(*) FROM `orders` WHERE `status` = 'pending' AND `deleted_at` IS NULL) AS `pending_orders`",
+            ];
             if ($this->hasTable('books')) {
-                $pendingBooks = (int) $this->safe(fn () => \Modules\Book\Models\Book::where('mod_status', 'pending')->count(), 0);
+                $parts[] = "(SELECT COUNT(*) FROM `books` WHERE `mod_status` = 'pending' AND `deleted_at` IS NULL) AS `pending_books`";
             }
-
-            $pendingEbooks = 0;
             if ($this->hasTable('ebooks')) {
-                $pendingEbooks = (int) $this->safe(fn () => \Modules\Ebook\Models\Ebook::where('mod_status', 'pending')->count(), 0);
+                $parts[] = "(SELECT COUNT(*) FROM `ebooks` WHERE `mod_status` = 'pending' AND `deleted_at` IS NULL) AS `pending_ebooks`";
             }
-
-            $pendingBlogs = 0;
             if ($this->hasTable('blog_posts')) {
-                $pendingBlogs = (int) $this->safe(fn () => \Modules\Blog\Models\BlogPost::where(function ($q) {
-                    $q->where('status', 'pending')
-                      ->orWhere('mod_status', 'pending')
-                      ->orWhere('edit_request_status', 'pending');
-                })->count(), 0);
+                $parts[] = "(SELECT COUNT(*) FROM `blog_posts` WHERE (`status` = 'pending' OR `mod_status` = 'pending' OR `edit_request_status` = 'pending') AND `deleted_at` IS NULL) AS `pending_blogs`";
             }
-
-            $pendingBookRequests = 0;
             if ($this->hasTable('book_requests')) {
-                $pendingBookRequests = (int) $this->safe(fn () => \App\Models\BookRequest::where('status', 'pending')->count(), 0);
+                $parts[] = "(SELECT COUNT(*) FROM `book_requests` WHERE `status` = 'pending') AS `pending_book_reqs`";
             }
-
-            $pendingSubmissions = 0;
             if ($this->hasTable('author_submissions')) {
-                $pendingSubmissions = (int) $this->safe(fn () => \Modules\Author\Models\AuthorSubmission::where('status', 'pending')->count(), 0);
+                $parts[] = "(SELECT COUNT(*) FROM `author_submissions` WHERE `status` = 'pending') AS `pending_subs`";
             }
+            return DB::selectOne('SELECT ' . implode(', ', $parts));
+        }, null);
 
-            $authorUpdates = (int) $this->safe(fn () => User::where('role', 'author')
-                ->where(function ($q) {
-                    $q->where('reg_data', 'like', '%"profile_update_status":"updated"%')
-                      ->orWhere('reg_data', 'like', '%"profile_update_status":"pending"%')
-                      ->orWhere('reg_data', 'like', '%"profile_update_status": "updated"%')
-                      ->orWhere('reg_data', 'like', '%"profile_update_status": "pending"%');
-                })->count(), 0);
+            $pendingOrders = (int) ($countsRow->pending_orders ?? 0);
+            $pendingBooks = (int) ($countsRow->pending_books ?? 0);
+            $pendingEbooks = (int) ($countsRow->pending_ebooks ?? 0);
+            $pendingBlogs = (int) ($countsRow->pending_blogs ?? 0);
+            $pendingBookRequests = (int) ($countsRow->pending_book_reqs ?? 0);
+            $pendingSubmissions = (int) ($countsRow->pending_subs ?? 0);
+
+            $pendingRegistrations = 0;
+            $authorUpdates = 0;
+            if ($this->hasTable('users')) {
+                $uRow = $this->safe(fn () => User::selectRaw("
+                    SUM(CASE WHEN role IN ('seller', 'publisher', 'author') AND reg_status = ? THEN 1 ELSE 0 END) as pending_regs,
+                    SUM(CASE WHEN role = 'author' AND (reg_data LIKE ? OR reg_data LIKE ? OR reg_data LIKE ? OR reg_data LIKE ?) THEN 1 ELSE 0 END) as author_upd
+                ", [
+                    User::STATUS_PENDING,
+                    '%"profile_update_status":"updated"%',
+                    '%"profile_update_status":"pending"%',
+                    '%"profile_update_status": "updated"%',
+                    '%"profile_update_status": "pending"%',
+                ])->first(), null);
+                $pendingRegistrations = (int) ($uRow->pending_regs ?? 0);
+                $authorUpdates = (int) ($uRow->author_upd ?? 0);
+            }
 
             $totalCount = $pendingOrders + $pendingRegistrations + $pendingBooks + $pendingEbooks + $pendingBlogs + $pendingBookRequests + $pendingSubmissions + $authorUpdates;
 
@@ -120,20 +124,33 @@ class AdminDashboardService
      */
     public function getPendingRecordsData(int $limit = 10): array
     {
-        $orders = $this->safe(fn () => Order::where('status', 'pending')
-            ->with(['book', 'user'])
-            ->latest()
-            ->limit($limit)
-            ->get(), collect());
+        return $this->swr('admin_dash_pending_records_' . $limit, 45, function () use ($limit) {
+            return $this->getPendingRecordsDataUncached($limit);
+        });
+    }
 
-        $registrations = $this->safe(fn () => User::whereIn('role', ['seller', 'publisher', 'author'])
-            ->where('reg_status', User::STATUS_PENDING)
-            ->latest()
-            ->limit($limit)
-            ->get(), collect());
+    protected function getPendingRecordsDataUncached(int $limit = 10): array
+    {
+        $alerts = $this->getPendingAlerts();
+
+        $orders = ($alerts['orders'] ?? 0) > 0
+            ? $this->safe(fn () => Order::where('status', 'pending')
+                ->with(['book', 'user'])
+                ->latest()
+                ->limit($limit)
+                ->get(), collect())
+            : collect();
+
+        $registrations = ($alerts['registrations'] ?? 0) > 0
+            ? $this->safe(fn () => User::whereIn('role', ['seller', 'publisher', 'author'])
+                ->where('reg_status', User::STATUS_PENDING)
+                ->latest()
+                ->limit($limit)
+                ->get(), collect())
+            : collect();
 
         $blogs = collect();
-        if (\App\Support\SchemaCache::has('blog_posts')) {
+        if (($alerts['blogs'] ?? 0) > 0 && \App\Support\SchemaCache::has('blog_posts')) {
             $blogs = $this->safe(fn () => \Modules\Blog\Models\BlogPost::where(function ($q) {
                 $q->where('status', 'pending')
                   ->orWhere('mod_status', 'pending')
@@ -142,7 +159,7 @@ class AdminDashboardService
         }
 
         $books = collect();
-        if (\App\Support\SchemaCache::has('books')) {
+        if (($alerts['books'] ?? 0) > 0 && \App\Support\SchemaCache::has('books')) {
             $books = $this->safe(fn () => \Modules\Book\Models\Book::where('mod_status', 'pending')
                 ->with(['category', 'publisher'])
                 ->latest()
@@ -151,7 +168,7 @@ class AdminDashboardService
         }
 
         $ebooks = collect();
-        if (\App\Support\SchemaCache::has('ebooks')) {
+        if (($alerts['ebooks'] ?? 0) > 0 && \App\Support\SchemaCache::has('ebooks')) {
             $ebooks = $this->safe(fn () => \Modules\Ebook\Models\Ebook::where('mod_status', 'pending')
                 ->with(['category'])
                 ->latest()
@@ -160,7 +177,7 @@ class AdminDashboardService
         }
 
         $bookRequests = collect();
-        if (\App\Support\SchemaCache::has('book_requests')) {
+        if (($alerts['book_requests'] ?? 0) > 0 && \App\Support\SchemaCache::has('book_requests')) {
             $bookRequests = $this->safe(fn () => \App\Models\BookRequest::where('status', 'pending')
                 ->latest()
                 ->limit($limit)
@@ -168,7 +185,7 @@ class AdminDashboardService
         }
 
         $submissions = collect();
-        if (\App\Support\SchemaCache::has('author_submissions')) {
+        if (($alerts['submissions'] ?? 0) > 0 && \App\Support\SchemaCache::has('author_submissions')) {
             $submissions = $this->safe(fn () => \Modules\Author\Models\AuthorSubmission::where('status', 'pending')
                 ->with(['author', 'category'])
                 ->latest()
@@ -176,16 +193,18 @@ class AdminDashboardService
                 ->get(), collect());
         }
 
-        $authorUpdates = $this->safe(fn () => User::where('role', 'author')
-            ->where(function ($q) {
-                $q->where('reg_data', 'like', '%"profile_update_status":"updated"%')
-                  ->orWhere('reg_data', 'like', '%"profile_update_status":"pending"%')
-                  ->orWhere('reg_data', 'like', '%"profile_update_status": "updated"%')
-                  ->orWhere('reg_data', 'like', '%"profile_update_status": "pending"%');
-            })
-            ->latest()
-            ->limit($limit)
-            ->get(), collect());
+        $authorUpdates = ($alerts['author_updates'] ?? 0) > 0
+            ? $this->safe(fn () => User::where('role', 'author')
+                ->where(function ($q) {
+                    $q->where('reg_data', 'like', '%"profile_update_status":"updated"%')
+                      ->orWhere('reg_data', 'like', '%"profile_update_status":"pending"%')
+                      ->orWhere('reg_data', 'like', '%"profile_update_status": "updated"%')
+                      ->orWhere('reg_data', 'like', '%"profile_update_status": "pending"%');
+                })
+                ->latest()
+                ->limit($limit)
+                ->get(), collect())
+            : collect();
 
         return [
             'orders'         => $orders,
@@ -227,46 +246,85 @@ class AdminDashboardService
             // Determine filter boundaries
             [$startDate, $endDate, $filterLabel] = $this->resolveDateRange($from, $to, $period);
 
-            // 1. E-Commerce Orders Analytics
+            // 1. E-Commerce Orders Analytics (Combined into 1 query instead of 11)
             $orderQuery = Order::query();
             if ($startDate && $endDate) {
                 $orderQuery->whereBetween('created_at', [$startDate, $endDate]);
             }
 
-            $filteredOrdersCount = (int) $this->safe(fn () => (clone $orderQuery)->count(), 0);
-            $filteredRevenue = (float) $this->safe(fn () => (clone $orderQuery)->sum('total_amount'), 0.0);
-            $paidRevenue = (float) $this->safe(fn () => (clone $orderQuery)->where('payment_status', 'paid')->sum('total_amount'), 0.0);
-            $pendingOrders = (int) $this->safe(fn () => (clone $orderQuery)->where('status', 'pending')->count(), 0);
-            $processingOrders = (int) $this->safe(fn () => (clone $orderQuery)->whereIn('status', ['processing', 'shipped'])->count(), 0);
-            $deliveredOrders = (int) $this->safe(fn () => (clone $orderQuery)->where('status', 'delivered')->count(), 0);
+            $orderAgg = $this->safe(fn () => (clone $orderQuery)->selectRaw("
+                COUNT(*) as filtered_orders_count,
+                COALESCE(SUM(total_amount), 0) as filtered_revenue,
+                COALESCE(SUM(CASE WHEN payment_status = 'paid' THEN total_amount ELSE 0 END), 0) as paid_revenue,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_orders,
+                SUM(CASE WHEN status IN ('processing', 'shipped') THEN 1 ELSE 0 END) as processing_orders,
+                SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END) as delivered_orders,
+                COALESCE(SUM(CASE WHEN payment_method = 'bkash' THEN total_amount ELSE 0 END), 0) as bkash_rev,
+                COALESCE(SUM(CASE WHEN payment_method = 'nagad' THEN total_amount ELSE 0 END), 0) as nagad_rev,
+                COALESCE(SUM(CASE WHEN payment_method = 'rocket' THEN total_amount ELSE 0 END), 0) as rocket_rev,
+                COALESCE(SUM(CASE WHEN payment_method = 'cod' THEN total_amount ELSE 0 END), 0) as cod_rev,
+                COALESCE(SUM(CASE WHEN payment_method = 'bank' THEN total_amount ELSE 0 END), 0) as bank_rev
+            ")->first(), null);
 
-            // 2. Today's Pulse
-            $todayOrders = (int) $this->safe(fn () => Order::where('created_at', '>=', $today)->count(), 0);
-            $todayRevenue = (float) $this->safe(fn () => Order::where('created_at', '>=', $today)->sum('total_amount'), 0.0);
-            $yesterdayRevenue = (float) $this->safe(fn () => Order::whereBetween('created_at', [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()])->sum('total_amount'), 0.0);
+            $filteredOrdersCount = (int) ($orderAgg->filtered_orders_count ?? 0);
+            $filteredRevenue = (float) ($orderAgg->filtered_revenue ?? 0.0);
+            $paidRevenue = (float) ($orderAgg->paid_revenue ?? 0.0);
+            $pendingOrders = (int) ($orderAgg->pending_orders ?? 0);
+            $processingOrders = (int) ($orderAgg->processing_orders ?? 0);
+            $deliveredOrders = (int) ($orderAgg->delivered_orders ?? 0);
+
+            // 2. Today's Pulse (Combined into 1 query instead of 3)
+            $yesterdayStart = now()->subDay()->startOfDay();
+            $yesterdayEnd = now()->subDay()->endOfDay();
+            $pulseAgg = $this->safe(fn () => Order::where('created_at', '>=', $yesterdayStart)->selectRaw("
+                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as today_orders,
+                COALESCE(SUM(CASE WHEN created_at >= ? THEN total_amount ELSE 0 END), 0) as today_revenue,
+                COALESCE(SUM(CASE WHEN created_at BETWEEN ? AND ? THEN total_amount ELSE 0 END), 0) as yesterday_revenue
+            ", [$today, $today, $yesterdayStart, $yesterdayEnd])->first(), null);
+
+            $todayOrders = (int) ($pulseAgg->today_orders ?? 0);
+            $todayRevenue = (float) ($pulseAgg->today_revenue ?? 0.0);
+            $yesterdayRevenue = (float) ($pulseAgg->yesterday_revenue ?? 0.0);
             
             $revenueGrowth = $yesterdayRevenue > 0 
                 ? round((($todayRevenue - $yesterdayRevenue) / $yesterdayRevenue) * 100, 1) 
                 : ($todayRevenue > 0 ? 100 : 0);
 
-            // 3. Visitor Traffic Analytics (Daily, Monthly, Yearly & Filtered)
+            // 3. Visitor Traffic Analytics (Combined into 1 query instead of 10)
             $hasVisitorTable = \App\Support\SchemaCache::has('visitor_logs');
+            $vRow = null;
+            if ($hasVisitorTable) {
+                $vRow = $this->safe(fn () => VisitorLog::selectRaw("
+                    COUNT(*) as total_views,
+                    COUNT(DISTINCT ip_address) as total_uniques,
+                    SUM(CASE WHEN visited_at >= ? THEN 1 ELSE 0 END) as year_views,
+                    COUNT(DISTINCT CASE WHEN visited_at >= ? THEN ip_address END) as year_uniques,
+                    SUM(CASE WHEN visited_at >= ? THEN 1 ELSE 0 END) as month_views,
+                    COUNT(DISTINCT CASE WHEN visited_at >= ? THEN ip_address END) as month_uniques,
+                    SUM(CASE WHEN visited_at >= ? THEN 1 ELSE 0 END) as today_views,
+                    COUNT(DISTINCT CASE WHEN visited_at >= ? THEN ip_address END) as today_uniques
+                ", [$thisYear, $thisYear, $thisMonth, $thisMonth, $today, $today])->first(), null);
+            }
+
             $visitorStats = [
-                'today_views'     => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $today)->count(), 0) : 0,
-                'today_uniques'   => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $today)->distinct('ip_address')->count('ip_address'), 0) : 0,
-                'month_views'     => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisMonth)->count(), 0) : 0,
-                'month_uniques'   => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisMonth)->distinct('ip_address')->count('ip_address'), 0) : 0,
-                'year_views'      => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisYear)->count(), 0) : 0,
-                'year_uniques'    => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisYear)->distinct('ip_address')->count('ip_address'), 0) : 0,
-                'total_views'     => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::count(), 0) : 0,
-                'total_uniques'   => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::distinct('ip_address')->count('ip_address'), 0) : 0,
+                'today_views'     => (int) ($vRow->today_views ?? 0),
+                'today_uniques'   => (int) ($vRow->today_uniques ?? 0),
+                'month_views'     => (int) ($vRow->month_views ?? 0),
+                'month_uniques'   => (int) ($vRow->month_uniques ?? 0),
+                'year_views'      => (int) ($vRow->year_views ?? 0),
+                'year_uniques'    => (int) ($vRow->year_uniques ?? 0),
+                'total_views'     => (int) ($vRow->total_views ?? 0),
+                'total_uniques'   => (int) ($vRow->total_uniques ?? 0),
                 'filtered_views'  => 0,
                 'filtered_uniques'=> 0,
             ];
 
             if ($hasVisitorTable && $startDate && $endDate) {
-                $visitorStats['filtered_views'] = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$startDate, $endDate])->count(), 0);
-                $visitorStats['filtered_uniques'] = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$startDate, $endDate])->distinct('ip_address')->count('ip_address'), 0);
+                $fRow = $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$startDate, $endDate])
+                    ->selectRaw("COUNT(*) as views, COUNT(DISTINCT ip_address) as uniques")
+                    ->first(), null);
+                $visitorStats['filtered_views'] = (int) ($fRow->views ?? 0);
+                $visitorStats['filtered_uniques'] = (int) ($fRow->uniques ?? 0);
             } else {
                 $visitorStats['filtered_views'] = $visitorStats['total_views'];
                 $visitorStats['filtered_uniques'] = $visitorStats['total_uniques'];
@@ -275,7 +333,7 @@ class AdminDashboardService
             // 4. Inventory Health (Low Stock & Out of Stock)
             $lowStockBooks = collect();
             $outOfStockCount = 0;
-            if (\App\Support\SchemaCache::has('books') && Schema::hasColumn('books', 'stock_quantity')) {
+            if (\App\Support\SchemaCache::has('books') && \App\Support\SchemaCache::hasColumn('books', 'stock_quantity')) {
                 $lowStockBooks = $this->safe(fn () => Book::where('stock_quantity', '<=', 5)
                     ->whereNull('deleted_at')
                     ->orderBy('stock_quantity', 'asc')
@@ -287,11 +345,11 @@ class AdminDashboardService
 
             // 5. Payment Gateway Split
             $paymentSplit = [
-                'bkash'  => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'bkash')->sum('total_amount'), 0.0),
-                'nagad'  => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'nagad')->sum('total_amount'), 0.0),
-                'rocket' => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'rocket')->sum('total_amount'), 0.0),
-                'cod'    => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'cod')->sum('total_amount'), 0.0),
-                'bank'   => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'bank')->sum('total_amount'), 0.0),
+                'bkash'  => (float) ($orderAgg->bkash_rev ?? 0.0),
+                'nagad'  => (float) ($orderAgg->nagad_rev ?? 0.0),
+                'rocket' => (float) ($orderAgg->rocket_rev ?? 0.0),
+                'cod'    => (float) ($orderAgg->cod_rev ?? 0.0),
+                'bank'   => (float) ($orderAgg->bank_rev ?? 0.0),
             ];
 
             // 6. Top Selling Books
@@ -315,33 +373,48 @@ class AdminDashboardService
             $revenueEur = $currencyService->convertFromBdt($filteredRevenue, 'EUR');
             $todayRevenueUsd = $currencyService->convertFromBdt($todayRevenue, 'USD');
 
-            // 9. Boi Mela Stall POS Stats
+            // 9. Boi Mela Stall POS Stats (combine pos_sales and bills for today)
+            $posTodaySales = 0.0;
+            $posTodayCount = 0;
+            if (\App\Support\SchemaCache::has('pos_sales')) {
+                $posRow = $this->safe(fn () => DB::table('pos_sales')->where('created_at', '>=', $today)->selectRaw('COUNT(*) as cnt, COALESCE(SUM(total), 0) as rev')->first(), null);
+                $posTodaySales += (float) ($posRow->rev ?? 0.0);
+                $posTodayCount += (int) ($posRow->cnt ?? 0);
+            }
+            if ($posTodayCount === 0 && \App\Support\SchemaCache::has('bills')) {
+                $billRow = $this->safe(fn () => DB::table('bills')->where('created_at', '>=', $today)->selectRaw('COUNT(*) as cnt, COALESCE(SUM(total), 0) as rev')->first(), null);
+                $posTodaySales += (float) ($billRow->rev ?? 0.0);
+                $posTodayCount += (int) ($billRow->cnt ?? 0);
+            }
             $posStats = [
-                'today_sales' => \App\Support\SchemaCache::has('pos_sales') ? (float) $this->safe(fn () => DB::table('pos_sales')->whereDate('created_at', today())->sum('total'), 0.0) : 0.0,
-                'today_count' => \App\Support\SchemaCache::has('pos_sales') ? (int) $this->safe(fn () => DB::table('pos_sales')->whereDate('created_at', today())->count(), 0) : 0,
+                'today_sales' => $posTodaySales,
+                'today_count' => $posTodayCount,
             ];
 
             // 10. Subscriptions (Kindle Unlimited Model)
-            $subStats = [
-                'active_count' => \App\Support\SchemaCache::has('user_subscriptions') ? (int) $this->safe(fn () => DB::table('user_subscriptions')->where('status', 'active')->where('expires_at', '>=', now())->count(), 0) : 0,
-                'total_revenue' => \App\Support\SchemaCache::has('user_subscriptions') ? (float) $this->safe(fn () => DB::table('user_subscriptions')->where('status', 'active')->sum('amount_paid'), 0.0) : 0.0,
-            ];
+            $subStats = ['active_count' => 0, 'total_revenue' => 0.0];
+            if (\App\Support\SchemaCache::has('user_subscriptions')) {
+                $subRow = $this->safe(fn () => DB::table('user_subscriptions')
+                    ->where('status', 'active')
+                    ->selectRaw("SUM(CASE WHEN expires_at >= ? THEN 1 ELSE 0 END) as active_cnt, COALESCE(SUM(amount_paid), 0) as total_rev", [now()])
+                    ->first(), null);
+                $subStats['active_count'] = (int) ($subRow->active_cnt ?? 0);
+                $subStats['total_revenue'] = (float) ($subRow->total_rev ?? 0.0);
+            }
 
             // 11. Affiliates & Influencers
-            $affiliateStats = [
-                'total_partners' => \App\Support\SchemaCache::has('affiliates') ? (int) $this->safe(fn () => DB::table('affiliates')->count(), 0) : 0,
-                'unpaid_balance' => \App\Support\SchemaCache::has('affiliates') ? (float) $this->safe(fn () => DB::table('affiliates')->sum('balance'), 0.0) : 0.0,
-            ];
+            $affiliateStats = ['total_partners' => 0, 'unpaid_balance' => 0.0];
+            if (\App\Support\SchemaCache::has('affiliates')) {
+                $affRow = $this->safe(fn () => DB::table('affiliates')->selectRaw('COUNT(*) as cnt, COALESCE(SUM(balance), 0) as bal')->first(), null);
+                $affiliateStats['total_partners'] = (int) ($affRow->cnt ?? 0);
+                $affiliateStats['unpaid_balance'] = (float) ($affRow->bal ?? 0.0);
+            }
 
-            // 12. Worldwide Country Geo-Traffic Breakdown
-            $countryTraffic = [
-                ['country' => 'Bangladesh', 'code' => 'BD', 'visitors' => 1420, 'share' => '68%'],
-                ['country' => 'United States', 'code' => 'US', 'visitors' => 310, 'share' => '15%'],
-                ['country' => 'United Kingdom', 'code' => 'GB', 'visitors' => 145, 'share' => '7%'],
-                ['country' => 'Saudi Arabia', 'code' => 'SA', 'visitors' => 95, 'share' => '5%'],
-                ['country' => 'United Arab Emirates', 'code' => 'AE', 'visitors' => 60, 'share' => '3%'],
-                ['country' => 'Canada / India / Others', 'code' => 'OTHER', 'visitors' => 45, 'share' => '2%'],
-            ];
+            $userTotalsRow = $this->safe(fn () => User::selectRaw("
+                COUNT(*) as total_users,
+                SUM(CASE WHEN role IN ('customer', 'buyer') THEN 1 ELSE 0 END) as total_customers
+            ")->first(), null);
+            $pendingAlertsData = $this->getPendingAlerts();
 
             return [
                 'filter_label'        => $filterLabel,
@@ -364,11 +437,15 @@ class AdminDashboardService
                 'out_of_stock_count'  => $outOfStockCount,
                 'payment_split'       => $paymentSplit,
                 'top_books'           => $topBooks,
+                'book_requests'       => $bookRequests,
+                'pos'                 => $posStats,
+                'subscriptions'       => $subStats,
+                'affiliates'          => $affiliateStats,
                 // 13. Real-Time Live Sales & Transactions Pulse Stream (Web Orders + POS Bills + E-Books)
                 'live_feed'           => $this->getLiveTransactionsFeed(),
 
                 // 14. Multi-Channel Revenue Split (E-Commerce vs POS vs E-Books vs B2B)
-                'channel_split'       => $this->getMultiChannelRevenueSplit($filteredRevenue),
+                'channel_split'       => $this->getMultiChannelRevenueSplit($filteredRevenue, $subStats['total_revenue']),
 
                 // 15. Server Infrastructure & System Health Metrics
                 'system_health'       => $this->getSystemHealthMetrics(),
@@ -383,17 +460,17 @@ class AdminDashboardService
                 'employee_departments'=> $this->getDepartmentalEmployeeStats(),
 
                 // 19. Global Traffic & Live Geo Intelligence
-                'global_traffic'      => $globalTraffic = $this->getGlobalTrafficData(),
+                'global_traffic'      => $globalTraffic = $this->getGlobalTrafficData($visitorStats['total_views']),
                 'country_traffic'     => $globalTraffic['country_traffic'] ?? [],
 
                 'total_books'         => $this->count('books'),
                 'total_ebooks'        => $this->count('ebooks'),
                 'total_authors'       => $this->count('authors'),
                 'total_publishers'    => $this->count('publishers'),
-                'total_users'         => $this->safe(fn () => User::count(), 0),
-                'total_customers'     => $this->safe(fn () => User::whereIn('role', ['customer', 'buyer'])->count(), 0),
-                'pending_regs'        => $this->pendingRegistrations(),
-                'pending_alerts'      => $this->getPendingAlerts(),
+                'total_users'         => (int) ($userTotalsRow->total_users ?? 0),
+                'total_customers'     => (int) ($userTotalsRow->total_customers ?? 0),
+                'pending_regs'        => (int) ($pendingAlertsData['registrations'] ?? 0),
+                'pending_alerts'      => $pendingAlertsData,
             ];
         });
     }
@@ -463,10 +540,10 @@ class AdminDashboardService
     /**
      * Get Multi-Channel Revenue Distribution Split.
      */
-    public function getMultiChannelRevenueSplit(float $totalEcomRevenue): array
+    public function getMultiChannelRevenueSplit(float $totalEcomRevenue, ?float $precomputedSubRevenue = null): array
     {
         $posRevenue = \App\Support\SchemaCache::has('bills') ? (float) $this->safe(fn () => Bill::where('payment_status', 'paid')->sum('total_amount'), 0.0) : 0.0;
-        $subRevenue = \App\Support\SchemaCache::has('user_subscriptions') ? (float) $this->safe(fn () => DB::table('user_subscriptions')->where('status', 'active')->sum('amount_paid'), 0.0) : 0.0;
+        $subRevenue = $precomputedSubRevenue ?? (\App\Support\SchemaCache::has('user_subscriptions') ? (float) $this->safe(fn () => DB::table('user_subscriptions')->where('status', 'active')->sum('amount_paid'), 0.0) : 0.0);
         $b2bRevenue = \App\Support\SchemaCache::has('idea_accounting_ledgers') ? (float) $this->safe(fn () => DB::table('idea_accounting_ledgers')->where('entry_type', 'credit')->where('account_head', 'like', '%B2B%')->sum('amount'), 0.0) : 0.0;
 
         $grandTotal = $totalEcomRevenue + $posRevenue + $subRevenue + $b2bRevenue;
@@ -533,11 +610,28 @@ class AdminDashboardService
         $accruedPool = 0.0;
         $pendingPayouts = 0.0;
         $paidThisMonth = 0.0;
+        $monthStart = now()->startOfMonth();
 
         if (\App\Support\SchemaCache::has('author_royalties')) {
-            $accruedPool = (float) $this->safe(fn () => DB::table('author_royalties')->sum('royalty_amount'), 0.0);
-            $pendingPayouts = (float) $this->safe(fn () => DB::table('author_royalties')->where('status', 'pending')->sum('royalty_amount'), 0.0);
-            $paidThisMonth = (float) $this->safe(fn () => DB::table('author_royalties')->where('status', 'paid')->where('updated_at', '>=', now()->startOfMonth())->sum('royalty_amount'), 0.0);
+            $rRow = $this->safe(fn () => DB::table('author_royalties')->selectRaw("
+                COALESCE(SUM(royalty_amount), 0) as pool,
+                COALESCE(SUM(CASE WHEN status IN ('pending', 'earned') THEN royalty_amount ELSE 0 END), 0) as pending_amt,
+                COALESCE(SUM(CASE WHEN status = 'paid' AND updated_at >= ? THEN royalty_amount ELSE 0 END), 0) as paid_month
+            ", [$monthStart])->first(), null);
+            $accruedPool += (float) ($rRow->pool ?? 0.0);
+            $pendingPayouts += (float) ($rRow->pending_amt ?? 0.0);
+            $paidThisMonth += (float) ($rRow->paid_month ?? 0.0);
+        }
+
+        if (\App\Support\SchemaCache::has('author_honorariums')) {
+            $hRow = $this->safe(fn () => DB::table('author_honorariums')->selectRaw("
+                COALESCE(SUM(CASE WHEN payment_status = 'completed' THEN author_amount ELSE 0 END), 0) as pool,
+                COALESCE(SUM(CASE WHEN payment_status = 'pending' THEN author_amount ELSE 0 END), 0) as pending_amt,
+                COALESCE(SUM(CASE WHEN payment_status = 'completed' AND updated_at >= ? THEN author_amount ELSE 0 END), 0) as paid_month
+            ", [$monthStart])->first(), null);
+            $accruedPool += (float) ($hRow->pool ?? 0.0);
+            $pendingPayouts += (float) ($hRow->pending_amt ?? 0.0);
+            $paidThisMonth += (float) ($hRow->paid_month ?? 0.0);
         }
 
         return [
@@ -585,7 +679,7 @@ class AdminDashboardService
 
                 // Single aggregated query instead of 28 separate queries
                 $aggregates = $this->safe(fn () => Order::whereBetween('created_at', [$start, $end])
-                    ->selectRaw("DATE(created_at) as dt, SUM(total_amount) as total_rev, COUNT(*) as total_cnt")
+                    ->selectRaw("SUBSTR(created_at, 1, 10) as dt, SUM(total_amount) as total_rev, COUNT(*) as total_cnt")
                     ->groupBy('dt')
                     ->get()
                     ->keyBy('dt'), collect());
@@ -607,13 +701,13 @@ class AdminDashboardService
                 $yrEnd = Carbon::createFromDate($endYear, 12, 31)->endOfDay();
 
                 $aggregates = $this->safe(fn () => Order::whereBetween('created_at', [$yrStart, $yrEnd])
-                    ->selectRaw("YEAR(created_at) as yr, SUM(total_amount) as total_rev, COUNT(*) as total_cnt")
+                    ->selectRaw("SUBSTR(created_at, 1, 4) as yr, SUM(total_amount) as total_rev, COUNT(*) as total_cnt")
                     ->groupBy('yr')
                     ->get()
                     ->keyBy('yr'), collect());
 
                 for ($yr = $startYear; $yr <= $endYear; $yr++) {
-                    $row = $aggregates->get($yr);
+                    $row = $aggregates->get((string) $yr);
                     $labels[] = Bn::num($yr) . ' সাল';
                     $revenue[] = round((float) ($row->total_rev ?? 0), 2);
                     $orders[] = (int) ($row->total_cnt ?? 0);
@@ -624,7 +718,7 @@ class AdminDashboardService
                 $end = now()->endOfMonth();
 
                 $aggregates = $this->safe(fn () => Order::whereBetween('created_at', [$start, $end])
-                    ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as ym, SUM(total_amount) as total_rev, COUNT(*) as total_cnt")
+                    ->selectRaw("SUBSTR(created_at, 1, 7) as ym, SUM(total_amount) as total_rev, COUNT(*) as total_cnt")
                     ->groupBy('ym')
                     ->get()
                     ->keyBy('ym'), collect());
@@ -666,7 +760,7 @@ class AdminDashboardService
                 $end = now()->endOfMonth();
 
                 $visitorAggregates = $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$start, $end])
-                    ->selectRaw("DATE_FORMAT(visited_at, '%Y-%m') as ym, COUNT(*) as views, COUNT(DISTINCT ip_address) as uniques")
+                    ->selectRaw("SUBSTR(visited_at, 1, 7) as ym, COUNT(*) as views, COUNT(DISTINCT ip_address) as uniques")
                     ->groupBy('ym')
                     ->get()
                     ->keyBy('ym'), collect());
@@ -688,13 +782,13 @@ class AdminDashboardService
                 $yrEnd = Carbon::createFromDate($endYear, 12, 31)->endOfDay();
 
                 $visitorAggregates = $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$yrStart, $yrEnd])
-                    ->selectRaw("YEAR(visited_at) as yr, COUNT(*) as views, COUNT(DISTINCT ip_address) as uniques")
+                    ->selectRaw("SUBSTR(visited_at, 1, 4) as yr, COUNT(*) as views, COUNT(DISTINCT ip_address) as uniques")
                     ->groupBy('yr')
                     ->get()
                     ->keyBy('yr'), collect());
 
                 for ($yr = $startYear; $yr <= $endYear; $yr++) {
-                    $row = $visitorAggregates->get($yr);
+                    $row = $visitorAggregates->get((string) $yr);
                     $labels[] = Bn::num($yr) . ' সাল';
                     $views[] = (int) ($row->views ?? 0);
                     $uniques[] = (int) ($row->uniques ?? 0);
@@ -707,7 +801,7 @@ class AdminDashboardService
                 if ($days > 31) $days = 31;
 
                 $visitorAggregates = $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$start, $end])
-                    ->selectRaw("DATE(visited_at) as dt, COUNT(*) as views, COUNT(DISTINCT ip_address) as uniques")
+                    ->selectRaw("SUBSTR(visited_at, 1, 10) as dt, COUNT(*) as views, COUNT(DISTINCT ip_address) as uniques")
                     ->groupBy('dt')
                     ->get()
                     ->keyBy('dt'), collect());
@@ -732,19 +826,19 @@ class AdminDashboardService
      */
     public function recentOrders(int $limit = 8)
     {
-        return $this->safe(fn () => Order::with('book')->latest()->limit($limit)->get(), collect());
+        return $this->swr('admin_dash_recent_orders_' . $limit, 45, fn () => $this->safe(fn () => Order::with('book')->latest()->limit($limit)->get(), collect()));
     }
 
     public function recentBills(int $limit = 8)
     {
-        return $this->safe(fn () => Bill::with('seller')->latest()->limit($limit)->get(), collect());
+        return $this->swr('admin_dash_recent_bills_' . $limit, 45, fn () => $this->safe(fn () => Bill::with('seller')->latest()->limit($limit)->get(), collect()));
     }
 
     public function recentRegistrations(int $limit = 6)
     {
-        return $this->safe(fn () => User::whereIn('role', ['seller', 'publisher', 'author'])
+        return $this->swr('admin_dash_recent_regs_' . $limit, 45, fn () => $this->safe(fn () => User::whereIn('role', ['seller', 'publisher', 'author'])
             ->where('reg_status', User::STATUS_PENDING)
-            ->latest()->limit($limit)->get(), collect());
+            ->latest()->limit($limit)->get(), collect()));
     }
 
     public function roleBreakdown(): array
@@ -771,12 +865,12 @@ class AdminDashboardService
 
     public function topSellers(int $limit = 5)
     {
-        return $this->safe(fn () => Bill::select('seller_id', DB::raw('SUM(total) as revenue'), DB::raw('COUNT(*) as bills'))
+        return $this->swr('admin_dash_top_sellers_' . $limit, 120, fn () => $this->safe(fn () => Bill::select('seller_id', DB::raw('SUM(total) as revenue'), DB::raw('COUNT(*) as bills'))
             ->groupBy('seller_id')
             ->orderByDesc('revenue')
             ->limit($limit)
             ->with('seller')
-            ->get(), collect());
+            ->get(), collect()));
     }
 
     /**
@@ -787,12 +881,25 @@ class AdminDashboardService
         return $this->swr('admin_dash_sellers_summary_' . $limit, 120, function () use ($limit) {
             return $this->safe(function () use ($limit) {
             $totalSellers = User::whereIn('role', [User::ROLE_SELLER, User::ROLE_SUB_ADMIN])->count();
-            $totalBills = Bill::count();
-            $totalSales = (float) Bill::sum('total');
-            $totalPaid = (float) Bill::where('payment_status', 'paid')->sum('total');
-            $totalDue = (float) Bill::where('payment_status', '!=', 'paid')->sum('total');
-            $todaySales = (float) Bill::whereDate('created_at', today())->sum('total');
-            $thisMonthSales = (float) Bill::whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])->sum('total');
+            $todayStart = today()->startOfDay();
+            $monthStart = now()->startOfMonth();
+            $monthEnd = now()->endOfMonth();
+
+            $billStats = Bill::selectRaw("
+                COUNT(*) as total_bills,
+                COALESCE(SUM(total), 0) as total_sales,
+                COALESCE(SUM(CASE WHEN payment_status = 'paid' THEN total ELSE 0 END), 0) as total_paid,
+                COALESCE(SUM(CASE WHEN payment_status != 'paid' THEN total ELSE 0 END), 0) as total_due,
+                COALESCE(SUM(CASE WHEN created_at >= ? THEN total ELSE 0 END), 0) as today_sales,
+                COALESCE(SUM(CASE WHEN created_at BETWEEN ? AND ? THEN total ELSE 0 END), 0) as this_month_sales
+            ", [$todayStart, $monthStart, $monthEnd])->first();
+
+            $totalBills = (int) ($billStats->total_bills ?? 0);
+            $totalSales = (float) ($billStats->total_sales ?? 0.0);
+            $totalPaid = (float) ($billStats->total_paid ?? 0.0);
+            $totalDue = (float) ($billStats->total_due ?? 0.0);
+            $todaySales = (float) ($billStats->today_sales ?? 0.0);
+            $thisMonthSales = (float) ($billStats->this_month_sales ?? 0.0);
 
             $sellersBreakdown = Bill::select(
                     'seller_id',
@@ -1042,12 +1149,12 @@ class AdminDashboardService
     /**
      * Get Dynamic Global Traffic, Live Online Counter & Device Intelligence.
      */
-    public function getGlobalTrafficData(): array
+    public function getGlobalTrafficData(?int $precomputedTotal = null): array
     {
-        return $this->swr('admin_dash_getGlobalTrafficData', 30, fn () => $this->getGlobalTrafficDataUncached());
+        return $this->swr('admin_dash_getGlobalTrafficData', 30, fn () => $this->getGlobalTrafficDataUncached($precomputedTotal));
     }
 
-    protected function getGlobalTrafficDataUncached(): array
+    protected function getGlobalTrafficDataUncached(?int $precomputedTotal = null): array
     {
         $hasLogs = \App\Support\SchemaCache::has('visitor_logs');
         $liveOnlineCount = $this->safe(function () use ($hasLogs) {
@@ -1057,8 +1164,10 @@ class AdminDashboardService
             return $count > 0 ? $count : rand(14, 28);
         }, rand(14, 28));
 
-        $countryTraffic = $this->safe(function () use ($hasLogs) {
-            if (!$hasLogs || \App\Models\VisitorLog::count() === 0) {
+        $totalVisitorsCount = $precomputedTotal ?? ($hasLogs ? (int) $this->safe(fn () => \App\Models\VisitorLog::count(), 0) : 0);
+
+        $countryTraffic = $this->safe(function () use ($hasLogs, $totalVisitorsCount) {
+            if (!$hasLogs || $totalVisitorsCount === 0) {
                 return [
                     ['country' => 'Bangladesh', 'code' => 'BD', 'flag' => '🇧🇩', 'visitors' => 1420, 'share' => '78.5%', 'trend' => '+14%'],
                     ['country' => 'United States', 'code' => 'US', 'flag' => '🇺🇸', 'visitors' => 165, 'share' => '9.1%', 'trend' => '+6%'],
@@ -1069,7 +1178,7 @@ class AdminDashboardService
                 ];
             }
 
-            $total = \App\Models\VisitorLog::count() ?: 1;
+            $total = max(1, $totalVisitorsCount);
             $records = \App\Models\VisitorLog::select('country', 'country_code', DB::raw('count(*) as total'))
                 ->whereNotNull('country')
                 ->groupBy('country', 'country_code')
@@ -1103,18 +1212,21 @@ class AdminDashboardService
             })->all();
         }, []);
 
-        $deviceSplit = $this->safe(function () use ($hasLogs) {
-            if (!$hasLogs || \App\Models\VisitorLog::count() === 0) {
+        $deviceSplit = $this->safe(function () use ($hasLogs, $totalVisitorsCount) {
+            if (!$hasLogs || $totalVisitorsCount === 0) {
                 return [
                     'mobile'  => 68,
                     'desktop' => 28,
                     'tablet'  => 4,
                 ];
             }
-            $total = \App\Models\VisitorLog::count() ?: 1;
-            $mobile = \App\Models\VisitorLog::where('device', 'mobile')->count();
-            $desktop = \App\Models\VisitorLog::where('device', 'desktop')->count();
-            $tablet = \App\Models\VisitorLog::where('device', 'tablet')->count();
+            $total = max(1, $totalVisitorsCount);
+            $byDevice = \App\Models\VisitorLog::select('device', DB::raw('COUNT(*) as c'))
+                ->groupBy('device')
+                ->pluck('c', 'device');
+            $mobile = (int) ($byDevice['mobile'] ?? 0);
+            $desktop = (int) ($byDevice['desktop'] ?? 0);
+            $tablet = (int) ($byDevice['tablet'] ?? 0);
             return [
                 'mobile'  => round(($mobile / $total) * 100),
                 'desktop' => round(($desktop / $total) * 100),
@@ -1131,13 +1243,41 @@ class AdminDashboardService
  
     private static array $tableCache = [];
 
+    private static array $tableCountsMemo = [];
+
     private function count(string $table): ?int
     {
         if (! $this->hasTable($table)) {
             return null;
         }
 
-        return $this->safe(fn () => DB::table($table)->whereNull('deleted_at')->count(), 0);
+        if (empty(self::$tableCountsMemo)) {
+            $parts = [];
+            foreach (['books', 'ebooks', 'authors', 'publishers'] as $t) {
+                if ($this->hasTable($t)) {
+                    $hasDel = \App\Support\SchemaCache::hasColumn($t, 'deleted_at');
+                    $where = $hasDel ? ' WHERE deleted_at IS NULL' : '';
+                    $parts[] = "(SELECT COUNT(*) FROM `{$t}`{$where}) AS `{$t}_cnt`";
+                }
+            }
+            if (!empty($parts)) {
+                $row = $this->safe(fn () => DB::selectOne('SELECT ' . implode(', ', $parts)), null);
+                if ($row) {
+                    foreach (['books', 'ebooks', 'authors', 'publishers'] as $t) {
+                        $prop = "{$t}_cnt";
+                        if (isset($row->$prop)) {
+                            self::$tableCountsMemo[$t] = (int) $row->$prop;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (isset(self::$tableCountsMemo[$table])) {
+            return self::$tableCountsMemo[$table];
+        }
+
+        return self::$tableCountsMemo[$table] = (int) $this->safe(fn () => DB::table($table)->whereNull('deleted_at')->count(), 0);
     }
 
     private function hasTable(string $table): bool

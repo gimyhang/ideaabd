@@ -102,44 +102,55 @@ class LibraryRegistrationAdminController extends Controller
     /** KPI + division numbers (whole registry, not the filtered view). */
     private function computeStats(): array
     {
-        $all = $this->libraryScope();
+        return \Illuminate\Support\Facades\Cache::remember('admin_library_stats_v1', 30, function () {
+            $all = $this->libraryScope();
 
-        $stats = [
-            'total'    => (clone $all)->count(),
-            'approved' => (clone $all)->whereIn('status', self::APPROVED)->count(),
-            'pending'  => (clone $all)->where('status', 'pending')->count(),
-            'rejected' => (clone $all)->where('status', 'rejected')->count(),
-            'allocated' => 0, 'received' => 0, 'acknowledged' => 0, 'readers' => 0, 'existing' => 0,
-        ];
+            $stats = [
+                'total'    => 0,
+                'approved' => 0,
+                'pending'  => 0,
+                'rejected' => 0,
+                'allocated' => 0, 'received' => 0, 'acknowledged' => 0, 'readers' => 0, 'existing' => 0,
+            ];
 
-        $divisionStats = array_fill_keys(self::DIVISIONS, 0);
-        $districtSet = [];
+            $divisionStats = array_fill_keys(self::DIVISIONS, 0);
+            $districtSet = [];
 
-        foreach ((clone $all)->select('id', 'district', 'form_data')->get() as $row) {
-            $fd = $row->form_data ?? [];
-            $stats['allocated'] += (int) ($fd['books_allocated'] ?? 0);
-            $stats['received']  += (int) ($fd['received_books_count'] ?? 0);
-            $stats['readers']   += (int) ($fd['reader_count'] ?? 0);
-            $stats['existing']  += (int) ($fd['current_book_count'] ?? 0);
+            foreach ((clone $all)->select('id', 'status', 'district', 'form_data')->get() as $row) {
+                $stats['total']++;
+                if (in_array($row->status, self::APPROVED, true)) {
+                    $stats['approved']++;
+                } elseif ($row->status === 'pending') {
+                    $stats['pending']++;
+                } elseif ($row->status === 'rejected') {
+                    $stats['rejected']++;
+                }
 
-            if (!empty($fd['received_date']) || !empty($fd['is_acknowledged']) || ($fd['acknowledgment_status'] ?? '') === 'acknowledged') {
-                $stats['acknowledged']++;
+                $fd = $row->form_data ?? [];
+                $stats['allocated'] += (int) ($fd['books_allocated'] ?? 0);
+                $stats['received']  += (int) ($fd['received_books_count'] ?? 0);
+                $stats['readers']   += (int) ($fd['reader_count'] ?? 0);
+                $stats['existing']  += (int) ($fd['current_book_count'] ?? 0);
+
+                if (!empty($fd['received_date']) || !empty($fd['is_acknowledged']) || ($fd['acknowledgment_status'] ?? '') === 'acknowledged') {
+                    $stats['acknowledged']++;
+                }
+
+                $canonDist = BangladeshGeo::normalizeDistrict(trim($row->district ?: ($fd['district'] ?? '')));
+                if ($canonDist) {
+                    $districtSet[$canonDist] = true;
+                }
+                $canonDiv = BangladeshGeo::normalizeDivision($fd['division'] ?? '') ?: BangladeshGeo::getDivisionForDistrict($canonDist);
+                if ($canonDiv && isset($divisionStats[$canonDiv])) {
+                    $divisionStats[$canonDiv]++;
+                }
             }
 
-            $canonDist = BangladeshGeo::normalizeDistrict(trim($row->district ?: ($fd['district'] ?? '')));
-            if ($canonDist) {
-                $districtSet[$canonDist] = true;
-            }
-            $canonDiv = BangladeshGeo::normalizeDivision($fd['division'] ?? '') ?: BangladeshGeo::getDivisionForDistrict($canonDist);
-            if ($canonDiv && isset($divisionStats[$canonDiv])) {
-                $divisionStats[$canonDiv]++;
-            }
-        }
+            $stats['districts'] = count($districtSet);
+            $stats['divisions'] = $divisionStats;
 
-        $stats['districts'] = count($districtSet);
-        $stats['divisions'] = $divisionStats;
-
-        return $stats;
+            return $stats;
+        });
     }
 
     /**

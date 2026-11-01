@@ -73,12 +73,13 @@ class SitemapController extends Controller
      */
     public function index(): Response
     {
-        $xml = $this->generateMasterSitemapXml();
-
-        // Keep static public/sitemap.xml refreshed for search engine bots
-        try {
-            @file_put_contents(public_path('sitemap.xml'), $xml);
-        } catch (\Throwable $e) {}
+        $xml = \Illuminate\Support\Facades\Cache::remember('master_sitemap_xml_v2', 1800, function () {
+            $generated = $this->generateMasterSitemapXml();
+            try {
+                @file_put_contents(public_path('sitemap.xml'), $generated);
+            } catch (\Throwable $e) {}
+            return $generated;
+        });
 
         return response($xml, 200, [
             'Content-Type' => 'application/xml; charset=utf-8',
@@ -165,7 +166,14 @@ class SitemapController extends Controller
 
         $xml = $this->startUrlsetXml();
         foreach ($staticRoutes as $r) {
-            $loc = htmlspecialchars(str_starts_with($r['url'], 'http') ? $r['url'] : ($baseUrl . '/' . ltrim($r['url'], '/')), ENT_XML1, 'UTF-8');
+            $rawUrl = $r['url'];
+            if (str_starts_with($rawUrl, 'http')) {
+                $parsed = parse_url($rawUrl);
+                $rawUrl = $baseUrl . ($parsed['path'] ?? '/') . (isset($parsed['query']) ? '?' . $parsed['query'] : '');
+            } else {
+                $rawUrl = $baseUrl . '/' . ltrim($rawUrl, '/');
+            }
+            $loc = htmlspecialchars($rawUrl, ENT_XML1, 'UTF-8');
             $xml .= "  <url>\n";
             $xml .= "    <loc>{$loc}</loc>\n";
             $xml .= "    <lastmod>{$now}</lastmod>\n";
@@ -797,12 +805,12 @@ class SitemapController extends Controller
         ];
 
         // Dynamic Active Event Campaigns & Programs
-        if (Schema::hasTable('event_campaigns')) {
+        if (\App\Support\SchemaCache::has('event_campaigns')) {
             try {
                 $campaigns = \App\Models\EventCampaign::where('is_active', true)->get();
                 foreach ($campaigns as $camp) {
                     $pages[] = [
-                        'url' => '/events/' . $camp->slug,
+                        'url' => '/' . ltrim($camp->slug, '/'),
                         'priority' => '0.92',
                         'freq' => 'daily',
                     ];
@@ -812,17 +820,24 @@ class SitemapController extends Controller
 
         // Include any custom nav items defined in SiteSetting::headerNav()
         try {
+            $baseUrl = $this->getBaseUrl();
             $rawNav = \App\Support\SiteSetting::headerNav();
             foreach ($rawNav as $item) {
                 if (!($item['is_active'] ?? true)) continue;
                 $target = '';
                 $rName = $item['route'] ?? '';
                 if (!empty($rName) && Route::has($rName)) {
-                    $target = route($rName, $item['params'] ?? []);
+                    $target = route($rName, $item['params'] ?? [], false);
                 } elseif (!empty($item['url'])) {
                     $target = $item['url'];
                 }
                 if ($target) {
+                    if (str_starts_with($target, 'http')) {
+                        $parsed = parse_url($target);
+                        if (isset($parsed['host']) && (str_contains($parsed['host'], 'localhost') || str_contains($parsed['host'], '127.0.0.1'))) {
+                            $target = ($parsed['path'] ?? '/') . (isset($parsed['query']) ? '?' . $parsed['query'] : '');
+                        }
+                    }
                     $pages[] = [
                         'url' => $target,
                         'priority' => '0.80',
@@ -832,7 +847,18 @@ class SitemapController extends Controller
             }
         } catch (\Throwable $e) {}
 
-        return $pages;
+        // Deduplicate static/menu pages by normalized path
+        $deduped = [];
+        foreach ($pages as $p) {
+            $u = $p['url'] ?? '/';
+            $key = '/' . ltrim($u, '/');
+            if (!isset($deduped[$key])) {
+                $p['url'] = $key;
+                $deduped[$key] = $p;
+            }
+        }
+
+        return array_values($deduped);
     }
 
     /**
@@ -848,7 +874,14 @@ class SitemapController extends Controller
         // 1. Static core landing pages & Submenus
         $staticRoutes = $this->getAllStaticAndMenuPages();
         foreach ($staticRoutes as $r) {
-            $loc = htmlspecialchars(str_starts_with($r['url'], 'http') ? $r['url'] : ($baseUrl . '/' . ltrim($r['url'], '/')), ENT_XML1, 'UTF-8');
+            $rawUrl = $r['url'];
+            if (str_starts_with($rawUrl, 'http')) {
+                $parsed = parse_url($rawUrl);
+                $rawUrl = $baseUrl . ($parsed['path'] ?? '/') . (isset($parsed['query']) ? '?' . $parsed['query'] : '');
+            } else {
+                $rawUrl = $baseUrl . '/' . ltrim($rawUrl, '/');
+            }
+            $loc = htmlspecialchars($rawUrl, ENT_XML1, 'UTF-8');
             $xml .= "  <url>\n";
             $xml .= "    <loc>{$loc}</loc>\n";
             $xml .= "    <lastmod>{$now}</lastmod>\n";

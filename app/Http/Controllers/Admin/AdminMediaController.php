@@ -202,7 +202,7 @@ class AdminMediaController extends Controller
             $map = [];
 
             // Books - Covers & Look Inside Pages
-            if (\Illuminate\Support\Facades\Schema::hasTable('books')) {
+            if (\App\Support\SchemaCache::has('books')) {
                 $books = \Illuminate\Support\Facades\DB::table('books')->get(['title', 'author_name', 'cover_image', 'look_inside_images', 'slug']);
                 foreach ($books as $b) {
                     if ($b->cover_image) {
@@ -244,7 +244,7 @@ class AdminMediaController extends Controller
             }
 
             // Authors
-            if (\Illuminate\Support\Facades\Schema::hasTable('authors')) {
+            if (\App\Support\SchemaCache::has('authors')) {
                 $authors = \Illuminate\Support\Facades\DB::table('authors')->whereNotNull('avatar')->get(['name', 'name_bn', 'avatar', 'slug']);
                 foreach ($authors as $a) {
                     $base = basename((string) $a->avatar);
@@ -261,7 +261,7 @@ class AdminMediaController extends Controller
             }
 
             // Publishers
-            if (\Illuminate\Support\Facades\Schema::hasTable('publishers')) {
+            if (\App\Support\SchemaCache::has('publishers')) {
                 $pubs = \Illuminate\Support\Facades\DB::table('publishers')->whereNotNull('logo')->get(['name', 'logo', 'slug']);
                 foreach ($pubs as $pub) {
                     $base = basename((string) $pub->logo);
@@ -278,7 +278,7 @@ class AdminMediaController extends Controller
             }
 
             // Ebooks
-            if (\Illuminate\Support\Facades\Schema::hasTable('ebooks')) {
+            if (\App\Support\SchemaCache::has('ebooks')) {
                 $ebooks = \Illuminate\Support\Facades\DB::table('ebooks')->whereNotNull('cover_image')->get(['title', 'author_name', 'cover_image', 'slug']);
                 foreach ($ebooks as $eb) {
                     $base = basename((string) $eb->cover_image);
@@ -295,7 +295,7 @@ class AdminMediaController extends Controller
             }
 
             // Blog Posts
-            if (\Illuminate\Support\Facades\Schema::hasTable('blog_posts')) {
+            if (\App\Support\SchemaCache::has('blog_posts')) {
                 $posts = \Illuminate\Support\Facades\DB::table('blog_posts')->whereNotNull('featured_image')->get(['title', 'featured_image', 'slug']);
                 foreach ($posts as $p) {
                     $base = basename((string) $p->featured_image);
@@ -334,6 +334,11 @@ class AdminMediaController extends Controller
 
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'ico', 'bmp', 'avif'];
         $scannedPaths = [];
+        $dimMap = \Illuminate\Support\Facades\Cache::get('media_dimensions_map_v1', []);
+        if (!is_array($dimMap)) {
+            $dimMap = [];
+        }
+        $dimMapDirty = false;
 
         foreach ($folderDefs as $folderKey => $folderConfig) {
             foreach ($folderConfig['dirs'] as $dir) {
@@ -446,32 +451,38 @@ class AdminMediaController extends Controller
                         $url = asset(ltrim(str_replace('\\', '/', $relFromPublic), '/'));
                     }
 
-                    // Extract Dimensions & Metadata (Cached per file mtime for ultra-fast page speed)
+                    // Extract Dimensions & Metadata using single consolidated map instead of N separate cache file reads
                     $mtime = $file->getMTime();
-                    $cacheKey = 'media_dim_' . md5($pathname) . '_' . $mtime;
+                    $cacheKey = md5($pathname) . '_' . $mtime;
 
-                    $dimMeta = \Illuminate\Support\Facades\Cache::remember($cacheKey, 86400, function () use ($pathname, $ext) {
+                    if (isset($dimMap[$cacheKey])) {
+                        $dimMeta = $dimMap[$cacheKey];
+                    } else {
                         if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'avif'])) {
-                            return ['w' => null, 'h' => null, 'ratio' => 'Vector'];
+                            $dimMeta = ['w' => null, 'h' => null, 'ratio' => 'Vector'];
+                        } else {
+                            $imgInfo = @getimagesize($pathname);
+                            if (!$imgInfo || $imgInfo[0] <= 0 || $imgInfo[1] <= 0) {
+                                $dimMeta = ['w' => null, 'h' => null, 'ratio' => 'Auto'];
+                            } else {
+                                $w = $imgInfo[0];
+                                $h = $imgInfo[1];
+                                $r = round($w / $h, 2);
+                                $aspect = match(true) {
+                                    $w === $h => '1:1',
+                                    $r >= 1.75 && $r <= 1.8 => '16:9',
+                                    $r >= 1.3 && $r <= 1.35 => '4:3',
+                                    $r >= 1.48 && $r <= 1.52 => '3:2',
+                                    $r >= 2.0 => 'Banner',
+                                    $r < 0.8 => 'Portrait',
+                                    default => "{$w}x{$h}",
+                                };
+                                $dimMeta = ['w' => $w, 'h' => $h, 'ratio' => $aspect];
+                            }
                         }
-                        $imgInfo = @getimagesize($pathname);
-                        if (!$imgInfo || $imgInfo[0] <= 0 || $imgInfo[1] <= 0) {
-                            return ['w' => null, 'h' => null, 'ratio' => 'Auto'];
-                        }
-                        $w = $imgInfo[0];
-                        $h = $imgInfo[1];
-                        $r = round($w / $h, 2);
-                        $aspect = match(true) {
-                            $w === $h => '1:1',
-                            $r >= 1.75 && $r <= 1.8 => '16:9',
-                            $r >= 1.3 && $r <= 1.35 => '4:3',
-                            $r >= 1.48 && $r <= 1.52 => '3:2',
-                            $r >= 2.0 => 'Banner',
-                            $r < 0.8 => 'Portrait',
-                            default => "{$w}x{$h}",
-                        };
-                        return ['w' => $w, 'h' => $h, 'ratio' => $aspect];
-                    });
+                        $dimMap[$cacheKey] = $dimMeta;
+                        $dimMapDirty = true;
+                    }
 
                     $width = $dimMeta['w'] ?? null;
                     $height = $dimMeta['h'] ?? null;
@@ -523,6 +534,10 @@ class AdminMediaController extends Controller
                     ];
                 }
             }
+        }
+
+        if ($dimMapDirty) {
+            \Illuminate\Support\Facades\Cache::put('media_dimensions_map_v1', $dimMap, 86400);
         }
 
         // Format folder storage bytes

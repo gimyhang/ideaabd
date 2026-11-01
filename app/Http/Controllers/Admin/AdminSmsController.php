@@ -43,7 +43,11 @@ class AdminSmsController extends Controller
     public function index(Request $request): View
     {
         $credentials = SmsService::getCredentials();
-        $balanceInfo = SmsService::checkBalance();
+        if ($request->boolean('refresh_balance')) {
+            Cache::forget('admin_sms_page_balance_snapshot');
+        }
+        $balanceInfo = Cache::get(SmsService::BALANCE_CACHE_KEY)
+            ?? Cache::remember('admin_sms_page_balance_snapshot', 60, fn () => SmsService::checkBalance());
         $smtp        = EmailService::getSmtpSettings();
 
         $filters = $request->validate([
@@ -608,7 +612,7 @@ class AdminSmsController extends Controller
     private function smsTablesExist(): bool
     {
         try {
-            return \Illuminate\Support\Facades\Schema::hasTable('sms_logs');
+            return \App\Support\SchemaCache::has('sms_logs');
         } catch (\Throwable) {
             return false;
         }
@@ -676,7 +680,11 @@ class AdminSmsController extends Controller
     /** @return int[] */
     private function libraryCampaignIds(): array
     {
-        return EventCampaign::all()->filter(fn (EventCampaign $c) => $c->isLibrary())->pluck('id')->all();
+        static $ids = null;
+        if ($ids !== null) {
+            return $ids;
+        }
+        return $ids = EventCampaign::all()->filter(fn (EventCampaign $c) => $c->isLibrary())->pluck('id')->all();
     }
 
     /** Number of users per audience that have a phone number / an email address. */

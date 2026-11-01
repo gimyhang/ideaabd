@@ -555,26 +555,39 @@ class SiteSetting
     {
         return [
             ['id' => '1', 'label' => 'হোম', 'route' => 'home', 'url' => '/', 'icon' => 'house', 'active' => 'home', 'is_active' => true, 'target' => '_self', 'badge' => ''],
-            ['id' => '2', 'label' => 'বুকশপ', 'route' => 'book.index', 'url' => '/books', 'icon' => 'book', 'active' => 'book.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
-            ['id' => '3', 'label' => 'ই-বুক', 'route' => 'ebook.index', 'url' => '/ebooks', 'icon' => 'tablet-screen-button', 'active' => 'ebook.*', 'is_active' => true, 'target' => '_self', 'badge' => 'নতুন'],
-            ['id' => '4', 'label' => 'লেখক', 'route' => 'authors.index', 'url' => '/authors', 'icon' => 'pen-fancy', 'active' => 'authors.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
-            ['id' => '5', 'label' => 'প্রকাশক', 'route' => 'publishers.index', 'url' => '/publishers', 'icon' => 'building', 'active' => 'publishers.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
-            ['id' => '6', 'label' => 'আইডিয়াপত্র', 'route' => 'blog.index', 'url' => '/blog', 'icon' => 'newspaper', 'active' => 'blog.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
-            ['id' => '7', 'label' => 'ওয়েবজিন', 'route' => 'webzine.index', 'url' => '/webzines', 'icon' => 'book-open', 'active' => 'webzine.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
-            ['id' => '8', 'label' => 'গবেষণা', 'route' => 'research.index', 'url' => '/research', 'icon' => 'flask', 'active' => 'research.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
-            ['id' => '9', 'label' => 'আইডিয়া হাব', 'route' => 'hub', 'url' => '/hub', 'icon' => 'compass', 'active' => 'hub', 'is_active' => true, 'target' => '_self', 'badge' => ''],
-            ['id' => '10', 'label' => 'আমাদের সম্পর্কে', 'route' => 'about', 'url' => '/about', 'icon' => 'circle-info', 'active' => 'about', 'is_active' => true, 'target' => '_self', 'badge' => ''],
-            ['id' => '11', 'label' => 'যোগাযোগ', 'route' => 'contact', 'url' => '/contact', 'icon' => 'envelope', 'active' => 'contact', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '2', 'label' => 'বই', 'route' => 'book.index', 'url' => '/books', 'icon' => 'book', 'active' => 'book.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '3', 'label' => 'ইলেকট্রনিক্স', 'route' => 'products.electronics', 'url' => '/products/electronics', 'icon' => 'laptop', 'active' => 'products.electronics*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '4', 'label' => 'স্টেশনারি', 'route' => 'products.stationery', 'url' => '/products/stationery', 'icon' => 'pen-ruler', 'active' => 'products.stationery*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '5', 'label' => 'যন্ত্রপাতি', 'route' => 'products.appliance', 'url' => '/products/appliance', 'icon' => 'blender', 'active' => 'products.appliance*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '6', 'label' => 'ই-বুক', 'route' => 'ebook.index', 'url' => '/ebooks', 'icon' => 'tablet-screen-button', 'active' => 'ebook.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '7', 'label' => 'লেখক', 'route' => 'authors.index', 'url' => '/authors', 'icon' => 'pen-fancy', 'active' => 'authors.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '8', 'label' => 'প্রকাশক', 'route' => 'publishers.index', 'url' => '/publishers', 'icon' => 'building', 'active' => 'publishers.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '9', 'label' => 'আইডিয়াপত্র', 'route' => 'blog.index', 'url' => '/blog', 'icon' => 'newspaper', 'active' => 'blog.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '10', 'label' => 'ওয়েবজিন', 'route' => 'webzine.index', 'url' => '/webzines', 'icon' => 'book-open', 'active' => 'webzine.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '11', 'label' => 'গবেষণা', 'route' => 'research.index', 'url' => '/research', 'icon' => 'flask', 'active' => 'research.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '12', 'label' => 'হাব', 'route' => 'hub', 'url' => '/hub', 'icon' => 'compass', 'active' => 'hub', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '13', 'label' => 'পরিচিতি', 'route' => 'about', 'url' => '/about', 'icon' => 'circle-info', 'active' => 'about', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '14', 'label' => 'যোগাযোগ', 'route' => 'contact', 'url' => '/contact', 'icon' => 'envelope', 'active' => 'contact', 'is_active' => true, 'target' => '_self', 'badge' => ''],
         ];
     }
 
     public static function headerNav(): array
     {
         $saved = self::get('header_menu_items');
-        if (is_array($saved) && !empty($saved)) {
-            return $saved;
-        }
-        return self::defaultHeaderNav();
+        $items = (is_array($saved) && !empty($saved)) ? $saved : self::defaultHeaderNav();
+
+        return array_map(function ($item) {
+            if (empty($item['target_url'])) {
+                $url = '#';
+                if (!empty($item['route']) && \Illuminate\Support\Facades\Route::has($item['route'])) {
+                    $url = route($item['route']);
+                } elseif (!empty($item['url'])) {
+                    $url = url($item['url']);
+                }
+                $item['target_url'] = $url;
+            }
+            return $item;
+        }, $items);
     }
 
     // --- Terms & Legal Policies Customization Helpers ---

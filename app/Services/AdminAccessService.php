@@ -42,20 +42,33 @@ class AdminAccessService
      */
     public function getIamSummaryStats(): array
     {
-        $totalRoles = \App\Support\SchemaCache::has('admin_roles') ? AdminRole::where('is_active', true)->count() : 4;
-        $customRoles = \App\Support\SchemaCache::has('admin_roles') ? AdminRole::where('is_system', false)->count() : 0;
+        $totalRoles = 4;
+        $customRoles = 0;
+        if (\App\Support\SchemaCache::has('admin_roles')) {
+            $roleRow = AdminRole::selectRaw("
+                SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_roles,
+                SUM(CASE WHEN is_system = 0 THEN 1 ELSE 0 END) as custom_roles
+            ")->first();
+            $totalRoles = (int) ($roleRow->active_roles ?? 0);
+            $customRoles = (int) ($roleRow->custom_roles ?? 0);
+        }
         $totalPermissions = \App\Support\SchemaCache::has('admin_permissions') ? AdminPermission::count() : 0;
         
         $managedRoles = [User::ROLE_SUB_ADMIN, User::ROLE_SELLER, 'operations_manager', 'chief_editor', 'digital_marketer', 'tech_admin', 'finance_controller', 'support_agent'];
         
-        $subordinateStaffQuery = User::where(function ($q) use ($managedRoles) {
+        $staffRow = User::where(function ($q) use ($managedRoles) {
             $q->whereIn('role', $managedRoles)
               ->orWhereNotNull('custom_role_id');
-        })->where('role', '!=', User::ROLE_ADMIN);
+        })->where('role', '!=', User::ROLE_ADMIN)
+          ->selectRaw("
+              COUNT(*) as total_staff,
+              SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_staff,
+              SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END) as suspended_staff
+          ")->first();
 
-        $totalStaff = (clone $subordinateStaffQuery)->count();
-        $activeStaff = (clone $subordinateStaffQuery)->where('is_active', true)->count();
-        $suspendedStaff = (clone $subordinateStaffQuery)->where('is_active', false)->count();
+        $totalStaff = (int) ($staffRow->total_staff ?? 0);
+        $activeStaff = (int) ($staffRow->active_staff ?? 0);
+        $suspendedStaff = (int) ($staffRow->suspended_staff ?? 0);
 
         $directOverridesCount = 0;
         if (\App\Support\SchemaCache::has('user_has_permissions')) {
@@ -82,7 +95,28 @@ class AdminAccessService
             return collect();
         }
 
-        return AdminRole::orderBy('is_system', 'desc')->orderBy('name')->get();
+        $roles = AdminRole::orderBy('is_system', 'desc')->orderBy('name')->get();
+        if ($roles->isEmpty()) {
+            return $roles;
+        }
+
+        $permMap = $this->getRolePermissionsMap();
+        $roleSlugs = $roles->pluck('slug')->all();
+        $roleIds = $roles->pluck('id')->all();
+
+        $matchingUsers = User::whereIn('custom_role_id', $roleIds)
+            ->orWhereIn('role', $roleSlugs)
+            ->get(['id', 'role', 'custom_role_id']);
+
+        foreach ($roles as $role) {
+            $count = $matchingUsers->filter(fn ($u) => (int) $u->custom_role_id === (int) $role->id || $u->role === $role->slug)->count();
+            $role->setRawAttributes(array_merge($role->getAttributes(), [
+                'users_count_cached'    => $count,
+                'permission_ids_cached' => $permMap[$role->slug] ?? [],
+            ]));
+        }
+
+        return $roles;
     }
 
     /**
@@ -512,10 +546,12 @@ class AdminAccessService
                 return collect();
             }
 
-            return AdminActivityLog::with('user')
-                ->latest()
-                ->limit($limit)
-                ->get();
+            return \Illuminate\Support\Facades\Cache::remember('admin_recent_logs_' . $limit, 45, function () use ($limit) {
+                return AdminActivityLog::with('user')
+                    ->latest()
+                    ->limit($limit)
+                    ->get();
+            });
         } catch (\Throwable) {
             return collect();
         }
@@ -550,39 +586,41 @@ class AdminAccessService
      */
     public function systemHealth(): array
     {
-        $dbOk = false;
-        try {
-            DB::connection()->getPdo();
-            $dbOk = true;
-        } catch (\Throwable) {
+        return \Illuminate\Support\Facades\Cache::remember('admin_access_system_health', 60, function () {
             $dbOk = false;
-        }
-
-        $pendingModeration = 0;
-        try {
-            if (\App\Support\SchemaCache::has('books')) {
-                $pendingModeration += DB::table('books')->where('status', 'pending')->count();
+            try {
+                DB::connection()->getPdo();
+                $dbOk = true;
+            } catch (\Throwable) {
+                $dbOk = false;
             }
-            if (\App\Support\SchemaCache::has('ebooks')) {
-                $pendingModeration += DB::table('ebooks')->where('status', 'pending')->count();
-            }
-        } catch (\Throwable) {}
 
-        $activeAdmins = 0;
-        try {
-            $activeAdmins = User::whereIn('role', [User::ROLE_ADMIN, User::ROLE_SUB_ADMIN])
-                ->where('is_active', true)
-                ->count();
-        } catch (\Throwable) {}
+            $pendingModeration = 0;
+            try {
+                if (\App\Support\SchemaCache::has('books')) {
+                    $pendingModeration += DB::table('books')->where('status', 'pending')->count();
+                }
+                if (\App\Support\SchemaCache::has('ebooks')) {
+                    $pendingModeration += DB::table('ebooks')->where('status', 'pending')->count();
+                }
+            } catch (\Throwable) {}
 
-        return [
-            'database'           => $dbOk,
-            'storage'            => is_writable(storage_path()),
-            'pending_moderation' => $pendingModeration,
-            'active_admins'      => $activeAdmins,
-            'php_version'        => PHP_VERSION,
-            'environment'        => app()->environment(),
-        ];
+            $activeAdmins = 0;
+            try {
+                $activeAdmins = User::whereIn('role', [User::ROLE_ADMIN, User::ROLE_SUB_ADMIN])
+                    ->where('is_active', true)
+                    ->count();
+            } catch (\Throwable) {}
+
+            return [
+                'database'           => $dbOk,
+                'storage'            => is_writable(storage_path()),
+                'pending_moderation' => $pendingModeration,
+                'active_admins'      => $activeAdmins,
+                'php_version'        => PHP_VERSION,
+                'environment'        => app()->environment(),
+            ];
+        });
     }
 
     /**

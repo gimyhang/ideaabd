@@ -69,21 +69,27 @@ class Order extends Model
                 $order->quantity = 1;
             }
         });
+
+        static::saved(function (Order $order) {
+            if ($order->payment_status === 'paid' || ((float) $order->total_amount <= 0 && $order->status === 'confirmed')) {
+                \App\Services\RoyaltyService::processOrderRoyalties($order);
+            }
+        });
     }
 
     public static function generateOrderNumber(): string
     {
         $year = date('Y');
         $prefix = "IDP-{$year}-";
-        $latest = static::where('order_number', 'like', "{$prefix}%")->latest('id')->first();
-        
-        if ($latest && preg_match('/-(\d+)$/', $latest->order_number, $matches)) {
-            $nextNumber = intval($matches[1]) + 1;
-        } else {
-            $nextNumber = 1001;
-        }
-        
-        return $prefix . str_pad((string)$nextNumber, 4, '0', STR_PAD_LEFT);
+        $len = strlen($prefix) + 1;
+
+        $maxSeq = (int) static::where('order_number', 'like', "{$prefix}%")
+            ->selectRaw("MAX(CAST(SUBSTRING(order_number, {$len}) AS UNSIGNED)) as max_seq")
+            ->value('max_seq');
+
+        $nextNumber = $maxSeq >= 1001 ? ($maxSeq + 1) : 1001;
+
+        return $prefix . str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
     }
 
     public function book()
@@ -141,7 +147,8 @@ class Order extends Model
             'bkash' => 'বিকাশ (bKash)',
             'nagad' => 'নগদ (Nagad)',
             'rocket' => 'রকেট (Rocket)',
-            'card' => 'কার্ড / অনলাইন',
+            'bank' => 'ব্যাংক ট্রান্সফার (Bank)',
+            'card', 'sslcommerz' => 'কার্ড / অনলাইন',
             default => strtoupper($this->payment_method ?? 'COD'),
         };
     }

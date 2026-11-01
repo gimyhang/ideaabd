@@ -348,8 +348,8 @@
 
         {{-- 2. Approved / Selected --}}
         @php
-            $selectedCount = $campaign->registrations()->where(fn($q) => $q->where('status', 'selected')->orWhere('status', 'confirmed'))->count();
-            $pendingCount = $campaign->registrations()->where('status', 'pending')->count();
+            $selectedCount = $selectedCount ?? $campaign->registrations()->where(fn($q) => $q->where('status', 'selected')->orWhere('status', 'confirmed'))->count();
+            $pendingCount = $pendingCount ?? $campaign->registrations()->where('status', 'pending')->count();
         @endphp
         <div class="col-6 col-lg-3">
             <div class="aec-stat-card">
@@ -1260,7 +1260,7 @@
                                     </button>
 
                                     {{-- Edit Participant Modal Trigger --}}
-                                    <button type="button" class="btn-action-icon btn-action-edit" data-bs-toggle="modal" data-bs-target="#editRegModal{{ $reg->id }}" title="{{ $isScholarship ? 'Edit' : 'অংশগ্রহণকারী সম্পাদনা' }}">
+                                    <button type="button" class="btn-action-icon btn-action-edit" data-bs-toggle="modal" data-bs-target="#viewDetailsModal{{ $reg->id }}" onclick="setTimeout(function(){ var btn = document.getElementById('edit-tab-btn-{{ $reg->id }}'); if (btn) btn.click(); }, 80)" title="{{ $isScholarship ? 'Edit' : 'অংশগ্রহণকারী সম্পাদনা' }}">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
 
@@ -4429,16 +4429,34 @@
                                 </div>
                                 @if($isWriter)
                                     <div class="col-12 col-sm-6">
-                                        <label class="form-label small fw-bold text-dark mb-1">কলমী নাম (Pen Name)</label>
-                                        <input type="text" name="pen_name" class="form-control form-control-sm" placeholder="যদি থাকে">
+                                        <label class="form-label small fw-bold text-dark mb-1">ক্যাটাগরি (Category) <span class="text-danger">*</span></label>
+                                        <select name="author_category" class="form-select form-select-sm fw-bold">
+                                            @foreach(['কবি', 'কথাসাহিত্যিক', 'প্রাবন্ধিক', 'গবেষক', 'ছড়াকার', 'গল্পকার', 'অনুবাদক', 'নাট্যকার', 'সম্পাদক', 'প্রকাশক', 'শিল্পী', 'সংগঠক', 'অন্যান্য'] as $wCatOpt)
+                                                <option value="{{ $wCatOpt }}">{{ $wCatOpt }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                     <div class="col-12 col-sm-6">
-                                        <label class="form-label small fw-bold text-dark mb-1">প্রকাশিত বই সংখ্যা</label>
-                                        <input type="number" name="published_book_count" class="form-control form-control-sm font-monospace" min="0" value="0">
+                                        <label class="form-label small fw-bold text-dark mb-1">সাহিত্যিক শাখা / পদবি</label>
+                                        <input type="text" name="designation_or_class" class="form-control form-control-sm" value="কবিতা" placeholder="যেমন: কবিতা, কথাসাহিত্য, সংগীত">
                                     </div>
                                     <div class="col-12 col-sm-6">
-                                        <label class="form-label small fw-bold text-dark mb-1">সাহিত্যিক শাখা (Genres)</label>
-                                        <input type="text" name="genres[]" class="form-control form-control-sm" placeholder="যেমন: কবিতা, কথাসাহিত্য">
+                                        <label class="form-label small fw-bold text-dark mb-1">প্রকাশিত গ্রন্থ সংখ্যা</label>
+                                        <select name="published_books_count" class="form-select form-select-sm">
+                                            <option value="১টি গ্রন্থ">১টি গ্রন্থ</option>
+                                            <option value="২-৫টি গ্রন্থ" selected>২-৫টি গ্রন্থ</option>
+                                            <option value="৬-১০টি গ্রন্থ">৬-১০টি গ্রন্থ</option>
+                                            <option value="১০টির অধিক গ্রন্থ">১০টির অধিক গ্রন্থ</option>
+                                            <option value="গ্রন্থ প্রকাশের অপেক্ষায়">গ্রন্থ প্রকাশের অপেক্ষায়</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-sm-6">
+                                        <label class="form-label small fw-bold text-dark mb-1">ছোটকাগজ / সংগঠন (যদি থাকে)</label>
+                                        <input type="text" name="magazine_name" class="form-control form-control-sm" placeholder="ছোটকাগজ বা সংগঠনের নাম">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold text-dark mb-1">উল্লেখযোগ্য গ্রন্থসমূহ</label>
+                                        <input type="text" name="notable_books" class="form-control form-control-sm" placeholder="প্রকাশিত গ্রন্থের নাম">
                                     </div>
                                 @else
                                     <div class="col-12 col-sm-6">
@@ -4731,103 +4749,6 @@
                 }
             });
         }
-
-        // Universal Bulk Action Handler for Floating Toolbar
-        window.executeBulkAction = async function(action) {
-            const selected = Array.from(document.querySelectorAll('.participant-select-check:checked')).map(cb => cb.value);
-            if (selected.length === 0) {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'কোনো অংশগ্রহণকারী নির্বাচিত নেই',
-                        text: 'অনুগ্রহ করে অন্তত একজন অংশগ্রহণকারী নির্বাচন করুন।',
-                        confirmButtonColor: '#059669',
-                    });
-                } else {
-                    alert('অনুগ্রহ করে অন্তত একজন অংশগ্রহণকারী নির্বাচন করুন।');
-                }
-                return;
-            }
-
-            const actionLabels = {
-                'approve': 'অনুমোদন / কনফার্ম',
-                'mark_pending': 'পেন্ডিং মার্ক',
-                'select_scholarship': 'Select for scholarship',
-                'resolve_geo': 'বিভাগ-জেলা অমিল সংশোধন',
-                'delete': 'মুছে ফেলা'
-            };
-            const actionName = actionLabels[action] || action;
-
-            if (typeof Swal !== 'undefined') {
-                const confirmRes = await Swal.fire({
-                    title: `${actionName} করবেন?`,
-                    text: `আপনি কি নির্বাচিত ${selected.length} জন অংশগ্রহণকারীর ওপর এই অ্যাকশন চালাতে চান?`,
-                    icon: action === 'delete' ? 'warning' : 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: action === 'delete' ? '#dc2626' : '#059669',
-                    cancelButtonColor: '#64748b',
-                    confirmButtonText: action === 'delete' ? 'হ্যাঁ, ডিলিট করুন' : 'হ্যাঁ, সম্পন্ন করুন',
-                    cancelButtonText: 'বাতিল'
-                });
-                if (!confirmRes.isConfirmed) return;
-            } else {
-                if (!confirm(`আপনি কি নিশ্চিত যে নির্বাচিত ${selected.length} জনের ওপর '${actionName}' অ্যাকশন চালাতে চান?`)) {
-                    return;
-                }
-            }
-
-            const form = document.getElementById('bulkActionHiddenForm');
-            const typeInput = document.getElementById('bulkActionTypeInput');
-            const idsInput = document.getElementById('bulkSelectedIdsInput');
-
-            if (typeInput) typeInput.value = action;
-            if (idsInput) idsInput.value = JSON.stringify(selected);
-
-            try {
-                const formData = new FormData();
-                formData.append('_token', '{{ csrf_token() }}');
-                formData.append('action', action);
-                formData.append('selected_ids', JSON.stringify(selected));
-
-                const res = await fetch('{{ route("admin.event-campaigns.bulk-action", $campaign->id) }}', {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: formData
-                });
-
-                const data = await res.json();
-                if (data.success) {
-                    if (typeof Swal !== 'undefined') {
-                        await Swal.fire({
-                            icon: 'success',
-                            title: 'সফল হয়েছে!',
-                            text: data.message,
-                            confirmButtonColor: '#059669',
-                            timer: 2000,
-                            showConfirmButton: true
-                        });
-                    }
-                    window.location.reload();
-                } else {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'অ্যাকশন ব্যর্থ',
-                            text: data.message || 'একটি ত্রুটি ঘটেছে।',
-                            confirmButtonColor: '#dc2626'
-                        });
-                    } else {
-                        alert(data.message || 'ত্রুটি ঘটেছে');
-                    }
-                }
-            } catch (e) {
-                console.error('Bulk Action Error:', e);
-                if (form) form.submit();
-            }
-        };
 
         // 1-Click Resolve Geo Conflict for Single Registration
         window.resolveSingleGeoConflict = async function(btn) {

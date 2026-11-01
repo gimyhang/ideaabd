@@ -40,28 +40,22 @@
                 </button>
 
                 <div class="d-flex align-items-center gap-2 overflow-x-auto scrollbar-none py-1 px-1 text-nowrap w-100 pill-scroll-track" id="categoryPillTrack" style="scroll-behavior: smooth; cursor: grab;">
-                    <a href="{{ route('book.index') }}" class="btn btn-sm {{ !request()->anyFilled(['category', 'filter', 'sort', 'format', 'search', 'q', 'letter', 'discount_min', 'in_stock']) ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
-                        <i class="fa-solid fa-layer-group"></i>
+                    <a href="{{ route('book.index') }}" class="btn btn-sm {{ !request()->anyFilled(['category', 'filter', 'sort', 'format', 'search', 'q', 'letter', 'discount_min', 'in_stock']) ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center shadow-2xs flex-shrink-0">
                         <span>সকল বিষয়</span>
                     </a>
-                    <a href="{{ route('book.index', ['sort' => 'bestselling']) }}" class="btn btn-sm {{ request('sort') === 'bestselling' ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
-                        <i class="fa-solid fa-fire text-danger"></i>
+                    <a href="{{ route('book.index', ['sort' => 'bestselling']) }}" class="btn btn-sm {{ request('sort') === 'bestselling' ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center shadow-2xs flex-shrink-0">
                         <span>বেস্টসেলার</span>
                     </a>
-                    <a href="{{ route('book.index', ['sort' => 'latest']) }}" class="btn btn-sm {{ request('sort') === 'latest' ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
-                        <i class="fa-solid fa-wand-magic-sparkles text-success"></i>
+                    <a href="{{ route('book.index', ['sort' => 'latest']) }}" class="btn btn-sm {{ request('sort') === 'latest' ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center shadow-2xs flex-shrink-0">
                         <span>নতুন বই</span>
                     </a>
-                    <a href="{{ route('book.index', ['discount_min' => '20']) }}" class="btn btn-sm {{ request('discount_min') ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
-                        <i class="fa-solid fa-percent text-danger"></i>
+                    <a href="{{ route('book.index', ['discount_min' => '20']) }}" class="btn btn-sm {{ request('discount_min') ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center shadow-2xs flex-shrink-0">
                         <span>বিশেষ ছাড়</span>
                     </a>
-                    <a href="{{ route('book.index', ['format' => 'hardcover']) }}" class="btn btn-sm {{ request('format') === 'hardcover' ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
-                        <i class="fa-solid fa-book text-primary"></i>
+                    <a href="{{ route('book.index', ['format' => 'hardcover']) }}" class="btn btn-sm {{ request('format') === 'hardcover' ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center shadow-2xs flex-shrink-0">
                         <span>হার্ডকভার</span>
                     </a>
-                    <a href="{{ route('ebook.index') }}" class="btn btn-sm btn-light border text-dark rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
-                        <i class="fa-solid fa-tablet-screen-button text-info"></i>
+                    <a href="{{ route('ebook.index') }}" class="btn btn-sm btn-light border text-dark rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center shadow-2xs flex-shrink-0">
                         <span>ই-বুক</span>
                     </a>
 
@@ -69,7 +63,7 @@
                     @if(isset($categories) && $categories->isNotEmpty())
                         @foreach($categories as $topCat)
                             <a href="{{ route('book.index', ['category' => $topCat->slug]) }}" 
-                               class="btn btn-sm {{ request('category') === $topCat->slug ? 'btn-primary text-white' : 'btn-light border text-secondary' }} rounded-pill px-3 py-1.5 fw-medium d-inline-flex align-items-center gap-1 shadow-2xs flex-shrink-0">
+                               class="btn btn-sm {{ request('category') === $topCat->slug ? 'btn-primary text-white' : 'btn-light border text-secondary' }} rounded-pill px-3 py-1.5 fw-medium d-inline-flex align-items-center shadow-2xs flex-shrink-0">
                                 <span>{{ $topCat->name }}</span>
                             </a>
                         @endforeach
@@ -90,8 +84,8 @@
         @endphp
         <div class="card p-2.5 px-3 border-0 shadow-2xs rounded-4 bg-white mb-4">
             <div class="d-flex align-items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
-                <span class="small fw-bold text-dark text-nowrap d-inline-flex align-items-center gap-1 me-2" style="font-size: 0.8rem;">
-                    <i class="fa-solid fa-arrow-down-a-z text-primary"></i>বর্ণানুক্রমিক:
+                <span class="small fw-bold text-dark text-nowrap d-inline-flex align-items-center me-2" style="font-size: 0.8rem;">
+                    <span>বর্ণানুক্রমিক:</span>
                 </span>
                 @foreach($alphabetLetters as $char)
                     @php

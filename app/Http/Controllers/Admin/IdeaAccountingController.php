@@ -164,7 +164,7 @@ class IdeaAccountingController extends Controller
         // --- Stream C: Online Billing (Orders) ---
         // Deduplication rule: In 'all' stream, skip orders that already have an invoice,
         // because the invoice is already displayed above with the online order reference.
-        if (in_array($stream, ['all', 'online']) && Schema::hasTable('orders')) {
+        if (in_array($stream, ['all', 'online']) && \App\Support\SchemaCache::has('orders')) {
             try {
                 $ordersQuery = Order::query()
                     ->with('book')
@@ -202,7 +202,7 @@ class IdeaAccountingController extends Controller
         }
 
         // --- Stream D: Offline Billing 1: Boi Mela Stall POS Sales ---
-        if (in_array($stream, ['all', 'offline']) && Schema::hasTable('pos_sales')) {
+        if (in_array($stream, ['all', 'offline']) && \App\Support\SchemaCache::has('pos_sales')) {
             try {
                 $posQuery = PosSale::query()
                     ->with(['cashier', 'register'])
@@ -235,7 +235,7 @@ class IdeaAccountingController extends Controller
         }
 
         // --- Stream E: Offline Billing 2: Sub-Admin / Seller Store Bills ---
-        if (in_array($stream, ['all', 'offline']) && Schema::hasTable('bills')) {
+        if (in_array($stream, ['all', 'offline']) && \App\Support\SchemaCache::has('bills')) {
             try {
                 $billsQuery = Bill::query()
                     ->with(['seller', 'customer'])
@@ -269,7 +269,7 @@ class IdeaAccountingController extends Controller
         }
 
         // --- Stream F: Supplier Purchases (Press, Paper, Books) ---
-        if (in_array($stream, ['all', 'expense', 'purchases']) && Schema::hasTable('publisher_purchases')) {
+        if (in_array($stream, ['all', 'expense', 'purchases']) && \App\Support\SchemaCache::has('publisher_purchases')) {
             try {
                 $purchasesQuery = PublisherPurchase::query()
                     ->with('publisher')
@@ -317,50 +317,127 @@ class IdeaAccountingController extends Controller
             ['path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
         );
 
-        // 3. Live Deduplicated KPI Statistics
-        $invoicesTotal = (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('grand_total');
-        $invoicesPaid = (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('paid_amount');
-        $invoicesDue = (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('due_amount');
-        $invoicesCount = IdeaInvoice::count();
+        // 3. Live Deduplicated KPI Statistics (Consolidated single-pass SQL aggregations)
+        $invAgg = IdeaInvoice::selectRaw("
+            COUNT(*) as total_count,
+            COALESCE(SUM(CASE WHEN type IN ('invoice', 'challan') THEN grand_total ELSE 0 END), 0) as inv_total,
+            COALESCE(SUM(CASE WHEN type IN ('invoice', 'challan') THEN paid_amount ELSE 0 END), 0) as inv_paid,
+            COALESCE(SUM(CASE WHEN type IN ('invoice', 'challan') THEN due_amount ELSE 0 END), 0) as inv_due
+        ")->first();
+        $invoicesTotal = (float) ($invAgg->inv_total ?? 0);
+        $invoicesPaid = (float) ($invAgg->inv_paid ?? 0);
+        $invoicesDue = (float) ($invAgg->inv_due ?? 0);
+        $invoicesCount = (int) ($invAgg->total_count ?? 0);
 
-        $hasOrders = Schema::hasTable('orders');
-        $allOrdersCount = $hasOrders ? Order::count() : 0;
-        $unsyncedOrdersQuery = $hasOrders ? Order::whereNotIn('order_number', $syncedOrderNumbers) : null;
-        $unsyncedOrdersAmount = $unsyncedOrdersQuery ? (float) (clone $unsyncedOrdersQuery)->sum('total_amount') : 0.0;
-        $unsyncedOrdersPaid = $unsyncedOrdersQuery ? (float) (clone $unsyncedOrdersQuery)->where('payment_status', 'paid')->sum('total_amount') : 0.0;
-        $unsyncedOrdersDue = $unsyncedOrdersQuery ? (float) (clone $unsyncedOrdersQuery)->where('payment_status', '!=', 'paid')->sum('total_amount') : 0.0;
-        $allOrdersAmount = $hasOrders ? (float) Order::sum('total_amount') : 0.0;
+        $hasOrders = \App\Support\SchemaCache::has('orders');
+        $allOrdersCount = 0;
+        $allOrdersAmount = 0.0;
+        $unsyncedOrdersAmount = 0.0;
+        $unsyncedOrdersPaid = 0.0;
+        $unsyncedOrdersDue = 0.0;
+        if ($hasOrders) {
+            $ordAgg = Order::selectRaw("
+                COUNT(*) as all_count,
+                COALESCE(SUM(total_amount), 0) as all_amount
+            ")->first();
+            $allOrdersCount = (int) ($ordAgg->all_count ?? 0);
+            $allOrdersAmount = (float) ($ordAgg->all_amount ?? 0);
+
+            $unsyncedAgg = Order::when(!empty($syncedOrderNumbers), fn ($q) => $q->whereNotIn('order_number', $syncedOrderNumbers))
+                ->selectRaw("
+                    COALESCE(SUM(total_amount), 0) as unsynced_amount,
+                    COALESCE(SUM(CASE WHEN payment_status = 'paid' THEN total_amount ELSE 0 END), 0) as unsynced_paid,
+                    COALESCE(SUM(CASE WHEN payment_status != 'paid' OR payment_status IS NULL THEN total_amount ELSE 0 END), 0) as unsynced_due
+                ")->first();
+            $unsyncedOrdersAmount = (float) ($unsyncedAgg->unsynced_amount ?? 0);
+            $unsyncedOrdersPaid = (float) ($unsyncedAgg->unsynced_paid ?? 0);
+            $unsyncedOrdersDue = (float) ($unsyncedAgg->unsynced_due ?? 0);
+        }
         $syncedOrdersCount = count($syncedOrderNumbers);
 
-        $hasPos = Schema::hasTable('pos_sales');
-        $posCount = $hasPos ? PosSale::where('status', '!=', 'voided')->count() : 0;
-        $posAmount = $hasPos ? (float) PosSale::where('status', '!=', 'voided')->sum('total') : 0.0;
-        $posPaid = $hasPos ? (float) PosSale::where('status', '!=', 'voided')->sum(DB::raw('paid_cash + paid_online')) : 0.0;
+        $hasPos = \App\Support\SchemaCache::has('pos_sales');
+        $posCount = 0;
+        $posAmount = 0.0;
+        $posPaid = 0.0;
+        if ($hasPos) {
+            $posAgg = PosSale::where('status', '!=', 'voided')
+                ->selectRaw('COUNT(*) as cnt, COALESCE(SUM(total), 0) as amt, COALESCE(SUM(paid_cash + paid_online), 0) as paid')
+                ->first();
+            $posCount = (int) ($posAgg->cnt ?? 0);
+            $posAmount = (float) ($posAgg->amt ?? 0);
+            $posPaid = (float) ($posAgg->paid ?? 0);
+        }
         $posDue = max(0.0, $posAmount - $posPaid);
 
-        $hasBills = Schema::hasTable('bills');
-        $billsCount = $hasBills ? Bill::count() : 0;
-        $billsAmount = $hasBills ? (float) Bill::sum('total') : 0.0;
-        $billsPaid = $hasBills ? (float) Bill::sum('paid_amount') : 0.0;
-        $billsDue = $hasBills ? (float) Bill::sum('due_amount') : 0.0;
+        $hasBills = \App\Support\SchemaCache::has('bills');
+        $billsCount = 0;
+        $billsAmount = 0.0;
+        $billsPaid = 0.0;
+        $billsDue = 0.0;
+        if ($hasBills) {
+            $billAgg = Bill::selectRaw('COUNT(*) as cnt, COALESCE(SUM(total), 0) as amt, COALESCE(SUM(paid_amount), 0) as paid, COALESCE(SUM(due_amount), 0) as due')->first();
+            $billsCount = (int) ($billAgg->cnt ?? 0);
+            $billsAmount = (float) ($billAgg->amt ?? 0);
+            $billsPaid = (float) ($billAgg->paid ?? 0);
+            $billsDue = (float) ($billAgg->due ?? 0);
+        }
 
-        $hasEntries = Schema::hasTable('idea_accounting_entries');
-        $incomeLedgerTotal = $hasEntries ? (float) IdeaAccountingEntry::where('type', 'income')->sum('amount') : 0.0;
-        $expenseLedgerTotal = $hasEntries ? (float) IdeaAccountingEntry::where('type', 'expense')->sum('amount') : 0.0;
-        $incomeCount = $hasEntries ? IdeaAccountingEntry::where('type', 'income')->count() : 0;
-        $expenseCount = $hasEntries ? IdeaAccountingEntry::where('type', 'expense')->count() : 0;
-        // Cash actually banked against invoices (net of VAT/tax withheld by the customer).
-        $invoiceCashTotal = $hasEntries ? (float) IdeaAccountingEntry::where('type', 'income')->whereNotNull('invoice_id')->sum('amount') : 0.0;
-        // Manual income only: seller-bill collections are already inside $billsPaid.
-        $directIncomeTotal = $hasEntries
-            ? (float) IdeaAccountingEntry::where('type', 'income')->whereNull('invoice_id')->where('category', '!=', self::SELLER_BILL_CATEGORY)->sum('amount')
-            : 0.0;
+        $today = Carbon::today();
+        $thisMonth = Carbon::now();
+        $todayStr = $today->toDateString();
+        $monthStartStr = $thisMonth->copy()->startOfMonth()->toDateString();
+        $monthEndStr = $thisMonth->copy()->endOfMonth()->toDateString();
 
-        $hasPurchases = Schema::hasTable('publisher_purchases');
-        $purchasesCount = $hasPurchases ? PublisherPurchase::count() : 0;
-        $purchasesAmount = $hasPurchases ? (float) PublisherPurchase::sum('grand_total') : 0.0;
-        $purchasesPaid = $hasPurchases ? (float) PublisherPurchase::sum('paid_amount') : 0.0;
-        $purchasesDue = $hasPurchases ? (float) PublisherPurchase::sum('due_amount') : 0.0;
+        $hasEntries = \App\Support\SchemaCache::has('idea_accounting_entries');
+        $incomeLedgerTotal = 0.0;
+        $expenseLedgerTotal = 0.0;
+        $incomeCount = 0;
+        $expenseCount = 0;
+        $invoiceCashTotal = 0.0;
+        $directIncomeTotal = 0.0;
+        $todayIncome = 0.0;
+        $todayExpense = 0.0;
+        $thisMonthIncome = 0.0;
+        $thisMonthExpense = 0.0;
+
+        if ($hasEntries) {
+            $entAgg = IdeaAccountingEntry::selectRaw("
+                COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as inc_total,
+                COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as exp_total,
+                SUM(CASE WHEN type = 'income' THEN 1 ELSE 0 END) as inc_cnt,
+                SUM(CASE WHEN type = 'expense' THEN 1 ELSE 0 END) as exp_cnt,
+                COALESCE(SUM(CASE WHEN type = 'income' AND invoice_id IS NOT NULL THEN amount ELSE 0 END), 0) as inv_cash,
+                COALESCE(SUM(CASE WHEN type = 'income' AND invoice_id IS NULL AND (category IS NULL OR category != ?) THEN amount ELSE 0 END), 0) as direct_inc,
+                COALESCE(SUM(CASE WHEN type = 'income' AND DATE(entry_date) = ? THEN amount ELSE 0 END), 0) as today_inc,
+                COALESCE(SUM(CASE WHEN type = 'expense' AND DATE(entry_date) = ? THEN amount ELSE 0 END), 0) as today_exp,
+                COALESCE(SUM(CASE WHEN type = 'income' AND DATE(entry_date) BETWEEN ? AND ? THEN amount ELSE 0 END), 0) as month_inc,
+                COALESCE(SUM(CASE WHEN type = 'expense' AND DATE(entry_date) BETWEEN ? AND ? THEN amount ELSE 0 END), 0) as month_exp
+            ", [self::SELLER_BILL_CATEGORY, $todayStr, $todayStr, $monthStartStr, $monthEndStr, $monthStartStr, $monthEndStr])->first();
+
+            $incomeLedgerTotal = (float) ($entAgg->inc_total ?? 0);
+            $expenseLedgerTotal = (float) ($entAgg->exp_total ?? 0);
+            $incomeCount = (int) ($entAgg->inc_cnt ?? 0);
+            $expenseCount = (int) ($entAgg->exp_cnt ?? 0);
+            $invoiceCashTotal = (float) ($entAgg->inv_cash ?? 0);
+            $directIncomeTotal = (float) ($entAgg->direct_inc ?? 0);
+            $todayIncome = (float) ($entAgg->today_inc ?? 0);
+            $todayExpense = (float) ($entAgg->today_exp ?? 0);
+            $thisMonthIncome = (float) ($entAgg->month_inc ?? 0);
+            $thisMonthExpense = (float) ($entAgg->month_exp ?? 0);
+        }
+
+        $hasPurchases = \App\Support\SchemaCache::has('publisher_purchases');
+        $purchasesCount = 0;
+        $purchasesAmount = 0.0;
+        $purchasesPaid = 0.0;
+        $purchasesDue = 0.0;
+        if ($hasPurchases) {
+            $purAgg = PublisherPurchase::selectRaw('COUNT(*) as cnt, COALESCE(SUM(grand_total), 0) as amt, COALESCE(SUM(paid_amount), 0) as paid, COALESCE(SUM(due_amount), 0) as due')->first();
+            $purchasesCount = (int) ($purAgg->cnt ?? 0);
+            $purchasesAmount = (float) ($purAgg->amt ?? 0);
+            $purchasesPaid = (float) ($purAgg->paid ?? 0);
+            $purchasesDue = (float) ($purAgg->due ?? 0);
+        }
 
         // Grand KPI Aggregations (100% Deduplicated!)
         $totalTurnover = $invoicesTotal + $unsyncedOrdersAmount + $posAmount + $billsAmount;
@@ -368,14 +445,6 @@ class IdeaAccountingController extends Controller
         $totalDue = $invoicesDue + $unsyncedOrdersDue + $posDue + $billsDue;
         $totalExpenses = $expenseLedgerTotal + $purchasesAmount;
         $netBalance = $totalCollected - $totalExpenses;
-
-        // Today & This Month KPIs
-        $today = Carbon::today();
-        $thisMonth = Carbon::now();
-        $todayIncome = (float) IdeaAccountingEntry::where('type', 'income')->whereDate('entry_date', $today)->sum('amount');
-        $todayExpense = (float) IdeaAccountingEntry::where('type', 'expense')->whereDate('entry_date', $today)->sum('amount');
-        $thisMonthIncome = (float) IdeaAccountingEntry::where('type', 'income')->whereYear('entry_date', $thisMonth->year)->whereMonth('entry_date', $thisMonth->month)->sum('amount');
-        $thisMonthExpense = (float) IdeaAccountingEntry::where('type', 'expense')->whereYear('entry_date', $thisMonth->year)->whereMonth('entry_date', $thisMonth->month)->sum('amount');
         $thisMonthNet = $thisMonthIncome - $thisMonthExpense;
 
         $categories = IdeaAccountingEntry::categories();
@@ -392,17 +461,30 @@ class IdeaAccountingController extends Controller
             ->take(6)
             ->get();
 
-        // 6-month Trend for Chart
+        // 6-month Trend for Chart (Single grouped query compatible with both MySQL and SQLite)
         $trendMonths = [];
         $trendIncome = [];
         $trendExpense = [];
+        $sixMonthsAgo = Carbon::now()->subMonths(5)->startOfMonth()->toDateString();
+        $monthlyTrendRows = $hasEntries
+            ? IdeaAccountingEntry::whereDate('entry_date', '>=', $sixMonthsAgo)
+                ->selectRaw("
+                    SUBSTR(entry_date, 1, 7) as ym,
+                    COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as inc,
+                    COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as exp
+                ")
+                ->groupByRaw('SUBSTR(entry_date, 1, 7)')
+                ->get()
+                ->keyBy('ym')
+            : collect();
+
         for ($i = 5; $i >= 0; $i--) {
             $m = Carbon::now()->subMonths($i);
+            $key = $m->format('Y-m');
+            $row = $monthlyTrendRows->get($key);
             $trendMonths[] = $m->format('M Y');
-            $trendIncome[] = (float) IdeaAccountingEntry::where('type', 'income')
-                ->whereYear('entry_date', $m->year)->whereMonth('entry_date', $m->month)->sum('amount');
-            $trendExpense[] = (float) IdeaAccountingEntry::where('type', 'expense')
-                ->whereYear('entry_date', $m->year)->whereMonth('entry_date', $m->month)->sum('amount');
+            $trendIncome[] = (float) ($row->inc ?? 0);
+            $trendExpense[] = (float) ($row->exp ?? 0);
         }
 
         $stats = [

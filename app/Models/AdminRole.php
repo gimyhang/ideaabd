@@ -61,6 +61,10 @@ class AdminRole extends Model
      */
     public function getPermissionIds(): array
     {
+        if (isset($this->attributes['permission_ids_cached']) && is_array($this->attributes['permission_ids_cached'])) {
+            return $this->attributes['permission_ids_cached'];
+        }
+
         return DB::table('role_has_permissions')
             ->where('role', $this->slug)
             ->pluck('permission_id')
@@ -73,6 +77,10 @@ class AdminRole extends Model
      */
     public function getUsersCount(): int
     {
+        if (array_key_exists('users_count_cached', $this->attributes)) {
+            return (int) $this->attributes['users_count_cached'];
+        }
+
         return User::where('custom_role_id', $this->id)
             ->orWhere('role', $this->slug)
             ->count();

@@ -4,15 +4,31 @@
      * Includes spotlight search filter, quick favorites strip, and auto-scroll.
      */
     $sidebarBadges = \Illuminate\Support\Facades\Cache::remember('admin_sidebar_pending_badges', 60, function () use ($adminPendingRegistrations) {
-        $hasUsers = \Illuminate\Support\Facades\Schema::hasTable('users');
+        $hasUsers = \App\Support\SchemaCache::has('users');
+        $userStats = null;
+        if ($hasUsers) {
+            $userStats = \App\Models\User::where('reg_status', 'pending')
+                ->selectRaw("
+                    COUNT(*) as total_pending,
+                    SUM(CASE WHEN role = 'author' OR reg_type = 'author' THEN 1 ELSE 0 END) as pending_authors,
+                    SUM(CASE WHEN role = 'publisher' OR reg_type = 'publisher' THEN 1 ELSE 0 END) as pending_publishers,
+                    SUM(CASE WHEN role = 'seller' OR reg_type = 'seller' THEN 1 ELSE 0 END) as pending_sellers
+                ")
+                ->first();
+        }
+        $otherPending = DB::selectOne('SELECT '
+            . (\App\Support\SchemaCache::has('author_payout_requests') ? "(SELECT COUNT(*) FROM `author_payout_requests` WHERE `status` = 'pending')" : '0') . ' AS `payouts`, '
+            . (\App\Support\SchemaCache::has('author_honorariums') ? "(SELECT COUNT(*) FROM `author_honorariums` WHERE `payment_status` = 'pending')" : '0') . ' AS `honorariums`, '
+            . (\App\Support\SchemaCache::has('password_reset_requests') ? "(SELECT COUNT(*) FROM `password_reset_requests` WHERE `status` = 'pending')" : '0') . ' AS `pw_reqs`'
+        );
         return [
-            'pending' => $adminPendingRegistrations ?? ($hasUsers ? \App\Models\User::where('reg_status', 'pending')->count() : 0),
-            'authors' => $hasUsers ? \App\Models\User::where('reg_status', 'pending')->where(fn($q) => $q->where('role', 'author')->orWhere('reg_type', 'author'))->count() : 0,
-            'publishers' => $hasUsers ? \App\Models\User::where('reg_status', 'pending')->where(fn($q) => $q->where('role', 'publisher')->orWhere('reg_type', 'publisher'))->count() : 0,
-            'sellers' => $hasUsers ? \App\Models\User::where('reg_status', 'pending')->where(fn($q) => $q->where('role', 'seller')->orWhere('reg_type', 'seller'))->count() : 0,
-            'payouts' => \Illuminate\Support\Facades\Schema::hasTable('author_payout_requests') ? \App\Models\AuthorPayoutRequest::where('status', 'pending')->count() : 0,
-            'honorariums' => \Illuminate\Support\Facades\Schema::hasTable('author_honorariums') ? \App\Models\AuthorHonorarium::where('payment_status', 'pending')->count() : 0,
-            'password_requests' => \Illuminate\Support\Facades\Schema::hasTable('password_reset_requests') ? \App\Models\PasswordResetRequest::where('status', 'pending')->count() : 0,
+            'pending' => $adminPendingRegistrations ?? (int) ($userStats->total_pending ?? 0),
+            'authors' => (int) ($userStats->pending_authors ?? 0),
+            'publishers' => (int) ($userStats->pending_publishers ?? 0),
+            'sellers' => (int) ($userStats->pending_sellers ?? 0),
+            'payouts' => (int) ($otherPending->payouts ?? 0),
+            'honorariums' => (int) ($otherPending->honorariums ?? 0),
+            'password_requests' => (int) ($otherPending->pw_reqs ?? 0),
         ];
     });
 

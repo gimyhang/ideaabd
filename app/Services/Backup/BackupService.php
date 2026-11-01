@@ -136,7 +136,7 @@ class BackupService
     private function readSetting(string $key): array
     {
         try {
-            if (!Schema::hasTable('admin_dashboard_settings')) {
+            if (!\App\Support\SchemaCache::has('admin_dashboard_settings')) {
                 return [];
             }
             $row = AdminDashboardSetting::where('key', $key)->first();
@@ -152,7 +152,7 @@ class BackupService
 
     private function writeSetting(string $key, array $value): void
     {
-        if (Schema::hasTable('admin_dashboard_settings')) {
+        if (\App\Support\SchemaCache::has('admin_dashboard_settings')) {
             AdminDashboardSetting::updateOrCreate(['key' => $key], ['value' => $value, 'updated_by' => auth()->id()]);
             SiteSetting::clearCache();
         }
@@ -211,42 +211,44 @@ class BackupService
 
     public function dbStats(): array
     {
-        $driver = config('database.default', 'mysql');
-        $name   = (string) config("database.connections.{$driver}.database", '');
-        $tables = [];
-        $bytes  = 0;
-        $rows   = 0;
+        return \Illuminate\Support\Facades\Cache::remember('backup_db_stats_v1', 60, function () {
+            $driver = config('database.default', 'mysql');
+            $name   = (string) config("database.connections.{$driver}.database", '');
+            $tables = [];
+            $bytes  = 0;
+            $rows   = 0;
 
-        try {
-            if ($driver === 'sqlite') {
-                $path = config('database.connections.sqlite.database');
-                $bytes = ($path && $path !== ':memory:' && file_exists($path)) ? (int) filesize($path) : 0;
-                foreach (DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name") as $t) {
-                    $count  = (int) $this->safe(fn () => DB::table($t->name)->count(), 0);
-                    $rows  += $count;
-                    $tables[] = ['name' => $t->name, 'rows' => $count, 'size' => '—'];
-                }
-            } else {
-                foreach (DB::select('SHOW TABLE STATUS') as $t) {
-                    $tName = $t->Name ?? $t->name ?? '';
-                    if ($tName === '') {
-                        continue;
+            try {
+                if ($driver === 'sqlite') {
+                    $path = config('database.connections.sqlite.database');
+                    $bytes = ($path && $path !== ':memory:' && file_exists($path)) ? (int) filesize($path) : 0;
+                    foreach (DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name") as $t) {
+                        $count  = (int) $this->safe(fn () => DB::table($t->name)->count(), 0);
+                        $rows  += $count;
+                        $tables[] = ['name' => $t->name, 'rows' => $count, 'size' => '—'];
                     }
-                    $size   = (int) ($t->Data_length ?? 0) + (int) ($t->Index_length ?? 0);
-                    $count  = (int) ($t->Rows ?? 0);
-                    $bytes += $size;
-                    $rows  += $count;
-                    $tables[] = ['name' => $tName, 'rows' => $count, 'size' => $this->formatBytes($size)];
+                } else {
+                    foreach (DB::select('SHOW TABLE STATUS') as $t) {
+                        $tName = $t->Name ?? $t->name ?? '';
+                        if ($tName === '') {
+                            continue;
+                        }
+                        $size   = (int) ($t->Data_length ?? 0) + (int) ($t->Index_length ?? 0);
+                        $count  = (int) ($t->Rows ?? 0);
+                        $bytes += $size;
+                        $rows  += $count;
+                        $tables[] = ['name' => $tName, 'rows' => $count, 'size' => $this->formatBytes($size)];
+                    }
                 }
+            } catch (\Throwable $e) {
+                Log::warning('Backup hub could not read the table list: ' . $e->getMessage());
             }
-        } catch (\Throwable $e) {
-            Log::warning('Backup hub could not read the table list: ' . $e->getMessage());
-        }
 
-        return [
-            'driver' => $driver, 'name' => $name, 'tables' => $tables,
-            'size_bytes' => $bytes, 'size' => $this->formatBytes($bytes), 'rows' => $rows,
-        ];
+            return [
+                'driver' => $driver, 'name' => $name, 'tables' => $tables,
+                'size_bytes' => $bytes, 'size' => $this->formatBytes($bytes), 'rows' => $rows,
+            ];
+        });
     }
 
     /** Real disk numbers, or the plan size from BACKUP_QUOTA_MB when the hosting gives a smaller quota than the disk. */

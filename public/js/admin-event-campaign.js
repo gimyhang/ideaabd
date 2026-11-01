@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
             alert(msg);
             return;
         }
-        toastEl.className = isError 
+        toastEl.className = isError
             ? 'toast align-items-center text-bg-danger border-0 rounded-4 shadow'
             : 'toast align-items-center text-bg-dark border-0 rounded-4 shadow';
         toastMsg.innerHTML = msg;
@@ -228,9 +228,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (action === 'delete') {
                     affectedIds.forEach(id => {
-                        const row = document.getElementById('regRow_' + id) || 
-                                    document.getElementById('lmRow' + id) || 
-                                    document.querySelector('.participant-select-check[value="' + id + '"]')?.closest('tr');
+                        const row = document.getElementById('regRow_' + id) ||
+                            document.getElementById('lmRow' + id) ||
+                            document.querySelector('.participant-select-check[value="' + id + '"]')?.closest('tr');
                         if (row) {
                             row.style.transition = 'all 0.35s ease';
                             row.style.opacity = '0';
@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
-                    
+
                     // Transparent canvas support for PNG/WebP logos and objects
                     if (mimeType === 'image/jpeg') {
                         ctx.fillStyle = '#ffffff';
@@ -446,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     } else {
                         ctx.clearRect(0, 0, width, height);
                     }
-                    
+
                     ctx.drawImage(img, 0, 0, width, height);
 
                     canvas.toBlob((blob) => {
@@ -537,7 +537,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     try {
                         const opt = await optimizeImageFile(rawFile, 1600, 2200, 0.88, 'image/jpeg');
-                        
+
                         // Replace form input file with optimized Blob
                         const dt = new DataTransfer();
                         dt.items.add(opt.file);
@@ -545,7 +545,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         uploadedBgUrl = opt.dataUrl;
                         adminLiveCard.style.background = `url('${uploadedBgUrl}') no-repeat center center / cover`;
-                        
+
                         if (removeBgCheck) removeBgCheck.checked = false;
                         document.querySelectorAll('.theme-preset-btn').forEach(btn => btn.classList.remove('active'));
 
@@ -600,7 +600,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     try {
                         const opt = await optimizeImageFile(rawFile, 400, 400, 0.92, 'image/png');
-                        
+
                         const dt = new DataTransfer();
                         dt.items.add(opt.file);
                         logoInput.files = dt.files;
@@ -1140,7 +1140,7 @@ document.addEventListener('DOMContentLoaded', function () {
             function endDrag(e) {
                 if (isDragging) {
                     isDragging = false;
-                    try { el.releasePointerCapture(e.pointerId); } catch (err) {}
+                    try { el.releasePointerCapture(e.pointerId); } catch (err) { }
                     syncCustomObjectsState();
                 }
             }
@@ -1425,7 +1425,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (targetEl) {
                     targetEl.style.display = this.checked ? '' : 'none';
                 }
-                
+
                 // Manage parent section containers
                 const headerGroup = document.getElementById('liveTextHeadingsGroup') || document.getElementById('liveHeadingsWrap') || document.getElementById('liveTopHeaderGroup');
                 const badgeGroup = document.getElementById('liveBadgeWrap');
@@ -2095,10 +2095,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // F. Background Overlay & Blur Controls
         const bgOverlayOpacitySlider = document.getElementById('bgOverlayOpacitySlider');
-        const bgOverlayOpacityBadge  = document.getElementById('bgOverlayOpacityBadge');
-        const bgBlurSlider           = document.getElementById('bgBlurSlider');
-        const bgBlurBadge            = document.getElementById('bgBlurBadge');
-        const liveBgOverlay          = document.getElementById('liveBgOverlay');
+        const bgOverlayOpacityBadge = document.getElementById('bgOverlayOpacityBadge');
+        const bgBlurSlider = document.getElementById('bgBlurSlider');
+        const bgBlurBadge = document.getElementById('bgBlurBadge');
+        const liveBgOverlay = document.getElementById('liveBgOverlay');
 
         if (bgOverlayOpacitySlider && liveBgOverlay) {
             bgOverlayOpacitySlider.addEventListener('input', function () {
@@ -2118,20 +2118,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // G. Photo Studio & Filters Suite
         const photoBorderRadiusSelect = document.getElementById('photoBorderRadiusSelect');
-        const photoBorderWidthSlider  = document.getElementById('photoBorderWidthSlider');
-        const photoBorderWidthBadge   = document.getElementById('photoBorderWidthBadge');
-        const photoBorderColorInput   = document.getElementById('liveInputPhotoBorderColor');
-        const photoBorderColorText    = document.getElementById('liveInputPhotoBorderColorText');
-        const photoShadowSelect       = document.getElementById('photoShadowSelect');
+        const photoBorderWidthSlider = document.getElementById('photoBorderWidthSlider');
+        const photoBorderWidthBadge = document.getElementById('photoBorderWidthBadge');
+        const photoBorderColorInput = document.getElementById('liveInputPhotoBorderColor');
+        const photoBorderColorText = document.getElementById('liveInputPhotoBorderColorText');
+        const photoShadowSelect = document.getElementById('photoShadowSelect');
 
-        const photoBrightnessSlider   = document.getElementById('photoBrightnessSlider');
-        const photoBrightnessBadge    = document.getElementById('photoBrightnessBadge');
-        const photoContrastSlider     = document.getElementById('photoContrastSlider');
-        const photoContrastBadge      = document.getElementById('photoContrastBadge');
-        const photoGrayscaleSlider    = document.getElementById('photoGrayscaleSlider');
-        const photoGrayscaleBadge     = document.getElementById('photoGrayscaleBadge');
-        const photoSepiaSlider        = document.getElementById('photoSepiaSlider');
-        const photoSepiaBadge         = document.getElementById('photoSepiaBadge');
+        const photoBrightnessSlider = document.getElementById('photoBrightnessSlider');
+        const photoBrightnessBadge = document.getElementById('photoBrightnessBadge');
+        const photoContrastSlider = document.getElementById('photoContrastSlider');
+        const photoContrastBadge = document.getElementById('photoContrastBadge');
+        const photoGrayscaleSlider = document.getElementById('photoGrayscaleSlider');
+        const photoGrayscaleBadge = document.getElementById('photoGrayscaleBadge');
+        const photoSepiaSlider = document.getElementById('photoSepiaSlider');
+        const photoSepiaBadge = document.getElementById('photoSepiaBadge');
 
         if (photoBorderRadiusSelect && photoFrame) {
             photoBorderRadiusSelect.addEventListener('change', function () {
@@ -2473,7 +2473,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 try {
                     const formData = new FormData(cardCustomizerForm);
                     formData.set('custom_objects_json', JSON.stringify(customObjects));
-                    
+
                     const res = await fetchWithCsrf(cardCustomizerForm.action, {
                         method: 'POST',
                         body: formData
@@ -2559,81 +2559,9 @@ window.previewEditImage = function (input, previewId) {
     }
 };
 
-// Single Participant Delete Handler
-document.addEventListener('click', async function (e) {
-    const delBtn = e.target.closest('.btn-delete-reg');
-    if (!delBtn) return;
-    e.preventDefault();
-
-    const regId = delBtn.getAttribute('data-id');
-    const regName = delBtn.getAttribute('data-name') || 'অংশগ্রহণকারী';
-    const deleteUrl = delBtn.getAttribute('data-url');
-
-    if (!deleteUrl) return;
-
-    if (!confirm(`আপনি কি নিশ্চিতভাবে "${regName}"-এর নিবন্ধন কার্ড ও তথ্য সম্পূর্ণ মুছে ফেলতে চান?`)) {
-        return;
-    }
-
-    try {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = deleteUrl;
-
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
-                          document.querySelector('input[name="_token"]')?.value || '';
-
-        const tokenInput = document.createElement('input');
-        tokenInput.type = 'hidden';
-        tokenInput.name = '_token';
-        tokenInput.value = csrfToken;
-        form.appendChild(tokenInput);
-
-        const methodInput = document.createElement('input');
-        methodInput.type = 'hidden';
-        methodInput.name = '_method';
-        methodInput.value = 'DELETE';
-        form.appendChild(methodInput);
-
-        document.body.appendChild(form);
-        form.submit();
-    } catch (err) {
-        console.error('Delete request error:', err);
-        alert('মুছে ফেলা সম্ভব হয়নি। আবার চেষ্টা করুন।');
-    }
-});
-
 // Select all columns in table customizer
 function selectAllColumns(check) {
     document.querySelectorAll('.col-toggle-check').forEach(c => c.checked = check);
-}
-
-// Execute Bulk Action
-async function executeBulkAction(actionType) {
-    const selected = Array.from(document.querySelectorAll('.participant-select-check:checked')).map(cb => cb.value);
-    if (selected.length === 0) {
-        alert('Please select at least one participant.');
-        return;
-    }
-
-    if (actionType === 'delete' && !confirm(`Are you sure you want to remove ${selected.length} selected registration(s)?`)) {
-        return;
-    }
-
-    const bulkForm = document.getElementById('bulkActionHiddenForm');
-    const bulkActionInput = document.getElementById('bulkActionTypeInput');
-    const bulkIdsInput = document.getElementById('bulkSelectedIdsInput');
-
-    if (bulkForm && bulkActionInput && bulkIdsInput) {
-        const tokenInput = bulkForm.querySelector('input[name="_token"]');
-        const currentToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        if (tokenInput && currentToken) {
-            tokenInput.value = currentToken;
-        }
-        bulkActionInput.value = actionType;
-        bulkIdsInput.value = JSON.stringify(selected);
-        bulkForm.submit();
-    }
 }
 
 // Quick filter table rows by conflict on client-side

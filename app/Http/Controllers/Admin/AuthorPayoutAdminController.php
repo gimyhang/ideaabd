@@ -46,6 +46,10 @@ class AuthorPayoutAdminController extends Controller
      */
     public function process(Request $request, AuthorPayoutRequest $payout): RedirectResponse
     {
+        if ($payout->status !== 'pending') {
+            return back()->with('error', 'এই উত্তোলনের আবেদনটি ইতিমধ্যে নিষ্পত্তি করা হয়েছে।');
+        }
+
         $action = $request->input('action'); // 'pay' or 'reject'
 
         if ($action === 'reject') {
@@ -97,9 +101,14 @@ class AuthorPayoutAdminController extends Controller
                 ];
             }
 
-            DB::transaction(function () use ($payout, $taxDeduction, $gatewayFee, $netPayable, $trxRef, $gatewayChannel, $gatewayResponse, $validated) {
+            $processed = DB::transaction(function () use ($payout, $taxDeduction, $gatewayFee, $netPayable, $trxRef, $gatewayChannel, $gatewayResponse, $validated) {
+                $locked = AuthorPayoutRequest::whereKey($payout->id)->lockForUpdate()->first();
+                if (!$locked || $locked->status !== 'pending') {
+                    return false;
+                }
+
                 // 1. Update payout record
-                $payout->update([
+                $locked->update([
                     'status'               => 'paid',
                     'gateway_channel'      => $gatewayChannel,
                     'gateway_fee'          => $gatewayFee,
@@ -113,9 +122,9 @@ class AuthorPayoutAdminController extends Controller
                 ]);
 
                 // 2. Deduct from Author Wallet and update Total Withdrawn
-                if ($payout->author) {
-                    $payout->author->decrement('wallet_balance', $payout->amount);
-                    $payout->author->increment('total_payout_withdrawn', $payout->amount);
+                if ($locked->author) {
+                    $locked->author->decrement('wallet_balance', $locked->amount);
+                    $locked->author->increment('total_payout_withdrawn', $locked->amount);
                 }
 
                 // 3. Optional Accounting Entry
@@ -125,17 +134,23 @@ class AuthorPayoutAdminController extends Controller
                         'entry_no'       => $entryNo,
                         'type'           => 'expense',
                         'category'       => 'author_royalty_payout',
-                        'title'          => "Author Royalty Payout: {$payout->author?->name}",
+                        'title'          => "Author Royalty Payout: {$locked->author?->name}",
                         'amount'         => $netPayable,
                         'entry_date'     => now()->toDateString(),
                         'voucher_no'     => $trxRef,
-                        'payment_method' => $payout->payment_method ?: 'other',
-                        'party_name'     => $payout->author?->name ?? $payout->user?->name,
-                        'notes'          => "Req #{$payout->id}, Channel: {$gatewayChannel}",
+                        'payment_method' => $locked->payment_method ?: 'other',
+                        'party_name'     => $locked->author?->name ?? $locked->user?->name,
+                        'notes'          => "Req #{$locked->id}, Channel: {$gatewayChannel}",
                         'created_by'     => auth()->id(),
                     ]);
                 }
+
+                return true;
             });
+
+            if (!$processed) {
+                return back()->with('error', 'এই উত্তোলনের আবেদনটি ইতিমধ্যে নিষ্পত্তি করা হয়েছে।');
+            }
 
             return back()->with('success', "রয়্যালটি পেমেন্ট সফলভাবে সম্পন্ন হয়েছে! (TrxID: {$trxRef})");
         }

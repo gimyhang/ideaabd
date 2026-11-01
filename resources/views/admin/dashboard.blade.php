@@ -937,7 +937,7 @@
                                     <div class="fw-semibold text-dark fs-6">{{ $req->book_title }}</div>
                                     <small class="text-muted d-flex align-items-center gap-1.5" style="font-size: 12px;">
                                         <i class="fa-regular fa-user" style="font-size: 10px;"></i>
-                                        {{ $req->customer_name ?? 'Customer' }} ({{ $req->customer_phone ?? ($req->phone ?? '—') }})
+                                        {{ $req->customer_name ?? ($req->name ?? 'Customer') }} ({{ $req->customer_phone ?? ($req->phone ?? '—') }})
                                     </small>
                                 </div>
                                 <a href="{{ route('admin.content.create', 'books') }}?title={{ urlencode($req->book_title) }}" 
@@ -2270,7 +2270,7 @@
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
                                             <button type="button" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1" 
-                                                    onclick="previewBookRequestModal({{ $pReq->id }}, '{{ addslashes($pReq->book_title) }}', '{{ addslashes($pReq->author_name ?? '') }}', '{{ addslashes($pReq->name ?? '') }}', '{{ addslashes($pReq->phone ?? '') }}', '{{ addslashes($pReq->notes ?? '') }}', '{{ $pReq->created_at ? $pReq->created_at->format('M d, Y h:i A') : '' }}')" title="Preview Request Details">
+                                                    onclick="previewBookRequestModal({{ $pReq->id }}, '{{ addslashes($pReq->book_title) }}', '{{ addslashes($pReq->author_name ?? '') }}', '{{ addslashes($pReq->name ?? '') }}', '{{ addslashes($pReq->phone ?? '') }}', '{{ addslashes(str_replace(["\r", "\n"], ' ', $pReq->notes ?? '')) }}', '{{ $pReq->created_at ? $pReq->created_at->format('M d, Y h:i A') : '' }}')" title="Preview Request Details">
                                                 <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
@@ -2518,9 +2518,6 @@
         </div>
     </div>
 </div>
-
-{{-- Floating Live Toast Notification Container --}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;" id="dashboardActionToastContainer"></div>
 
 @push('styles')
 <style>
@@ -3060,8 +3057,8 @@ function handleQuickStockSubmit(e) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            alert(data.message || 'Stock updated successfully!');
-            location.reload();
+            showDashboardToast(data.message || 'Stock updated successfully!', 'success');
+            setTimeout(() => location.reload(), 600);
         } else {
             alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'Error occurred'}</div>`;
         }
@@ -3243,8 +3240,9 @@ function updateDashboardAlertCounts(alerts) {
     for (const [t, cnt] of Object.entries(typeCountMap)) {
         const tabBadge = document.getElementById(`tabBadge-${t}`);
         if (tabBadge) {
-            tabBadge.textContent = cnt;
-            tabBadge.className = cnt > 0 ? 'badge bg-danger rounded-pill px-2' : 'badge bg-secondary opacity-50 rounded-pill px-2';
+            const tabCnt = (t === 'books' || t === 'book') ? (bookCount + ebookCount) : cnt;
+            tabBadge.textContent = tabCnt;
+            tabBadge.className = tabCnt > 0 ? 'badge bg-danger rounded-pill px-2' : 'badge bg-secondary opacity-50 rounded-pill px-2';
         }
         const cardBadge = document.getElementById(`pendingCardCount-${t}`);
         if (cardBadge) {
@@ -3276,26 +3274,6 @@ function updateDashboardAlertCounts(alerts) {
             hub.classList.add('border-warning');
         }
     }
-}
-
-function reloadPendingData() {
-    const icon = document.getElementById('pendingDataRefreshIcon');
-    if (icon) icon.classList.add('fa-spin');
-
-    fetch("{{ route('admin.dashboard.pending-data') }}")
-        .then(res => res.json())
-        .then(data => {
-            if (data.success && data.alerts) {
-                updateDashboardAlertCounts(data.alerts);
-                showDashboardToast('Pending requests updated live.', 'success');
-            }
-        })
-        .catch(err => {
-            console.error(err);
-        })
-        .finally(() => {
-            if (icon) icon.classList.remove('fa-spin');
-        });
 }
 
 function promptRejectReason(type, id, title) {
@@ -3644,20 +3622,22 @@ function toggleVerificationSetting(type, isChecked, toggleEl) {
     });
 }
 
-// Non-blocking background SMS balance fetcher
-document.addEventListener('DOMContentLoaded', function() {
-    const smsBadge = document.getElementById('admDashboardSmsBalanceBadge');
-    if (smsBadge && (!smsBadge.textContent || smsBadge.textContent.trim() === '')) {
-        fetch("{{ route('admin.sms.balance') }}")
-            .then(res => res.json())
-            .then(data => {
-                if (data && data.balance !== null && data.balance !== undefined && !isNaN(data.balance)) {
-                    smsBadge.textContent = Number(data.balance).toLocaleString();
-                    smsBadge.style.display = 'inline-block';
-                }
-            })
-            .catch(() => {});
-    }
+// Non-blocking background SMS balance fetcher (runs after window load so page spinner stops immediately)
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        const smsBadge = document.getElementById('admDashboardSmsBalanceBadge');
+        if (smsBadge && (!smsBadge.textContent || smsBadge.textContent.trim() === '')) {
+            fetch("{{ route('admin.sms.balance') }}")
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.balance !== null && data.balance !== undefined && !isNaN(data.balance)) {
+                        smsBadge.textContent = Number(data.balance).toLocaleString();
+                        smsBadge.style.display = 'inline-block';
+                    }
+                })
+                .catch(() => {});
+        }
+    }, 300);
 });
 </script>
 @endpush

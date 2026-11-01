@@ -442,10 +442,21 @@ class LoginController extends Controller
 
             $matchedUser = null;
 
+            // Password hashing is deliberately slow, so each account's password is verified at most once per request.
+            $checkedIds = [];
+            $passwordMatches = function ($candidate) use ($password, &$checkedIds): bool {
+                if (!$candidate || isset($checkedIds[$candidate->id]) || empty($candidate->password)) {
+                    return false;
+                }
+                $checkedIds[$candidate->id] = true;
+
+                return Hash::check($password, $candidate->password);
+            };
+
             // Fast Path 1: Direct indexed lookup by email
             if (filter_var($cleanLower, FILTER_VALIDATE_EMAIL)) {
                 $directUser = \App\Models\User::where('email', $cleanLower)->first();
-                if ($directUser && Hash::check($password, $directUser->password)) {
+                if ($passwordMatches($directUser)) {
                     $matchedUser = $directUser;
                 }
             }
@@ -454,7 +465,7 @@ class LoginController extends Controller
             if (!$matchedUser && !empty($rawDigitsOnly) && strlen($rawDigitsOnly) >= 10) {
                 $last10 = substr($rawDigitsOnly, -10);
                 $directUser = \App\Models\User::whereIn('phone', [$normalizedInput, '0' . $last10, '+880' . $last10, '880' . $last10])->first();
-                if ($directUser && Hash::check($password, $directUser->password)) {
+                if ($passwordMatches($directUser)) {
                     $matchedUser = $directUser;
                 }
             }
@@ -467,7 +478,7 @@ class LoginController extends Controller
             if (!$matchedUser && ($cleanLower === 'admin' || $cleanLower === $adminUsername || in_array($cleanLower, array_filter($adminEmails), true) || in_array($rawDigitsOnly, array_filter($adminPhones), true))) {
                 $adminCandidates = \App\Models\User::where('role', \App\Models\User::ROLE_ADMIN)->orWhere('id', 1)->get();
                 foreach ($adminCandidates as $cand) {
-                    if (Hash::check($password, $cand->password)) {
+                    if ($passwordMatches($cand)) {
                         $matchedUser = $cand;
                         break;
                     }
@@ -512,7 +523,7 @@ class LoginController extends Controller
                 ->get();
 
                 foreach ($candidates as $candidate) {
-                    if (Hash::check($password, $candidate->password)) {
+                    if ($passwordMatches($candidate)) {
                         $matchedUser = $candidate;
                         break;
                     }

@@ -15,10 +15,26 @@ use Modules\Review\Models\Review;
 class ReviewController extends Controller
 {
     /**
-     * Ensure required review table columns exist (Self-healing schema)
+     * Ensure required review table columns exist (Self-healing schema, cached per process/cache)
      */
     protected function ensureSchemaExists(): void
     {
+        static $checked = false;
+        if ($checked) {
+            return;
+        }
+        $checked = true;
+
+        if (
+            \App\Support\SchemaCache::has('reviews')
+            && \App\Support\SchemaCache::hasColumn('reviews', 'blog_post_id')
+            && \App\Support\SchemaCache::hasColumn('reviews', 'reviewer_name')
+            && \App\Support\SchemaCache::hasColumn('reviews', 'reviewer_email')
+            && \App\Support\SchemaCache::hasColumn('reviews', 'reviewer_phone')
+        ) {
+            return;
+        }
+
         if (!Schema::hasTable('reviews')) {
             Schema::create('reviews', function ($table) {
                 $table->id();

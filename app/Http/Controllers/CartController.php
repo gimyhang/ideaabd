@@ -255,10 +255,7 @@ class CartController extends Controller
                 $dbEbook = \Modules\Ebook\Models\Ebook::find($cleanId);
                 if ($dbEbook) {
                     $price = floatval($dbEbook->discount_price > 0 && $dbEbook->discount_price < $dbEbook->price ? $dbEbook->discount_price : $dbEbook->price);
-                    $titles[] = $dbEbook->title . ' [ডিজিটাল ই-বুক]' . " (x{$qty})";
-                    if (!$primaryBookId) {
-                        $primaryBookId = $dbEbook->id;
-                    }
+                    $titles[] = $dbEbook->title . " [ডিজিটাল ই-বুক] [EBOOK_ID:{$dbEbook->id}]" . " (x{$qty})";
                 } else {
                     $titles[] = ($item['title'] ?? 'ডিজিটাল ই-বুক') . " (x{$qty})";
                 }
@@ -363,7 +360,7 @@ class CartController extends Controller
         }
 
         $paymentMethod = $validated['payment_method'] ?? 'cod';
-        $paymentStatus = (!empty($validated['transaction_id']) && in_array($paymentMethod, ['bkash', 'nagad', 'rocket'])) ? 'paid' : 'pending';
+        $paymentStatus = ($totalAmount <= 0 && !$hasPhysicalBooks) ? 'paid' : 'pending';
 
         // Affiliate commission
         $affiliateId = null;
@@ -373,7 +370,9 @@ class CartController extends Controller
             if ($affiliate && $affiliate->id !== auth()->id()) {
                 $affiliateId = $affiliate->id;
                 $commissionAmount = $subtotal * 0.05;
-                $affiliate->increment('affiliate_balance', $commissionAmount);
+                if (Schema::hasColumn('users', 'affiliate_balance')) {
+                    $affiliate->increment('affiliate_balance', $commissionAmount);
+                }
             }
         }
 

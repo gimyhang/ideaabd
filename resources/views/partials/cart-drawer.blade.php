@@ -1,7 +1,7 @@
 @php
     $drawerEcom = [];
     try {
-        if (\Illuminate\Support\Facades\Schema::hasTable('admin_dashboard_settings')) {
+        if (\App\Support\SchemaCache::has('admin_dashboard_settings')) {
             $settingRow = \Illuminate\Support\Facades\DB::table('admin_dashboard_settings')->where('key', 'ecommerce_settings')->first();
             if ($settingRow && $settingRow->value) {
                 $decoded = json_decode($settingRow->value, true);

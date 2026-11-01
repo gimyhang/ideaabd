@@ -21,7 +21,8 @@ class SeoRedirectMiddleware
         }
 
         try {
-            if (Schema::hasTable('seo_redirects')) {
+            // Cached table check: avoids an information_schema query on every page view.
+            if (\App\Support\SchemaCache::has('seo_redirects')) {
                 $path = '/' . ltrim($request->path(), '/');
                 $redirect = SeoRedirect::where('is_active', true)
                     ->where(function ($q) use ($path) {

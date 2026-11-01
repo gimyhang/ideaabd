@@ -139,7 +139,7 @@
                                 </select>
 
                                 <input type="tel" name="phone" id="buyerPhoneInput" class="form-control font-monospace @error('phone') is-invalid @enderror"
-                                       value="{{ old('phone') }}" required placeholder="01XXXXXXXXX" maxlength="11"
+                                       value="{{ old('phone') }}" required placeholder="01XXXXXXXXX" maxlength="16"
                                        style="border: 1px solid #cbd5e1; font-size: 0.95rem; transition: border-color 0.2s ease;"
                                        oninput="resetPhoneExistsAlert()">
 
@@ -518,14 +518,22 @@ function handleSendOtp() {
             sendBtn.disabled = false;
             sendText.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Send Code';
             const errMsg = result.body.message || (result.body.errors ? Object.values(result.body.errors)[0][0] : 'Failed to send verification code.');
-            alert(errMsg);
+            if (otpFeedback) {
+                otpFeedback.classList.remove('d-none', 'text-success');
+                otpFeedback.classList.add('text-danger');
+                otpFeedback.innerHTML = '<i class="fa-solid fa-circle-xmark me-1"></i> ' + errMsg;
+            }
         }
     })
     .catch(err => {
         spinner.classList.add('d-none');
         sendBtn.disabled = false;
         sendText.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Send Code';
-        alert('Unable to connect to server. Please check your internet connection.');
+        if (otpFeedback) {
+            otpFeedback.classList.remove('d-none', 'text-success');
+            otpFeedback.classList.add('text-danger');
+            otpFeedback.innerHTML = '<i class="fa-solid fa-circle-xmark me-1"></i> Unable to connect to server. Please check your internet connection.';
+        }
     });
 }
 
@@ -577,7 +585,11 @@ function handleVerifyOtp() {
     const statusBadge = document.getElementById('otpStatusBadge');
 
     if (!otp || otp.length !== 6) {
-        alert('Please enter the complete 6-digit OTP code.');
+        if (otpFeedback) {
+            otpFeedback.classList.remove('d-none', 'text-success');
+            otpFeedback.classList.add('text-danger');
+            otpFeedback.innerHTML = '<i class="fa-solid fa-circle-exclamation me-1"></i> Please enter the complete 6-digit OTP code.';
+        }
         otpInput.focus();
         return;
     }
@@ -614,7 +626,12 @@ function handleVerifyOtp() {
             statusBadge.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Verified';
 
             document.getElementById('buyerPhoneInput').readOnly = true;
-            document.getElementById('countryCodeSelect').disabled = true;
+            const ccSelect = document.getElementById('countryCodeSelect');
+            if (ccSelect) {
+                ccSelect.style.pointerEvents = 'none';
+                ccSelect.style.backgroundColor = '#e2e8f0';
+                ccSelect.setAttribute('tabindex', '-1');
+            }
             document.getElementById('sendOtpBtn').disabled = true;
             document.getElementById('buyerOtpCode').readOnly = true;
             verifyBtn.classList.replace('btn-success', 'btn-secondary');
@@ -630,7 +647,25 @@ function handleVerifyOtp() {
         spinner.classList.add('d-none');
         verifyBtn.disabled = false;
         verifyText.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Verify';
-        alert('An error occurred during verification.');
+        if (otpFeedback) {
+            otpFeedback.classList.remove('d-none', 'text-success');
+            otpFeedback.classList.add('text-danger');
+            otpFeedback.innerHTML = '<i class="fa-solid fa-circle-xmark me-1"></i> An error occurred during verification.';
+        }
+    });
+}
+
+const buyerRegForm = document.getElementById('buyerRegisterForm');
+if (buyerRegForm) {
+    buyerRegForm.addEventListener('submit', function() {
+        const submitBtn = document.getElementById('buyerSubmitBtn');
+        const spinner = document.getElementById('buyerSubmitSpinner');
+        const icon = document.getElementById('buyerSubmitIcon');
+        const text = document.getElementById('buyerSubmitText');
+        if (submitBtn) submitBtn.disabled = true;
+        if (spinner) spinner.classList.remove('d-none');
+        if (icon) icon.classList.add('d-none');
+        if (text) text.textContent = 'Creating Account...';
     });
 }
 

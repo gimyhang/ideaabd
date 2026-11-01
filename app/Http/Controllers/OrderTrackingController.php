@@ -14,9 +14,10 @@ class OrderTrackingController extends Controller
 {
     public function show(Request $request)
     {
-        // a "track parcel" link from My Account arrives with the order number already filled in
+        // a "track parcel" link from My Account or SMS arrives with the order number already filled in
+        $orderNo = (string) ($request->query('order_number') ?: $request->query('order_no', ''));
         return view('frontend.pages.track-order', [
-            'query' => ['order_number' => (string) $request->query('order_number', '')],
+            'query' => ['order_number' => $orderNo],
         ]);
     }
 

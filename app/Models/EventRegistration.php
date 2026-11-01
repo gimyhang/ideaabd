@@ -116,7 +116,18 @@ class EventRegistration extends Model
 
         // withTrashed: a soft-deleted entry still owns its number (the unique index covers deleted rows too)
         $nextInSequence = function (string $prefix): int {
-            $max = static::withTrashed()->where('registration_number', 'LIKE', $prefix . '%')->pluck('registration_number')
+            $query = static::withTrashed()->where('registration_number', 'LIKE', $prefix . '%');
+
+            // MySQL: let the database return only the highest number instead of loading every row.
+            // Prefixes are alphanumerics and dashes only, so they are literal inside the REGEXP.
+            if (in_array($query->getConnection()->getDriverName(), ['mysql', 'mariadb'], true) && preg_match('/^[A-Za-z0-9-]+$/', $prefix)) {
+                $max = (int) $query->whereRaw('registration_number REGEXP ?', ['^' . $prefix . '[0-9]+$'])
+                    ->max(\Illuminate\Support\Facades\DB::raw('CAST(SUBSTRING(registration_number, ' . (strlen($prefix) + 1) . ') AS UNSIGNED)'));
+
+                return $max + 1;
+            }
+
+            $max = $query->pluck('registration_number')
                 ->map(fn ($n) => preg_match('/^' . preg_quote($prefix, '/') . '(\d+)$/', $n, $mm) ? (int) $mm[1] : 0)
                 ->max() ?? 0;
 

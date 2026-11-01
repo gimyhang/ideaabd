@@ -98,19 +98,21 @@
         .official-letterhead-form {
             background: #ffffff;
             border: 2px solid var(--form-border, #0f172a);
-            border-radius: 4px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            padding: 24px 28px;
+            border-top: 5px solid var(--form-accent, #991b1b);
+            border-radius: 8px;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+            padding: 26px 30px;
             color: #0f172a;
+            position: relative;
         }
 
         /* =========================================================================
            শীর্ষ পূর্ণাঙ্গ লেটার হেড প্যাড (Top Full-Width Letterhead Pad)
            ========================================================================= */
         .lh-pad-header {
-            border-bottom: none;
-            padding-bottom: 6px;
-            margin-bottom: 12px;
+            border-bottom: 2px double #cbd5e1;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
             position: relative;
         }
 
@@ -350,9 +352,10 @@
 
         /* Photo Upload Box inside personal table */
         .lh-photo-box {
-            width: 115px;
-            height: 135px;
-            border: 1.5px solid #0f172a;
+            width: 118px;
+            height: 142px;
+            border: 1.5px dashed #475569;
+            border-radius: 6px;
             background: #f8fafc;
             display: flex;
             flex-direction: column;
@@ -362,12 +365,47 @@
             position: relative;
             overflow: hidden;
             margin: 0 auto;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+        }
+
+        .lh-photo-box.has-photo {
+            border-style: solid;
+            border-color: #10b981;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
         }
 
         .lh-photo-box:hover {
             background: #fef2f2;
             border-color: #991b1b;
+            transform: translateY(-1px);
+        }
+
+        .lh-photo-change-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.78);
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 4px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+
+        .lh-photo-box.has-photo:hover .lh-photo-change-overlay {
+            opacity: 1;
+        }
+
+        .lh-photo-ready-badge {
+            display: none;
+            font-size: 10px;
+            font-weight: 700;
+            color: #059669;
+            margin-top: 4px;
         }
 
         .lh-photo-img {
@@ -406,9 +444,9 @@
             align-items: center;
             background: #f8fafc;
             border: 1.5px solid #cbd5e1;
-            border-radius: 4px;
-            padding: 4px 10px;
-            font-size: 12px;
+            border-radius: 6px;
+            padding: 4.5px 11px;
+            font-size: 12.5px;
             font-weight: 700;
             color: #1e293b;
             cursor: pointer;
@@ -435,9 +473,10 @@
 
         .cat-pill.active,
         .cat-pill:has(input:checked) {
-            background: #0f172a !important;
+            background: var(--form-accent, #991b1b) !important;
             color: #ffffff !important;
-            border-color: #0f172a !important;
+            border-color: var(--form-accent, #991b1b) !important;
+            box-shadow: 0 2px 6px rgba(153, 27, 27, 0.22);
         }
 
         .cat-pill.active span,
@@ -449,14 +488,14 @@
         /* Address Toggle & Style */
         .res-type-pill-group {
             display: inline-flex;
-            border: 1px solid #0f172a;
-            border-radius: 4px;
+            border: 1.5px solid #0f172a;
+            border-radius: 6px;
             overflow: hidden;
         }
 
         .res-type-pill-group label {
             cursor: pointer;
-            padding: 3px 10px;
+            padding: 3.5px 12px;
             font-size: 11.5px;
             font-weight: 700;
             background: #ffffff;
@@ -474,26 +513,42 @@
 
         /* Primary Submit Button */
         .btn-submit-letterhead {
-            background: #0f172a;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: #ffffff;
-            font-size: 15px;
+            font-size: 15.5px;
             font-weight: 800;
-            padding: 11px 36px;
-            border-radius: 4px;
+            padding: 12px 42px;
+            border-radius: 8px;
             border: 2px solid #0f172a;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.18);
             touch-action: manipulation;
         }
 
         .btn-submit-letterhead:hover {
-            background: #991b1b;
+            background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
             border-color: #991b1b;
             color: #ffffff;
             transform: translateY(-1px);
+            box-shadow: 0 8px 22px rgba(153, 27, 27, 0.28);
+        }
+
+        .writer-client-error-banner {
+            display: none;
+            background: #fef2f2;
+            border: 1.5px solid #ef4444;
+            color: #991b1b;
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            align-items: center;
+            gap: 8px;
         }
 
         /* Live Badge for Address */
@@ -1063,14 +1118,15 @@
                 </td>
                 @if($photoReqMode !== 'hidden')
                 <td rowspan="4" class="text-center photo-cell-desktop" style="width: 32%; vertical-align: middle; background: #fafafa;">
-                    <div class="lh-photo-box" onclick="document.getElementById('rawPhotoInput').click()" title="ছবি আপলোড করতে ক্লিক করুন">
-                        @php
-                            $existingPhoto = $existingRegistration?->form_data['student_photo'] ?? null;
-                            if ($existingPhoto && !str_starts_with($existingPhoto, 'http') && !str_starts_with($existingPhoto, '/')) {
-                                $existingPhoto = asset('storage/' . $existingPhoto);
-                            }
-                        @endphp
+                    @php
+                        $existingPhoto = $existingRegistration?->form_data['student_photo'] ?? null;
+                        if ($existingPhoto && !str_starts_with($existingPhoto, 'http') && !str_starts_with($existingPhoto, '/')) {
+                            $existingPhoto = asset('storage/' . $existingPhoto);
+                        }
+                    @endphp
+                    <div class="lh-photo-box {{ $existingPhoto ? 'has-photo' : '' }}" id="writerPhotoBox" onclick="document.getElementById('rawPhotoInput').click()" title="ছবি আপলোড বা পরিবর্তন করতে ক্লিক করুন">
                         <img id="photoPreviewThumb" class="lh-photo-img" src="{{ $existingPhoto ?: '' }}" style="{{ $existingPhoto ? 'display: block;' : 'display: none;' }}" alt="Author Photo">
+                        <div class="lh-photo-change-overlay"><i class="fa-solid fa-camera-rotate me-1"></i>ছবি পরিবর্তন</div>
                         <div id="photoUploadPlaceholder" class="lh-photo-placeholder" style="{{ $existingPhoto ? 'display: none;' : '' }}">
                             <i class="fa-solid fa-camera text-primary fs-5 mb-1"></i>
                             <div style="font-weight: 700; color: #0f172a; font-size: 12px;">ছবি আপলোড @if($photoReqMode === 'required')<span class="text-danger">*</span>@endif</div>
@@ -1081,6 +1137,9 @@
                             @endif
                             <div style="font-size: 8.5px; color: #64748b; margin-top: 2px;">পাসপোর্ট সাইজ</div>
                         </div>
+                    </div>
+                    <div id="photoReadyBadge" class="lh-photo-ready-badge" style="{{ $existingPhoto ? 'display: block;' : '' }}">
+                        <i class="fa-solid fa-circle-check me-1"></i>ছবি যুক্ত হয়েছে
                     </div>
                     <input type="file" id="rawPhotoInput" name="student_photo" accept="image/*" class="d-none" onchange="optimizeWriterPhoto(this)">
                 </td>
@@ -1113,8 +1172,8 @@
                     @endphp
                     <div class="category-radio-grid" id="categoryRadioGrid">
                         @foreach($activeCats as $catOption)
-                            <label class="cat-pill {{ $selectedCategory == $catOption ? 'active' : '' }}" onclick="selectCategoryPill(this)">
-                                <input type="radio" name="author_category" value="{{ $catOption }}" {{ $selectedCategory == $catOption ? 'checked' : '' }} onchange="handleSingleCategoryChange(this.value, true)" onclick="handleSingleCategoryChange(this.value, true)" required>
+                            <label class="cat-pill {{ $selectedCategory == $catOption ? 'active' : '' }}">
+                                <input type="radio" name="author_category" value="{{ $catOption }}" {{ $selectedCategory == $catOption ? 'checked' : '' }} onchange="handleSingleCategoryChange(this.value, true)" required>
                                 <span>{{ $catOption }}</span>
                             </label>
                         @endforeach
@@ -1125,18 +1184,21 @@
             <tr>
                 <td class="c-label">মোবাইল <span class="text-danger">*</span></td>
                 <td class="c-val" {{ $photoReqMode === 'hidden' ? 'colspan=3' : 'colspan=2' }}>
+                    @php
+                        $selectedCountryCode = old('country_code', $existingRegistration?->form_data['country_code'] ?? '+880');
+                    @endphp
                     <div class="d-flex align-items-center gap-2">
-                        <select name="country_code" id="countryCodeSelect" class="btn-country-code">
-                            <option value="+880" selected>🇧🇩 +880</option>
-                            <option value="+91">🇮🇳 +91</option>
-                            <option value="+44">🇬🇧 +44</option>
-                            <option value="+1">🇺🇸 +1</option>
-                            <option value="+966">🇸🇦 +966</option>
-                            <option value="+971">🇦🇪 +971</option>
-                            <option value="+60">🇲🇾 +60</option>
-                            <option value="+65">🇸🇬 +65</option>
+                        <select name="country_code" id="countryCodeSelect" class="btn-country-code" onchange="handlePhoneInput(document.getElementById('writerPhone'))">
+                            <option value="+880" {{ $selectedCountryCode === '+880' ? 'selected' : '' }}>🇧🇩 +880</option>
+                            <option value="+91" {{ $selectedCountryCode === '+91' ? 'selected' : '' }}>🇮🇳 +91</option>
+                            <option value="+44" {{ $selectedCountryCode === '+44' ? 'selected' : '' }}>🇬🇧 +44</option>
+                            <option value="+1" {{ $selectedCountryCode === '+1' ? 'selected' : '' }}>🇺🇸 +1</option>
+                            <option value="+966" {{ $selectedCountryCode === '+966' ? 'selected' : '' }}>🇸🇦 +966</option>
+                            <option value="+971" {{ $selectedCountryCode === '+971' ? 'selected' : '' }}>🇦🇪 +971</option>
+                            <option value="+60" {{ $selectedCountryCode === '+60' ? 'selected' : '' }}>🇲🇾 +60</option>
+                            <option value="+65" {{ $selectedCountryCode === '+65' ? 'selected' : '' }}>🇸🇬 +65</option>
                         </select>
-                        <input type="tel" name="phone" id="writerPhone" class="c-input font-monospace fw-bold" placeholder="মোবাইল" value="{{ old('phone', $existingRegistration?->phone ?? $user?->phone) }}" required oninput="handlePhoneInput(this)">
+                        <input type="tel" name="phone" id="writerPhone" class="c-input font-monospace fw-bold" placeholder="01XXXXXXXXX" value="{{ old('phone', $existingRegistration?->phone ?? $user?->phone) }}" required oninput="handlePhoneInput(this)">
                     </div>
                 </td>
             </tr>
@@ -1226,21 +1288,25 @@
         {{-- =========================================================================
              ঠিকানা (Address Details)
              ========================================================================= --}}
+        @php
+            $savedResType = old('resident_type', $existingRegistration?->form_data['resident_type'] ?? 'domestic');
+            $savedCountry = old('country_name', $existingRegistration?->form_data['country_name'] ?? 'ভারত (West Bengal / India)');
+        @endphp
         <div class="d-flex align-items-center justify-content-between my-2">
             <span class="fw-bold" style="font-size: 13px;"><i class="fa-solid fa-location-dot me-1 text-danger"></i> ঠিকানা</span>
             @if($enableIntlAddress)
             <div class="res-type-pill-group">
-                <input type="radio" name="resident_type" id="resTypeBd" value="domestic" checked onchange="toggleResidentAddress('domestic')">
+                <input type="radio" name="resident_type" id="resTypeBd" value="domestic" {{ $savedResType !== 'international' ? 'checked' : '' }} onchange="toggleResidentAddress('domestic')">
                 <label for="resTypeBd"><i class="fa-solid fa-flag me-1"></i> বাংলাদেশ</label>
 
-                <input type="radio" name="resident_type" id="resTypeIntl" value="international" onchange="toggleResidentAddress('international')">
+                <input type="radio" name="resident_type" id="resTypeIntl" value="international" {{ $savedResType === 'international' ? 'checked' : '' }} onchange="toggleResidentAddress('international')">
                 <label for="resTypeIntl"><i class="fa-solid fa-earth-americas me-1"></i> প্রবাসী</label>
             </div>
             @endif
         </div>
 
         {{-- Hidden Full Address --}}
-        <input type="hidden" name="address" id="fullWriterAddress" value="{{ old('address') }}">
+        <input type="hidden" name="address" id="fullWriterAddress" value="{{ old('address', $existingRegistration?->address) }}">
 
         {{-- বাংলাদেশ ঠিকানা গ্রিড --}}
         <table class="clean-grid-table" id="bdAddressTable">
@@ -1250,27 +1316,27 @@
             <tr>
                 <td class="c-label">বিভাগ <span class="text-danger">*</span></td>
                 <td class="c-val" style="width: 32%;">
-                    <select name="perm_division" id="writerDivision" class="c-select" required></select>
+                    <select name="perm_division" id="writerDivision" class="c-select" data-old="{{ old('perm_division', $existingRegistration?->form_data['perm_division'] ?? '') }}" required></select>
                 </td>
                 <td class="c-label">জেলা <span class="text-danger">*</span></td>
                 <td class="c-val" style="width: 32%;">
-                    <select name="district" id="writerDistrict" class="c-select" required></select>
+                    <select name="district" id="writerDistrict" class="c-select" data-old="{{ old('district', $existingRegistration?->district ?? '') }}" required></select>
                 </td>
             </tr>
             <tr>
                 <td class="c-label">উপজেলা <span class="text-danger">*</span></td>
                 <td class="c-val">
-                    <select name="thana" id="writerUpazila" class="c-select" required></select>
+                    <select name="thana" id="writerUpazila" class="c-select" data-old="{{ old('thana', $existingRegistration?->thana ?? '') }}" required></select>
                 </td>
                 <td class="c-label">পোস্টকোড</td>
                 <td class="c-val">
-                    <select name="perm_post_office" id="writerPostOffice" class="c-select"></select>
+                    <select name="perm_post_office" id="writerPostOffice" class="c-select" data-old="{{ old('perm_post_office', $existingRegistration?->form_data['perm_post_office'] ?? '') }}"></select>
                 </td>
             </tr>
             <tr>
                 <td class="c-label">ঠিকানা <span class="text-danger">*</span></td>
                 <td colspan="3" class="c-val">
-                    <input type="text" name="perm_village" id="writerVillage" class="c-input text-uppercase" placeholder="ঠিকানা" required oninput="formatWriterAddress()">
+                    <input type="text" name="perm_village" id="writerVillage" class="c-input text-uppercase" placeholder="ঠিকানা (গ্রাম / মহল্লা / রোড নং)" value="{{ old('perm_village', $existingRegistration?->form_data['perm_village'] ?? '') }}" required oninput="formatWriterAddress()">
                 </td>
             </tr>
         </table>
@@ -1284,42 +1350,42 @@
                 <td class="c-label">দেশ <span class="text-danger">*</span></td>
                 <td class="c-val" style="width: 32%;">
                     <select name="country_name" id="writerCountrySelect" class="c-select" onchange="handleCountryChange(this.value)">
-                        <option value="ভারত (West Bengal / India)">ভারত (পশ্চিমবঙ্গ / অন্যান্য)</option>
-                        <option value="United Kingdom">যুক্তরাজ্য (UK)</option>
-                        <option value="United States">যুক্তরাষ্ট্র (USA)</option>
-                        <option value="Canada">কানাডা (Canada)</option>
-                        <option value="Saudi Arabia">সৌদি আরব (Saudi Arabia)</option>
-                        <option value="United Arab Emirates">সংযুক্ত আরব আমিরাত (UAE)</option>
-                        <option value="Qatar">কাতার (Qatar)</option>
-                        <option value="Kuwait">কুয়েত (Kuwait)</option>
-                        <option value="Oman">ওমান (Oman)</option>
-                        <option value="Malaysia">মালয়েশিয়া (Malaysia)</option>
-                        <option value="Singapore">সিঙ্গাপুর (Singapore)</option>
-                        <option value="Australia">অস্ট্রেলিয়া (Australia)</option>
-                        <option value="Germany">জার্মানি (Germany)</option>
-                        <option value="Italy">ইতালি (Italy)</option>
-                        <option value="OTHER">-- অন্যান্য দেশ (কাস্টম নাম) --</option>
+                        <option value="ভারত (West Bengal / India)" {{ $savedCountry === 'ভারত (West Bengal / India)' ? 'selected' : '' }}>ভারত (পশ্চিমবঙ্গ / অন্যান্য)</option>
+                        <option value="United Kingdom" {{ $savedCountry === 'United Kingdom' ? 'selected' : '' }}>যুক্তরাজ্য (UK)</option>
+                        <option value="United States" {{ $savedCountry === 'United States' ? 'selected' : '' }}>যুক্তরাষ্ট্র (USA)</option>
+                        <option value="Canada" {{ $savedCountry === 'Canada' ? 'selected' : '' }}>কানাডা (Canada)</option>
+                        <option value="Saudi Arabia" {{ $savedCountry === 'Saudi Arabia' ? 'selected' : '' }}>সৌদি আরব (Saudi Arabia)</option>
+                        <option value="United Arab Emirates" {{ $savedCountry === 'United Arab Emirates' ? 'selected' : '' }}>সংযুক্ত আরব আমিরাত (UAE)</option>
+                        <option value="Qatar" {{ $savedCountry === 'Qatar' ? 'selected' : '' }}>কাতার (Qatar)</option>
+                        <option value="Kuwait" {{ $savedCountry === 'Kuwait' ? 'selected' : '' }}>কুয়েত (Kuwait)</option>
+                        <option value="Oman" {{ $savedCountry === 'Oman' ? 'selected' : '' }}>ওমান (Oman)</option>
+                        <option value="Malaysia" {{ $savedCountry === 'Malaysia' ? 'selected' : '' }}>মালয়েশিয়া (Malaysia)</option>
+                        <option value="Singapore" {{ $savedCountry === 'Singapore' ? 'selected' : '' }}>সিঙ্গাপুর (Singapore)</option>
+                        <option value="Australia" {{ $savedCountry === 'Australia' ? 'selected' : '' }}>অস্ট্রেলিয়া (Australia)</option>
+                        <option value="Germany" {{ $savedCountry === 'Germany' ? 'selected' : '' }}>জার্মানি (Germany)</option>
+                        <option value="Italy" {{ $savedCountry === 'Italy' ? 'selected' : '' }}>ইতালি (Italy)</option>
+                        <option value="OTHER" {{ $savedCountry === 'OTHER' ? 'selected' : '' }}>-- অন্যান্য দেশ (কাস্টম নাম) --</option>
                     </select>
                 </td>
                 <td class="c-label">শহর / রাজ্য <span class="text-danger">*</span></td>
                 <td class="c-val" style="width: 32%;">
-                    <input type="text" name="state_or_city" id="writerForeignCity" class="c-input text-uppercase" placeholder="শহর" oninput="formatWriterAddress()">
+                    <input type="text" name="state_or_city" id="writerForeignCity" class="c-input text-uppercase" placeholder="শহর" value="{{ old('state_or_city', $existingRegistration?->form_data['state_or_city'] ?? '') }}" oninput="formatWriterAddress()">
                 </td>
             </tr>
-            <tr id="customCountryRow" style="display: none;">
+            <tr id="customCountryRow" style="{{ $savedCountry === 'OTHER' ? '' : 'display: none;' }}">
                 <td class="c-label">দেশ <span class="text-danger">*</span></td>
                 <td colspan="3" class="c-val">
-                    <input type="text" name="custom_country" id="writerCustomCountry" class="c-input" placeholder="দেশ" oninput="formatWriterAddress()">
+                    <input type="text" name="custom_country" id="writerCustomCountry" class="c-input" placeholder="দেশ" value="{{ old('custom_country', $existingRegistration?->form_data['custom_country'] ?? '') }}" oninput="formatWriterAddress()">
                 </td>
             </tr>
             <tr>
                 <td class="c-label">পোস্টকোড</td>
                 <td class="c-val">
-                    <input type="text" name="zip_code" id="writerForeignZip" class="c-input font-monospace" placeholder="পোস্টকোড" oninput="formatWriterAddress()">
+                    <input type="text" name="zip_code" id="writerForeignZip" class="c-input font-monospace" placeholder="পোস্টকোড" value="{{ old('zip_code', $existingRegistration?->form_data['zip_code'] ?? '') }}" oninput="formatWriterAddress()">
                 </td>
                 <td class="c-label">ঠিকানা <span class="text-danger">*</span></td>
                 <td class="c-val">
-                    <input type="text" name="foreign_address" id="writerForeignStreet" class="c-input" placeholder="ঠিকানা" oninput="formatWriterAddress()">
+                    <input type="text" name="foreign_address" id="writerForeignStreet" class="c-input" placeholder="ঠিকানা" value="{{ old('foreign_address', $existingRegistration?->form_data['foreign_address'] ?? '') }}" oninput="formatWriterAddress()">
                 </td>
             </tr>
         </table>
@@ -1367,11 +1433,17 @@
         </div>
         @endif
 
+        {{-- ক্লায়েন্ট ভ্যালিডেশন মেসেজ ব্যানার --}}
+        <div id="writerClientErrorBanner" class="writer-client-error-banner no-print" role="alert">
+            <i class="fa-solid fa-triangle-exclamation fs-5"></i>
+            <span id="writerClientErrorText"></span>
+        </div>
+
         {{-- সাবমিট বাটন --}}
         <div class="text-center mt-4 no-print">
             <button type="submit" id="submitWriterBtn" class="btn-submit-letterhead">
                 <i class="fa-solid fa-paper-plane"></i>
-                <span>জমা দিন</span>
+                <span>নিবন্ধন সম্পন্ন করুন</span>
             </button>
         </div>
 
@@ -1702,12 +1774,8 @@ function handleSingleCategoryChange(val, isUserAction) {
                 orgDesignation.value = 'সংগঠক';
             }
         }
-        if (designationInput) {
-            designationInput.disabled = true;
-        }
     } else {
         if (orgDesignation) orgDesignation.disabled = true;
-        if (designationInput) designationInput.disabled = false;
     }
 
     if (isMagEditor || isPublisher) {
@@ -1740,6 +1808,7 @@ function handleSingleCategoryChange(val, isUserAction) {
     setOff('writerArtMedium', !isArtist);
     setOff('writerArtistOrg', !isArtist);
     setOff('writerOrgName', !isOrganizer);
+    setOff('writerDesignationInput', !showLiterary);
     setOff('publishedBooksInput', !showLiterary);
     setOff('notableBooks', !showLiterary);
     setOff('magazineName', !(isMagEditor || isPublisher));
@@ -1861,7 +1930,7 @@ function formatWriterAddress() {
     }
 }
 
-// বাংলা ও ইংরেজি মোবাইল নম্বর হ্যান্ডলার (ওল্ড ব্রাউজার সেফ: replaceAll বর্জন)
+// বাংলা ও ইংরেজি মোবাইল নম্বর হ্যান্ডলার (বাংলাদেশ ও আন্তর্জাতিক উভয় নম্বর সমর্থিত)
 function handlePhoneInput(input) {
     if (!input) return;
     var bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
@@ -1871,27 +1940,55 @@ function handlePhoneInput(input) {
         raw = raw.split(bn[i]).join(en[i]);
     }
     var val = raw.replace(/[^0-9]/g, '');
-    if (val.indexOf('880') === 0) {
-        val = val.substring(3);
-    } else if (val.indexOf('88') === 0 && val.length === 12 && val.charAt(2) === '1') {
-        val = val.substring(2);
-    }
-    if (val.length === 10 && val.indexOf('1') === 0) {
-        val = '0' + val;
-    }
-    if (val.length > 11) {
-        val = val.substring(0, 11);
+    var ccEl = document.getElementById('countryCodeSelect');
+    var cc = ccEl ? ccEl.value : '+880';
+
+    if (cc === '+880') {
+        if (val.indexOf('880') === 0) {
+            val = val.substring(3);
+        } else if (val.indexOf('88') === 0 && val.length === 12 && val.charAt(2) === '1') {
+            val = val.substring(2);
+        }
+        if (val.length === 10 && val.indexOf('1') === 0) {
+            val = '0' + val;
+        }
+        if (val.length > 11) {
+            val = val.substring(0, 11);
+        }
+        input.placeholder = '01XXXXXXXXX';
+    } else {
+        var cleanCc = cc.replace(/[^0-9]/g, '');
+        if (cleanCc && val.indexOf(cleanCc) === 0 && val.length > 10) {
+            val = val.substring(cleanCc.length);
+        }
+        if (val.length > 15) {
+            val = val.substring(0, 15);
+        }
+        input.placeholder = 'মোবাইল নম্বর';
     }
     input.value = val;
 }
 
-// ছবি অটো-কম্প্রেশন ও প্রিভিউ (ওল্ড মোবাইল ও ৩জি ফ্রেন্ডলি)
+// ছবি অটো-কম্প্রেশন (300x360 পাসপোর্ট রেশিও) ও দ্রুত আপলোড অপটিমাইজেশন
 function optimizeWriterPhoto(input) {
     if (!input || !input.files || !input.files[0]) return;
     var file = input.files[0];
 
     var thumb = document.getElementById('photoPreviewThumb');
     var placeholder = document.getElementById('photoUploadPlaceholder');
+    var photoBox = document.getElementById('writerPhotoBox') || document.querySelector('.lh-photo-box');
+    var readyBadge = document.getElementById('photoReadyBadge');
+    var errBanner = document.getElementById('writerClientErrorBanner');
+    if (errBanner) errBanner.style.display = 'none';
+
+    if (photoBox) {
+        photoBox.classList.add('has-photo');
+        photoBox.style.border = '';
+        photoBox.style.background = '';
+    }
+    if (readyBadge) {
+        readyBadge.style.display = 'block';
+    }
 
     // ইনস্ট্যান্ট প্রিভিউ
     try {
@@ -1919,22 +2016,42 @@ function optimizeWriterPhoto(input) {
             try {
                 var canvas = document.createElement('canvas');
                 var ctx = canvas.getContext('2d');
-                var size = 320;
+                var targetW = 300;
+                var targetH = 360;
+                var targetRatio = targetW / targetH;
 
-                canvas.width = size;
-                canvas.height = size;
+                canvas.width = targetW;
+                canvas.height = targetH;
 
-                var minDim = Math.min(img.width, img.height);
-                var startX = (img.width - minDim) / 2;
-                var startY = (img.height - minDim) / 2;
+                var srcW = img.width;
+                var srcH = img.height;
+                var srcRatio = srcW / srcH;
+                var cropW, cropH, startX, startY;
 
-                ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, size, size);
+                if (srcRatio > targetRatio) {
+                    cropH = srcH;
+                    cropW = Math.round(srcH * targetRatio);
+                    startX = Math.round((srcW - cropW) / 2);
+                    startY = 0;
+                } else {
+                    cropW = srcW;
+                    cropH = Math.round(srcW / targetRatio);
+                    startX = 0;
+                    // পোর্ট্রেট ছবিতে মাথার অংশ ঠিক রাখতে একটু উপরের দিকে ফোকাস (35%)
+                    startY = Math.round((srcH - cropH) * 0.35);
+                }
 
-                var optimizedBase64 = canvas.toDataURL('image/jpeg', 0.88);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, targetW, targetH);
+                ctx.drawImage(img, startX, startY, cropW, cropH, 0, 0, targetW, targetH);
+
+                var optimizedBase64 = canvas.toDataURL('image/jpeg', 0.86);
 
                 var optInput = document.getElementById('optimizedPhotoData');
                 if (optInput) {
                     optInput.value = optimizedBase64;
+                    // ডাবল আপলোড রোধে কাঁচা ফাইল ইনপুট ক্লিয়ার করা হচ্ছে (বেস৬৪ ~২৫KB যাবে)
+                    try { input.value = ''; } catch (clearErr) {}
                 }
                 if (thumb) {
                     thumb.src = optimizedBase64;
@@ -1951,46 +2068,79 @@ function optimizeWriterPhoto(input) {
     reader.readAsDataURL(file);
 }
 
+function showWriterClientError(msg, targetEl) {
+    var banner = document.getElementById('writerClientErrorBanner');
+    var textEl = document.getElementById('writerClientErrorText');
+    if (banner && textEl) {
+        textEl.textContent = msg;
+        banner.style.display = 'flex';
+    }
+    if (targetEl) {
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (typeof targetEl.focus === 'function') {
+            try { targetEl.focus({ preventScroll: true }); } catch (e) {}
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     var form = document.getElementById('writerRegisterForm');
+    var photoReqMode = @json($photoReqMode);
     if (form) {
         form.addEventListener('submit', function(e) {
+            var errBanner = document.getElementById('writerClientErrorBanner');
+            if (errBanner) errBanner.style.display = 'none';
+
             var selectedRadio = document.querySelector('input[name="author_category"]:checked');
             if (!selectedRadio || !selectedRadio.value) {
                 e.preventDefault();
-                alert('অনুগ্রহ করে আপনার সাহিত্য ক্যাটাগরি নির্বাচন করুন।');
-                var catGrid = document.getElementById('categoryRadioGrid');
-                if (catGrid) {
-                    catGrid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
+                showWriterClientError('অনুগ্রহ করে আপনার সাহিত্য ক্যাটাগরি নির্বাচন করুন।', document.getElementById('categoryRadioGrid'));
                 return false;
             }
 
-            // Mandatory Photo Check
-            var optPhotoEl = document.getElementById('optimizedPhotoData');
-            var optPhoto = optPhotoEl ? optPhotoEl.value : '';
-            var rawPhotoEl = document.getElementById('rawPhotoInput');
-            var rawPhoto = (rawPhotoEl && rawPhotoEl.files) ? rawPhotoEl.files.length : 0;
-            var previewImg = document.getElementById('photoPreviewThumb');
-            var hasExistingPhoto = previewImg && previewImg.src && previewImg.src.indexOf('data:image/svg') === -1 && previewImg.style.display !== 'none' && previewImg.getAttribute('src') !== '';
-
-            if (!optPhoto && !rawPhoto && !hasExistingPhoto) {
-                e.preventDefault();
-                alert('অনুগ্রহ করে আপনার পাসপোর্ট সাইজের ছবি আপলোড করুন। ছবি আপলোড বাধ্যতামূলক।');
-                var photoBox = document.querySelector('.lh-photo-box');
-                if (photoBox) {
-                    photoBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    photoBox.style.border = '2px dashed #dc2626';
-                    photoBox.style.background = '#fef2f2';
+            var phoneInput = document.getElementById('writerPhone');
+            var ccSelect = document.getElementById('countryCodeSelect');
+            if (phoneInput) {
+                handlePhoneInput(phoneInput);
+                var pVal = phoneInput.value.trim();
+                var ccVal = ccSelect ? ccSelect.value : '+880';
+                if (ccVal === '+880' && !/^01[3-9]\d{8}$/.test(pVal)) {
+                    e.preventDefault();
+                    showWriterClientError('অনুগ্রহ করে সঠিক ১১ সংখ্যার বাংলাদেশী মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)।', phoneInput);
+                    return false;
+                } else if (ccVal !== '+880' && pVal.length < 6) {
+                    e.preventDefault();
+                    showWriterClientError('অনুগ্রহ করে সঠিক মোবাইল নম্বর প্রদান করুন।', phoneInput);
+                    return false;
                 }
-                return false;
+            }
+
+            // Photo Check (only when photoReqMode === 'required')
+            if (photoReqMode === 'required') {
+                var optPhotoEl = document.getElementById('optimizedPhotoData');
+                var optPhoto = optPhotoEl ? optPhotoEl.value : '';
+                var rawPhotoEl = document.getElementById('rawPhotoInput');
+                var rawPhoto = (rawPhotoEl && rawPhotoEl.files) ? rawPhotoEl.files.length : 0;
+                var previewImg = document.getElementById('photoPreviewThumb');
+                var hasExistingPhoto = previewImg && previewImg.src && previewImg.src.indexOf('data:image/svg') === -1 && previewImg.style.display !== 'none' && previewImg.getAttribute('src') !== '';
+
+                if (!optPhoto && !rawPhoto && !hasExistingPhoto) {
+                    e.preventDefault();
+                    var photoBox = document.getElementById('writerPhotoBox') || document.querySelector('.lh-photo-box');
+                    if (photoBox) {
+                        photoBox.style.border = '2px dashed #dc2626';
+                        photoBox.style.background = '#fef2f2';
+                    }
+                    showWriterClientError('নিবন্ধন সম্পন্ন করতে অনুগ্রহ করে আপনার পাসপোর্ট সাইজের ছবি যুক্ত করুন।', photoBox);
+                    return false;
+                }
             }
 
             formatWriterAddress();
             var btn = document.getElementById('submitWriterBtn');
             if (btn) {
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting...';
-                btn.style.opacity = '0.8';
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> নিবন্ধন প্রক্রিয়াধীন...';
+                btn.style.opacity = '0.85';
                 btn.style.pointerEvents = 'none';
             }
         });

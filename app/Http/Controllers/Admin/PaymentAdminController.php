@@ -311,6 +311,10 @@ class PaymentAdminController extends Controller
 
         $order->update($validated);
 
+        if ($validated['payment_status'] === 'paid') {
+            \App\Services\RoyaltyService::processOrderRoyalties($order);
+        }
+
         if ($this->accessService) {
             $this->accessService->log(
                 'update_order_payment',

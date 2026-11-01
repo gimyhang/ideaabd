@@ -57,15 +57,24 @@ class SellerDashboardController extends Controller
             [$todayStart, $todayStart, $monthStart]
         )->first();
 
-        // Copies sold: read the items column a few hundred bills at a time instead of holding every bill in memory.
-        $itemsSold = 0;
-        (clone $bills)->select(['id', 'items'])->chunkById(500, function ($chunk) use (&$itemsSold) {
-            foreach ($chunk as $bill) {
-                foreach ((array) $bill->items as $item) {
-                    $itemsSold += max(0, (int) ($item['quantity'] ?? $item['qty'] ?? 1));
-                }
+        // Copies sold: read the items column a few hundred bills at a time. The total is cached for a minute per seller
+        // because it scans every bill (it was the slowest part of this page).
+        $itemsSold = (int) \Illuminate\Support\Facades\Cache::remember(
+            'seller_dash_items_sold_' . ($scope ?: 'all') . '_' . ($stats->bills ?? 0),
+            60,
+            function () use ($bills) {
+                $sum = 0;
+                (clone $bills)->select(['id', 'items'])->chunkById(500, function ($chunk) use (&$sum) {
+                    foreach ($chunk as $bill) {
+                        foreach ((array) $bill->items as $item) {
+                            $sum += max(0, (int) ($item['quantity'] ?? $item['qty'] ?? 1));
+                        }
+                    }
+                });
+
+                return $sum;
             }
-        });
+        );
 
         $recentBills = (clone $bills)->with('seller:id,name')->latest('id')->take(10)->get();
 

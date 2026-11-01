@@ -240,7 +240,13 @@
             }).then(function(result) {
                 if (result.isConfirmed) {
                     form.dataset.confirmed = 'true';
-                    form.submit();
+                    var submitter = e.submitter || null;
+                    if (typeof form.requestSubmit === 'function') {
+                        form.requestSubmit(submitter);
+                    } else {
+                        form.submit();
+                    }
+                    setTimeout(function() { delete form.dataset.confirmed; }, 500);
                 }
             });
             return;
@@ -265,7 +271,19 @@
             }).then(function(result) {
                 if (result.isConfirmed) {
                     form.dataset.confirmed = 'true';
-                    form.submit();
+                    var submitter = e.submitter || null;
+                    var origConfirm = window.confirm;
+                    window.confirm = function() { return true; };
+                    try {
+                        if (typeof form.requestSubmit === 'function') {
+                            form.requestSubmit(submitter);
+                        } else {
+                            form.submit();
+                        }
+                    } finally {
+                        window.confirm = origConfirm;
+                        setTimeout(function() { delete form.dataset.confirmed; }, 500);
+                    }
                 }
             });
         }
@@ -300,11 +318,41 @@
             }).then(function(result) {
                 if (result.isConfirmed) {
                     trigger.dataset.confirmed = 'true';
-                    if (form && trigger.type === 'submit') {
+                    if (form && (trigger.type === 'submit' || (trigger.tagName.toLowerCase() === 'button' && !trigger.getAttribute('type')))) {
                         form.dataset.confirmed = 'true';
-                        form.submit();
-                    } else if (isLink && trigger.href) {
+                        var origConfirm = window.confirm;
+                        window.confirm = function() { return true; };
+                        try {
+                            if (typeof form.requestSubmit === 'function') {
+                                form.requestSubmit(trigger);
+                            } else {
+                                if (trigger.name) {
+                                    var hiddenInput = document.createElement('input');
+                                    hiddenInput.type = 'hidden';
+                                    hiddenInput.name = trigger.name;
+                                    hiddenInput.value = trigger.value || '';
+                                    form.appendChild(hiddenInput);
+                                }
+                                form.submit();
+                            }
+                        } finally {
+                            window.confirm = origConfirm;
+                            setTimeout(function() {
+                                delete trigger.dataset.confirmed;
+                                delete form.dataset.confirmed;
+                            }, 500);
+                        }
+                    } else if (isLink && trigger.href && (!onclickAttr || !onclickAttr.replace(/return\s+confirm\([^)]*\)\s*;?/g, '').trim())) {
                         window.location.href = trigger.href;
+                    } else {
+                        var origConfirmBtn = window.confirm;
+                        window.confirm = function() { return true; };
+                        try {
+                            trigger.click();
+                        } finally {
+                            window.confirm = origConfirmBtn;
+                            setTimeout(function() { delete trigger.dataset.confirmed; }, 500);
+                        }
                     }
                 }
             });
@@ -470,8 +518,8 @@
             
             // If user is not typing in a form field or editor
             if (!isInput) {
-                // Check if user pressed Backspace (without modifier) or Alt + ArrowLeft
-                if (e.key === 'Backspace' || (e.altKey && e.key === 'ArrowLeft')) {
+                // Only navigate back on explicit Alt + ArrowLeft (never hijack standalone Backspace)
+                if (e.altKey && e.key === 'ArrowLeft') {
                     if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
                         e.preventDefault();
                         window.history.back();

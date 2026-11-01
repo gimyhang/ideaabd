@@ -115,11 +115,11 @@ class PaymentController extends Controller
      */
     public function bkashCallback(Request $request)
     {
-        $paymentID = $request->input('paymentID');
+        $paymentID = trim((string) $request->input('paymentID', ''));
         $status    = $request->input('status');
         $config    = $this->getBkashConfig();
 
-        if ($status === 'success') {
+        if ($status === 'success' && $paymentID !== '') {
             try {
                 $token = $this->getBkashToken();
 
@@ -147,8 +147,8 @@ class PaymentController extends Controller
                     // সিকিউরিটি ও ইনভেন্টরি লগ
                     Log::channel('audit')->info('bKash Payment Successful', [
                         'order_id' => $order->id,
-                        'trx_id'   => $resData['trxID'],
-                        'amount'   => $resData['amount'],
+                        'trx_id'   => $resData['trxID'] ?? $paymentID,
+                        'amount'   => $resData['amount'] ?? $order->total_amount,
                     ]);
 
                     \App\Services\RoyaltyService::processOrderRoyalties($order);
@@ -208,13 +208,6 @@ class PaymentController extends Controller
         $dateTime   = now()->format('YmdHis');
         $orderId    = 'ORD' . $order->id . '-' . rand(100, 999);
 
-        $sensitiveData = [
-            'merchantId' => $merchantID,
-            'datetime'   => $dateTime,
-            'orderId'    => $orderId,
-            'challenge'  => \Illuminate\Support\Str::random(40),
-        ];
-
         try {
             $order->update([
                 'payment_id'     => $orderId,
@@ -240,10 +233,10 @@ class PaymentController extends Controller
      */
     public function nagadCallback(Request $request)
     {
-        $status  = $request->input('status_code');
-        $order_id = $request->input('order_id');
+        $status   = $request->input('status_code');
+        $order_id = trim((string) $request->input('order_id', ''));
 
-        if ($status === '00_0000') { // নগদের সাকসেস স্ট্যাটাস কোড
+        if ($status === '00_0000' && $order_id !== '') { // নগদের সাকসেস স্ট্যাটাস কোড
             $order = Order::where('payment_id', $order_id)
                 ->orWhere('order_number', $order_id)
                 ->orWhere('transaction_id', $order_id)
@@ -366,10 +359,14 @@ class PaymentController extends Controller
      */
     public function sslcommerzSuccess(Request $request)
     {
-        $tran_id = $request->input('tran_id');
+        $tran_id = trim((string) $request->input('tran_id', ''));
         $val_id = $request->input('val_id');
         $amount = $request->input('amount');
         $card_type = $request->input('card_type');
+
+        if ($tran_id === '') {
+            return redirect()->route('payment.fail')->with('error', 'পেমেন্ট রেফারেন্স পাওয়া যায়নি।');
+        }
 
         $order = Order::where('order_number', $tran_id)
             ->orWhere('payment_id', $tran_id)
@@ -380,39 +377,37 @@ class PaymentController extends Controller
             return redirect()->route('payment.success')->with(['message' => 'পেমেন্ট ইতিমধ্যে সম্পন্ন হয়েছে।', 'order_number' => $order->order_number]);
         }
 
-        if ($order && !$this->sslcommerzPaymentIsGenuine($order, $val_id)) {
-            Log::channel('audit')->warning('SSLCommerz success callback rejected (not confirmed by gateway)', ['order' => $order->id, 'ip' => $request->ip()]);
+        if (!$order || !$this->sslcommerzPaymentIsGenuine($order, $val_id)) {
+            Log::channel('audit')->warning('SSLCommerz success callback rejected (not confirmed by gateway)', ['order' => $order?->id, 'ip' => $request->ip()]);
 
             return redirect()->route('payment.fail')->with('error', 'পেমেন্ট যাচাই করা যায়নি। টাকা কেটে থাকলে আমাদের সাথে যোগাযোগ করুন।');
         }
 
-        if ($order) {
-            $order->update([
-                'payment_status' => 'paid',
-                'status'         => 'processing',
-                'payment_method' => 'card',
-                'transaction_id' => $val_id ?? $request->input('bank_tran_id', $tran_id),
-                'admin_notes'    => trim(($order->admin_notes ?? '') . " | Card: {$card_type}"),
-            ]);
+        $order->update([
+            'payment_status' => 'paid',
+            'status'         => 'processing',
+            'payment_method' => 'card',
+            'transaction_id' => $val_id ?? $request->input('bank_tran_id', $tran_id),
+            'admin_notes'    => trim(($order->admin_notes ?? '') . " | Card: {$card_type}"),
+        ]);
 
-            \App\Services\RoyaltyService::processOrderRoyalties($order);
+        \App\Services\RoyaltyService::processOrderRoyalties($order);
 
-            return redirect()->route('payment.success')->with([
-                'message'      => "আপনার কার্ড/অনলাইন পেমেন্টটি সফল হয়েছে! (পদ্ধতি: {$card_type})",
-                'order_number' => $order->order_number,
-            ]);
-        }
-
-        return redirect()->route('payment.success')->with('message', 'পেমেন্ট সফলভাবে সম্পন্ন হয়েছে!');
+        return redirect()->route('payment.success')->with([
+            'message'      => "আপনার কার্ড/অনলাইন পেমেন্টটি সফল হয়েছে! (পদ্ধতি: {$card_type})",
+            'order_number' => $order->order_number,
+        ]);
     }
 
     public function sslcommerzFail(Request $request)
     {
-        $tran_id = $request->input('tran_id');
-        $order = Order::where('order_number', $tran_id)
-            ->orWhere('payment_id', $tran_id)
-            ->orWhere('transaction_id', $tran_id)
-            ->first();
+        $tran_id = trim((string) $request->input('tran_id', ''));
+        $order = $tran_id !== ''
+            ? Order::where('order_number', $tran_id)
+                ->orWhere('payment_id', $tran_id)
+                ->orWhere('transaction_id', $tran_id)
+                ->first()
+            : null;
         // A "fail" request must never be able to undo a payment that was already confirmed.
         if ($order && $order->payment_status !== 'paid') {
             $order->update(['payment_status' => 'unpaid']);
@@ -428,10 +423,10 @@ class PaymentController extends Controller
 
     public function sslcommerzIpn(Request $request)
     {
-        $tran_id = $request->input('tran_id');
+        $tran_id = trim((string) $request->input('tran_id', ''));
         $status = $request->input('status');
 
-        if ($status === 'VALID' || $status === 'VALIDATED') {
+        if ($tran_id !== '' && ($status === 'VALID' || $status === 'VALIDATED')) {
             $order = Order::where('order_number', $tran_id)
                 ->orWhere('payment_id', $tran_id)
                 ->orWhere('transaction_id', $tran_id)

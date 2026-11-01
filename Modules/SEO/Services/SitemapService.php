@@ -8,35 +8,32 @@ use Modules\SEO\Models\SeoMeta;
 
 class SitemapService
 {
+    protected function getBaseUrl(): string
+    {
+        $baseUrl = config('app.url', 'https://www.ideaabd.com');
+        if (str_contains($baseUrl, 'localhost') || str_contains($baseUrl, '127.0.0.1')) {
+            $baseUrl = 'https://www.ideaabd.com';
+        }
+        return rtrim($baseUrl, '/');
+    }
+
     /**
      * Generate Main XML Sitemap Index or Full Sitemap
      */
     public function generateIndexXml(): string
     {
         $urls = [];
+        $baseUrl = $this->getBaseUrl();
 
         // Core Static Pages
-        $staticPaths = ['/', '/books', '/electronics', '/stationery', '/ebooks', '/authors', '/publishers', '/blog', '/webzines', '/research', '/about', '/contact', '/terms', '/hub'];
+        $staticPaths = ['/', '/books', '/ebooks', '/authors', '/publishers', '/blog', '/webzines', '/research', '/about', '/contact', '/terms', '/hub'];
         foreach ($staticPaths as $p) {
             $urls[] = [
-                'loc'        => url($p),
+                'loc'        => $baseUrl . ($p === '/' ? '/' : '/' . ltrim($p, '/')),
                 'lastmod'    => now()->toDateString(),
                 'changefreq' => ($p === '/' ? 'daily' : 'weekly'),
-                'priority'   => ($p === '/' ? '1.0' : '0.85'),
+                'priority'   => ($p === '/' ? '1.0' : '0.8'),
             ];
-        }
-
-        // Electronics & Stationery Products
-        if (class_exists(\App\Models\Product::class)) {
-            $products = \App\Models\Product::where('is_active', true)->latest('updated_at')->take(1000)->get(['id', 'slug', 'type', 'updated_at']);
-            foreach ($products as $pr) {
-                $urls[] = [
-                    'loc'        => route('products.show', ['type' => $pr->type, 'slug' => $pr->slug]),
-                    'lastmod'    => $pr->updated_at ? $pr->updated_at->toDateString() : now()->toDateString(),
-                    'changefreq' => 'weekly',
-                    'priority'   => '0.85',
-                ];
-            }
         }
 
         // Books
@@ -44,7 +41,7 @@ class SitemapService
             $books = \Modules\Book\Models\Book::where('is_active', true)->latest('updated_at')->take(2000)->get(['id', 'slug', 'updated_at']);
             foreach ($books as $b) {
                 $urls[] = [
-                    'loc'        => Route::has('book.show') ? route('book.show', $b->slug ?: $b->id) : url('/books/' . ($b->slug ?: $b->id)),
+                    'loc'        => $baseUrl . '/books/' . ($b->slug ?: $b->id),
                     'lastmod'    => $b->updated_at ? $b->updated_at->toDateString() : now()->toDateString(),
                     'changefreq' => 'weekly',
                     'priority'   => '0.9',
@@ -57,7 +54,7 @@ class SitemapService
             $posts = \Modules\Blog\Models\BlogPost::where('status', 'published')->latest('updated_at')->take(2000)->get(['id', 'slug', 'updated_at']);
             foreach ($posts as $post) {
                 $urls[] = [
-                    'loc'        => Route::has('blog.show') ? route('blog.show', $post->slug ?: $post->id) : url('/blog/' . ($post->slug ?: $post->id)),
+                    'loc'        => $baseUrl . '/blog/' . ($post->slug ?: $post->id),
                     'lastmod'    => $post->updated_at ? $post->updated_at->toDateString() : now()->toDateString(),
                     'changefreq' => 'weekly',
                     'priority'   => '0.8',
@@ -70,7 +67,7 @@ class SitemapService
             $authors = \Modules\Author\Models\Author::where('is_active', true)->latest('updated_at')->take(1000)->get(['id', 'slug', 'updated_at']);
             foreach ($authors as $author) {
                 $urls[] = [
-                    'loc'        => Route::has('authors.show') ? route('authors.show', $author->slug ?: $author->id) : url('/authors/' . ($author->slug ?: $author->id)),
+                    'loc'        => $baseUrl . '/authors/' . ($author->slug ?: $author->id),
                     'lastmod'    => $author->updated_at ? $author->updated_at->toDateString() : now()->toDateString(),
                     'changefreq' => 'monthly',
                     'priority'   => '0.7',
@@ -83,7 +80,7 @@ class SitemapService
             $webzines = \Modules\Webzine\Models\Webzine::latest('updated_at')->take(500)->get(['id', 'slug', 'updated_at']);
             foreach ($webzines as $wz) {
                 $urls[] = [
-                    'loc'        => Route::has('webzine.show') ? route('webzine.show', $wz->slug ?: $wz->id) : url('/webzines/' . ($wz->slug ?: $wz->id)),
+                    'loc'        => $baseUrl . '/webzines/' . ($wz->slug ?: $wz->id),
                     'lastmod'    => $wz->updated_at ? $wz->updated_at->toDateString() : now()->toDateString(),
                     'changefreq' => 'monthly',
                     'priority'   => '0.7',
@@ -116,7 +113,7 @@ class SitemapService
      */
     public function generateRobotsTxt(): string
     {
-        $sitemapUrl = url('/sitemap.xml');
+        $sitemapUrl = $this->getBaseUrl() . '/sitemap.xml';
         return "User-agent: *\n"
             . "Allow: /\n"
             . "Disallow: /admin/\n"

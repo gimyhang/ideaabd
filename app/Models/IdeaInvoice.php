@@ -95,49 +95,49 @@ class IdeaInvoice extends Model
     public static function ensureColumnsExist(): void
     {
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('idea_invoices')) {
-                $schema = \Illuminate\Support\Facades\Schema::connection(null);
-                \Illuminate\Support\Facades\Schema::table('idea_invoices', function (\Illuminate\Database\Schema\Blueprint $table) use ($schema) {
-                    if (!$schema->hasColumn('idea_invoices', 'due_date')) {
+            if (\App\Support\SchemaCache::has('idea_invoices')) {
+                $existing = array_flip( array_map('strtolower', \Illuminate\Support\Facades\Schema::getColumnListing('idea_invoices')) );
+                \Illuminate\Support\Facades\Schema::table('idea_invoices', function (\Illuminate\Database\Schema\Blueprint $table) use ($existing) {
+                    if (!isset($existing['due_date'])) {
                         $table->date('due_date')->nullable();
                     }
-                    if (!$schema->hasColumn('idea_invoices', 'installment_count')) {
+                    if (!isset($existing['installment_count'])) {
                         $table->integer('installment_count')->nullable()->default(1);
                     }
-                    if (!$schema->hasColumn('idea_invoices', 'installment_notes')) {
+                    if (!isset($existing['installment_notes'])) {
                         $table->text('installment_notes')->nullable();
                     }
-                    if (!$schema->hasColumn('idea_invoices', 'customer_email')) {
+                    if (!isset($existing['customer_email'])) {
                         $table->string('customer_email', 255)->nullable();
                     }
-                    if (!$schema->hasColumn('idea_invoices', 'customer_designation')) {
+                    if (!isset($existing['customer_designation'])) {
                         $table->string('customer_designation', 150)->nullable();
                     }
-                    if (!$schema->hasColumn('idea_invoices', 'access_token')) {
+                    if (!isset($existing['access_token'])) {
                         $table->string('access_token', 64)->nullable();
                     }
-                    if (!$schema->hasColumn('idea_invoices', 'emailed_at')) {
+                    if (!isset($existing['emailed_at'])) {
                         $table->timestamp('emailed_at')->nullable();
                     }
-                    if (!$schema->hasColumn('idea_invoices', 'customer_org')) {
+                    if (!isset($existing['customer_org'])) {
                         $table->string('customer_org', 255)->nullable();
                     }
-                    if (!$schema->hasColumn('idea_invoices', 'subject')) {
+                    if (!isset($existing['subject'])) {
                         $table->string('subject', 255)->nullable();
                     }
-                    if (!$schema->hasColumn('idea_invoices', 'reference_no')) {
+                    if (!isset($existing['reference_no'])) {
                         $table->string('reference_no', 100)->nullable();
                     }
-                    if (!$schema->hasColumn('idea_invoices', 'valid_until')) {
+                    if (!isset($existing['valid_until'])) {
                         $table->date('valid_until')->nullable();
                     }
-                    if (!$schema->hasColumn('idea_invoices', 'terms_conditions')) {
+                    if (!isset($existing['terms_conditions'])) {
                         $table->text('terms_conditions')->nullable();
                     }
-                    if (!$schema->hasColumn('idea_invoices', 'email_logs')) {
+                    if (!isset($existing['email_logs'])) {
                         $table->json('email_logs')->nullable();
                     }
-                    if (!$schema->hasColumn('idea_invoices', 'previous_due')) {
+                    if (!isset($existing['previous_due'])) {
                         $table->decimal('previous_due', 12, 2)->default(0)->nullable();
                     }
                 });

@@ -429,6 +429,7 @@ class EventCampaignAdminController extends Controller
             $totalRegistrations = $allCampaignRegistrations->count();
             $totalCollected = $allCampaignRegistrations->where('payment_status', 'verified')->sum('amount_paid');
             $pendingCount = $allCampaignRegistrations->where('status', 'pending')->count();
+            $confirmedCount = $allCampaignRegistrations->whereIn('status', ['confirmed', 'attended'])->count();
 
             $geoDatabase = [];
             $divisionStats = [];
@@ -515,6 +516,7 @@ class EventCampaignAdminController extends Controller
                 'totalRegistrations'   => $totalRegistrations,
                 'totalCollected'       => $totalCollected,
                 'pendingCount'         => $pendingCount,
+                'confirmedCount'       => $confirmedCount,
                 'duplicatePhoneMap'    => $duplicatePhoneMap,
                 'phoneConflictCount'   => $phoneConflictCount,
                 'geoConflictCount'     => $geoConflictCount,
@@ -538,6 +540,8 @@ class EventCampaignAdminController extends Controller
         $totalRegistrations  = $analysis['totalRegistrations'];
         $totalCollected      = $analysis['totalCollected'];
         $pendingCount        = $analysis['pendingCount'];
+        $confirmedCount      = $analysis['confirmedCount'] ?? 0;
+        $selectedCount       = $confirmedCount;
         $duplicatePhoneMap   = $analysis['duplicatePhoneMap'];
         $phoneConflictCount  = $analysis['phoneConflictCount'];
         $geoConflictCount    = $analysis['geoConflictCount'];
@@ -578,6 +582,7 @@ class EventCampaignAdminController extends Controller
             'totalRegistrations',
             'totalCollected',
             'pendingCount',
+            'selectedCount',
             'perPage',
             'geoDatabase',
             'divisionStats',
@@ -925,8 +930,8 @@ class EventCampaignAdminController extends Controller
                 'phone'             => $localPhone,
                 'email'             => $email,
                 'password'          => \Illuminate\Support\Facades\Hash::make(Str::random(12)),
-                'role'              => 'customer',
-                'status'            => 'approved',
+                'role'              => User::ROLE_BUYER,
+                'reg_status'        => User::STATUS_APPROVED,
                 'reg_type'          => 'customer',
                 'phone_verified_at' => now(),
                 'reg_data'          => [
@@ -1441,13 +1446,7 @@ class EventCampaignAdminController extends Controller
     /** SMS gateways can take many seconds per message; send after the admin already has the page back. */
     protected function smsLater(string $phone, string $text): void
     {
-        defer(function () use ($phone, $text) {
-            try {
-                \App\Services\SmsService::send($phone, $text);
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('Deferred SMS error: ' . $e->getMessage());
-            }
-        });
+        \App\Services\SmsService::sendAsync($phone, $text);
     }
     /** Approval SMS worded for the registration's own campaign (library, scholarship or event). */
     protected function approvalSmsText(EventRegistration $registration): string

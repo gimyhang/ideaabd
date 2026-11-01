@@ -38,11 +38,18 @@ class UserController extends Controller
 
         $myOrders = $ordersQuery->latest('id')->paginate(8, ['*'], 'orders_page')->withQueryString();
 
-        // 2. Customer Summary KPIs
-        $totalOrdersCount = Order::where('user_id', $user->id)->count();
-        $deliveredOrdersCount = Order::where('user_id', $user->id)->where('status', 'delivered')->count();
-        $totalSpentAmount = Order::where('user_id', $user->id)->whereNotIn('status', ['cancelled', 'rejected'])->sum('total_amount');
-        $pointsEarnedTotal = Order::where('user_id', $user->id)->sum('points_earned');
+        // 2. Customer Summary KPIs (Single combined query)
+        $orderAgg = Order::where('user_id', $user->id)
+            ->selectRaw("
+                COUNT(*) as total_orders,
+                SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END) as delivered_orders,
+                COALESCE(SUM(CASE WHEN status NOT IN ('cancelled', 'rejected') THEN total_amount ELSE 0 END), 0) as total_spent,
+                COALESCE(SUM(points_earned), 0) as total_points
+            ")->first();
+        $totalOrdersCount = (int) ($orderAgg->total_orders ?? 0);
+        $deliveredOrdersCount = (int) ($orderAgg->delivered_orders ?? 0);
+        $totalSpentAmount = (float) ($orderAgg->total_spent ?? 0);
+        $pointsEarnedTotal = (int) ($orderAgg->total_points ?? 0);
 
         // 3. Wishlist Books
         $wishlistItems = collect();
@@ -112,8 +119,9 @@ class UserController extends Controller
             $editPost = null;
         }
 
-        // 6. Default Shipping Info from Last Order or Reg Data
-        $lastOrder = Order::where('user_id', $user->id)->latest('id')->first();
+        // 6. Recent Orders (Top 3 for dashboard dual widget) & Default Shipping Info
+        $recentOrders = Order::where('user_id', $user->id)->with('book')->latest('id')->take(3)->get();
+        $lastOrder = $recentOrders->first();
         $defaultAddress = [
             'name'     => $lastOrder?->customer_name ?: $user->name,
             'phone'    => $lastOrder?->customer_phone ?: $user->phone,
@@ -124,7 +132,7 @@ class UserController extends Controller
 
         // 7. User's E-Book Library (Strictly verified purchases and claimed free books)
         $myEbooks = collect();
-        if (\Illuminate\Support\Facades\Schema::hasTable('user_ebook_library')) {
+        if (\App\Support\SchemaCache::has('user_ebook_library')) {
             try {
                 $myEbooks = \App\Models\UserEbookLibrary::where('user_id', $user->id)
                     ->with(['ebook.author', 'ebook.category'])
@@ -140,14 +148,18 @@ class UserController extends Controller
             }
         }
 
-        // 8. Recommended Books for Account Hub Carousel
+        // 8. Recommended Books for Account Hub Carousel (Cached pool instead of slow ORDER BY RAND)
         $recommendedBooks = collect();
         if (class_exists(\Modules\Book\Models\Book::class)) {
             try {
-                $recommendedBooks = \Modules\Book\Models\Book::where('is_active', true)
-                    ->inRandomOrder()
-                    ->take(8)
-                    ->get();
+                $pool = \Illuminate\Support\Facades\Cache::remember('account_recommended_books_pool', 300, function () {
+                    return \Modules\Book\Models\Book::where('is_active', true)
+                        ->orderByDesc('sales_count')
+                        ->latest('id')
+                        ->take(24)
+                        ->get();
+                });
+                $recommendedBooks = $pool->count() > 8 ? $pool->random(8) : $pool;
             } catch (\Throwable $e) {
                 $recommendedBooks = collect();
             }
@@ -155,9 +167,6 @@ class UserController extends Controller
 
         // 9. Continue Reading (Most recently read/accessed eBook)
         $recentReading = $myEbooks->first();
-
-        // 10. Recent Orders (Top 3 for dashboard dual widget)
-        $recentOrders = Order::where('user_id', $user->id)->with('book')->latest('id')->take(3)->get();
 
         // 11. Author Published Books Count
         $publishedBooksCount = 0;
@@ -196,7 +205,12 @@ class UserController extends Controller
         $monthlyRoyalty = 0.0;
         if (class_exists(\App\Models\AuthorRoyalty::class)) {
             try {
-                $monthlyRoyalty += (float) \App\Models\AuthorRoyalty::where('user_id', $user->id)
+                $monthlyRoyalty += (float) \App\Models\AuthorRoyalty::where(function ($q) use ($user, $author) {
+                        $q->where('user_id', $user->id);
+                        if ($author) {
+                            $q->orWhere('author_id', $author->id);
+                        }
+                    })
                     ->whereMonth('created_at', now()->month)
                     ->whereYear('created_at', now()->year)
                     ->sum('royalty_amount');
@@ -204,7 +218,12 @@ class UserController extends Controller
         }
         if (class_exists(\App\Models\AuthorHonorarium::class)) {
             try {
-                $monthlyRoyalty += (float) \App\Models\AuthorHonorarium::where('author_user_id', $user->id)
+                $monthlyRoyalty += (float) \App\Models\AuthorHonorarium::where(function ($q) use ($user, $author) {
+                        $q->where('author_user_id', $user->id);
+                        if ($author) {
+                            $q->orWhere('author_id', $author->id);
+                        }
+                    })
                     ->where('payment_status', 'completed')
                     ->whereMonth('created_at', now()->month)
                     ->whereYear('created_at', now()->year)
@@ -216,15 +235,26 @@ class UserController extends Controller
         $myLibraryRegistrations = collect();
         if (class_exists(\App\Models\EventRegistration::class)) {
             try {
+                $libCampaignIds = \App\Models\EventCampaign::select(['id', 'slug', 'kind'])
+                    ->get()
+                    ->filter(fn ($c) => $c->isLibrary())
+                    ->pluck('id')
+                    ->all();
+
                 $myLibraryRegistrations = \App\Models\EventRegistration::with('campaign')
                     ->where(function ($q) use ($user) {
                         $q->where('user_id', $user->id)
                           ->orWhere('phone', $user->phone);
                     })
-                    ->where(function ($q) {
-                        $q->whereIn('event_campaign_id', \App\Models\EventCampaign::all()->filter(fn ($c) => $c->isLibrary())->pluck('id'))
-                        ->orWhereNotNull('form_data->library_name')
-                        ->orWhereNotNull('form_data->reader_count');
+                    ->where(function ($q) use ($libCampaignIds) {
+                        if (!empty($libCampaignIds)) {
+                            $q->whereIn('event_campaign_id', $libCampaignIds)
+                              ->orWhereNotNull('form_data->library_name')
+                              ->orWhereNotNull('form_data->reader_count');
+                        } else {
+                            $q->whereNotNull('form_data->library_name')
+                              ->orWhereNotNull('form_data->reader_count');
+                        }
                     })
                     ->latest('id')
                     ->get();
@@ -522,9 +552,9 @@ class UserController extends Controller
             }
         }
 
-        // 1. Handle Avatar Upload
+        // 1. Handle Avatar Upload (Optimized via ImageOptimizerService)
         if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {
-            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $avatarPath = \App\Services\ImageOptimizerService::convertAndStore($request->file('avatar'), 'avatars', 'public', 85, 600, 600);
             $user->avatar = $avatarPath;
             $regData['avatar'] = $avatarPath;
         }
@@ -553,6 +583,9 @@ class UserController extends Controller
         if (!empty($validated['thana'])) $regData['thana'] = $validated['thana'];
 
         $regData['kyc_submitted_at'] = now()->toIso8601String();
+        if ($role === 'author' || $user->reg_type === 'author') {
+            $regData['profile_update_status'] = 'pending';
+        }
 
         // Update User Model
         if (!empty($validated['name_bn'])) {
@@ -566,6 +599,10 @@ class UserController extends Controller
             $user->reg_status = 'pending';
         }
         $user->save();
+
+        \Illuminate\Support\Facades\Cache::forget('admin_dash_pending_alerts');
+        \Illuminate\Support\Facades\Cache::forget('admin_dash_pending_records_10');
+        \Illuminate\Support\Facades\Cache::forget('admin_sidebar_pending_badges');
 
         // 4. Sync with Module Models (Author / Publisher)
         if (($role === 'author' || $user->reg_type === 'author') && class_exists(\Modules\Author\Models\Author::class)) {

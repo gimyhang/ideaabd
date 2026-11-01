@@ -89,7 +89,7 @@ class AuthorHonorariumController extends Controller
         $paymentMethod = $validated['payment_method'] ?? 'bkash';
 
         $trxId = strtoupper(trim($validated['trx_id']));
-        $paymentStatus = 'completed'; // Direct appreciation honorarium is recorded as completed
+        $paymentStatus = 'pending'; // Manual TrxID requires admin verification before crediting wallet
 
         try {
             $honorarium = DB::transaction(function () use (
@@ -109,8 +109,8 @@ class AuthorHonorariumController extends Controller
                 $paymentStatus,
                 $isAnonymous
             ) {
-                // 1. Create Honorarium record
-                $record = AuthorHonorarium::create([
+                // 1. Create Honorarium record (wallet & accounting ledger are credited upon admin verification)
+                return AuthorHonorarium::create([
                     'author_id'             => $author?->id,
                     'author_user_id'        => $authorUserId ?: $author?->user_id,
                     'blog_post_id'          => $post->id,
@@ -129,33 +129,9 @@ class AuthorHonorariumController extends Controller
                     'payment_status'        => $paymentStatus,
                     'is_anonymous'          => $isAnonymous,
                 ]);
-
-                // 2. Credit Author's Wallet if author amount > 0
-                if ($author && $authorAmount > 0) {
-                    $author->increment('wallet_balance', $authorAmount);
-                }
-
-                // 3. Optional Accounting Entry
-                if (class_exists('\App\Models\IdeaAccountingEntry')) {
-                    \App\Models\IdeaAccountingEntry::create([
-                        'entry_no'       => 'INC-' . date('Ymd') . '-' . rand(1000, 9999),
-                        'type'           => 'income',
-                        'category'       => 'author_honorarium_reader_tip',
-                        'title'          => "পাঠক সম্মানি: {$author?->name} (পোস্ট: {$post->title})",
-                        'amount'         => $amount,
-                        'entry_date'     => now()->toDateString(),
-                        'voucher_no'     => $trxId,
-                        'payment_method' => $paymentMethod,
-                        'party_name'     => $donorName,
-                        'notes'          => "সম্মানি মোট: ৳{$amount} (লেখক ৭০%: ৳{$authorAmount}, সাইট মেইনটেনেন্স ৩০%: ৳{$platformFee}) | TrxID: {$trxId}",
-                        'created_by'     => auth()->id() ?? 1,
-                    ]);
-                }
-
-                return $record;
             });
 
-            Log::channel('audit')->info('Author Honorarium Recorded', [
+            Log::channel('audit')->info('Author Honorarium Recorded (Pending Verification)', [
                 'honorarium_id' => $honorarium->id,
                 'author_id'     => $author?->id,
                 'post_id'       => $post->id,
@@ -165,7 +141,7 @@ class AuthorHonorariumController extends Controller
                 'trx_id'        => $trxId,
             ]);
 
-            $successMsg = 'আপনার ' . number_format($amount, 0) . ' ৳ সম্মানি ও ভালোবাসা সফলভাবে লেখকের কাছে পৌঁছেছে! লেখকের পক্ষ থেকে আপনাকে আন্তরিক শুভেচ্ছা ও ধন্যবাদ।';
+            $successMsg = 'আপনার ' . number_format($amount, 0) . ' ৳ সম্মানি ও ভালোবাসার তথ্য সফলভাবে জমা হয়েছে! ট্রানজেকশন আইডি যাচাই শেষে লেখকের অ্যাকাউন্টে যুক্ত হবে। আপনাকে আন্তরিক ধন্যবাদ।';
 
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
