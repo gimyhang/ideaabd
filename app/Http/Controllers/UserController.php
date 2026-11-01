@@ -278,6 +278,8 @@ class UserController extends Controller
             'authorPosts',
             'blogCategories',
             'editPost',
+            'recentOrders',
+            'lastOrder',
             'defaultAddress',
             'myEbooks',
             'recentReading',
@@ -488,9 +490,39 @@ class UserController extends Controller
         $user = auth()->user();
         $order = Order::where('user_id', $user->id)->with('book')->findOrFail($id);
 
+        $bookCover = null;
+        if ($order->book && $order->book->cover_image) {
+            $bookCover = str_starts_with($order->book->cover_image, 'http')
+                ? $order->book->cover_image
+                : asset('storage/' . ltrim($order->book->cover_image, '/'));
+        }
+
         return response()->json([
             'success' => true,
-            'order'   => $order,
+            'order'   => [
+                'id'                   => $order->id,
+                'order_number'         => $order->order_number ?: ('#' . $order->id),
+                'created_at'           => $order->created_at ? $order->created_at->format('d M, Y h:i A') : '',
+                'status'               => $order->status,
+                'status_label'         => $order->status_label ?? ucfirst($order->status),
+                'payment_method'       => $order->payment_method_label ?? ucfirst($order->payment_method ?? 'Cash on Delivery'),
+                'payment_status'       => $order->payment_status_label ?? ucfirst($order->payment_status ?? 'Pending'),
+                'customer_name'        => $order->customer_name ?: $user->name,
+                'customer_phone'       => $order->customer_phone ?: $user->phone,
+                'full_address'         => $order->full_address ?: ($order->customer_address ?: '—'),
+                'book_title'           => $order->book?->title ?: ('বই অর্ডার #' . ($order->order_number ?? $order->id)),
+                'book_author'          => $order->book?->author_name ?: 'আইডিয়া প্রকাশন',
+                'book_cover'           => $bookCover,
+                'quantity'             => (int) ($order->quantity ?: 1),
+                'price'                => (float) ($order->book?->price ?: 0),
+                'subtotal'             => (float) ($order->subtotal ?: ($order->total_amount - ($order->delivery_charge ?? 0))),
+                'delivery_charge'      => (float) ($order->delivery_charge ?: 0),
+                'total_amount'         => (float) ($order->total_amount ?: 0),
+                'tracking_code'        => $order->tracking_code,
+                'courier_name'         => $order->courier_name,
+                'notes'                => $order->notes,
+                'track_url'            => route('order.track', ['order_number' => $order->order_number ?: $order->id]),
+            ],
         ]);
     }
 

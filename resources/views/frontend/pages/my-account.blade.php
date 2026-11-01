@@ -252,6 +252,79 @@
                 </div>
             </div>
 
+            {{-- 1. ACTIVE / RECENT ORDER WIDGET --}}
+            @if(isset($lastOrder) && $lastOrder)
+                <div class="card p-3 p-md-4 mb-4 border bg-white rounded-3 shadow-2xs">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary bg-opacity-10 text-primary px-2.5 py-1 rounded-pill fw-semibold" style="font-size: 11px;">সর্বশেষ অর্ডার</span>
+                            <span class="text-dark fw-bold" style="font-size: 14px;">#{{ $lastOrder->order_number ?: $lastOrder->id }}</span>
+                            <span class="text-muted small">• {{ $lastOrder->created_at->format('d M, Y') }}</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge {{ $lastOrder->status === 'delivered' ? 'bg-success' : ($lastOrder->status === 'cancelled' ? 'bg-danger' : 'bg-warning text-dark') }} px-2.5 py-1 rounded-pill" style="font-size: 11px;">
+                                {{ ucfirst($lastOrder->status) }}
+                            </span>
+                            <button type="button" class="amz-btn-silver py-1 px-2.5" style="font-size: 12px;" onclick="viewOrderModal({{ $lastOrder->id }})">বিবরণ</button>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="width: 52px; height: 70px; background: #f1f5f9; border-radius: 6px; overflow: hidden; flex-shrink: 0;" class="border">
+                                @if($lastOrder->book && $lastOrder->book->cover_image)
+                                    <img src="{{ str_starts_with($lastOrder->book->cover_image, 'http') ? $lastOrder->book->cover_image : asset('storage/' . ltrim($lastOrder->book->cover_image, '/')) }}" alt="{{ $lastOrder->book->title }}" class="w-100 h-100 object-fit-cover">
+                                @else
+                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted"><i class="fa-solid fa-book"></i></div>
+                                @endif
+                            </div>
+                            <div>
+                                <h6 class="fw-semibold text-dark mb-1" style="font-size: 14px;">{{ $lastOrder->book ? $lastOrder->book->title : 'বই অর্ডার' }}</h6>
+                                <span class="text-secondary small d-block">পরিমাণ: {{ $lastOrder->quantity ?? 1 }} কপি • মোট: ৳{{ number_format($lastOrder->total_amount ?? 0) }}</span>
+                                <span class="text-muted small">{{ $lastOrder->customer_address ?: $user->address }}</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                            <a href="{{ route('order.track', ['order_number' => $lastOrder->order_number ?: $lastOrder->id]) }}" class="amz-btn-gold">
+                                পার্সেল ট্র্যাক করুন
+                            </a>
+                            <button type="button" class="amz-btn-silver" onclick="openSectionPanel('orders')">
+                                সকল অর্ডার
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            {{-- 2. CONTINUE READING / E-BOOK QUICK ACCESS --}}
+            @if($recentReading && $recentReading->ebook)
+                <div class="card p-3 p-md-4 mb-4 border rounded-3 bg-white shadow-2xs" style="background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%) !important;">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="width: 52px; height: 70px; background: #e2e8f0; border-radius: 6px; overflow: hidden; flex-shrink: 0;" class="border">
+                                @if($recentReading->ebook->cover_image)
+                                    <img src="{{ str_starts_with($recentReading->ebook->cover_image, 'http') ? $recentReading->ebook->cover_image : asset('storage/' . ltrim($recentReading->ebook->cover_image, '/')) }}" alt="{{ $recentReading->ebook->title }}" class="w-100 h-100 object-fit-cover">
+                                @else
+                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted"><i class="fa-solid fa-book-open"></i></div>
+                                @endif
+                            </div>
+                            <div>
+                                <span class="badge bg-success bg-opacity-10 text-success px-2 py-0.5 rounded-pill small mb-1 fw-semibold">সর্বশেষ ডিজিটাল বই</span>
+                                <h6 class="fw-semibold text-dark mb-0.5" style="font-size: 14.5px;">{{ $recentReading->ebook->title }}</h6>
+                                <small class="text-muted">{{ $recentReading->ebook->author_name ?? $recentReading->ebook->author?->name ?? 'আইডিয়া প্রকাশন' }}</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                            <a href="{{ route('ebook.read', $recentReading->ebook->slug ?? $recentReading->ebook->id) }}" class="amz-btn-gold">
+                                অনলাইনে পড়ুন
+                            </a>
+                            <button type="button" class="amz-btn-silver" onclick="openSectionPanel('digitalServices')">
+                                সকল ই-বুক
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             {{-- ───────────────────────────────────────────────────────────────── --}}
             {{-- CLEAN & FUNCTIONAL FEATURE CARDS GRID (9 CLEAN CARDS)             --}}
             {{-- ───────────────────────────────────────────────────────────────── --}}
@@ -358,6 +431,46 @@
 
             </div>
 
+            {{-- 3. RECOMMENDED BOOKS FOR YOU --}}
+            @if(isset($recommendedBooks) && $recommendedBooks->isNotEmpty())
+                <div class="mt-4 pt-3 border-top">
+                    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                        <div>
+                            <h4 class="fw-semibold text-dark mb-0" style="font-size: 16px;">আপনার জন্য সেরা বই সম্ভার</h4>
+                            <small class="text-muted">জনপ্রিয় ও নির্বাচিত প্রকাশনাসমূহ</small>
+                        </div>
+                        <a href="{{ route('book.index') }}" class="amz-btn-silver" style="font-size: 12px;">সব বই দেখুন →</a>
+                    </div>
+                    <div class="row g-3">
+                        @foreach($recommendedBooks->take(4) as $recBook)
+                            @php
+                                $recCover = $recBook->cover_image;
+                                $recCoverUrl = $recCover ? (str_starts_with($recCover, 'http') ? $recCover : asset('storage/' . ltrim($recCover, '/'))) : null;
+                            @endphp
+                            <div class="col-6 col-md-3">
+                                <div class="card h-100 p-2.5 border rounded-3 bg-white hover-shadow transition-all d-flex flex-column shadow-2xs">
+                                    <a href="{{ route('book.show', $recBook->slug) }}" class="d-block text-decoration-none text-center mb-2" style="height: 160px; background: #f8fafc; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                                        @if($recCoverUrl)
+                                            <img src="{{ $recCoverUrl }}" alt="{{ $recBook->title }}" class="w-100 h-100 object-fit-contain p-1">
+                                        @else
+                                            <span class="text-muted" style="font-size: 2rem;">📘</span>
+                                        @endif
+                                    </a>
+                                    <h6 class="fw-semibold text-dark mb-1 text-truncate" style="font-size: 13.5px;" title="{{ $recBook->title }}">
+                                        <a href="{{ route('book.show', $recBook->slug) }}" class="text-dark text-decoration-none">{{ $recBook->title }}</a>
+                                    </h6>
+                                    <small class="text-muted text-truncate d-block mb-2" style="font-size: 11.5px;">{{ $recBook->author_name ?? 'আইডিয়া প্রকাশন' }}</small>
+                                    <div class="mt-auto d-flex align-items-center justify-content-between pt-1 border-top">
+                                        <span class="text-dark fw-bold" style="font-size: 13px;">৳{{ number_format($recBook->discount_price ?: $recBook->price) }}</span>
+                                        <a href="{{ route('book.show', $recBook->slug) }}" class="amz-btn-gold py-1 px-2.5" style="font-size: 11.5px;">অর্ডার করুন</a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
         </div> {{-- END mainAccountHubView --}}
 
         {{-- ═════════════════════════════════════════════════════════════════════ --}}
@@ -390,7 +503,7 @@
                                 </div>
                                 <div>
                                     <span>প্রাপক</span>
-                                    <strong>{{ $order->customer_name ?: $user->name }}</strong>
+                                    <strong>{{ $order->customer_name ?? $user->name }}</strong>
                                 </div>
                                 <div class="text-end">
                                     <span>অর্ডার নম্বর: {{ $order->order_number ?? $order->id }}</span>
@@ -414,8 +527,11 @@
                                         <p class="text-secondary small mb-0">{{ $order->customer_address ?? $user->address }}</p>
                                     </div>
                                 </div>
-                                <div class="d-flex flex-column gap-2 text-end">
-                                    <a href="{{ route('order.track', ['order_number' => $order->order_number]) }}" class="amz-btn-gold">
+                                <div class="d-flex flex-column gap-2 text-end flex-shrink-0">
+                                    <button type="button" class="amz-btn-gold" onclick="viewOrderModal({{ $order->id }})">
+                                        অর্ডারের বিবরণ
+                                    </button>
+                                    <a href="{{ route('order.track', ['order_number' => $order->order_number ?: $order->id]) }}" class="amz-btn-silver">
                                         ট্র্যাক পার্সেল
                                     </a>
                                     @if($order->book)
@@ -972,7 +1088,7 @@
         </div>
 
         <!-- PANEL 8: Library Grant -->
-        <div id="panel-libraryGrant" class="amz-section-panel d-none">
+        <div class="amz-subpage-panel {{ $activeTab === 'libraryGrant' ? 'active' : '' }}" id="panel_libraryGrant" style="{{ $activeTab === 'libraryGrant' ? 'display: block !important;' : 'display: none !important;' }}">
             <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-arrow-left me-1"></i> অ্যাকাউন্ট ড্যাশবোর্ড</span>
             <div class="border-bottom pb-2 mb-3">
                 <h2 class="amz-main-title">পাঠাগার ও বাৎসরিক বই অনুদান</h2>
@@ -1087,19 +1203,27 @@
         <div class="amz-subpage-panel {{ $activeTab === 'customerService' ? 'active' : '' }}" id="panel_customerService" style="{{ $activeTab === 'customerService' ? 'display: block !important;' : 'display: none !important;' }}">
             <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-arrow-left me-1"></i> অ্যাকাউন্ট ড্যাশবোর্ড</span>
             <h2 class="amz-main-title mb-3 border-bottom pb-2">গ্রাহক সেবা ও সহায়তা</h2>
+            @php
+                $helplinePhone = \App\Support\SiteSetting::helplinePhone();
+                $whatsappNum = \App\Support\SiteSetting::whatsappNumber();
+                $cleanWhatsapp = preg_replace('/[^0-9]/', '', $whatsappNum);
+                if (!str_starts_with($cleanWhatsapp, '88') && strlen($cleanWhatsapp) === 11) {
+                    $cleanWhatsapp = '88' . $cleanWhatsapp;
+                }
+            @endphp
             <div class="row g-3">
                 <div class="col-md-4">
                     <div class="card p-4 border rounded-3 text-center bg-white h-100">
                         <h6 class="fw-semibold mb-1 text-dark">সরাসরি ফোন কল</h6>
                         <small class="text-muted d-block mb-3">কাস্টমার কেয়ার প্রতিনিধির সাথে কথা বলুন</small>
-                        <a href="tel:+8801558712810" class="amz-btn-silver mt-auto">+8801558712810</a>
+                        <a href="tel:{{ $helplinePhone }}" class="amz-btn-silver mt-auto">{{ $helplinePhone }}</a>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card p-4 border rounded-3 text-center bg-white h-100">
                         <h6 class="fw-semibold mb-1 text-dark">হোয়াটসঅ্যাপ সাপোর্ট</h6>
                         <small class="text-muted d-block mb-3">দ্রুত মেসেজে সাহায্য পেতে মেসেজ দিন</small>
-                        <a href="https://api.whatsapp.com/send?phone=8801558712810" target="_blank" class="amz-btn-gold mt-auto">WhatsApp মেসেজ</a>
+                        <a href="https://wa.me/{{ $cleanWhatsapp }}" target="_blank" class="amz-btn-gold mt-auto">WhatsApp মেসেজ</a>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -1107,6 +1231,21 @@
                         <h6 class="fw-semibold mb-1 text-dark">ইমেইল ও মেসেজ হেল্পডেস্ক</h6>
                         <small class="text-muted d-block mb-3">অনলাইন ফর্মের মাধ্যমে বিস্তারিত অনুরোধ পাঠান</small>
                         <a href="{{ route('contact') }}" class="amz-btn-silver mt-auto">যোগাযোগ ফর্ম</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Order Detail Live Modal --}}
+        <div class="modal fade" id="amzOrderDetailModal" tabindex="-1" aria-labelledby="amzOrderDetailModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content rounded-4 border-0 shadow-lg">
+                    <div class="modal-header border-bottom py-3 px-4 bg-light">
+                        <h5 class="modal-title fw-bold text-dark" id="amzOrderDetailModalLabel">অর্ডার বিবরণী ও ট্র্যাকিং</h5>
+                        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4" id="amzOrderDetailModalBody">
+                        {{-- Populated dynamically via viewOrderModal() --}}
                     </div>
                 </div>
             </div>

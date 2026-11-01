@@ -590,6 +590,101 @@ class SiteSetting
         }, $items);
     }
 
+    public static function footerFeatures(): array
+    {
+        $saved = self::get('footer_features');
+        if (is_array($saved) && !empty($saved)) {
+            return $saved;
+        }
+
+        $phone = self::helplinePhone();
+        $cleanPhone = preg_replace('/[^0-9]/', '', self::whatsappNumber());
+        if (!str_starts_with($cleanPhone, '88') && strlen($cleanPhone) === 11) {
+            $cleanPhone = '88' . $cleanPhone;
+        }
+
+        return [
+            [
+                'id'          => '1',
+                'title'       => 'সারাদেশে হোম ডেলিভারি',
+                'subtitle'    => 'দ্রুত ও নির্ভরযোগ্য শিপিং',
+                'icon'        => 'fa-solid fa-truck-fast',
+                'color'       => '#38bdf8',
+                'bg_tint'     => 'rgba(56, 189, 248, 0.12)',
+                'border_tint' => 'rgba(56, 189, 248, 0.22)',
+                'url'         => \Illuminate\Support\Facades\Route::has('book.index') ? route('book.index') : '/books',
+            ],
+            [
+                'id'          => '2',
+                'title'       => '১০০% নিরাপদ পেমেন্ট',
+                'subtitle'    => 'নিরাপদ এনক্রিপ্টেড গেটওয়ে',
+                'icon'        => 'fa-solid fa-shield-halved',
+                'color'       => '#34d399',
+                'bg_tint'     => 'rgba(52, 211, 153, 0.12)',
+                'border_tint' => 'rgba(52, 211, 153, 0.22)',
+                'url'         => \Illuminate\Support\Facades\Route::has('faq') ? route('faq') : '/faq',
+            ],
+            [
+                'id'          => '3',
+                'title'       => 'অরিজিনাল প্রকাশনা',
+                'subtitle'    => 'প্রকৃত বই ও মুক্তচিন্তা',
+                'icon'        => 'fa-solid fa-book-bookmark',
+                'color'       => '#fbbf24',
+                'bg_tint'     => 'rgba(251, 191, 36, 0.12)',
+                'border_tint' => 'rgba(251, 191, 36, 0.22)',
+                'url'         => \Illuminate\Support\Facades\Route::has('about') ? route('about') : '/about',
+            ],
+            [
+                'id'          => '4',
+                'title'       => 'তাৎক্ষণিক সহায়তা',
+                'subtitle'    => $phone ?: '০১৭২৬৯৭৬৯৮২',
+                'icon'        => 'fa-brands fa-whatsapp',
+                'color'       => '#34d399',
+                'bg_tint'     => 'rgba(52, 211, 153, 0.12)',
+                'border_tint' => 'rgba(52, 211, 153, 0.22)',
+                'url'         => 'https://wa.me/' . ($cleanPhone ?: '8801726976982'),
+            ],
+        ];
+    }
+
+    public static function socialLinks(): array
+    {
+        $saved = self::get('social_links');
+        if (is_array($saved) && !empty($saved)) {
+            return $saved;
+        }
+
+        $cleanPhone = preg_replace('/[^0-9]/', '', self::whatsappNumber());
+        if (!str_starts_with($cleanPhone, '88') && strlen($cleanPhone) === 11) {
+            $cleanPhone = '88' . $cleanPhone;
+        }
+
+        return [
+            ['platform' => 'facebook',  'title' => 'ফেসবুক',     'url' => (string) (self::get('facebook_url') ?: 'https://www.facebook.com/ideaprokashon'), 'icon' => 'fa-brands fa-facebook-f', 'color' => '#1877f2'],
+            ['platform' => 'whatsapp',  'title' => 'হোয়াটসঅ্যাপ', 'url' => 'https://wa.me/' . ($cleanPhone ?: '8801726976982'),                                 'icon' => 'fa-brands fa-whatsapp',   'color' => '#25d366'],
+            ['platform' => 'youtube',   'title' => 'ইউটিউব',      'url' => (string) (self::get('youtube_url') ?: 'https://youtube.com/@ideaprokashon'),       'icon' => 'fa-brands fa-youtube',    'color' => '#ff0000'],
+            ['platform' => 'instagram', 'title' => 'ইনস্টাগ্রাম',  'url' => (string) (self::get('instagram_url') ?: 'https://instagram.com/ideaprokashon'),     'icon' => 'fa-brands fa-instagram',  'color' => '#e4405f'],
+        ];
+    }
+
+    public static function footerPaymentMethods(): array
+    {
+        $saved = self::get('footer_payment_methods');
+        if (is_array($saved) && !empty($saved)) {
+            return $saved;
+        }
+
+        return [
+            ['id' => 'bkash',      'name' => 'বিকাশ',            'type' => 'mfs',  'dot_color' => '#e2136e', 'badge_class' => 'bkash'],
+            ['id' => 'nagad',      'name' => 'নগদ',             'type' => 'mfs',  'dot_color' => '#f7941d', 'badge_class' => 'nagad'],
+            ['id' => 'rocket',     'name' => 'রকেট',            'type' => 'mfs',  'dot_color' => '#8c3494', 'badge_class' => 'rocket'],
+            ['id' => 'upay',       'name' => 'উপায়',            'type' => 'mfs',  'dot_color' => '#ffdd00', 'badge_class' => 'upay'],
+            ['id' => 'visa',       'name' => 'ভিসা কার্ড',        'type' => 'card', 'icon' => 'fa-brands fa-cc-visa', 'icon_color' => '#1a1f71', 'badge_class' => 'card-pill visa'],
+            ['id' => 'mastercard', 'name' => 'মাস্টারকার্ড',     'type' => 'card', 'icon' => 'fa-brands fa-cc-mastercard', 'icon_color' => '#eb001b', 'badge_class' => 'card-pill mastercard'],
+            ['id' => 'cod',        'name' => 'ক্যাশ অন ডেলিভারি', 'type' => 'cod',  'icon' => 'fa-solid fa-hand-holding-dollar', 'icon_color' => '#10b981', 'badge_class' => 'cod'],
+        ];
+    }
+
     // --- Terms & Legal Policies Customization Helpers ---
     public static function termsBadge(): string
     {

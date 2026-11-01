@@ -8,46 +8,37 @@
 @endphp
 
 <footer class="site-footer text-white position-relative" style="background: linear-gradient(180deg, #0a192f 0%, #030b17 100%); border-top: 3px solid #0284c7;">
-    {{-- Trust Features Bar (Sharp Icons, Crisp Geometry, Clean Padding) --}}
-    <div class="py-3 border-bottom" style="border-color: rgba(255,255,255,0.08) !important; background: rgba(255,255,255,0.02);">
+    {{-- Trust Features Bar (Dynamic Features, Sharp Geometry, Clean Padding) --}}
+    @php
+        $footerFeatures = \App\Support\SiteSetting::footerFeatures();
+    @endphp
+    <div class="py-3.5 border-bottom footer-features-strip" style="border-color: rgba(255,255,255,0.08) !important; background: rgba(255,255,255,0.02);">
         <div class="container">
             <div class="row g-3 text-center text-md-start">
-                <div class="col-6 col-md-3 d-flex align-items-center justify-content-center justify-content-md-start gap-2.5">
-                    <div class="footer-trust-icon">
-                        <i class="fa-solid fa-truck-fast text-sky"></i>
+                @foreach($footerFeatures as $feat)
+                    @php
+                        $featUrl = $feat['url'] ?? null;
+                    @endphp
+                    <div class="col-6 col-lg-3">
+                        @if($featUrl)
+                            <a href="{{ $featUrl }}" class="footer-feature-item text-decoration-none d-flex align-items-center justify-content-center justify-content-md-start gap-2.5 p-2 rounded-3 hover-feature transition-all">
+                        @else
+                            <div class="footer-feature-item d-flex align-items-center justify-content-center justify-content-md-start gap-2.5 p-2 rounded-3">
+                        @endif
+                            <div class="footer-trust-icon" style="background: {{ $feat['bg_tint'] ?? 'rgba(255,255,255,0.05)' }}; border-color: {{ $feat['border_tint'] ?? 'rgba(255,255,255,0.1)' }}; color: {{ $feat['color'] ?? '#38bdf8' }};">
+                                <i class="{{ $feat['icon'] }}"></i>
+                            </div>
+                            <div class="text-start min-w-0">
+                                <div class="fw-bold text-white small text-truncate">{{ $feat['title'] }}</div>
+                                <div class="text-white-50 text-truncate" style="font-size: 11.5px;">{{ $feat['subtitle'] }}</div>
+                            </div>
+                        @if($featUrl)
+                            </a>
+                        @else
+                            </div>
+                        @endif
                     </div>
-                    <div>
-                        <div class="fw-bold text-white small">সারাদেশে হোম ডেলিভারি</div>
-                        <div class="text-white-50" style="font-size: 11.5px;">দ্রুত ও নির্ভরযোগ্য শিপিং</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3 d-flex align-items-center justify-content-center justify-content-md-start gap-2.5">
-                    <div class="footer-trust-icon">
-                        <i class="fa-solid fa-shield-halved text-emerald"></i>
-                    </div>
-                    <div>
-                        <div class="fw-bold text-white small">১০০% নিরাপদ পেমেন্ট</div>
-                        <div class="text-white-50" style="font-size: 11.5px;">নিরাপদ এনক্রিপ্টেড গেটওয়ে</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3 d-flex align-items-center justify-content-center justify-content-md-start gap-2.5">
-                    <div class="footer-trust-icon">
-                        <i class="fa-solid fa-book-bookmark text-amber"></i>
-                    </div>
-                    <div>
-                        <div class="fw-bold text-white small">অরিজিনাল প্রকাশনা</div>
-                        <div class="text-white-50" style="font-size: 11.5px;">প্রকৃত বই ও মুক্তচিন্তা</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3 d-flex align-items-center justify-content-center justify-content-md-start gap-2.5">
-                    <div class="footer-trust-icon">
-                        <i class="fa-brands fa-whatsapp text-emerald"></i>
-                    </div>
-                    <div>
-                        <div class="fw-bold text-white small">তাৎক্ষণিক সহায়তা</div>
-                        <div class="text-white-50" style="font-size: 11.5px;">০১৫৫৮-৭১২৮১০</div>
-                    </div>
-                </div>
+                @endforeach
             </div>
         </div>
     </div>
@@ -71,19 +62,12 @@
                 <p class="text-slate-300 small mb-3" style="color: #cbd5e1; line-height: 1.8; font-size: 13.5px;">
                     {{ $footerTagline ?: 'বাংলাদেশের বিশ্বস্ত অনলাইন বই, ই-বুক ও সৃজনশীল প্রকাশনা প্ল্যাটফর্ম। লেখক, প্রকাশক ও পাঠকদের মুক্ত চিন্তার মিলনমেলা।' }}
                 </p>
-                <div class="d-flex align-items-center gap-2 pt-1">
-                    <a href="https://facebook.com" target="_blank" rel="noopener" class="footer-social-btn" title="ফেসবুক">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                    <a href="https://wa.me/{{ $cleanPhone ?: '8801558712810' }}" target="_blank" rel="noopener" class="footer-social-btn whatsapp" title="হোয়াটসঅ্যাপ">
-                        <i class="fab fa-whatsapp"></i>
-                    </a>
-                    <a href="https://youtube.com" target="_blank" rel="noopener" class="footer-social-btn youtube" title="ইউটিউব">
-                        <i class="fab fa-youtube"></i>
-                    </a>
-                    <a href="https://instagram.com" target="_blank" rel="noopener" class="footer-social-btn instagram" title="ইনস্টাগ্রাম">
-                        <i class="fab fa-instagram"></i>
-                    </a>
+                <div class="d-flex align-items-center gap-2 pt-1 flex-wrap">
+                    @foreach(\App\Support\SiteSetting::socialLinks() as $social)
+                        <a href="{{ $social['url'] }}" target="_blank" rel="noopener" class="footer-social-btn" title="{{ $social['title'] }}" style="--social-hover-color: {{ $social['color'] ?? '#0284c7' }};">
+                            <i class="{{ $social['icon'] }}"></i>
+                        </a>
+                    @endforeach
                 </div>
             </div>
 
@@ -157,7 +141,7 @@
                     </div>
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <span class="footer-contact-icon text-success"><i class="fa-brands fa-whatsapp"></i></span>
-                        <a href="https://wa.me/{{ $cleanPhone ?: '8801558712810' }}" target="_blank" class="text-white text-decoration-none fw-bold hover-success">+৮৮০ ১৫৫৮-৭১২৮১০ (হোয়াটসঅ্যাপ)</a>
+                        <a href="https://wa.me/{{ $cleanPhone }}" target="_blank" class="text-white text-decoration-none fw-bold hover-success">{{ $helplinePhone }} (হোয়াটসঅ্যাপ)</a>
                     </div>
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <span class="footer-contact-icon text-primary"><i class="fa-solid fa-envelope"></i></span>
@@ -182,7 +166,7 @@
 
         </div>
 
-        {{-- Payment Gateways Strip (Sharp Rectangular Badges, Pure Bengali) --}}
+        {{-- Payment Gateways Strip (Dynamic & Pure Bengali) --}}
         <div class="mt-4 pt-3 border-top" style="border-color: rgba(255,255,255,0.08) !important;">
             <div class="row align-items-center g-3">
                 <div class="col-lg-3 text-center text-lg-start">
@@ -192,41 +176,17 @@
                 </div>
                 <div class="col-lg-9">
                     <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-end gap-2">
-                        {{-- বিকাশ --}}
-                        <div class="payment-badge bkash shadow-xs" title="বিকাশ পেমেন্ট">
-                            <span class="dot"></span>
-                            <span class="badge-text">বিকাশ</span>
-                        </div>
-                        {{-- নগদ --}}
-                        <div class="payment-badge nagad shadow-xs" title="নগদ পেমেন্ট">
-                            <span class="dot"></span>
-                            <span class="badge-text">নগদ</span>
-                        </div>
-                        {{-- রকেট --}}
-                        <div class="payment-badge rocket shadow-xs" title="রকেট পেমেন্ট">
-                            <span class="dot"></span>
-                            <span class="badge-text">রকেট</span>
-                        </div>
-                        {{-- উপায় --}}
-                        <div class="payment-badge upay shadow-xs" title="উপায় পেমেন্ট">
-                            <span class="dot"></span>
-                            <span class="badge-text">উপায়</span>
-                        </div>
-                        {{-- ভিসা কার্ড --}}
-                        <div class="payment-badge card-pill visa shadow-xs" title="ভিসা কার্ড গ্রহণযোগ্য">
-                            <i class="fa-brands fa-cc-visa text-primary" style="font-size: 17px;"></i>
-                            <span class="badge-text text-dark fw-bold">ভিসা কার্ড</span>
-                        </div>
-                        {{-- মাস্টারকার্ড --}}
-                        <div class="payment-badge card-pill mastercard shadow-xs" title="মাস্টারকার্ড গ্রহণযোগ্য">
-                            <i class="fa-brands fa-cc-mastercard text-danger" style="font-size: 17px;"></i>
-                            <span class="badge-text text-dark fw-bold">মাস্টারকার্ড</span>
-                        </div>
-                        {{-- ক্যাশ অন ডেলিভারি --}}
-                        <div class="payment-badge cod shadow-xs" title="ক্যাশ অন ডেলিভারি সুবিধা">
-                            <i class="fa-solid fa-hand-holding-dollar text-emerald me-1"></i>
-                            <span class="badge-text">ক্যাশ অন ডেলিভারি</span>
-                        </div>
+                        @foreach(\App\Support\SiteSetting::footerPaymentMethods() as $pay)
+                            <div class="payment-badge {{ $pay['badge_class'] ?? '' }} shadow-xs" title="{{ $pay['name'] }}">
+                                @if(!empty($pay['dot_color']))
+                                    <span class="dot" style="background: {{ $pay['dot_color'] }};"></span>
+                                @endif
+                                @if(!empty($pay['icon']))
+                                    <i class="{{ $pay['icon'] }}" style="font-size: 15px; color: {{ $pay['icon_color'] ?? '#ffffff' }}; margin-right: 4px;"></i>
+                                @endif
+                                <span class="badge-text {{ ($pay['type'] ?? '') === 'card' ? 'text-dark fw-bold' : '' }}">{{ $pay['name'] }}</span>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -291,6 +251,17 @@
 .footer-trust-icon:hover {
     background: rgba(255, 255, 255, 0.09);
     border-color: rgba(255, 255, 255, 0.2);
+}
+
+.footer-feature-item {
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.footer-feature-item.hover-feature:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateY(-2px);
+}
+.footer-feature-item.hover-feature:hover .footer-trust-icon {
+    transform: scale(1.08);
 }
 
 .footer-brand-box {
@@ -366,29 +337,11 @@
 }
 
 .footer-social-btn:hover {
-    background: #0284c7;
-    border-color: #38bdf8;
-    color: #ffffff;
+    background: var(--social-hover-color, #0284c7) !important;
+    border-color: var(--social-hover-color, #38bdf8) !important;
+    color: #ffffff !important;
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.35);
-}
-
-.footer-social-btn.whatsapp:hover {
-    background: #25D366;
-    border-color: #4ade80;
-    box-shadow: 0 4px 10px rgba(37, 211, 102, 0.35);
-}
-
-.footer-social-btn.youtube:hover {
-    background: #FF0000;
-    border-color: #f87171;
-    box-shadow: 0 4px 10px rgba(255, 0, 0, 0.35);
-}
-
-.footer-social-btn.instagram:hover {
-    background: #E1306C;
-    border-color: #f472b6;
-    box-shadow: 0 4px 10px rgba(225, 48, 108, 0.35);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
 }
 
 /* Contact Icons */
