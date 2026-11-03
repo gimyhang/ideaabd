@@ -34,7 +34,12 @@
                             </header>
 
                             {{-- Product Type Buttons Tab Bar --}}
-                            <div class="pc-types mb-3" id="pcTypes" role="tablist"></div>
+                            <div class="d-flex align-items-center gap-2.5 mb-3 flex-wrap">
+                                <span class="pc-label text-dark fw-bold mb-0 text-nowrap d-flex align-items-center gap-1.5" style="font-size: 13.5px; letter-spacing: 0.04em;">
+                                    <i class="fa-solid fa-layer-group text-primary"></i> Product:
+                                </span>
+                                <div class="pc-types flex-grow-1" id="pcTypes" role="tablist"></div>
+                            </div>
 
                             {{-- Clean, Equal-Height 2-Row Specifications Grid --}}
                             <div class="pc-grid">
@@ -172,21 +177,21 @@
                                 <table class="table table-hover align-middle mb-0 pc-comp-table" id="pcMainTable">
                                     <colgroup>
                                         <col style="width: 38px;">
-                                        <col style="width: 105px;">
+                                        <col style="width: 125px;">
                                         <col style="width: auto;">
-                                        <col style="width: 135px;">
-                                        <col style="width: 135px;">
-                                        <col style="width: 135px;">
+                                        <col style="width: 140px;">
+                                        <col style="width: 140px;">
+                                        <col style="width: 140px;">
                                         <col style="width: 38px;">
                                     </colgroup>
                                     <thead class="text-muted bg-light">
                                         <tr>
                                             <th class="text-center" style="width: 38px;" title="Include">✓</th>
-                                            <th style="width: 105px;">Type</th>
+                                            <th style="width: 125px;">Type</th>
                                             <th>Item &amp; Specification</th>
-                                            <th style="width: 135px;" class="text-end">Qty</th>
-                                            <th style="width: 135px;" class="text-end">Rate</th>
-                                            <th style="width: 135px;" class="text-end">Total</th>
+                                            <th style="width: 140px;" class="text-end">Qty</th>
+                                            <th style="width: 140px;" class="text-end">Rate</th>
+                                            <th style="width: 140px;" class="text-end">Total</th>
                                             <th class="text-center" style="width: 38px;"></th>
                                         </tr>
                                     </thead>
