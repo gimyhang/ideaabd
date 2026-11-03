@@ -611,18 +611,35 @@
                 }
             }
 
-            function instantFilterRowsByGeo(selectedDiv, selectedDist) {
+            function applyClientFilters() {
+                const searchInput = document.getElementById('tableLiveSearch');
+                const rawQuery = searchInput ? (searchInput.value || '').trim().toLowerCase() : '';
+                const divElem = document.getElementById('filterDivisionSelect');
+                const selectedDiv = divElem ? (divElem.value || '').trim() : '';
+                const distElem = document.getElementById('filterDistrictSelect');
+                const selectedDist = distElem ? (distElem.value || '').trim() : '';
+
+                const clearBtn = document.getElementById('clearSearchBtn');
+                if (clearBtn) {
+                    clearBtn.style.display = rawQuery.length > 0 ? 'inline-block' : 'none';
+                }
+
                 const rows = document.querySelectorAll('#participantsTable tbody tr.participant-row');
                 let visibleCount = 0;
+
                 rows.forEach(function(r) {
-                    const rowDiv = r.getAttribute('data-division') || '';
-                    const rowDist = r.getAttribute('data-district') || '';
+                    const rowDiv = (r.getAttribute('data-division') || '').trim();
+                    const rowDist = (r.getAttribute('data-district') || '').trim();
+                    const searchText = (r.getAttribute('data-search-text') || r.innerText || '').toLowerCase();
 
                     let matches = true;
                     if (selectedDiv && rowDiv && rowDiv !== selectedDiv) {
                         matches = false;
                     }
                     if (selectedDist && rowDist && rowDist !== selectedDist) {
+                        matches = false;
+                    }
+                    if (rawQuery && !searchText.includes(rawQuery)) {
                         matches = false;
                     }
 
@@ -634,10 +651,25 @@
                     }
                 });
 
+                const countBadge = document.getElementById('liveMatchCount');
+                if (countBadge) {
+                    if (rawQuery) {
+                        countBadge.textContent = visibleCount;
+                        countBadge.style.display = 'inline-block';
+                        countBadge.title = visibleCount + 'টি মিল পাওয়া গেছে';
+                    } else {
+                        countBadge.style.display = 'none';
+                    }
+                }
+
                 const noResults = document.getElementById('noLiveResultsRow');
                 if (noResults) {
                     noResults.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
                 }
+            }
+
+            function instantFilterRowsByGeo(selectedDiv, selectedDist) {
+                applyClientFilters();
             }
 
             function onFilterDivisionChange(elem) {
@@ -646,7 +678,7 @@
                 syncDistrictSelectOptions(selectedDiv, '');
 
                 // 2. Immediately filter rows on table client-side so user sees zero latency
-                instantFilterRowsByGeo(selectedDiv, '');
+                applyClientFilters();
 
                 // 3. Submit form to synchronize server-side pagination & state
                 const form = document.getElementById('filterForm');
@@ -654,20 +686,52 @@
             }
 
             function onFilterDistrictChange(elem) {
-                const selectedDist = elem ? elem.value : '';
-                const divElem = document.getElementById('filterDivisionSelect');
-                const selectedDiv = divElem ? divElem.value : '';
-
                 // 1. Immediately filter rows
-                instantFilterRowsByGeo(selectedDiv, selectedDist);
+                applyClientFilters();
 
                 // 2. Submit form
                 const form = document.getElementById('filterForm');
                 if (form) form.submit();
             }
 
-            // Tab Persistence & Smooth Anti-Jump Stability
+            // Tab Persistence & Smooth Anti-Jump Stability & Dynamic Live Search
             document.addEventListener('DOMContentLoaded', function() {
+                // 1. Live Client Search Binding
+                let searchDebounceTimer = null;
+                const searchInput = document.getElementById('tableLiveSearch');
+                const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+                if (searchInput) {
+                    searchInput.addEventListener('input', function() {
+                        clearTimeout(searchDebounceTimer);
+                        searchDebounceTimer = setTimeout(applyClientFilters, 120);
+                    });
+                    // On Enter key, allow native form submit for full-database search
+                    searchInput.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            clearTimeout(searchDebounceTimer);
+                            const form = document.getElementById('filterForm');
+                            if (form) form.submit();
+                        }
+                    });
+                }
+
+                if (clearSearchBtn) {
+                    clearSearchBtn.addEventListener('click', function() {
+                        if (searchInput) {
+                            searchInput.value = '';
+                            searchInput.focus();
+                        }
+                        applyClientFilters();
+                    });
+                }
+
+                // Initial count check if query exists
+                if (searchInput && searchInput.value.trim().length > 0) {
+                    applyClientFilters();
+                }
+
+                // 2. Tab State Handling
                 const mainTabs = document.getElementById('campaignMainTabs');
                 if (!mainTabs) return;
 
@@ -711,10 +775,17 @@
                 <input type="hidden" name="tab" id="filterFormTabInput" value="{{ request('tab') }}">
             @endif
             <div class="col-12 col-md-4">
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-                    <input type="text" id="tableLiveSearch" name="search" class="form-control bg-light border-start-0 ps-0" placeholder="নাম, ফোন, রেজি নং, জেলা, থানা, পত্রিকা..." value="{{ request('search') }}">
-                    <span class="badge bg-primary-subtle text-primary align-self-center me-2" id="liveMatchCount" style="display: none;"></span>
+                <div class="input-group shadow-xs">
+                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass text-primary"></i></span>
+                    <input type="text" id="tableLiveSearch" name="search" class="form-control bg-white border-start-0 border-end-0 ps-0" placeholder="নাম, ফোন, রেজি নং, জেলা, থানা, পত্রিকা..." value="{{ request('search') }}" autocomplete="off">
+                    <button type="button" class="btn bg-white border-start-0 border-end-0 text-muted px-2" id="clearSearchBtn" style="display: {{ request('search') ? 'inline-block' : 'none' }};" title="ক্লিয়ার করুন">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <button type="submit" class="btn btn-primary px-3 fw-semibold d-inline-flex align-items-center gap-1.5" id="dynamicSearchBtn" title="সার্চ করুন">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span>খুঁজুন</span>
+                        <span class="badge bg-white text-primary rounded-pill px-1.5 py-0.5 font-monospace" id="liveMatchCount" style="display: none; font-size: 10.5px;"></span>
+                    </button>
                 </div>
             </div>
 
@@ -1210,11 +1281,11 @@
                                                 @csrf
                                                 <input type="hidden" name="status" value="{{ in_array($reg->status, ['confirmed', 'approved', 'selected']) ? 'pending' : 'confirmed' }}">
                                                 @if(in_array($reg->status, ['confirmed', 'approved', 'selected']))
-                                                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 text-nowrap shadow-xs" style="font-size: 11px;" title="Approved (ক্লিক করে পেন্ডিং করুন)">
+                                                    <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 text-nowrap shadow-xs quick-status-btn" style="font-size: 11px;" title="Approved (ক্লিক করে পেন্ডিং করুন)">
                                                         <i class="fa-solid fa-circle-check me-1"></i> Approved
                                                     </button>
                                                 @else
-                                                    <button type="submit" class="btn btn-sm btn-warning text-dark rounded-pill px-2.5 py-1 text-nowrap shadow-xs" style="font-size: 11px;" title="অবিলম্বে এপ্রুভ করুন">
+                                                    <button type="button" class="btn btn-sm btn-warning text-dark rounded-pill px-2.5 py-1 text-nowrap shadow-xs quick-status-btn" style="font-size: 11px;" title="অবিলম্বে এপ্রুভ করুন">
                                                         <i class="fa-solid fa-check me-1"></i> Approve
                                                     </button>
                                                 @endif
@@ -1225,11 +1296,11 @@
                                                 @csrf
                                                 <input type="hidden" name="status" value="{{ $reg->status === 'rejected' ? 'pending' : 'rejected' }}">
                                                 @if($reg->status === 'rejected')
-                                                    <button type="submit" class="btn btn-sm btn-danger rounded-pill px-2 py-1 text-nowrap shadow-xs" style="font-size: 11px;" title="Rejected (ক্লিক করে পেন্ডিং করুন)">
+                                                    <button type="button" class="btn btn-sm btn-danger rounded-pill px-2 py-1 text-nowrap shadow-xs quick-status-btn" style="font-size: 11px;" title="Rejected (ক্লিক করে পেন্ডিং করুন)">
                                                         <i class="fa-solid fa-circle-xmark me-1"></i> Rejected
                                                     </button>
                                                 @else
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger bg-white rounded-pill px-2 py-1 text-nowrap shadow-xs" style="font-size: 11px;" title="আবেদন অবিলম্বে বাতিল করুন">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger bg-white rounded-pill px-2 py-1 text-nowrap shadow-xs quick-status-btn" style="font-size: 11px;" title="আবেদন অবিলম্বে বাতিল করুন">
                                                         <i class="fa-solid fa-xmark me-1"></i> বাতিল
                                                     </button>
                                                 @endif
@@ -1337,7 +1408,7 @@
                                                         <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}" data-status-action="modal-approve">
                                                             @csrf
                                                             <input type="hidden" name="status" value="confirmed">
-                                                            <button type="submit" class="btn btn-sm {{ in_array($reg->status, ['confirmed', 'selected', 'approved']) ? 'btn-success text-white' : 'btn-outline-success border-0 text-success' }} px-3 py-1 fw-bold rounded-pill" title="নিবন্ধন অবিলম্বে এপ্রুভ করুন">
+                                                            <button type="button" class="btn btn-sm {{ in_array($reg->status, ['confirmed', 'selected', 'approved']) ? 'btn-success text-white' : 'btn-outline-success border-0 text-success' }} px-3 py-1 fw-bold rounded-pill quick-status-btn" title="নিবন্ধন অবিলম্বে এপ্রুভ করুন">
                                                                 <i class="fa-solid fa-circle-check me-1"></i> {{ in_array($reg->status, ['confirmed', 'selected', 'approved']) ? 'এপ্রুভড' : 'এপ্রুভ করুন' }}
                                                             </button>
                                                         </form>
@@ -1346,7 +1417,7 @@
                                                         <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}" data-status-action="modal-reject">
                                                             @csrf
                                                             <input type="hidden" name="status" value="rejected">
-                                                            <button type="submit" class="btn btn-sm {{ $reg->status === 'rejected' ? 'btn-danger text-white' : 'btn-outline-danger border-0 text-danger' }} px-3 py-1 fw-bold rounded-pill" title="নিবন্ধন অবিলম্বে বাতিল করুন">
+                                                            <button type="button" class="btn btn-sm {{ $reg->status === 'rejected' ? 'btn-danger text-white' : 'btn-outline-danger border-0 text-danger' }} px-3 py-1 fw-bold rounded-pill quick-status-btn" title="নিবন্ধন অবিলম্বে বাতিল করুন">
                                                                 <i class="fa-solid fa-circle-xmark me-1"></i> {{ $reg->status === 'rejected' ? 'বাতিলকৃত' : 'বাতিল করুন' }}
                                                             </button>
                                                         </form>
@@ -1355,7 +1426,7 @@
                                                         <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}" data-status-action="modal-pending" id="modalPendingForm_{{ $reg->id }}" style="{{ $reg->status === 'pending' ? 'display: none !important;' : '' }}">
                                                             @csrf
                                                             <input type="hidden" name="status" value="pending">
-                                                            <button type="submit" class="btn btn-sm btn-outline-warning border-0 text-dark px-2.5 py-1 rounded-pill" title="পেন্ডিংয়ে ফেরত নিন">
+                                                            <button type="button" class="btn btn-sm btn-outline-warning border-0 text-dark px-2.5 py-1 rounded-pill quick-status-btn" title="পেন্ডিংয়ে ফেরত নিন">
                                                                 <i class="fa-solid fa-clock-rotate-left me-0.5"></i> পেন্ডিং
                                                             </button>
                                                         </form>
@@ -2286,10 +2357,10 @@
                         <td colspan="14" class="text-center py-5 text-muted">
                             <i class="fa-solid fa-magnifying-glass fs-2 text-secondary mb-2 d-block"></i>
                             <div class="fw-bold fs-6">কোনো ফলাফল পাওয়া যায়নি (No matching participants)</div>
-                            <small class="text-muted d-block mt-1">নির্বাচিত বিভাগ বা জেলার ফিল্টারের সাথে মিলে এমন কোনো অংশগ্রহণকারী এই পেজে পাওয়া যায়নি।</small>
-                            <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 mt-2">
-                                <i class="fa-solid fa-rotate-left me-1"></i> ফিল্টার রিসেট করুন
-                            </a>
+                            <small class="text-muted d-block mt-1">আপনার সার্চ কোয়েরি বা নির্বাচিত ফিল্টারের সাথে মিলে এমন কোনো অংশগ্রহণকারী পাওয়া যায়নি।</small>
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 mt-2" onclick="const s = document.getElementById('tableLiveSearch'); if(s){ s.value=''; } applyClientFilters();">
+                                <i class="fa-solid fa-rotate-left me-1"></i> সার্চ রিসেট করুন
+                            </button>
                         </td>
                     </tr>
                 </tbody>
@@ -5401,7 +5472,6 @@
         // =========================================================================
         window.updateParticipantRowStatus = function(regId, newStatus, counts, message) {
             if (!regId) return;
-            const lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || document.body.scrollTop || 0;
 
             const isApproved = (newStatus === 'confirmed' || newStatus === 'approved' || newStatus === 'selected');
             const isRejected = (newStatus === 'rejected');
@@ -5427,16 +5497,16 @@
 
                 if (approveForm) {
                     const input = approveForm.querySelector('input[name="status"]');
-                    const btn = approveForm.querySelector('button[type="submit"]');
+                    const btn = approveForm.querySelector('button');
                     if (input && btn) {
                         if (isApproved) {
                             input.value = 'pending';
-                            btn.className = 'btn btn-sm btn-success rounded-pill px-2.5 py-1 text-nowrap shadow-xs';
+                            btn.className = 'btn btn-sm btn-success rounded-pill px-2.5 py-1 text-nowrap shadow-xs quick-status-btn';
                             btn.title = 'Approved (ক্লিক করে পেন্ডিং করুন)';
                             btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Approved';
                         } else {
                             input.value = 'confirmed';
-                            btn.className = 'btn btn-sm btn-warning text-dark rounded-pill px-2.5 py-1 text-nowrap shadow-xs';
+                            btn.className = 'btn btn-sm btn-warning text-dark rounded-pill px-2.5 py-1 text-nowrap shadow-xs quick-status-btn';
                             btn.title = 'অবিলম্বে এপ্রুভ করুন';
                             btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Approve';
                         }
@@ -5445,16 +5515,16 @@
 
                 if (rejectForm) {
                     const input = rejectForm.querySelector('input[name="status"]');
-                    const btn = rejectForm.querySelector('button[type="submit"]');
+                    const btn = rejectForm.querySelector('button');
                     if (input && btn) {
                         if (isRejected) {
                             input.value = 'pending';
-                            btn.className = 'btn btn-sm btn-danger rounded-pill px-2 py-1 text-nowrap shadow-xs';
+                            btn.className = 'btn btn-sm btn-danger rounded-pill px-2 py-1 text-nowrap shadow-xs quick-status-btn';
                             btn.title = 'Rejected (ক্লিক করে পেন্ডিং করুন)';
                             btn.innerHTML = '<i class="fa-solid fa-circle-xmark me-1"></i> Rejected';
                         } else {
                             input.value = 'rejected';
-                            btn.className = 'btn btn-sm btn-outline-danger bg-white rounded-pill px-2 py-1 text-nowrap shadow-xs';
+                            btn.className = 'btn btn-sm btn-outline-danger bg-white rounded-pill px-2 py-1 text-nowrap shadow-xs quick-status-btn';
                             btn.title = 'আবেদন অবিলম্বে বাতিল করুন';
                             btn.innerHTML = '<i class="fa-solid fa-xmark me-1"></i> বাতিল';
                         }
@@ -5479,16 +5549,16 @@
                 const lmRejectForm = lmActionsWrap.querySelector('[data-status-action="lm-reject"]');
                 if (lmApproveForm) {
                     const input = lmApproveForm.querySelector('input[name="status"]');
-                    const btn = lmApproveForm.querySelector('button[type="submit"]');
+                    const btn = lmApproveForm.querySelector('button');
                     if (input && btn) {
                         if (isApproved) {
                             input.value = 'pending';
-                            btn.className = 'btn btn-sm btn-success rounded-pill px-2 py-0.5 text-nowrap shadow-xs';
+                            btn.className = 'btn btn-sm btn-success rounded-pill px-2 py-0.5 text-nowrap shadow-xs quick-status-btn';
                             btn.title = 'Approved (ক্লিক করে পেন্ডিং করুন)';
                             btn.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
                         } else {
                             input.value = 'confirmed';
-                            btn.className = 'btn btn-sm btn-warning text-dark rounded-pill px-2 py-0.5 text-nowrap shadow-xs';
+                            btn.className = 'btn btn-sm btn-warning text-dark rounded-pill px-2 py-0.5 text-nowrap shadow-xs quick-status-btn';
                             btn.title = 'এপ্রুভ করুন (স্বাগত ও কার্ড ডাউনলোড এসএমএস যাবে)';
                             btn.innerHTML = '<i class="fa-solid fa-check"></i> এপ্রুভ';
                         }
@@ -5496,16 +5566,16 @@
                 }
                 if (lmRejectForm) {
                     const input = lmRejectForm.querySelector('input[name="status"]');
-                    const btn = lmRejectForm.querySelector('button[type="submit"]');
+                    const btn = lmRejectForm.querySelector('button');
                     if (input && btn) {
                         if (isRejected) {
                             input.value = 'pending';
-                            btn.className = 'btn btn-sm btn-danger rounded-pill px-2 py-0.5 text-nowrap shadow-xs';
+                            btn.className = 'btn btn-sm btn-danger rounded-pill px-2 py-0.5 text-nowrap shadow-xs quick-status-btn';
                             btn.title = 'Rejected (ক্লিক করে পেন্ডিং করুন)';
                             btn.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
                         } else {
                             input.value = 'rejected';
-                            btn.className = 'btn btn-sm btn-outline-danger bg-white rounded-pill px-2 py-0.5 text-nowrap shadow-xs';
+                            btn.className = 'btn btn-sm btn-outline-danger bg-white rounded-pill px-2 py-0.5 text-nowrap shadow-xs quick-status-btn';
                             btn.title = 'আবেদন বাতিল করুন (নোটিশ এসএমএস যাবে)';
                             btn.innerHTML = '<i class="fa-solid fa-xmark"></i> বাতিল';
                         }
@@ -5524,11 +5594,11 @@
                 const mRejectBtn = modalGroup.querySelector('[data-status-action="modal-reject"] button');
                 const mPendingForm = document.getElementById('modalPendingForm_' + regId);
                 if (mApproveBtn) {
-                    mApproveBtn.className = 'btn btn-sm ' + (isApproved ? 'btn-success text-white' : 'btn-outline-success border-0 text-success') + ' px-3 py-1 fw-bold rounded-pill';
+                    mApproveBtn.className = 'btn btn-sm ' + (isApproved ? 'btn-success text-white' : 'btn-outline-success border-0 text-success') + ' px-3 py-1 fw-bold rounded-pill quick-status-btn';
                     mApproveBtn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> ' + (isApproved ? 'এপ্রুভড' : 'এপ্রুভ করুন');
                 }
                 if (mRejectBtn) {
-                    mRejectBtn.className = 'btn btn-sm ' + (isRejected ? 'btn-danger text-white' : 'btn-outline-danger border-0 text-danger') + ' px-3 py-1 fw-bold rounded-pill';
+                    mRejectBtn.className = 'btn btn-sm ' + (isRejected ? 'btn-danger text-white' : 'btn-outline-danger border-0 text-danger') + ' px-3 py-1 fw-bold rounded-pill quick-status-btn';
                     mRejectBtn.innerHTML = '<i class="fa-solid fa-circle-xmark me-1"></i> ' + (isRejected ? 'বাতিলকৃত' : 'বাতিল করুন');
                 }
                 if (mPendingForm) {
@@ -5575,27 +5645,18 @@
                     }
                 }
             }
-
-            // 8. Enforce scroll lock preservation
-            window.scrollTo({ top: lockedScrollY, behavior: 'instant' });
         };
 
-        // Universal Zero-Scroll Quick Status Switch Handler (Prevents page jumping to top)
+        // Universal Zero-Scroll Quick Status Switch Handler (Completely prevents page jumping, crawling, or scrolling)
         function handleQuickStatusAction(form, triggerBtn) {
             if (!form || form.getAttribute('data-submitting') === 'true') return;
 
-            // 1. Lock the exact current scroll position before any DOM modification
-            const lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || document.body.scrollTop || 0;
+            // 1. Lock the exact current scroll position
+            const lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
 
-            // 2. Safely blur the active element to prevent browser focus-reset jump
-            if (document.activeElement && typeof document.activeElement.blur === 'function') {
-                try { document.activeElement.blur(); } catch (e) {}
-            }
-
-            // 3. Mark form as submitting and disable clicks without setting button.disabled=true
-            // (Setting button.disabled=true in Chromium forces focus reset to body/html, jumping scroll to top)
+            // 2. Mark form as submitting and show spinner without blurring active element or disabling form
             form.setAttribute('data-submitting', 'true');
-            const submitBtn = triggerBtn || form.querySelector('button[type="submit"]') || form.querySelector('button');
+            const submitBtn = triggerBtn || form.querySelector('button');
             const origHtml = submitBtn ? submitBtn.innerHTML : '';
             if (submitBtn) {
                 submitBtn.style.pointerEvents = 'none';
@@ -5603,13 +5664,10 @@
                 submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
             }
 
-            const restoreScroll = () => {
-                window.scrollTo({ top: lockedScrollY, behavior: 'instant' });
-                if (document.documentElement && document.documentElement.scrollTop !== lockedScrollY) {
-                    document.documentElement.scrollTop = lockedScrollY;
-                }
-                if (document.body && document.body.scrollTop !== lockedScrollY) {
-                    document.body.scrollTop = lockedScrollY;
+            const restoreScrollIfShifted = () => {
+                const currentY = window.pageYOffset || document.documentElement.scrollTop || 0;
+                if (Math.abs(currentY - lockedScrollY) > 2) {
+                    window.scrollTo({ top: lockedScrollY, behavior: 'instant' });
                 }
             };
 
@@ -5619,10 +5677,7 @@
                     submitBtn.style.pointerEvents = '';
                     submitBtn.style.opacity = '';
                 }
-                restoreScroll();
-                requestAnimationFrame(restoreScroll);
-                setTimeout(restoreScroll, 50);
-                setTimeout(restoreScroll, 150);
+                restoreScrollIfShifted();
             };
 
             const formData = new FormData(form);
@@ -5658,8 +5713,7 @@
                         alert(data.message || 'স্ট্যাটাস পরিবর্তন ব্যর্থ হয়েছে।');
                     }
                 }
-                restoreScroll();
-                requestAnimationFrame(restoreScroll);
+                restoreScrollIfShifted();
             })
             .catch(err => {
                 if (submitBtn) {
@@ -5673,24 +5727,24 @@
             });
         }
 
-        // Intercept form submit event in capturing phase
-        document.addEventListener('submit', function(e) {
-            const form = e.target.closest('.quick-status-form');
-            if (!form) return;
-            e.preventDefault();
-            e.stopPropagation();
-            handleQuickStatusAction(form, null);
-        }, true);
-
         // Intercept button click event in capturing phase to prevent any default click jump
         document.addEventListener('click', function(e) {
-            const btn = e.target.closest('.quick-status-form button');
+            const btn = e.target.closest('.quick-status-form button, button.quick-status-btn');
             if (!btn) return;
             const form = btn.closest('.quick-status-form');
             if (!form) return;
             e.preventDefault();
             e.stopPropagation();
             handleQuickStatusAction(form, btn);
+        }, true);
+
+        // Intercept form submit event in capturing phase as safety fallback
+        document.addEventListener('submit', function(e) {
+            const form = e.target.closest('.quick-status-form');
+            if (!form) return;
+            e.preventDefault();
+            e.stopPropagation();
+            handleQuickStatusAction(form, null);
         }, true);
 
             // SMS Modal Helpers
