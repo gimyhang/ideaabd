@@ -371,20 +371,21 @@
         var opts = items.map(function (v) {
             return '<option value="' + esc(v) + '"' + (String(v) === String(current) ? ' selected' : '') + '>' + (dotFor(v) ? '● ' : '') + esc(v) + (suffix || '') + '</option>';
         }).join('');
-        return '<label class="pc-pick"><span class="pc-pick-lbl">' + label + '</span><select class="form-select form-select-sm ' + cls + '">' + opts + '</select></label>';
+        return '<div class="pc-paper-field pc-paper-field-select"><span class="pc-sub-label">' + label + '</span><select class="form-select pc-var pc-paper-select ' + cls + '">' + opts + '</select></div>';
     }
 
     function paperBlock(r) {
         var list = variantKey(r) === 'PaperCover' ? 'Cover' : 'Inner';
-        return '<div class="pc-paper d-flex flex-column gap-1.5 mt-1">'
-            + '<div class="pc-paper-top d-flex align-items-center gap-2 flex-wrap">'
-            + '<input class="form-control form-control-sm pc-stock font-monospace" list="pcPaper' + list + '" value="' + esc(stockText(r)) + '" aria-label="Paper" title="GSM & Paper Kind" placeholder="e.g. 80 GSM Offwhite" style="min-width: 170px; flex: 1;">'
-            + (r.auto === 'sheet' ? '<div class="input-group input-group-sm" style="width: 110px;"><span class="input-group-text bg-light" style="font-size: 10.5px;">Ups</span><input type="number" class="form-control form-control-sm pc-ups text-end font-monospace" min="1" step="1" value="' + esc(r.ups) + '"></div>' : '')
-            + '<div class="input-group input-group-sm" style="width: 110px;"><span class="input-group-text bg-light" style="font-size: 10.5px;">Waste %</span><input type="number" class="form-control form-control-sm pc-waste text-end font-monospace" min="0" step="1" value="' + esc(r.waste) + '"></div>'
+        return '<div class="pc-paper mt-1">'
+            + '<div class="pc-paper-grid">'
+            + '<div class="pc-paper-field pc-paper-field-stock">'
+            + '<span class="pc-sub-label">Stock &amp; Quality</span>'
+            + '<input class="form-control form-control-sm pc-stock font-monospace" list="pcPaper' + list + '" value="' + esc(stockText(r)) + '" aria-label="Paper" title="GSM & Paper Kind" placeholder="e.g. 80 GSM Offwhite">'
             + '</div>'
-            + '<div class="pc-picks d-flex align-items-center gap-2 flex-wrap">' 
-            + pickRow(gsmsFor(r), r.a, 'pc-a', 'GSM:', '', function (g) { return knownRate('Paper', g, r.b); })
-            + pickRow(kindsFor(r), r.b, 'pc-b', 'Type:', '', function (k) { return knownRate('Paper', r.a, k); }) 
+            + (r.auto === 'sheet' ? '<div class="pc-paper-field pc-paper-field-num"><span class="pc-sub-label">Ups</span><input type="number" class="form-control form-control-sm pc-ups text-end font-monospace" min="1" step="1" value="' + esc(r.ups) + '"></div>' : '')
+            + '<div class="pc-paper-field pc-paper-field-num"><span class="pc-sub-label">Waste %</span><input type="number" class="form-control form-control-sm pc-waste text-end font-monospace" min="0" step="1" value="' + esc(r.waste) + '"></div>'
+            + pickRow(gsmsFor(r), r.a, 'pc-a', 'GSM', '', function (g) { return knownRate('Paper', g, r.b); })
+            + pickRow(kindsFor(r), r.b, 'pc-b', 'Type', '', function (k) { return knownRate('Paper', r.a, k); })
             + '</div>'
             + '</div>';
     }
@@ -689,12 +690,12 @@
                 + '<table class="table table-hover align-middle mb-0 pc-comp-table" style="font-size: 12.5px;">'
                 + '<thead class="text-muted">'
                 + '<tr>'
-                + '<th style="width: 36px;" class="text-center" title="Include">✓</th>'
-                + '<th style="min-width: 200px;">ITEM</th>'
-                + '<th style="width: 140px;" class="text-end">QTY</th>'
-                + '<th style="width: 130px;" class="text-end">RATE</th>'
-                + '<th style="width: 125px;" class="text-end">TOTAL</th>'
-                + '<th style="width: 38px;" class="text-center"></th>'
+                + '<th style="width: 40px;" class="text-center" title="Include">✓</th>'
+                + '<th style="min-width: 320px;">ITEM</th>'
+                + '<th style="width: 130px;" class="text-end">QTY</th>'
+                + '<th style="width: 120px;" class="text-end">RATE</th>'
+                + '<th style="width: 120px;" class="text-end">TOTAL</th>'
+                + '<th style="width: 40px;" class="text-center"></th>'
                 + '</tr>'
                 + '</thead>'
                 + '<tbody>';
@@ -712,7 +713,7 @@
         if (!spec) return '';
         var opts = spec[1];
         var has = opts.some(function (o) { return String(o[0]) === String(current); });
-        return '<select class="form-select form-select-sm pc-var ' + cls + '" aria-label="' + esc(label) + '" style="font-size: 11.5px; border-radius: 6px; height: 30px;">'
+        return '<select class="form-select pc-var ' + cls + '" aria-label="' + esc(label) + '">'
             + (has ? '' : '<option value="" selected>' + esc(label) + '</option>')
             + opts.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(current) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>';
     }
@@ -806,7 +807,6 @@
             var lacks = r.on && num(r.qty) > 0 && !num(r.rate);
             if (rate) {
                 rate.classList.toggle('is-invalid', lacks);
-                rate.classList.toggle('border-danger', lacks);
             }
             if (lacks) missing++;
             pinState(rowEl.querySelector('.pc-pin'), r);
@@ -1377,7 +1377,7 @@
 
     function focusRate(r) {
         var again = el.groups.querySelector('.pc-row[data-id="' + r.id + '"] .pc-rate');
-        if (again && !num(r.rate)) again.focus();
+        if (again && !num(r.rate) && again.focus) again.focus({ preventScroll: true });
     }
 
     function onClick(e) {
@@ -1431,7 +1431,7 @@
         var last = rows[rows.length - 1];
         if (last) {
             var target = last.querySelector('.pc-stock, .pc-rate, .pc-name');
-            if (target) target.focus();
+            if (target && target.focus) target.focus({ preventScroll: true });
         }
     }
 
@@ -1562,7 +1562,10 @@
         }
 
         root.addEventListener('shown.bs.modal', function () { 
-            (($('pcQty').value) ? $('pcTitleIn') : $('pcQty')).focus(); 
+            var modalBody = root.querySelector('.modal-body');
+            if (modalBody) modalBody.scrollTop = 0;
+            var target = ($('pcQty').value) ? $('pcTitleIn') : $('pcQty');
+            if (target && target.focus) target.focus({ preventScroll: true });
         });
 
         applyType('book');

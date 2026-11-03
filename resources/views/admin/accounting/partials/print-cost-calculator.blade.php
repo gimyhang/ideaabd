@@ -8,7 +8,7 @@
      data-rates-store="{{ route('admin.accounting.print-rates.store') }}"
      data-rates-adjust="{{ route('admin.accounting.print-rates.adjust') }}"
      data-rates-delete="{{ url('admin/accounting/print-rates') }}">
-    <div class="modal-dialog modal-fullscreen-xl-down modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable pc-modal-dialog">
         <div class="modal-content pc shadow-sm">
             {{-- Modal Header --}}
             <div class="modal-header bg-white border-bottom py-2.5 px-4">
