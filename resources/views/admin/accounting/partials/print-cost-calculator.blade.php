@@ -29,17 +29,13 @@
                     <div class="pc-main d-flex flex-column gap-3">
                         {{-- 1.1 Job Specification Card --}}
                         <section class="pc-card pc-job shadow-xs">
-                            <header class="pc-card-head d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                            <header class="pc-card-head d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
                                 <h6 class="pc-h m-0 text-dark fw-bold">Specs</h6>
-                                <div class="d-flex align-items-center gap-2">
-                                    <label for="pcTypeSelect" class="pc-label mb-0 text-muted" style="font-size: 11.5px;">Product:</label>
-                                    <select id="pcTypeSelect" class="form-select form-select-sm fw-bold border-primary text-primary" style="width: 175px; height: 32px; font-size: 12.5px;"></select>
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-2 px-2 py-1 font-monospace d-none" id="pcActiveTypeBadge">Book</span>
-                                </div>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-2 px-2.5 py-1 font-monospace fw-semibold" id="pcActiveTypeBadge" style="font-size: 11.5px;">Book</span>
                             </header>
 
-                            {{-- Legacy container kept hidden for backward JS compatibility --}}
-                            <div class="pc-types d-none" id="pcTypes" role="tablist"></div>
+                            {{-- Product Type Buttons Tab Bar --}}
+                            <div class="pc-types mb-3" id="pcTypes" role="tablist"></div>
 
                             {{-- Clean, Equal-Height 2-Row Specifications Grid --}}
                             <div class="pc-grid">
