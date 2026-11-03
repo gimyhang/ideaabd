@@ -452,10 +452,11 @@
                     <tbody>
                         @foreach($invoice->items as $idx => $item)
                             @php
+                                $itemTitle = $item['title'] ?? $item['name'] ?? $item['item_name'] ?? null;
                                 $isItemBook = \App\Http\Controllers\Admin\IdeaAccountingController::isBookItem($item['item_type'] ?? null, $invoice->sales_category ?? 'books');
                                 $matchedBook = ($isItemBook && !empty($item['book_id']) && isset($matchedBooks[$item['book_id']]))
                                     ? $matchedBooks[$item['book_id']]
-                                    : ($isItemBook && isset($matchedBooksByTitle[$item['title']]) ? $matchedBooksByTitle[$item['title']] : null);
+                                    : ($isItemBook && !empty($itemTitle) && isset($matchedBooksByTitle[$itemTitle]) ? $matchedBooksByTitle[$itemTitle] : null);
                                 
                                 $authorName = $item['author'] ?? $item['author_name'] ?? ($matchedBook->author_name ?? ($matchedBook->author->name ?? null)) ?? '—';
                                 
@@ -876,9 +877,10 @@
                         <tbody>
                             @foreach($invoice->items as $idx => $item)
                                 @php
+                                    $itemTitle = $item['title'] ?? $item['name'] ?? $item['item_name'] ?? null;
                                     $matchedBook = (!empty($item['book_id']) && isset($matchedBooks[$item['book_id']]))
                                         ? $matchedBooks[$item['book_id']]
-                                        : ($matchedBooksByTitle[$item['title']] ?? null);
+                                        : (!empty($itemTitle) && isset($matchedBooksByTitle[$itemTitle]) ? $matchedBooksByTitle[$itemTitle] : null);
                                     $authorName = $item['author'] ?? $item['author_name'] ?? ($matchedBook->author_name ?? ($matchedBook->author->name ?? null)) ?? '—';
                                     $unitName = $item['unit'] ?? ($invoice->sales_category === 'books' ? 'Copy' : 'Pcs');
                                 @endphp

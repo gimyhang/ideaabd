@@ -49,7 +49,7 @@
 
             {{-- Column 1: Brand & About --}}
             <div class="col-lg-3 col-md-6">
-                <div class="d-flex align-items-center gap-2.5 mb-3">
+                <a href="{{ route('home') }}" class="d-flex align-items-center gap-2.5 mb-3 text-decoration-none">
                     @if($footerLogo)
                         <img src="{{ $footerLogo }}" alt="{{ $footerName }}" style="max-height: 40px; width: auto; object-fit: contain; filter: brightness(1.1);" onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
                     @else
@@ -58,7 +58,7 @@
                         </div>
                     @endif
                     <span class="fw-bold fs-4 text-white letter-spacing-wide">{{ $footerName }}</span>
-                </div>
+                </a>
                 <p class="text-slate-300 small mb-3" style="color: #cbd5e1; line-height: 1.8; font-size: 13.5px;">
                     {{ $footerTagline ?: 'বাংলাদেশের বিশ্বস্ত অনলাইন বই, ই-বুক ও সৃজনশীল প্রকাশনা প্ল্যাটফর্ম। লেখক, প্রকাশক ও পাঠকদের মুক্ত চিন্তার মিলনমেলা।' }}
                 </p>

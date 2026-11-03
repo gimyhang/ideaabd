@@ -157,10 +157,10 @@
         'Purchases' => 'ক্রয়', 'Payments' => 'পরিশোধ', 'Ledgers' => 'খতিয়ান', 'Monthly' => 'মাসিক', 'Items' => 'পণ্য',
         'Production' => 'উৎপাদন', 'Stock' => 'মজুদ', 'Locations' => 'অবস্থান', 'Transfers' => 'স্থানান্তর',
         'Wastage' => 'অপচয়', 'Alerts' => 'সতর্কতা', 'Movements' => 'চলাচল',
-        'Accounting' => 'হিসাব', 'Transactions' => 'লেনদেন', 
+        'Accounting' => 'হিসাব', 'Transactions' => 'লেনদেন', 'Invoices' => 'ইনভয়েস', 'Quotations' => 'কোটেশন',
         'Ledger' => 'বহি', 'Tax' => 'কর', 'Payroll' => 'বেতন', 'Employees' => 'কর্মী',
         'Content' => 'কনটেন্ট', 'Blog' => 'ব্লগ', 'Honorariums' => 'সম্মানী', 'Webzines' => 'ওয়েবজিন',
-        'Sales' => 'বিক্রয়', 'POS' => 'কাউন্টার', 'Orders' => 'অর্ডার', 'Affiliates' => 'অ্যাফিলিয়েট', 
+        'Sales' => 'বিক্রয়', 'POS' => 'কাউন্টার', 'Orders' => 'অর্ডার', 'Bills' => 'বিল', 'Affiliates' => 'অ্যাফিলিয়েট', 
         'Gateways' => 'গেটওয়ে', 'SMS' => 'এসএমএস', 'Requests' => 'অনুরোধ',
         'Users' => 'ব্যবহারকারী', 'Sellers' => 'বিক্রেতা', 'Customers' => 'গ্রাহক', 'Approvals' => 'অনুমোদন',
         'Security' => 'নিরাপত্তা', 'Staff' => 'কর্মকর্তা', 'Campaigns' => 'ক্যাম্পেইন', 'Libraries' => 'গ্রন্থাগার', 'Tickets' => 'টিকিট',
@@ -356,10 +356,12 @@
                                     $isRouteActive = request()->routeIs($item['route']) || request()->routeIs($item['route'] . '.*') || ($ownsPrefix && request()->routeIs($base . '.*'));
                                     $active = isset($item['category']) ? ($isRouteActive && request('category') === $item['category']) : ($isRouteActive && empty(request('category')));
                                     // Invoices / Quotations are two views of one hub stream (stream=invoices, type=…)
-                                    $onInvoiceStream = request()->routeIs('admin.accounting.index') && request('stream') === 'invoices';
+                                    $onInvoiceStream = (request()->routeIs('admin.accounting.index') && request('stream') === 'invoices')
+                                        || request()->routeIs('admin.accounting.invoices.*');
                                     if ($item['route'] === 'admin.accounting.invoices.index') {
                                         $wantsQuotation = ($item['type'] ?? null) === 'quotation';
-                                        $active = $onInvoiceStream && ((request('type') === 'quotation') === $wantsQuotation);
+                                        $isQuot = (request('type') === 'quotation') || (isset($invoice) && is_object($invoice) && (($invoice->type ?? null) === 'quotation'));
+                                        $active = $onInvoiceStream && ($isQuot === $wantsQuotation);
                                     } elseif ($item['route'] === 'admin.accounting.index' && $onInvoiceStream) {
                                         $active = false;
                                     }

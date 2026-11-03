@@ -1,144 +1,331 @@
 /*
- * Printing cost calculator.
- * A job is built from components — Design, Paper, CTP, Press, Lamination, Cutting, Binding, Packing,
- * Transport, Other. Each component is one line: name, its choices (GSM + paper kind, finish + sides,
- * method, packing + basis …), quantity × rate = total. Quantities follow the job until edited by hand.
+ * Printing & Production Cost Calculator (ক্যালকুলেটর ইঞ্জিন)
+ * Supports Books, Magazines, Diaries, Brochures, Cards, Leaflets, Packaging, Stationery & Custom items.
  *
- * Smart parts: sheet layout (ups) from the trim size, price tiers for other quantities, rounding of the
- * rate, remembered rates (per choice) and remembered job values, and highlighting of lines without a rate.
- *
- * Host pages define window.addPresetItem(title, spec, itemType, unit, price, regularPrice, qty).
+ * Capabilities:
+ * - Dynamic job types and intelligent sheet layout (Ups) calculation.
+ * - Formas calculation with configurable forma size (16, 8, 4, 32 pages).
+ * - Real-time component costing (Design, Paper, CTP, Press, Lamination, Cutting, Binding, Packing, Transport, Other).
+ * - Live quotation specification preview box.
+ * - Dual quotation insertion modes: Single Consolidated Item OR Itemized Component Breakdown.
+ * - Raw material rate sheet synchronization with server database.
+ * - Quantity tier price comparison table.
  */
 (function () {
     'use strict';
     var doc = document;
 
     var GROUPS = ['Design', 'Paper', 'CTP', 'Press', 'Lamination', 'Cutting', 'Binding', 'Packing', 'Transport', 'Other'];
-    var BASIS = { Design: 'Qty', Paper: 'Reams', CTP: 'Plates', Press: 'Thousands', Lamination: 'Copies', Cutting: 'Copies', Binding: 'Copies', Packing: 'Qty', Transport: 'Qty', Other: 'Qty' };
-    var NAMES = {
-        Design: ['Layout', 'Cover', 'Proof', 'Ebook', 'ISBN', 'Dummy'],
-        Paper: ['Inner', 'Cover', 'Board', 'Endpaper', 'Jacket'],
-        CTP: ['Inner', 'Cover', 'Spot'],
-        Press: ['Inner', 'Cover', 'Spot'],
-        Lamination: ['Cover', 'Jacket', 'Spot'],
-        Cutting: ['Trim', 'Cover', 'Sheet'],
-        Binding: ['Book', 'Cover', 'Pad'],
-        Packing: ['Book', 'Bundle', 'Carton'],
-        Transport: ['Press', 'Delivery', 'Office'],
-        Other: ['Ribbon', 'Sticker', 'Misc']
+    
+    var GROUP_TITLES_BN = {
+        Design: 'ডিজাইন ও প্রি-প্রেস',
+        Paper: 'কাগজ ও বোর্ড',
+        CTP: 'সিটিপি প্লেট',
+        Press: 'ছাপা ও প্রেস প্রিন্টিং',
+        Lamination: 'লেমিনেশন ও কোটিং',
+        Cutting: 'কাটিং ও সাইজিং',
+        Binding: 'বাইন্ডিং ও বাঁধাই',
+        Packing: 'প্যাকিং ও মোড়ক',
+        Transport: 'পরিবহন ও ডেলিভারি',
+        Other: 'অন্যান্য / বিবিধ'
     };
 
-    // ── Choices on each line: two dropdowns (a, b) per group ───────────────
-    var GSM_INNER = [45, 50, 55, 60, 65, 70, 80, 90, 100, 110, 120];
-    var GSM_COVER = [45, 50, 55, 60, 65, 70, 80, 90, 100, 110, 120, 150, 180, 200, 250, 300, 350];
+    var GROUP_ICONS = {
+        Design: 'fa-pen-nib text-indigo',
+        Paper: 'fa-sheet-plastic text-warning',
+        CTP: 'fa-barcode text-primary',
+        Press: 'fa-print text-danger',
+        Lamination: 'fa-wand-magic-sparkles text-info',
+        Cutting: 'fa-scissors text-secondary',
+        Binding: 'fa-book text-success',
+        Packing: 'fa-boxes-packing text-warning',
+        Transport: 'fa-truck text-dark',
+        Other: 'fa-cube text-muted'
+    };
+
+    var BASIS = {
+        Design: 'Qty', Paper: 'Reams', CTP: 'Plates', Press: 'Thousands',
+        Lamination: 'Copies', Cutting: 'Copies', Binding: 'Copies',
+        Packing: 'Qty', Transport: 'Qty', Other: 'Qty'
+    };
+
+    var BASIS_BN = {
+        Design: 'আইটেম', Paper: 'রিম (Reams)', CTP: 'প্লেট (Plates)', Press: 'হাজার ইমপ্রেশন',
+        Lamination: 'কপি/পিস', Cutting: 'কপি/পিস', Binding: 'কপি/পিস',
+        Packing: 'পরিমাণ', Transport: 'লট/টিপ', Other: 'পরিমাণ'
+    };
+
+    var NAMES = {
+        Design: ['Layout Design', 'Cover Design', 'Proof Reading', 'Ebook Conversion', 'ISBN Processing', 'Dummy Copy'],
+        Paper: ['Inner Paper', 'Cover Board', 'Hard Board / Grey Board', 'Endpaper', 'Jacket Paper'],
+        CTP: ['Inner Plates', 'Cover Plates', 'Spot UV Plate', 'Foil Die Plate', 'Emboss Die Plate'],
+        Press: ['Inner Press (Offset)', 'Cover Press (Offset)', 'Spot Color Press', 'Digital Press'],
+        Lamination: ['Cover Lamination', 'Jacket Lamination', 'Spot UV Coating', 'Foil Stamping', 'Embossing'],
+        Cutting: ['Final 3-Knife Trim', 'Die Cutting', 'Creasing & Scoring', 'Perforation', 'Corner Rounding'],
+        Binding: ['Perfect Glue Binding', 'Sewn + Perfect Binding', 'Hardcover Binding', 'Saddle Stitch (Pin)', 'Spiral Binding', 'Wire-O Binding', 'Pad Pasting'],
+        Packing: ['Poly Bag Wrapping', 'Bundle & Paper Band', 'Heavy Master Carton', 'Shrink Packaging'],
+        Transport: ['Press to Office Delivery', 'Office to Client Door', 'Courier & Parcel Transport', 'Loading & Labor'],
+        Other: ['Ribbon Bookmark', 'Bookmark Card', 'Slipcase Box', 'Inspection & QC', 'Miscellaneous']
+    };
+
+    // Paper GSM lists
+    var GSM_INNER = [45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 100, 110, 120, 150];
+    var GSM_COVER = [150, 170, 200, 230, 250, 300, 350, 400];
     var gsmOpts = function (list) { return list.map(function (g) { return [g, g + ' GSM']; }); };
     var plain = function (list) { return list.map(function (v) { return [v, v]; }); };
 
     var VARIANTS = {
-        PaperInner: { a: ['GSM', gsmOpts(GSM_INNER)], b: ['Kind', plain(['Offwhite', 'White', 'Cream', 'Art', 'Matt', 'Newsprint', 'Kraft', 'Bond', 'Glossy'])] },
-        PaperCover: { a: ['GSM', gsmOpts(GSM_COVER)], b: ['Kind', plain(['Glossy', 'Matt', 'Swedish', 'Art', 'Duplex', 'Ivory', 'Kraft', 'Grey', 'Offwhite', 'White'])] },
-        Design: { a: ['Work', plain(['Layout', 'Cover', 'Proof', 'Ebook', 'ISBN', 'Dummy', 'Logo', 'Illustration'])], b: ['Per', plain(['Job', 'Page'])] },
-        CTP: { a: ['Plate', plain(['CTP', 'Film', 'Zinc'])], b: ['Side', plain(['Inner', 'Cover', 'Spot'])] },
-        Press: { a: ['Machine', plain(['Offset', 'Digital', 'Screen', 'Flex'])], b: ['Side', plain(['Inner', 'Cover', 'Spot'])] },
-        Lamination: { a: ['Finish', plain(['Matt', 'Glossy', 'Velvet', 'UV', 'Foil', 'Emboss', 'Scratch'])], b: ['Sides', plain(['Front', 'Both'])] },
-        Cutting: { a: ['Method', plain(['Trim', 'Die', 'Crease', 'Perforate', 'Punch', 'Fold', 'Number', 'Slit'])], b: null },
-        Binding: { a: ['Method', plain(['Perfect', 'Sewn', 'Thread', 'Hardcover', 'Case', 'Saddle', 'Pin', 'Spiral', 'Wire', 'Pasting', 'Padding', 'Stapling', 'Fold'])], b: null },
-        Packing: { a: ['Material', plain(['Poly', 'Envelope', 'Shrink', 'Bubble', 'Sleeve', 'Bag', 'Band', 'Carton', 'Box'])], b: ['Per', plain(['Copy', 'Dozen', 'Hundred', 'Lot'])] },
-        Transport: { a: ['Work', plain(['Labor', 'Carton', 'Transport', 'Loading', 'Delivery', 'Courier'])], b: ['Per', plain(['Lot', 'Copy', 'Hundred', 'Thousand'])] },
+        PaperInner: { 
+            a: ['GSM', gsmOpts(GSM_INNER)], 
+            b: ['Kind', plain(['Offset White', 'Offwhite', 'Cream Munken', 'Art Paper', 'Matt Art Paper', 'Newsprint', 'Kraft', 'Bond Paper', 'NCR Top', 'NCR Middle', 'NCR Bottom', 'Sticker Gum'])] 
+        },
+        PaperCover: { 
+            a: ['GSM', gsmOpts(GSM_COVER)], 
+            b: ['Kind', plain(['Art Card', 'Swedish Board', 'Matt Card', 'Duplex Board', 'Grey Board 1.5mm', 'Grey Board 2.0mm', 'Grey Board 2.5mm', 'Kraft Board', 'Ivory Card', 'Glossy Card'])] 
+        },
+        Design: { 
+            a: ['Work', plain(['Layout Design', 'Cover Design', 'Proof Reading', 'Ebook Conversion', 'ISBN Processing', 'Dummy Copy', 'Logo & Branding', 'Illustration'])], 
+            b: ['Per', plain(['Job', 'Page'])] 
+        },
+        CTP: { 
+            a: ['Plate', plain(['CTP Thermal', 'CTP Violet', 'CTCP', 'Film Negative', 'Zinc Block', 'Copper Die'])], 
+            b: ['Side', plain(['Inner', 'Cover', 'Spot UV', 'Foil Stamping', 'Emboss'])] 
+        },
+        Press: { 
+            a: ['Machine', plain(['Offset 4-Color', 'Offset 2-Color', 'Offset 1-Color', 'Digital Laser', 'Screen Print', 'Flex Banner', 'Letterpress'])], 
+            b: ['Side', plain(['Inner', 'Cover', 'Spot Color'])] 
+        },
+        Lamination: { 
+            a: ['Finish', plain(['Matt Lamination', 'Glossy Lamination', 'Velvet Soft-Touch', 'Thermal Matt', 'Thermal Glossy', 'Spot UV', 'Gold Foil', 'Silver Foil', 'Embossing', 'Scratch-off'])], 
+            b: ['Sides', plain(['Front (Single)', 'Both Sides'])] 
+        },
+        Cutting: { 
+            a: ['Method', plain(['3-Knife Trim', 'Die Cut', 'Creasing', 'Perforation', 'Punching', 'Folding', 'Numbering', 'Corner Rounding'])], 
+            b: null 
+        },
+        Binding: { 
+            a: ['Method', plain(['Perfect Binding', 'Thread Sewn + Perfect', 'Hardcover / Case', 'Saddle Stitch (Pin)', 'Spiral Ring', 'Wire-O Double Ring', 'Pad Pasting', 'Jacket Pasting'])], 
+            b: null 
+        },
+        Packing: { 
+            a: ['Material', plain(['Poly Bag Wrap', 'Paper Band', 'Master Carton', 'Shrink Film', 'Bubble Wrap', 'Wooden Pallet'])], 
+            b: ['Per', plain(['Copy', 'Dozen', 'Hundred', 'Carton', 'Lot'])] 
+        },
+        Transport: { 
+            a: ['Work', plain(['Press to Office', 'Office to Client', 'Courier Transport', 'Loading Labor', 'Doorstep Delivery'])], 
+            b: ['Per', plain(['Lot', 'Copy', 'Hundred', 'Thousand', 'Carton'])] 
+        },
         Other: { a: null, b: null }
     };
 
-    // Starting rates only where the old calculator carried them (BDT per ream); every other rate is yours to enter.
-    var PAPER_DEFAULT = { '80|white': 3200, '70|white': 2800, '70|cream': 3500, '80|cream': 4000, '100|art': 4500, '120|matt': 5200, '65|white': 2400, '55|newsprint': 2000, '80|kraft': 3000 };
-
-    // Trim sizes in inches (width × height) and the press sheets they are cut from.
-    var SIZES = { Demy: [5.5, 8.5], Crown: [7.25, 9.5], Royal: [6.5, 9.5], A3: [11.7, 16.5], A4: [8.3, 11.7], A5: [5.8, 8.3], B5: [6.9, 9.8], Card: [3.5, 2], Poster: [18, 23], Full: [23, 36] };
-    var SHEETS = { '23x36': [23, 36], '25x36': [25, 36], '20x30': [20, 30], '18x23': [18, 23] };
-
-    // Component presets. a / b are the dropdown choices; auto is the quantity rule.
-    var P = function (g, n, o) { o = o || {}; o.g = g; o.n = n; return o; };
-    var TYPES = {
-        book: { label: 'Book', unit: 'Copy', size: 'Demy', pages: true, rows: [
-            P('Design', 'Layout', { auto: 'per', a: 'Layout', b: 'Page' }), P('Design', 'Cover', { auto: 'per', a: 'Cover', b: 'Job' }),
-            P('Paper', 'Inner', { auto: 'paperBook', a: 80, b: 'White', waste: 5 }),
-            P('Paper', 'Cover', { auto: 'sheet', ups: 8, waste: 5, flat: true, noSize: true, a: 300, b: 'Glossy' }),
-            P('CTP', 'Inner', { auto: 'platesBook', a: 'CTP', b: 'Inner' }), P('CTP', 'Cover', { auto: 'platesCover', a: 'CTP', b: 'Cover' }),
-            P('Press', 'Inner', { auto: 'pressBook', a: 'Offset', b: 'Inner' }), P('Press', 'Cover', { auto: 'pressCover', a: 'Offset', b: 'Cover' }),
-            P('Lamination', 'Cover', { auto: 'lam', a: 'Matt', b: 'Front' }), P('Cutting', 'Trim', { auto: 'copies', a: 'Trim' }),
-            P('Binding', 'Book', { auto: 'copies', a: 'Perfect' }),
-            P('Packing', 'Book', { auto: 'per', a: 'Poly', b: 'Copy', off: true }), P('Transport', 'Delivery', { auto: 'per', a: 'Transport', b: 'Lot', off: true })
-        ] },
-        card: { label: 'Card', unit: 'Pcs', size: 'Card', rows: [
-            P('Design', 'Layout', { auto: 'per', a: 'Layout', b: 'Job' }),
-            P('Paper', 'Board', { auto: 'sheet', waste: 5, flat: true, a: 300, b: 'Art' }),
-            P('CTP', 'Inner', { auto: 'platesJob', a: 'CTP', b: 'Inner' }), P('Press', 'Inner', { auto: 'pressJob', a: 'Offset', b: 'Inner' }),
-            P('Lamination', 'Cover', { auto: 'lam', a: 'Matt', b: 'Both' }), P('Cutting', 'Trim', { auto: 'copies', a: 'Trim' }),
-            P('Packing', 'Bundle', { auto: 'per', a: 'Box', b: 'Hundred', off: true })
-        ] },
-        leaflet: { label: 'Leaflet', unit: 'Pcs', size: 'A4', rows: [
-            P('Design', 'Layout', { auto: 'per', a: 'Layout', b: 'Job' }),
-            P('Paper', 'Inner', { auto: 'sheet', waste: 5, flat: true, a: 120, b: 'Matt' }),
-            P('CTP', 'Inner', { auto: 'platesJob', a: 'CTP', b: 'Inner' }), P('Press', 'Inner', { auto: 'pressJob', a: 'Offset', b: 'Inner' }),
-            P('Cutting', 'Trim', { auto: 'copies', a: 'Trim' }), P('Packing', 'Bundle', { auto: 'per', a: 'Band', b: 'Hundred', off: true })
-        ] },
-        poster: { label: 'Poster', unit: 'Pcs', size: 'Poster', rows: [
-            P('Design', 'Layout', { auto: 'per', a: 'Layout', b: 'Job' }),
-            P('Paper', 'Inner', { auto: 'sheet', waste: 5, flat: true, a: 100, b: 'Art' }),
-            P('CTP', 'Inner', { auto: 'platesJob', a: 'CTP', b: 'Inner' }), P('Press', 'Inner', { auto: 'pressJob', a: 'Offset', b: 'Inner' }),
-            P('Lamination', 'Cover', { auto: 'lam', a: 'Glossy', b: 'Front', off: true }), P('Cutting', 'Trim', { auto: 'copies', a: 'Trim' })
-        ] },
-        calendar: { label: 'Calendar', unit: 'Pcs', size: 'A3', pages: true, rows: [
-            P('Design', 'Layout', { auto: 'per', a: 'Layout', b: 'Job' }),
-            P('Paper', 'Inner', { auto: 'sheet', waste: 5, a: 120, b: 'Matt' }),
-            P('CTP', 'Inner', { auto: 'platesJob', a: 'CTP', b: 'Inner' }), P('Press', 'Inner', { auto: 'pressJob', a: 'Offset', b: 'Inner' }),
-            P('Cutting', 'Trim', { auto: 'copies', a: 'Trim' }), P('Binding', 'Book', { auto: 'copies', a: 'Spiral' }),
-            P('Packing', 'Book', { auto: 'per', a: 'Poly', b: 'Copy', off: true })
-        ] },
-        box: { label: 'Box', unit: 'Pcs', size: 'A4', rows: [
-            P('Design', 'Layout', { auto: 'per', a: 'Layout', b: 'Job' }),
-            P('Paper', 'Board', { auto: 'sheet', waste: 8, flat: true, a: 350, b: 'Duplex' }),
-            P('CTP', 'Inner', { auto: 'platesJob', a: 'CTP', b: 'Inner' }), P('Press', 'Inner', { auto: 'pressJob', a: 'Offset', b: 'Inner' }),
-            P('Lamination', 'Cover', { auto: 'lam', a: 'Matt', b: 'Front' }), P('Cutting', 'Trim', { auto: 'copies', a: 'Die' }),
-            P('Binding', 'Book', { auto: 'copies', a: 'Pasting' }), P('Packing', 'Carton', { auto: 'per', a: 'Carton', b: 'Hundred', off: true })
-        ] },
-        memo: { label: 'Memo', unit: 'Book', size: 'A5', pages: true, rows: [
-            P('Design', 'Layout', { auto: 'per', a: 'Layout', b: 'Job' }),
-            P('Paper', 'Inner', { auto: 'sheet', waste: 5, a: 70, b: 'White' }),
-            P('CTP', 'Inner', { auto: 'platesJob', a: 'CTP', b: 'Inner' }), P('Press', 'Inner', { auto: 'pressJob', a: 'Offset', b: 'Inner' }),
-            P('Cutting', 'Trim', { auto: 'copies', a: 'Trim' }), P('Binding', 'Pad', { auto: 'copies', a: 'Pasting' })
-        ] },
-        custom: { label: 'Custom', unit: 'Pcs', size: '', rows: [] }
+    var PAPER_DEFAULT = { 
+        '80|offset white': 3200, '70|offset white': 2800, '70|offwhite': 3100, '80|offwhite': 3500,
+        '70|cream munken': 3800, '80|cream munken': 4200, '100|art paper': 4500, '120|matt art paper': 5200, 
+        '65|offset white': 2500, '55|newsprint': 2100, '80|kraft': 3000, '300|art card': 5800, '350|swedish board': 6500 
     };
-    var TIERS = [500, 1000, 2000, 5000, 10000];
 
-    // Rule used when a line is added by hand
-    var GROUP_AUTO = { Design: 'per', Paper: 'sheet', CTP: 'platesJob', Press: 'pressJob', Lamination: 'lam', Cutting: 'copies', Binding: 'copies', Packing: 'per', Transport: 'per', Other: 'one' };
+    var SIZES = { 
+        Demy: [5.5, 8.5], 
+        Crown: [7.25, 9.5], 
+        Royal: [6.5, 9.5], 
+        A4: [8.3, 11.7], 
+        A5: [5.8, 8.3], 
+        A3: [11.7, 16.5], 
+        B5: [6.9, 9.8], 
+        Card: [3.5, 2.0], 
+        Poster: [18.0, 23.0], 
+        Envelope: [10.0, 4.5],
+        Full: [23.0, 36.0] 
+    };
+
+    var SIZES_BN = {
+        Demy: 'ডিমাই (৫.৫"×৮.৫")',
+        Crown: 'ক্রাউন (৭.২৫"×৯.৫")',
+        Royal: 'রয়্যাল (৬.৫"×৯.৫")',
+        A4: 'A4 (৮.৩"×১১.৭")',
+        A5: 'A5 (৫.৮"×৮.৩")',
+        A3: 'A3 (১১.৭"×১৬.৫")',
+        B5: 'B5 (৬.৯"×৯.৮")',
+        Card: 'ভিজিটিং কার্ড (৩.৫"×২.০")',
+        Poster: 'পোস্টার (১৮"×২৩")',
+        Envelope: 'খাম (১০"×৪.৫")',
+        Full: 'ফুল শিট (২৩"×৩৬")'
+    };
+
+    var SHEETS = { 
+        '23x36': [23, 36], 
+        '25x36': [25, 36], 
+        '20x30': [20, 30], 
+        '18x23': [18, 23],
+        '27x38': [27, 38],
+        '31x43': [31, 43]
+    };
+
+    var P = function (g, n, o) { o = o || {}; o.g = g; o.n = n; return o; };
+
+    var TYPES = {
+        book: { label: 'বই (Book)', unit: 'Copy', size: 'Demy', pages: true, defaultTitle: 'বই মুদ্রণ ও প্রকাশনা', rows: [
+            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Page' }), 
+            P('Design', 'Cover Design', { auto: 'per', a: 'Cover Design', b: 'Job' }),
+            P('Paper', 'Inner Paper', { auto: 'paperBook', a: 80, b: 'Offwhite', waste: 5 }),
+            P('Paper', 'Cover Board', { auto: 'sheet', ups: 8, waste: 5, flat: true, noSize: true, a: 300, b: 'Art Card' }),
+            P('CTP', 'Inner Plates', { auto: 'platesBook', a: 'CTP Thermal', b: 'Inner' }), 
+            P('CTP', 'Cover Plates', { auto: 'platesCover', a: 'CTP Thermal', b: 'Cover' }),
+            P('Press', 'Inner Press (Offset)', { auto: 'pressBook', a: 'Offset 1-Color', b: 'Inner' }), 
+            P('Press', 'Cover Press (Offset)', { auto: 'pressCover', a: 'Offset 4-Color', b: 'Cover' }),
+            P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Matt Lamination', b: 'Front (Single)' }), 
+            P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
+            P('Binding', 'Perfect Glue Binding', { auto: 'copies', a: 'Perfect Binding' }),
+            P('Packing', 'Poly Bag Wrapping', { auto: 'per', a: 'Poly Bag Wrap', b: 'Copy', off: true }), 
+            P('Transport', 'Press to Office Delivery', { auto: 'per', a: 'Press to Office', b: 'Lot', off: true })
+        ] },
+        magazine: { label: 'ম্যাগাজিন / স্মরণিকা (Magazine)', unit: 'Copy', size: 'A4', pages: true, defaultTitle: 'ম্যাগাজিন / স্মরণিকা মুদ্রণ', rows: [
+            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Page' }),
+            P('Design', 'Cover Design', { auto: 'per', a: 'Cover Design', b: 'Job' }),
+            P('Paper', 'Inner Paper', { auto: 'paperBook', a: 100, b: 'Art Paper', waste: 5 }),
+            P('Paper', 'Cover Board', { auto: 'sheet', ups: 4, waste: 5, flat: true, noSize: true, a: 250, b: 'Art Card' }),
+            P('CTP', 'Inner Plates', { auto: 'platesBook', a: 'CTP Thermal', b: 'Inner' }),
+            P('CTP', 'Cover Plates', { auto: 'platesCover', a: 'CTP Thermal', b: 'Cover' }),
+            P('Press', 'Inner Press (Offset)', { auto: 'pressBook', a: 'Offset 4-Color', b: 'Inner' }),
+            P('Press', 'Cover Press (Offset)', { auto: 'pressCover', a: 'Offset 4-Color', b: 'Cover' }),
+            P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Glossy Lamination', b: 'Front (Single)' }),
+            P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
+            P('Binding', 'Saddle Stitch (Pin)', { auto: 'copies', a: 'Saddle Stitch (Pin)' }),
+            P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
+        ] },
+        notebook: { label: 'ডায়েরি / নোটবুক (Diary)', unit: 'Book', size: 'Demy', pages: true, defaultTitle: 'এক্সিকিউটিভ ডায়েরি ও নোটবুক', rows: [
+            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+            P('Paper', 'Inner Paper', { auto: 'paperBook', a: 80, b: 'Cream Munken', waste: 5 }),
+            P('Paper', 'Cover Board', { auto: 'sheet', ups: 8, waste: 5, flat: true, noSize: true, a: 350, b: 'Grey Board 2.0mm' }),
+            P('CTP', 'Inner Plates', { auto: 'platesBook', a: 'CTP Thermal', b: 'Inner' }),
+            P('Press', 'Inner Press (Offset)', { auto: 'pressBook', a: 'Offset 2-Color', b: 'Inner' }),
+            P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Velvet Soft-Touch', b: 'Front (Single)' }),
+            P('Binding', 'Hardcover Binding', { auto: 'copies', a: 'Hardcover / Case' }),
+            P('Other', 'Ribbon Bookmark', { auto: 'copies', a: 'Ribbon Bookmark', b: 'Copy' })
+        ] },
+        brochure: { label: 'ব্রোশিউর / ফোল্ডার (Brochure)', unit: 'Pcs', size: 'A4', defaultTitle: 'মাল্টিকালার ৩-ফোল্ড ব্রোশিউর', rows: [
+            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+            P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 170, b: 'Matt Art Paper' }),
+            P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
+            P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+            P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Matt Lamination', b: 'Both Sides' }),
+            P('Cutting', 'Creasing & Scoring', { auto: 'copies', a: 'Creasing' }),
+            P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
+        ] },
+        card: { label: 'ভিজিটিং কার্ড (Visiting Card)', unit: 'Pcs', size: 'Card', defaultTitle: 'প্রিমিয়াম বিজনেস ভিজিটিং কার্ড', rows: [
+            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+            P('Paper', 'Cover Board', { auto: 'sheet', waste: 5, flat: true, a: 300, b: 'Art Card' }),
+            P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
+            P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+            P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Matt Lamination', b: 'Both Sides' }),
+            P('Lamination', 'Spot UV Coating', { auto: 'copies', a: 'Spot UV', b: 'Front (Single)', off: true }),
+            P('Cutting', 'Die Cutting', { auto: 'copies', a: 'Die Cut' }),
+            P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
+        ] },
+        leaflet: { label: 'লিফলেট / ফ্লায়ার (Leaflet)', unit: 'Pcs', size: 'A4', defaultTitle: 'প্রচারপত্র / কালার লিফলেট', rows: [
+            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+            P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 120, b: 'Matt Art Paper' }),
+            P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
+            P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+            P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
+            P('Packing', 'Paper Band', { auto: 'per', a: 'Paper Band', b: 'Hundred', off: true })
+        ] },
+        poster: { label: 'পোস্টার (Poster)', unit: 'Pcs', size: 'Poster', defaultTitle: 'ফুল কালার অফসেট পোস্টার', rows: [
+            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+            P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 100, b: 'Art Paper' }),
+            P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
+            P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+            P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Glossy Lamination', b: 'Front (Single)', off: true }),
+            P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' })
+        ] },
+        calendar: { label: 'ক্যালেন্ডার (Calendar)', unit: 'Pcs', size: 'A3', pages: true, defaultTitle: 'ওয়াল / ডেস্ক ক্যালেন্ডার', rows: [
+            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+            P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, a: 150, b: 'Matt Art Paper' }),
+            P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
+            P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+            P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
+            P('Binding', 'Spiral Ring', { auto: 'copies', a: 'Spiral Ring' }),
+            P('Packing', 'Poly Bag Wrapping', { auto: 'per', a: 'Poly Bag Wrap', b: 'Copy', off: true })
+        ] },
+        box: { label: 'প্যাকেজিং বক্স (Box)', unit: 'Pcs', size: 'A4', defaultTitle: 'প্যাকেজিং কার্টন / প্রোডাক্ট বক্স', rows: [
+            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+            P('Paper', 'Cover Board', { auto: 'sheet', waste: 8, flat: true, a: 350, b: 'Duplex Board' }),
+            P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
+            P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+            P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Matt Lamination', b: 'Front (Single)' }),
+            P('Cutting', 'Die Cutting', { auto: 'copies', a: 'Die Cut' }),
+            P('Binding', 'Pad Pasting', { auto: 'copies', a: 'Pad Pasting' }),
+            P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
+        ] },
+        memo: { label: 'ক্যাশ মেমো / চালান বই (Memo Pad)', unit: 'Book', size: 'A5', pages: true, defaultTitle: 'ক্যাশ মেমো / চালান ভাউচার বই (৩ পার্ট)', rows: [
+            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+            P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, a: 55, b: 'NCR Top' }),
+            P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, a: 55, b: 'NCR Middle' }),
+            P('Paper', 'Cover Board', { auto: 'sheet', waste: 5, flat: true, a: 200, b: 'Duplex Board' }),
+            P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
+            P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 1-Color', b: 'Inner' }),
+            P('Cutting', 'Perforation', { auto: 'copies', a: 'Perforation' }),
+            P('Cutting', 'Numbering', { auto: 'copies', a: 'Numbering' }),
+            P('Binding', 'Pad Pasting', { auto: 'copies', a: 'Pad Pasting' })
+        ] },
+        envelope: { label: 'খাম ও অফিসিয়াল প্যাড (Envelope)', unit: 'Pcs', size: 'Envelope', defaultTitle: 'অফিসিয়াল প্রিন্টেড খাম ও লেটারহেড', rows: [
+            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+            P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 100, b: 'Offset White' }),
+            P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
+            P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+            P('Cutting', 'Die Cutting', { auto: 'copies', a: 'Die Cut' }),
+            P('Binding', 'Pad Pasting', { auto: 'copies', a: 'Pad Pasting' }),
+            P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
+        ] },
+        stationery: { label: 'স্টেশনারি ও সাপ্লাই (Stationery)', unit: 'Pcs', size: '', defaultTitle: 'কর্পোরেট স্টেশনারি ও গিফট প্যাক', rows: [
+            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+            P('Other', 'Miscellaneous', { auto: 'copies', a: 'Corporate Item', b: 'Copy' }),
+            P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred' }),
+            P('Transport', 'Office to Client Door', { auto: 'per', a: 'Office to Client', b: 'Lot' })
+        ] },
+        custom: { label: 'কাস্টম জব (Custom Item)', unit: 'Pcs', size: 'Demy', defaultTitle: 'কাস্টম আইটেম উৎপাদন ও সাপ্লাই', rows: [] }
+    };
+
+    var TIERS = [250, 500, 1000, 2000, 3000, 5000, 10000];
+
+    var GROUP_AUTO = { 
+        Design: 'per', Paper: 'sheet', CTP: 'platesJob', Press: 'pressJob', 
+        Lamination: 'lam', Cutting: 'copies', Binding: 'copies', 
+        Packing: 'per', Transport: 'per', Other: 'one' 
+    };
+
     var GROUP_DEFAULT = {
-        Design: { a: 'Layout', b: 'Job' }, Paper: { a: 80, b: 'White' }, CTP: { a: 'CTP', b: 'Inner' }, Press: { a: 'Offset', b: 'Inner' },
-        Lamination: { a: 'Matt', b: 'Front' }, Cutting: { a: 'Trim' }, Binding: { a: 'Perfect' }, Packing: { a: 'Poly', b: 'Copy' }, Transport: { a: 'Labor', b: 'Lot' }, Other: {}
+        Design: { a: 'Layout Design', b: 'Job' }, 
+        Paper: { a: 80, b: 'Offset White' }, 
+        CTP: { a: 'CTP Thermal', b: 'Inner' }, 
+        Press: { a: 'Offset 4-Color', b: 'Inner' },
+        Lamination: { a: 'Matt Lamination', b: 'Front (Single)' }, 
+        Cutting: { a: '3-Knife Trim' }, 
+        Binding: { a: 'Perfect Binding' }, 
+        Packing: { a: 'Poly Bag Wrap', b: 'Copy' }, 
+        Transport: { a: 'Press to Office', b: 'Lot' }, 
+        Other: {}
     };
 
     var state = { type: 'book', rows: [], seq: 0 };
     var el = {};
 
     function num(v) { var n = parseFloat(v); return isFinite(n) ? n : 0; }
-    function money(v, d) { return '৳' + Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: d == null ? 0 : d, maximumFractionDigits: d == null ? 0 : d }); }
+    function money(v, d) { return '৳' + Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: d == null ? 2 : d, maximumFractionDigits: d == null ? 2 : d }); }
     function round(v, d) { var p = Math.pow(10, d == null ? 2 : d); return Math.round((v + Number.EPSILON) * p) / p; }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function $(id) { return doc.getElementById(id); }
 
-    // Which variant set a line uses (paper depends on inner vs cover stock).
     function variantKey(r) {
         if (r.g !== 'Paper') return r.g;
         return /cover|board|jacket|card|wrapper|dust/i.test(r.n) ? 'PaperCover' : 'PaperInner';
     }
     function variants(r) { return VARIANTS[variantKey(r)] || { a: null, b: null }; }
 
-    // ── Paper picker: one box that understands "80 white", "300 swedish", chips for one-tap changes ──
     function customKinds() { var k = readStore('pc-kinds'); return Array.isArray(k) ? k : (k.list || []); }
     function addKind(name) {
         var list = customKinds();
-        if (list.indexOf(name) === -1) { list.push(name); try { localStorage.setItem('pc-kinds', JSON.stringify({ list: list })); } catch (e) { /* storage off */ } }
+        if (list.indexOf(name) === -1) { list.push(name); try { localStorage.setItem('pc-kinds', JSON.stringify({ list: list })); } catch (e) {} }
     }
     function kindsFor(r) {
         var base = variants(r).b ? variants(r).b[1].map(function (o) { return o[0]; }) : [];
@@ -148,9 +335,8 @@
     function customGsms() { var k = readStore('pc-gsms'); return Array.isArray(k) ? k : (k.list || []); }
     function addGsm(n) {
         var list = customGsms();
-        if (list.indexOf(n) === -1) { list.push(n); try { localStorage.setItem('pc-gsms', JSON.stringify({ list: list })); } catch (e) { /* storage off */ } }
+        if (list.indexOf(n) === -1) { list.push(n); try { localStorage.setItem('pc-gsms', JSON.stringify({ list: list })); } catch (e) {} }
     }
-    // The standard weights plus any weight you have typed before (85, 150 …), ascending.
     function gsmsFor(r) {
         var base = variants(r).a ? variants(r).a[1].map(function (o) { return o[0]; }) : [];
         customGsms().concat(r.a ? [r.a] : []).forEach(function (g) { if (base.indexOf(g) === -1) base.push(g); });
@@ -163,7 +349,6 @@
     function stockText(r) { return (r.a ? r.a + ' GSM' : '') + (r.b ? (r.a ? ' ' : '') + r.b : ''); }
     function titleCase(w) { return w.toLowerCase().replace(/(^|[\s-])(\p{L})/gu, function (m, p, c) { return p + c.toUpperCase(); }); }
 
-    // "80", "80 gsm white", "white 80", "Pearl 85" → {a: 80, b: 'White'}; unknown words become new kinds.
     function parseStock(text, r) {
         var t = String(text || '').trim();
         if (!t) return null;
@@ -182,22 +367,25 @@
         return { a: a, b: b };
     }
 
-    // A dropdown of choices; a leading dot marks the ones that already have a rate.
     function pickRow(items, current, cls, label, suffix, dotFor) {
         var opts = items.map(function (v) {
             return '<option value="' + esc(v) + '"' + (String(v) === String(current) ? ' selected' : '') + '>' + (dotFor(v) ? '● ' : '') + esc(v) + (suffix || '') + '</option>';
         }).join('');
-        return '<label class="pc-pick">' + label + '<select class="form-select form-select-sm ' + cls + '">' + opts + '</select></label>';
+        return '<label class="pc-pick"><span class="pc-pick-lbl">' + label + '</span><select class="form-select form-select-sm ' + cls + '">' + opts + '</select></label>';
     }
 
     function paperBlock(r) {
         var list = variantKey(r) === 'PaperCover' ? 'Cover' : 'Inner';
-        return '<div class="pc-paper">'
-            + '<div class="pc-paper-top"><input class="form-control form-control-sm pc-stock" list="pcPaper' + list + '" value="' + esc(stockText(r)) + '" aria-label="Paper" title="GSM Kind">'
-            + (r.auto === 'sheet' ? '<label>Ups<input type="number" class="form-control form-control-sm pc-ups" min="1" step="1" value="' + esc(r.ups) + '"></label>' : '')
-            + '<label>Waste %<input type="number" class="form-control form-control-sm pc-waste" min="0" step="1" value="' + esc(r.waste) + '"></label></div>'
-            + '<div class="pc-picks">' + pickRow(gsmsFor(r), r.a, 'pc-a', 'GSM', '', function (g) { return knownRate('Paper', g, r.b); })
-            + pickRow(kindsFor(r), r.b, 'pc-b', 'Kind', '', function (k) { return knownRate('Paper', r.a, k); }) + '</div>'
+        return '<div class="pc-paper d-flex flex-column gap-1.5 mt-1">'
+            + '<div class="pc-paper-top d-flex align-items-center gap-2 flex-wrap">'
+            + '<input class="form-control form-control-sm pc-stock font-monospace" list="pcPaper' + list + '" value="' + esc(stockText(r)) + '" aria-label="Paper" title="GSM & Paper Kind" placeholder="যেমন: 80 GSM Offwhite" style="min-width: 170px; flex: 1;">'
+            + (r.auto === 'sheet' ? '<div class="input-group input-group-sm" style="width: 110px;"><span class="input-group-text bg-light" style="font-size: 10.5px;">আপস</span><input type="number" class="form-control form-control-sm pc-ups text-end font-monospace" min="1" step="1" value="' + esc(r.ups) + '"></div>' : '')
+            + '<div class="input-group input-group-sm" style="width: 110px;"><span class="input-group-text bg-light" style="font-size: 10.5px;">অপচয় %</span><input type="number" class="form-control form-control-sm pc-waste text-end font-monospace" min="0" step="1" value="' + esc(r.waste) + '"></div>'
+            + '</div>'
+            + '<div class="pc-picks d-flex align-items-center gap-2 flex-wrap">' 
+            + pickRow(gsmsFor(r), r.a, 'pc-a', 'GSM:', '', function (g) { return knownRate('Paper', g, r.b); })
+            + pickRow(kindsFor(r), r.b, 'pc-b', 'ধরন:', '', function (k) { return knownRate('Paper', r.a, k); }) 
+            + '</div>'
             + '</div>';
     }
 
@@ -216,14 +404,12 @@
         });
     }
 
-    // ── Browser memory ─────────────────────────────────────────────────────
+    // ── Local Storage Cache ────────────────────────────────────────────────
     function store(key, fn) {
-        try { var all = JSON.parse(localStorage.getItem(key) || '{}'); fn(all); localStorage.setItem(key, JSON.stringify(all)); } catch (e) { /* storage off */ }
+        try { var all = JSON.parse(localStorage.getItem(key) || '{}'); fn(all); localStorage.setItem(key, JSON.stringify(all)); } catch (e) {}
     }
     function readStore(key) { try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { return {}; } }
-    // A rate belongs to the choices, not to the label: "Paper 80 GSM White" costs the same inner or cover.
-    // Rate sheet (shared, on the server) → this browser's remembered rates → built-in starter paper rates.
-    // The kind only matters for rates that change with it: paper kind, and the basis of packing / transport / design.
+    
     var KEY_B = { Paper: 1, Packing: 1, Transport: 1, Design: 1 };
     var SHEET = {}, SHEET_ROWS = [], sheetLoaded = false;
     function norm(v) { return String(v == null ? '' : v).trim().toLowerCase(); }
@@ -253,37 +439,60 @@
     function saveRate(r) { store('pc-rates', function (m) { m[memKey(r)] = r.rate; }); }
     function saveLast() {
         store('pc-last', function (m) {
-            m[state.type] = { qty: $('pcQty').value, pages: $('pcPages').value, colors: $('pcColors').value, sides: $('pcSides').value, size: $('pcSize').value, sheet: $('pcSheet').value, overhead: $('pcOverhead').value, profit: $('pcProfit').value, round: $('pcRound').value };
+            m[state.type] = { 
+                title: $('pcTitleIn').value,
+                qty: $('pcQty').value, 
+                pages: $('pcPages').value, 
+                formaSize: $('pcFormaSize') ? $('pcFormaSize').value : '16',
+                colors: $('pcColors').value, 
+                sides: $('pcSides').value, 
+                plateMethod: $('pcPlateMethod') ? $('pcPlateMethod').value : 'work_and_turn',
+                size: $('pcSize').value, 
+                sheet: $('pcSheet').value, 
+                overhead: $('pcOverhead').value, 
+                profit: $('pcProfit').value, 
+                round: $('pcRound').value 
+            };
         });
     }
     function loadLast(type) {
         var v = readStore('pc-last')[type];
         var d = TYPES[type];
-        $('pcQty').value = v ? v.qty : '';
-        $('pcPages').value = v && d.pages ? v.pages : '';
+        $('pcTitleIn').value = v && v.title !== undefined ? v.title : (d.defaultTitle || '');
+        $('pcQty').value = v ? v.qty : '1000';
+        $('pcPages').value = v && d.pages ? v.pages : (d.pages ? '128' : '');
+        if ($('pcFormaSize')) $('pcFormaSize').value = v && v.formaSize ? v.formaSize : '16';
         $('pcColors').value = v ? v.colors : '4';
         $('pcSides').value = v ? v.sides : '1';
+        if ($('pcPlateMethod')) $('pcPlateMethod').value = v && v.plateMethod ? v.plateMethod : 'work_and_turn';
         $('pcSize').value = v && v.size !== undefined ? v.size : d.size;
         $('pcSheet').value = v ? v.sheet : '23x36';
-        $('pcOverhead').value = v ? v.overhead : '';
-        $('pcProfit').value = v ? v.profit : '';
+        $('pcOverhead').value = v && v.overhead !== undefined ? v.overhead : '0';
+        $('pcProfit').value = v && v.profit !== undefined ? v.profit : '20';
         $('pcRound').value = v ? v.round : '0';
     }
 
-    // ── Job values and derived numbers ──────────────────────────────────────
+    // ── Calculations Engine ────────────────────────────────────────────────
     function job(qOverride) {
-        var q = qOverride != null ? qOverride : num($('pcQty').value), pages = num($('pcPages').value);
+        var q = qOverride != null ? qOverride : num($('pcQty').value);
+        var pages = num($('pcPages').value);
+        var formaSize = $('pcFormaSize') ? (num($('pcFormaSize').value) || 16) : 16;
+        var formas = pages > 0 ? Math.ceil(pages / formaSize) : 0;
+        var plateMethod = $('pcPlateMethod') ? $('pcPlateMethod').value : 'work_and_turn';
+
         return {
-            q: q, pages: pages,
+            q: q,
+            pages: pages,
+            formaSize: formaSize,
+            formas: formas,
+            plateMethod: plateMethod,
             colors: num($('pcColors').value) || 4,
             sides: num($('pcSides').value) || 1,
-            formas: pages > 0 ? Math.ceil(pages / 16) : 0,
             size: $('pcSize').value,
             sheet: $('pcSheet').value
         };
     }
 
-    // Pieces of the trim size per press sheet (best of both orientations).
     function upsFor(size, sheet) {
         var p = SIZES[size], s = SHEETS[sheet];
         if (!p || !s) return 0;
@@ -292,42 +501,86 @@
         return Math.max(a, b);
     }
 
-    // Quantity of a "per" line: how the packing / transport / design charge is counted.
     function perQty(r, j) {
         switch (r.b) {
             case 'Copy': return j.q;
             case 'Dozen': return Math.ceil(j.q / 12);
             case 'Hundred': return Math.ceil(j.q / 100);
             case 'Thousand': return Math.ceil(j.q / 1000);
+            case 'Carton': return Math.ceil(j.q / 100);
             case 'Page': return j.pages || 1;
-            default: return 1; // Lot, Job
+            default: return 1; // Job, Lot
         }
     }
 
     function auto(r, j) {
         var q = j.q;
+        // Bangladesh Offset Press Standard: 
+        // 1 to 1,000 copies = flat 1,000 impression minimum charge per pass/forma.
+        // Above 1,000 copies, charged proportionally per thousand (e.g. 1.5 for 1,500, 2.5 for 2,500).
+        var impressionMultiplier = Math.max(1, q / 1000);
+
         switch (r.auto) {
             case 'one': return 1;
             case 'copies': return q;
             case 'per': return perQty(r, j);
-            case 'lam': return q * (r.b === 'Both' ? 2 : 1);
-            case 'paperBook': return j.formas ? Math.ceil((j.formas * q / 500) * (1 + num(r.waste) / 100) * 10) / 10 : 0;
-            case 'sheet': {
-                var mult = (!r.flat && j.pages > 0 && TYPES[state.type].pages) ? j.pages : 1;
-                var sheets = (q * mult / Math.max(1, num(r.ups))) * (1 + num(r.waste) / 100);
-                return Math.ceil(sheets / 500 * 10) / 10;
+            case 'lam': return q * (r.b === 'Both Sides' ? 2 : 1);
+            case 'paperBook': {
+                // Book Inner Paper:
+                // Formas = ceil(pages / formaSize)
+                // Total full press sheets = (formas * q) * (1 + waste% / 100)
+                // Total reams = sheets / 500
+                if (!j.formas || q <= 0) return 0;
+                var wastePct = num(r.waste) != null ? num(r.waste) : 5;
+                var sheets = (j.formas * q) * (1 + wastePct / 100);
+                return round(sheets / 500, 2);
             }
-            case 'platesBook': return j.formas * j.colors;
-            case 'platesCover': return 4;
-            case 'platesJob': return j.colors * j.sides;
-            case 'pressBook': return round(j.formas * Math.max(1, q / 1000), 1);
-            case 'pressCover': return round(Math.max(1, q / 1000), 1);
-            case 'pressJob': return round(Math.max(1, q / 1000) * j.sides, 1);
+            case 'sheet': {
+                // Cover board or flat single sheet items:
+                var mult = (!r.flat && j.pages > 0 && TYPES[state.type].pages) ? j.pages : 1;
+                var ups = Math.max(1, num(r.ups));
+                var wastePct = num(r.waste) != null ? num(r.waste) : 5;
+                var sheets = (q * mult / ups) * (1 + wastePct / 100);
+                return round(sheets / 500, 2);
+            }
+            case 'platesBook': {
+                // Plates based on Formas, Colors, and Plate Method:
+                // Work & Turn (ফার্মা উল্টানো) = 1 plate per color per forma
+                // Sheetwise (শিটওয়াইজ - ফ্রন্ট ও ব্যাক আলাদা) = 2 plates per color per forma
+                var methodMultiplier = (j.plateMethod === 'sheetwise') ? 2 : 1;
+                return j.formas * j.colors * methodMultiplier;
+            }
+            case 'platesCover': {
+                // Cover Plate: Standard 4 CTP plates for 4-Color (CMYK)
+                var coverSides = (r.b === 'Both Sides' || j.sides === 2) ? 2 : 1;
+                var coverColors = j.colors >= 4 ? 4 : (j.colors || 4);
+                return coverColors * coverSides;
+            }
+            case 'platesJob': {
+                var methodMultiplier = (j.plateMethod === 'sheetwise') ? 2 : 1;
+                return j.colors * (j.sides === 2 ? methodMultiplier : 1);
+            }
+            case 'pressBook': {
+                // Offset Printing Impression for Books:
+                // Formas * Minimum 1,000 impression multiplier * sides
+                // For 1-1,000 copies, exactly 1 thousand per forma!
+                var sides = (j.plateMethod === 'sheetwise' && j.sides === 2) ? 2 : 1;
+                return round(j.formas * impressionMultiplier * sides, 1);
+            }
+            case 'pressCover': {
+                // Cover press impression:
+                var coverSides = (r.b === 'Both Sides' || j.sides === 2) ? 2 : 1;
+                return round(impressionMultiplier * coverSides, 1);
+            }
+            case 'pressJob': {
+                // General Job Impression:
+                var sides = (j.plateMethod === 'sheetwise' && j.sides === 2) ? 2 : 1;
+                return round(impressionMultiplier * sides, 1);
+            }
         }
         return 0;
     }
 
-    // ── Rows ────────────────────────────────────────────────────────────────
     function newRow(spec) {
         var d = GROUP_DEFAULT[spec.g] || {};
         var r = {
@@ -336,7 +589,8 @@
             flat: !!spec.flat, noSize: !!spec.noSize,
             a: spec.a !== undefined ? spec.a : d.a, b: spec.b !== undefined ? spec.b : d.b
         };
-        r.rate = rateFor(r); r.touched = false;
+        r.rate = rateFor(r); 
+        r.touched = false;
         return r;
     }
 
@@ -347,7 +601,13 @@
         $('pcUnit').value = t.unit;
         $('pcPagesWrap').hidden = !t.pages;
         if (!keepJob) loadLast(type);
-        el.types.querySelectorAll('.pc-type').forEach(function (b) { b.classList.toggle('is-active', b.dataset.type === type); });
+        
+        var badgeEl = $('pcActiveTypeBadge');
+        if (badgeEl) badgeEl.textContent = t.label;
+
+        el.types.querySelectorAll('.pc-type').forEach(function (b) { 
+            b.classList.toggle('is-active', b.dataset.type === type); 
+        });
         render();
     }
 
@@ -362,7 +622,6 @@
         });
     }
 
-    // ── Totals (also used for the quantity tiers) ──────────────────────────
     function priceFor(q) {
         var j = job(q);
         var layout = upsFor(j.size, j.sheet);
@@ -373,31 +632,70 @@
             var qty = r.manual ? num(r.qty) : auto(probe, j);
             direct += round(qty * num(r.rate), 2);
         });
-        var overhead = round(direct * num($('pcOverhead').value) / 100, 2);
+        var overheadPct = num($('pcOverhead').value);
+        var overhead = round(direct * overheadPct / 100, 2);
         var cost = round(direct + overhead, 2);
-        var profit = round(cost * num($('pcProfit').value) / 100, 2);
+        var profitPct = num($('pcProfit').value);
+        var profit = round(cost * profitPct / 100, 2);
         var total = round(cost + profit, 2);
         var unit = q > 0 ? total / q : 0;
         var step = num($('pcRound').value);
         var rounded = false;
-        if (step > 0 && unit > 0) { var up = Math.ceil(unit / step - 1e-9) * step; rounded = up !== unit; unit = up; total = round(unit * q, 2); }
-        else unit = round(unit, 2);
+        if (step > 0 && unit > 0) { 
+            var up = Math.ceil(unit / step - 1e-9) * step; 
+            rounded = up !== unit; 
+            unit = up; 
+            total = round(unit * q, 2); 
+        } else {
+            unit = round(unit, 2);
+        }
         return { direct: direct, overhead: overhead, cost: cost, profit: profit, total: total, unit: round(unit, 2), rounded: rounded };
     }
 
-    // ── Render ──────────────────────────────────────────────────────────────
+    // ── Table Rendering ─────────────────────────────────────────────────────
     function render() {
         recalcAuto();
         var html = '';
         GROUPS.forEach(function (g) {
             var rows = state.rows.filter(function (r) { return r.g === g; });
             if (!rows.length) return;
-            html += '<section class="pc-card" data-group="' + g + '"><header class="pc-card-head"><h6 class="pc-h">' + g + '</h6><span class="pc-sub" data-sub="' + g + '"></span></header>';
-            html += '<div class="pc-cols" aria-hidden="true"><span></span><span>Item</span><span>' + BASIS[g] + '</span><span>Rate</span><span>Total</span><span></span></div>';
+            var gTitle = GROUP_TITLES_BN[g] || g;
+            var gIcon = GROUP_ICONS[g] || 'fa-tag';
+            var basisLabel = BASIS_BN[g] || BASIS[g];
+
+            html += '<section class="pc-card pc-group-card shadow-2xs p-0 overflow-hidden" data-group="' + g + '">';
+            html += '<header class="pc-group-head d-flex align-items-center justify-content-between px-3 py-2 bg-light border-bottom">'
+                + '<div class="d-flex align-items-center gap-2">'
+                + '<i class="fa-solid ' + gIcon + ' fs-6"></i>'
+                + '<h6 class="pc-h m-0 text-dark fw-bold" style="font-size: 13px;">' + gTitle + ' (' + g + ')</h6>'
+                + '<span class="badge bg-secondary-subtle text-secondary rounded-pill font-monospace" style="font-size: 10px;">' + rows.length + ' আইটেম</span>'
+                + '</div>'
+                + '<div class="d-flex align-items-center gap-2">'
+                + '<span class="text-muted small" style="font-size: 11px;">সাবটোটাল:</span>'
+                + '<strong class="pc-sub text-primary font-monospace fs-6" data-sub="' + g + '">৳0.00</strong>'
+                + '</div>'
+                + '</header>';
+
+            html += '<div class="table-responsive m-0">'
+                + '<table class="table table-hover align-middle mb-0 pc-comp-table" style="font-size: 12.5px;">'
+                + '<thead class="table-light text-muted" style="font-size: 11px; text-transform: uppercase;">'
+                + '<tr>'
+                + '<th style="width: 36px;" class="text-center" title="অন্তর্ভুক্ত করুন">✓</th>'
+                + '<th style="min-width: 200px;">উপাদান ও বিবরণ</th>'
+                + '<th style="width: 140px;" class="text-end">পরিমাণ (' + basisLabel + ')</th>'
+                + '<th style="width: 130px;" class="text-end">দর ৳ (Rate)</th>'
+                + '<th style="width: 125px;" class="text-end">মোট ৳ (Total)</th>'
+                + '<th style="width: 40px;" class="text-center"></th>'
+                + '</tr>'
+                + '</thead>'
+                + '<tbody>';
+
             rows.forEach(function (r) { html += rowHtml(r); });
-            html += '</section>';
+
+            html += '</tbody></table></div></section>';
         });
-        el.groups.innerHTML = html || '<div class="pc-empty">Add</div>';
+
+        el.groups.innerHTML = html || '<div class="pc-empty p-4 text-center text-muted bg-white rounded-3 border">কোনো উপাদান যুক্ত করা হয়নি। ওপরে বাটনে ক্লিক করে উপাদান যোগ করুন।</div>';
         paint();
     }
 
@@ -405,7 +703,7 @@
         if (!spec) return '';
         var opts = spec[1];
         var has = opts.some(function (o) { return String(o[0]) === String(current); });
-        return '<select class="form-select form-select-sm pc-var ' + cls + '" aria-label="' + esc(label) + '">'
+        return '<select class="form-select form-select-sm pc-var ' + cls + '" aria-label="' + esc(label) + '" style="font-size: 11.5px; border-radius: 8px;">'
             + (has ? '' : '<option value="" selected>' + esc(label) + '</option>')
             + opts.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(current) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>';
     }
@@ -415,20 +713,46 @@
         r.vk = variantKey(r);
         var extra = '';
         var picks = select('pc-a', v.a ? v.a[0] : '', v.a, r.a) + select('pc-b', v.b ? v.b[0] : '', v.b, r.b);
-        if (r.g === 'Paper') { extra = paperBlock(r); picks = ''; }
-        return '<div class="pc-row' + (r.on ? '' : ' is-off') + '" data-id="' + r.id + '">'
-            + '<label class="pc-on"><input type="checkbox" class="pc-chk" ' + (r.on ? 'checked' : '') + ' aria-label="Include"></label>'
-            + '<div class="pc-name-wrap"><input class="form-control form-control-sm pc-name" list="pcNames' + r.g + '" value="' + esc(r.n) + '" maxlength="60" aria-label="Item">'
-            + picks + extra + '</div>'
-            + '<div class="pc-qty-wrap" data-label="' + BASIS[r.g] + '"><input type="number" class="form-control form-control-sm pc-qty text-end" min="0" step="any" value="' + esc(r.qty) + '" aria-label="Quantity">'
-            + '<button type="button" class="pc-auto" title="Auto"' + (r.manual && r.auto ? '' : ' hidden') + '>Auto</button></div>'
-            + '<div class="pc-rate-wrap" data-label="Rate"><input type="number" class="form-control form-control-sm pc-rate text-end" min="0" step="any" value="' + (r.rate || '') + '" aria-label="Rate"><button type="button" class="pc-pin" hidden>Save</button></div>'
-            + '<output class="pc-total" data-label="Total">' + money(lineTotal(r)) + '</output>'
-            + '<button type="button" class="pc-del" aria-label="Remove">×</button>'
-            + '</div>';
+        if (r.g === 'Paper') { 
+            extra = paperBlock(r); 
+            picks = ''; 
+        }
+
+        return '<tr class="pc-row' + (r.on ? '' : ' is-off table-light opacity-50') + '" data-id="' + r.id + '">'
+            + '<td class="text-center align-middle">'
+            + '<input type="checkbox" class="form-check-input pc-chk" ' + (r.on ? 'checked' : '') + ' aria-label="Include">'
+            + '</td>'
+            + '<td class="align-middle">'
+            + '<div class="d-flex flex-column gap-1">'
+            + '<div class="input-group input-group-sm">'
+            + '<input class="form-control form-control-sm pc-name fw-semibold text-dark" list="pcNames' + r.g + '" value="' + esc(r.n) + '" maxlength="80" aria-label="Item">'
+            + '</div>'
+            + (picks ? '<div class="pc-picks d-flex align-items-center gap-1.5 flex-wrap mt-0.5">' + picks + '</div>' : '')
+            + extra
+            + '</div>'
+            + '</td>'
+            + '<td class="text-end align-middle">'
+            + '<div class="position-relative d-inline-block" style="width: 105px;">'
+            + '<input type="number" class="form-control form-control-sm pc-qty text-end font-monospace" min="0" step="any" value="' + esc(r.qty) + '" aria-label="Quantity">'
+            + '<button type="button" class="pc-auto badge bg-primary text-white border-0 position-absolute" style="top: -7px; right: 4px; font-size: 9px; cursor: pointer;" title="Auto Calculated"' + (r.manual && r.auto ? '' : ' hidden') + '>Auto</button>'
+            + '</div>'
+            + '<small class="pc-qty-note text-muted font-monospace d-block text-end" style="font-size: 9.5px;"></small>'
+            + '</td>'
+            + '<td class="text-end align-middle">'
+            + '<div class="d-flex align-items-center justify-content-end gap-1">'
+            + '<input type="number" class="form-control form-control-sm pc-rate text-end font-monospace' + (!num(r.rate) && r.on && num(r.qty) > 0 ? ' is-invalid border-danger' : '') + '" min="0" step="any" value="' + (r.rate || '') + '" aria-label="Rate" placeholder="0.00" style="width: 85px;">'
+            + '<button type="button" class="btn btn-xs btn-outline-secondary pc-pin px-1 py-0.5 rounded" style="font-size: 10px;" title="রেট চার্টে সেভ করুন" hidden><i class="fa-solid fa-thumbtack"></i></button>'
+            + '</div>'
+            + '</td>'
+            + '<td class="text-end align-middle font-monospace fw-bold fs-6 pc-total text-dark">'
+            + money(lineTotal(r))
+            + '</td>'
+            + '<td class="text-center align-middle">'
+            + '<button type="button" class="btn btn-link btn-sm text-danger p-0 pc-del opacity-75 hover-opacity-100" title="মুছে ফেলুন" aria-label="Remove"><i class="fa-solid fa-trash-can"></i></button>'
+            + '</td>'
+            + '</tr>';
     }
 
-    // Update numbers without rebuilding inputs (keeps focus while typing).
     function paint() {
         var j = job();
         var perGroup = {};
@@ -439,17 +763,49 @@
             var r = byId(rowEl.dataset.id);
             if (!r) return;
             rowEl.classList.toggle('is-off', !r.on);
-            rowEl.querySelector('.pc-total').textContent = money(lineTotal(r));
-            var q = rowEl.querySelector('.pc-qty'); if (doc.activeElement !== q) q.value = r.qty;
-            var u = rowEl.querySelector('.pc-ups'); if (u && doc.activeElement !== u) u.value = r.ups;
-            var rate = rowEl.querySelector('.pc-rate'); if (doc.activeElement !== rate) rate.value = r.rate || '';
-            var autoBtn = rowEl.querySelector('.pc-auto'); if (autoBtn) autoBtn.hidden = !(r.manual && r.auto);
+            rowEl.classList.toggle('table-light', !r.on);
+            rowEl.classList.toggle('opacity-50', !r.on);
+            
+            var tot = rowEl.querySelector('.pc-total');
+            if (tot) tot.textContent = money(lineTotal(r));
+
+            var q = rowEl.querySelector('.pc-qty'); 
+            if (q && doc.activeElement !== q) q.value = r.qty;
+
+            var u = rowEl.querySelector('.pc-ups'); 
+            if (u && doc.activeElement !== u) u.value = r.ups;
+
+            var rate = rowEl.querySelector('.pc-rate'); 
+            if (rate && doc.activeElement !== rate) rate.value = r.rate || '';
+
+            var autoBtn = rowEl.querySelector('.pc-auto'); 
+            if (autoBtn) autoBtn.hidden = !(r.manual && r.auto);
+
+            var qNote = rowEl.querySelector('.pc-qty-note');
+            if (qNote) {
+                if (r.g === 'Paper') {
+                    qNote.textContent = Math.round(num(r.qty) * 500).toLocaleString('en-US') + ' শিট';
+                } else if (r.g === 'CTP') {
+                    qNote.textContent = (r.auto === 'platesBook' ? j.formas + ' ফর্মা × ' + j.colors + ' কালার' : (r.auto === 'platesCover' ? 'কভার ৪ প্লেট' : 'প্লেট'));
+                } else if (r.g === 'Press') {
+                    qNote.textContent = (j.q <= 1000 ? 'মিনিমাম ১০০০ ছাপ' : Math.round(num(r.qty) * 1000).toLocaleString('en-US') + ' ছাপ');
+                } else {
+                    qNote.textContent = '';
+                }
+            }
+
             var lacks = r.on && num(r.qty) > 0 && !num(r.rate);
-            rate.classList.toggle('is-missing', lacks);
+            if (rate) {
+                rate.classList.toggle('is-invalid', lacks);
+                rate.classList.toggle('border-danger', lacks);
+            }
             if (lacks) missing++;
             pinState(rowEl.querySelector('.pc-pin'), r);
         });
-        el.groups.querySelectorAll('[data-sub]').forEach(function (s) { s.textContent = money(perGroup[s.dataset.sub] || 0); });
+
+        el.groups.querySelectorAll('[data-sub]').forEach(function (s) { 
+            s.textContent = money(perGroup[s.dataset.sub] || 0); 
+        });
 
         var p = priceFor(j.q);
         $('pcDirect').textContent = money(p.direct);
@@ -457,214 +813,309 @@
         $('pcCost').textContent = money(p.cost);
         $('pcProfitAmt').textContent = money(p.profit);
         $('pcTotal').textContent = money(p.total);
-        $('pcUnit2').textContent = j.q > 0 ? money(p.unit, 2) : '৳0';
+        $('pcUnit2').textContent = j.q > 0 ? money(p.unit, 2) : '৳0.00';
         $('pcRoundedNote').hidden = !p.rounded;
         $('pcFootTotal').textContent = money(p.total);
-        $('pcFootUnit').textContent = j.q > 0 ? money(p.unit, 2) : '৳0';
+        $('pcFootUnit').textContent = j.q > 0 ? money(p.unit, 2) : '৳0.00';
+        
         $('pcFormas').textContent = j.formas ? String(j.formas) : '0';
-        $('pcFormasWrap').hidden = !(TYPES[state.type].pages && j.formas);
+        $('pcFormasWrap').hidden = !(TYPES[state.type].pages && j.pages);
+
         var layout = upsFor(j.size, j.sheet);
         $('pcUpsWrap').hidden = !(layout > 0 && state.type !== 'book');
         $('pcUps').textContent = String(layout);
-        $('pcMissing').hidden = missing === 0;
-        $('pcMissing').textContent = missing ? 'Rate ×' + missing : '';
 
+        // Update Live Production KPI Status Strip
+        if ($('pcKpiStrip')) {
+            var totalPaperReams = 0;
+            state.rows.filter(function (r) { return r.g === 'Paper' && r.on; }).forEach(function (r) { totalPaperReams += num(r.qty); });
+            var totalPaperSheets = Math.round(totalPaperReams * 500);
+            if ($('pcKpiPaperReams')) $('pcKpiPaperReams').textContent = totalPaperReams.toFixed(2) + ' রিম';
+            if ($('pcKpiPaperSheets')) $('pcKpiPaperSheets').textContent = totalPaperSheets.toLocaleString('en-US') + ' শিট প্রেস কাগজ';
+
+            var wasteVal = 5;
+            var paperRow = state.rows.filter(function (r) { return r.g === 'Paper' && r.on; })[0];
+            if (paperRow && paperRow.waste != null) wasteVal = paperRow.waste;
+            if ($('pcKpiPaperWaste')) $('pcKpiPaperWaste').textContent = wasteVal + '% অপচয়';
+
+            if ($('pcKpiFormas')) $('pcKpiFormas').textContent = j.formas ? j.formas + ' ফর্মা' : '১ ফর্মা';
+            if ($('pcKpiFormaSub')) $('pcKpiFormaSub').textContent = j.pages ? j.pages + ' পৃষ্ঠা (' + j.formaSize + ' পৃ./ফর্মা)' : (SIZES_BN[j.size] || j.size);
+            if ($('pcKpiUpsBadge')) $('pcKpiUpsBadge').textContent = layout > 0 ? '১ শিটে ' + layout + ' Ups' : (j.formaSize + ' পৃ. ফর্মা');
+
+            var totalPlates = 0, innerPlates = 0, coverPlates = 0;
+            state.rows.filter(function (r) { return r.g === 'CTP' && r.on; }).forEach(function (r) {
+                var q = num(r.qty);
+                totalPlates += q;
+                if (/cover/i.test(r.n)) coverPlates += q; else innerPlates += q;
+            });
+            if ($('pcKpiPlates')) $('pcKpiPlates').textContent = totalPlates + ' টি প্লেট';
+            if ($('pcKpiPlateSub')) $('pcKpiPlateSub').textContent = 'ইনার ' + innerPlates + ' + কভার ' + coverPlates;
+            if ($('pcKpiPlateMethodBadge')) $('pcKpiPlateMethodBadge').textContent = j.plateMethod === 'sheetwise' ? 'শিটওয়াইজ' : 'ফার্মা উল্টা';
+
+            var totalImpressions = 0;
+            state.rows.filter(function (r) { return r.g === 'Press' && r.on; }).forEach(function (r) { totalImpressions += num(r.qty); });
+            if ($('pcKpiImpressions')) $('pcKpiImpressions').textContent = totalImpressions.toFixed(1) + ' হাজার';
+            if (j.q <= 1000) {
+                if ($('pcKpiImpressionBadge')) $('pcKpiImpressionBadge').textContent = '১-১০০০ মিনিমাম';
+                if ($('pcKpiImpressionSub')) $('pcKpiImpressionSub').textContent = j.q + ' কপি (মিনিমাম ১০০০ ছাপ ধার্য)';
+            } else {
+                if ($('pcKpiImpressionBadge')) $('pcKpiImpressionBadge').textContent = 'হাজার ভিত্তিক';
+                if ($('pcKpiImpressionSub')) $('pcKpiImpressionSub').textContent = Math.round(totalImpressions * 1000).toLocaleString('en-US') + ' মোট ছাপ';
+            }
+        }
+
+        $('pcMissing').hidden = missing === 0;
+        $('pcMissing').textContent = missing ? 'দর বাকি: ' + missing + ' টি আইটেমে' : '';
+
+        // Bars
         el.bars.innerHTML = GROUPS.filter(function (g) { return (perGroup[g] || 0) > 0; }).map(function (g) {
             var share = p.direct > 0 ? Math.round((perGroup[g] / p.direct) * 100) : 0;
-            return '<div class="pc-bar"><span>' + g + '</span><i style="--w:' + share + '%"></i><b>' + money(perGroup[g]) + '</b></div>';
-        }).join('') || '<div class="pc-empty">—</div>';
+            var gTitle = GROUP_TITLES_BN[g] || g;
+            return '<div class="pc-bar mb-1.5">'
+                + '<div class="d-flex justify-content-between small text-muted font-monospace mb-0.5" style="font-size: 11px;">'
+                + '<span>' + gTitle + '</span><b>' + money(perGroup[g]) + ' (' + share + '%)</b>'
+                + '</div>'
+                + '<div class="progress" style="height: 6px;"><div class="progress-bar bg-primary" role="progressbar" style="width: ' + share + '%"></div></div>'
+                + '</div>';
+        }).join('') || '<div class="pc-empty text-muted small text-center py-2">— কোনো খরচ রেকর্ড হয়নি —</div>';
 
+        // Tiers
         if (p.direct > 0) {
             var qs = TIERS.slice();
             if (j.q > 0 && qs.indexOf(j.q) === -1) { qs.push(j.q); qs.sort(function (a, b) { return a - b; }); }
             el.tiers.innerHTML = qs.map(function (q) {
                 var t = priceFor(q);
-                return '<button type="button" class="pc-tier' + (q === j.q ? ' is-current' : '') + '" data-q="' + q + '"><span>' + q.toLocaleString('en-US') + '</span><b>' + money(t.unit, 2) + '</b></button>';
+                var isCur = (q === j.q);
+                return '<button type="button" class="btn btn-sm text-start d-flex align-items-center justify-content-between p-2 rounded-2 ' + (isCur ? 'btn-primary' : 'btn-outline-secondary') + '" data-q="' + q + '" style="font-size: 12px;">'
+                    + '<span class="fw-bold font-monospace">' + q.toLocaleString('en-US') + ' ' + $('pcUnit').value + '</span>'
+                    + '<span class="font-monospace fw-bold">' + money(t.unit, 2) + ' /ইউনিট</span>'
+                    + '</button>';
             }).join('');
             el.tiersWrap.hidden = false;
         } else {
             el.tiersWrap.hidden = true;
         }
 
-        el.add.disabled = el.plain.disabled = !(p.total > 0 && j.q > 0);
+        var canInsert = (p.total > 0 && j.q > 0);
+        el.add.disabled = !canInsert;
+        el.plain.disabled = !canInsert;
+        if (el.addDetailed) el.addDetailed.disabled = !canInsert;
+
+        // Update live spec textarea if not manually dirty
+        updateSpecBox();
+
         return { direct: p.direct, cost: p.cost, total: p.total, unit: p.unit, j: j };
     }
 
     function byId(id) { return state.rows.filter(function (r) { return String(r.id) === String(id); })[0]; }
 
-    // ── Events ──────────────────────────────────────────────────────────────
-    function onInput(e) {
-        var t = e.target;
-        var rowEl = t.closest && t.closest('.pc-row');
-        if (rowEl) {
-            var r = byId(rowEl.dataset.id);
-            if (!r) return;
-            if (t.classList.contains('pc-name')) { r.n = t.value; }
-            else if (t.classList.contains('pc-qty')) { r.qty = num(t.value); r.manual = true; }
-            else if (t.classList.contains('pc-rate')) { r.rate = num(t.value); r.touched = true; saveRate(r); }
-            else if (t.classList.contains('pc-ups')) { r.ups = Math.max(1, num(t.value)); r.upsManual = true; r.manual = false; recalcAuto(); }
-            else if (t.classList.contains('pc-waste')) { r.waste = num(t.value); r.manual = false; recalcAuto(); }
-            paint();
-            return;
-        }
-        recalcAuto();
-        paint();
-        saveLast();
-    }
-
-    function onChange(e) {
-        var t = e.target;
-        var rowEl = t.closest && t.closest('.pc-row');
-        if (!rowEl) { if (t.closest('.pc-job, .pc-summary')) { recalcAuto(); paint(); saveLast(); } return; }
-        var r = byId(rowEl.dataset.id);
-        if (!r) return;
-        if (t.classList.contains('pc-chk')) { r.on = t.checked; paint(); return; }
-        if (t.classList.contains('pc-name')) {
-            // A new name can move paper between inner and cover stock; keep the choices valid.
-            r.n = t.value;
-            if (variantKey(r) !== r.vk) { r.a = (GROUP_DEFAULT[r.g] || {}).a; r.b = (GROUP_DEFAULT[r.g] || {}).b; r.rate = rateFor(r); r.touched = false; r.manual = false; render(); }
-            return;
-        }
-        if (t.classList.contains('pc-stock')) {
-            var parsed = parseStock(t.value, r);
-            if (parsed) { r.a = parsed.a; r.b = parsed.b; r.rate = rateFor(r); r.touched = false; r.manual = false; render(); focusRate(r); } else { render(); }
-            return;
-        }
-        if (t.classList.contains('pc-a') || t.classList.contains('pc-b')) {
-            var raw = t.value;
-            var key = t.classList.contains('pc-a') ? 'a' : 'b';
-            r[key] = (key === 'a' && /^\d+(\.\d+)?$/.test(raw)) ? parseFloat(raw) : raw;
-            // The rate follows the choice: remembered rate, else a known starting rate, else blank to be entered.
-            r.rate = rateFor(r); r.touched = false;
-            r.manual = false;
-            render();
-            var again = el.groups.querySelector('.pc-row[data-id="' + r.id + '"] .pc-rate');
-            if (again && !num(r.rate)) again.focus();
-        }
-    }
-
-    function focusRate(r) {
-        var again = el.groups.querySelector('.pc-row[data-id="' + r.id + '"] .pc-rate');
-        if (again && !num(r.rate)) again.focus();
-    }
-
-    function onClick(e) {
-        var t = e.target;
-        var rowEl = t.closest && t.closest('.pc-row');
-        if (rowEl && t.classList.contains('pc-pin')) {
-            var pr = byId(rowEl.dataset.id);
-            if (pr) saveToSheet(pr);
-            return;
-        }
-        if (rowEl && t.classList.contains('pc-del')) {
-            state.rows = state.rows.filter(function (r) { return String(r.id) !== rowEl.dataset.id; });
-            render();
-        } else if (rowEl && t.classList.contains('pc-auto')) {
-            var r = byId(rowEl.dataset.id);
-            if (r) { r.manual = false; render(); }
-        } else if (t.closest && t.closest('.pc-tier')) {
-            $('pcQty').value = t.closest('.pc-tier').dataset.q;
-            recalcAuto(); paint(); saveLast();
-        }
-    }
-
-    function addComponent(group) {
-        var names = NAMES[group];
-        var used = state.rows.filter(function (r) { return r.g === group; }).map(function (r) { return r.n; });
-        var name = names.filter(function (n) { return used.indexOf(n) === -1; })[0] || names[0];
-        var spec = { g: group, n: name };
-        if (group === 'Paper') { spec.waste = 5; }
-        state.rows.push(newRow(spec));
-        render();
-        var rows = el.groups.querySelectorAll('[data-group="' + group + '"] .pc-row');
-        var last = rows[rows.length - 1];
-        if (last) last.querySelector('.pc-a, .pc-rate').focus();
-    }
-
-    // Enter in a rate box jumps to the next rate box, so a whole job can be priced from the keyboard.
-    function onKey(e) {
-        if (e.key !== 'Enter' || !e.target.classList.contains('pc-rate')) return;
-        e.preventDefault();
-        var all = Array.prototype.slice.call(el.groups.querySelectorAll('.pc-row:not(.is-off) .pc-rate'));
-        var next = all[all.indexOf(e.target) + 1];
-        if (next) { next.focus(); next.select(); } else { el.add.focus(); }
-    }
-
-    // ── Output ──────────────────────────────────────────────────────────────
+    // ── Live Specification Generator ────────────────────────────────────────
     function label(r) {
         var v = variants(r);
         var bits = [];
         if (v.a && r.a !== undefined && r.a !== '') bits.push(typeof r.a === 'number' ? r.a + ' GSM' : r.a);
         if (v.b && r.b !== undefined && r.b !== '' && ['Per'].indexOf(v.b[0]) === -1 && ['Side', 'Sides'].indexOf(v.b[0]) === -1) bits.push(r.b);
-        if (r.g === 'Lamination' && r.b === 'Both') bits.push('both sides');
-        return r.n + (bits.length ? ' ' + bits.join(' ') : '');
+        if (r.g === 'Lamination' && r.b === 'Both Sides') bits.push('উভয় পাশ');
+        return r.n + (bits.length ? ' (' + bits.join(', ') + ')' : '');
     }
 
     function specText() {
         var j = job();
         var parts = [];
-        if (j.size) parts.push(j.size);
-        if (j.pages) parts.push(j.pages + ' pages');
-        parts.push(j.colors + ' color' + (j.sides === 2 ? ', 2 sides' : ''));
+        var sizeLabel = SIZES_BN[j.size] || j.size;
+        if (sizeLabel) parts.push('সাইজ: ' + sizeLabel);
+        if (j.pages) parts.push('পৃষ্ঠা: ' + j.pages + ' পৃ. (' + (j.formas || 1) + ' ফর্মা)');
+        parts.push('মুদ্রণ: ' + j.colors + ' কালার' + (j.sides === 2 ? ' (উভয় পাশ)' : ' (এক পাশ)'));
+        parts.push('প্লেট: ' + (j.plateMethod === 'sheetwise' ? 'শিটওয়াইজ' : 'ফার্মা উল্টা'));
+        if (j.q <= 1000) parts.push('ছাপা: মিনিমাম ১০০০ বিল');
+
         var by = {};
-        state.rows.filter(function (r) { return r.on && lineTotal(r) > 0; }).forEach(function (r) { (by[r.g] = by[r.g] || []).push(label(r)); });
-        var comps = ['Paper', 'CTP', 'Lamination', 'Cutting', 'Binding', 'Packing'].filter(function (g) { return by[g]; })
-            .map(function (g) { return g + ' (' + by[g].join(', ') + ')'; });
-        return parts.join(', ') + (comps.length ? '. ' + comps.join('. ') + '.' : '');
+        state.rows.filter(function (r) { return r.on && lineTotal(r) > 0; }).forEach(function (r) { 
+            (by[r.g] = by[r.g] || []).push(label(r)); 
+        });
+
+        var comps = [];
+        ['Paper', 'CTP', 'Press', 'Lamination', 'Binding', 'Cutting', 'Packing'].forEach(function (g) {
+            if (by[g]) {
+                var gTitle = GROUP_TITLES_BN[g] || g;
+                comps.push(gTitle + ': ' + by[g].join(', '));
+            }
+        });
+
+        return parts.join(' | ') + (comps.length ? '\n' + comps.join('\n') : '');
     }
 
-    // Detail text that also shows what each line costs: "Paper (Inner 80 GSM White 12 × 3200)".
     function ratedText() {
         var j = job();
         var parts = [];
-        if (j.size) parts.push(j.size);
-        if (j.pages) parts.push(j.pages + ' pages');
-        parts.push(j.colors + ' color' + (j.sides === 2 ? ', 2 sides' : ''));
+        var sizeLabel = SIZES_BN[j.size] || j.size;
+        if (sizeLabel) parts.push('সাইজ: ' + sizeLabel);
+        if (j.pages) parts.push('পৃষ্ঠা: ' + j.pages + ' পৃ. (' + (j.formas || 1) + ' ফর্মা)');
+        parts.push('মুদ্রণ: ' + j.colors + ' কালার' + (j.sides === 2 ? ' (উভয় পাশ)' : ' (এক পাশ)'));
+        parts.push('প্লেট: ' + (j.plateMethod === 'sheetwise' ? 'শিটওয়াইজ' : 'ফার্মা উল্টা'));
+        if (j.q <= 1000) parts.push('ছাপা: মিনিমাম ১০০০ বিল');
+
         var comps = [];
         GROUPS.forEach(function (g) {
             var items = state.rows.filter(function (r) { return r.g === g && r.on && lineTotal(r) > 0; })
-                .map(function (r) { return label(r) + ' ' + r.qty + ' × ' + r.rate; });
-            if (items.length) comps.push(g + ' (' + items.join(', ') + ')');
+                .map(function (r) { 
+                    var bUnit = BASIS_BN[r.g] || BASIS[r.g];
+                    return label(r) + ' [' + r.qty + ' ' + bUnit + ' @ ৳' + r.rate + ' = ' + money(lineTotal(r)) + ']'; 
+                });
+            if (items.length) {
+                var gTitle = GROUP_TITLES_BN[g] || g;
+                comps.push(gTitle + ': ' + items.join(', '));
+            }
         });
-        return parts.join(', ') + (comps.length ? '. ' + comps.join('. ') + '.' : '');
+
+        return parts.join(' | ') + (comps.length ? '\n' + comps.join('\n') : '');
+    }
+
+    function updateSpecBox() {
+        var box = $('pcSpecTextarea');
+        if (!box) return;
+        if (!box._manuallyEdited) {
+            var title = ($('pcTitleIn').value.trim()) || TYPES[state.type].defaultTitle;
+            var s = specText();
+            box.value = title ? title + '\n' + s : s;
+        }
     }
 
     function sheetText() {
         var s = paint();
-        var lines = ['COST — ' + (($('pcTitleIn').value.trim()) || TYPES[state.type].label), specText(), ''];
-        lines.push('Quantity: ' + s.j.q + ' ' + $('pcUnit').value);
+        var title = ($('pcTitleIn').value.trim()) || TYPES[state.type].defaultTitle;
+        var lines = [
+            '==================================================',
+            'উৎপাদন খরচ ও স্পেসিফিকেশন শিট: ' + title,
+            'কাজের ধরন: ' + TYPES[state.type].label + ' | পরিমাণ: ' + s.j.q + ' ' + $('pcUnit').value,
+            '==================================================',
+            '',
+            'স্পেসিফিকেশন:',
+            specText(),
+            '',
+            'উপাদানভিত্তিক বিস্তারিত খরচ বিবরণী:'
+        ];
+
         GROUPS.forEach(function (g) {
-            state.rows.filter(function (r) { return r.g === g && r.on && lineTotal(r) > 0; }).forEach(function (r) {
-                lines.push(g + ' · ' + label(r) + ': ' + r.qty + ' × ' + r.rate + ' = ' + money(lineTotal(r)));
-            });
+            var rows = state.rows.filter(function (r) { return r.g === g && r.on && lineTotal(r) > 0; });
+            if (rows.length) {
+                var gTitle = GROUP_TITLES_BN[g] || g;
+                lines.push('--- ' + gTitle + ' (' + g + ') ---');
+                rows.forEach(function (r) {
+                    var bUnit = BASIS_BN[r.g] || BASIS[r.g];
+                    lines.push('  • ' + label(r) + ': ' + r.qty + ' ' + bUnit + ' × ৳' + r.rate + ' = ' + money(lineTotal(r)));
+                });
+            }
         });
-        lines.push('', 'Cost: ' + money(s.cost), 'Total: ' + money(s.total), 'Rate: ' + money(s.unit, 2) + ' / ' + $('pcUnit').value);
+
+        lines.push('');
+        lines.push('উৎপাদন খরচ (Direct Cost): ' + money(s.direct));
+        if (num($('pcOverhead').value) > 0) {
+            lines.push('ওভারহেড (' + $('pcOverhead').value + '%): ' + money(s.cost - s.direct));
+        }
+        lines.push('মোট খরচ (Total Cost): ' + money(s.cost));
+        if (num($('pcProfit').value) > 0) {
+            lines.push('লাভের মার্জিন (' + $('pcProfit').value + '%): ' + money(s.total - s.cost));
+        }
+        lines.push('--------------------------------------------------');
+        lines.push('সর্বমোট কোটেশন মূল্য: ' + money(s.total));
+        lines.push('প্রতি ' + $('pcUnit').value + '-এর দর: ' + money(s.unit, 2));
+        lines.push('==================================================');
+
         return lines.join('\n');
     }
 
     function toast(text) {
         var t = $('pcToast');
-        t.textContent = text; t.hidden = false;
+        if (!t) return;
+        t.textContent = text; 
+        t.hidden = false;
         clearTimeout(t._t);
         t._t = setTimeout(function () { t.hidden = true; }, 2200);
     }
 
+    // ── Insertion Functions ────────────────────────────────────────────────
+    // 1. Single consolidated line insertion
     function insert(withRates) {
         var s = paint();
-        if (!(s.j.q > 0)) { toast('Quantity'); $('pcQty').focus(); return; }
-        if (!(s.total > 0)) { toast('Rate'); return; }
-        var title = $('pcTitleIn').value.trim() || (TYPES[state.type].label + ' printing');
+        if (!(s.j.q > 0)) { toast('পরিমাণ (Quantity) প্রদান করুন'); $('pcQty').focus(); return; }
+        if (!(s.total > 0)) { toast('উপাদানের দর (Rate) পূরণ করুন'); return; }
+
+        var title = $('pcTitleIn').value.trim() || TYPES[state.type].defaultTitle;
+        var specBox = $('pcSpecTextarea');
+        var spec = (specBox && specBox.value.trim()) ? specBox.value.trim() : (withRates === true ? ratedText() : specText());
+
+        var itemType = 'Printing & Binding';
+        if (state.type === 'stationery') itemType = 'Stationery';
+        else if (state.type === 'book') itemType = 'Book (Paperback)';
+
         if (typeof window.addPresetItem === 'function') {
-            window.addPresetItem(title, withRates === true ? ratedText() : specText(), 'Printing & Binding', $('pcUnit').value || 'Pcs', s.unit, s.unit, s.j.q);
+            window.addPresetItem(title, spec, itemType, $('pcUnit').value || 'Pcs', s.unit, s.unit, s.j.q);
+            toast('কোটেশনে যুক্ত করা হয়েছে ✓');
         }
+
+        var modal = window.bootstrap && window.bootstrap.Modal.getInstance($('printCostCalculatorModal'));
+        if (modal) modal.hide();
+    }
+
+    // 2. Itemized Component Breakdown (আলাদা আলাদা আইটেম হিসেবে কোটেশনে যুক্ত করা)
+    function insertDetailed() {
+        var s = paint();
+        if (!(s.j.q > 0)) { toast('পরিমাণ (Quantity) প্রদান করুন'); $('pcQty').focus(); return; }
+        if (!(s.total > 0)) { toast('উপাদানের দর (Rate) পূরণ করুন'); return; }
+
+        var activeRows = state.rows.filter(function (r) { return r.on && lineTotal(r) > 0; });
+        if (!activeRows.length) {
+            toast('কোনো সক্রিয় উপাদান নেই');
+            return;
+        }
+
+        if (typeof window.addPresetItem !== 'function') {
+            toast('হোস্ট পেজে addPresetItem পাওয়া যায়নি');
+            return;
+        }
+
+        var jobTitle = $('pcTitleIn').value.trim() || TYPES[state.type].defaultTitle;
+        var count = 0;
+
+        activeRows.forEach(function (r) {
+            var gTitle = GROUP_TITLES_BN[r.g] || r.g;
+            var itemTitle = jobTitle + ' — ' + gTitle + ': ' + r.n;
+            var specDetail = label(r) + ' (' + r.qty + ' ' + (BASIS_BN[r.g] || BASIS[r.g]) + ' @ ৳' + r.rate + ')';
+
+            var itemType = 'Printing & Binding';
+            if (r.g === 'Paper') itemType = 'Paper / Raw Materials';
+            else if (r.g === 'Design') itemType = 'Service';
+            else if (r.g === 'Transport' || r.g === 'Other') itemType = 'Product';
+
+            var unitPrice = round(lineTotal(r) / s.j.q, 2);
+            if (unitPrice <= 0.01) unitPrice = round(num(r.rate), 2);
+
+            window.addPresetItem(itemTitle, specDetail, itemType, $('pcUnit').value || 'Pcs', unitPrice, unitPrice, s.j.q);
+            count++;
+        });
+
+        toast(count + ' টি উপাদান কোটেশনে যুক্ত হয়েছে ✓');
+
         var modal = window.bootstrap && window.bootstrap.Modal.getInstance($('printCostCalculatorModal'));
         if (modal) modal.hide();
     }
 
     function resetAll() {
-        ['pcTitleIn', 'pcQty', 'pcPages', 'pcOverhead', 'pcProfit'].forEach(function (id) { $(id).value = ''; });
-        $('pcColors').value = '4'; $('pcSides').value = '1'; $('pcRound').value = '0';
-        $('pcSize').value = TYPES[state.type].size; $('pcSheet').value = '23x36';
+        ['pcTitleIn', 'pcQty', 'pcPages', 'pcOverhead', 'pcProfit'].forEach(function (id) { var el = $(id); if (el) el.value = ''; });
+        if ($('pcColors')) $('pcColors').value = '4'; 
+        if ($('pcSides')) $('pcSides').value = '1'; 
+        if ($('pcRound')) $('pcRound').value = '0';
+        if ($('pcFormaSize')) $('pcFormaSize').value = '16';
+        if ($('pcSize')) $('pcSize').value = TYPES[state.type].size; 
+        if ($('pcSheet')) $('pcSheet').value = '23x36';
+        
+        var specBox = $('pcSpecTextarea');
+        if (specBox) {
+            specBox._manuallyEdited = false;
+            specBox.value = '';
+        }
+
         applyType(state.type, true);
         saveLast();
     }
@@ -679,17 +1130,21 @@
             body: body ? JSON.stringify(body) : undefined
         }).then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) throw j; return j; }); });
     }
+
     function loadSheet() {
-        return fetch(root().dataset.ratesUrl, { credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+        var rt = root();
+        if (!rt || !rt.dataset.ratesUrl) return Promise.resolve();
+        return fetch(rt.dataset.ratesUrl, { credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function (r) { if (!r.ok) throw new Error('rates'); return r.json(); })
             .then(function (rows) { indexSheet(rows); sheetLoaded = true; reapplyRates(); renderRates(); })
-            .catch(function () { /* offline or not allowed: browser memory and starter rates still work */ });
+            .catch(function () {});
     }
-    // Lines whose rate was not typed by hand follow the sheet.
+
     function reapplyRates() {
         state.rows.forEach(function (r) { if (!r.touched) r.rate = rateFor(r); });
         render();
     }
+
     function upsert(row) {
         var k = keyOf(row.group, row.item, row.kind);
         var rows = SHEET_ROWS.filter(function (x) { return keyOf(x.group, x.item, x.kind) !== k && x.id !== row.id; });
@@ -711,8 +1166,9 @@
         if (!sheetLoaded || !num(r.rate)) { btn.hidden = true; return; }
         btn.hidden = false;
         var same = s && Math.abs(s.rate - num(r.rate)) < 0.005;
-        btn.textContent = !s ? 'Save' : (same ? 'Saved' : 'Update');
-        btn.classList.toggle('is-saved', !!same);
+        btn.textContent = !s ? 'সেভ' : (same ? 'সংরক্ষিত' : 'আপডেট');
+        btn.classList.toggle('btn-success', !!same);
+        btn.classList.toggle('btn-outline-secondary', !same);
         btn.disabled = !!same;
     }
 
@@ -721,13 +1177,12 @@
             upsert(res.row);
             paint();
             renderRates();
-            toast('Saved');
-        }).catch(function () { toast('Not saved'); });
+            toast('রেট চার্টে সংরক্ষিত হয়েছে ✓');
+        }).catch(function () { toast('সংরক্ষণ করা যায়নি'); });
     }
 
     // ── Rate sheet panel ────────────────────────────────────────────────────
     var rateGroup = '', rateQuery = '';
-    function perOf(group, kind) { return KEY_B[group] && group !== 'Paper' ? (kind || '') : ''; }
 
     function renderRates() {
         var body = $('pcRatesBody');
@@ -736,20 +1191,26 @@
         var rows = SHEET_ROWS.filter(function (x) {
             return (!rateGroup || x.group === rateGroup) && (!q || (x.group + ' ' + x.item + ' ' + x.kind).toLowerCase().indexOf(q) !== -1);
         });
+
         body.innerHTML = rows.map(function (x) {
-            return '<tr data-id="' + x.id + '"><td><span class="pc-gtag" data-group="' + esc(x.group) + '">' + esc(x.group) + '</span></td>'
+            var gTitle = GROUP_TITLES_BN[x.group] || x.group;
+            return '<tr data-id="' + x.id + '">'
+                + '<td><span class="badge bg-light text-dark border px-2 py-1 rounded-pill">' + esc(gTitle) + '</span></td>'
                 + '<td class="fw-semibold">' + esc(x.item) + (x.group === 'Paper' && x.item ? ' GSM' : '') + '</td>'
-                + '<td>' + esc(x.kind || '—') + '</td>'
-                + '<td class="text-end"><input type="number" class="form-control form-control-sm pr-rate text-end" min="0" step="0.01" value="' + esc(x.rate) + '" aria-label="Rate"></td>'
-                + '<td class="text-end"><button type="button" class="pc-del pr-del" aria-label="Remove">×</button></td></tr>';
+                + '<td class="text-muted">' + esc(x.kind || '—') + '</td>'
+                + '<td class="text-end font-monospace"><input type="number" class="form-control form-control-sm pr-rate text-end font-monospace d-inline-block" min="0" step="0.01" value="' + esc(x.rate) + '" aria-label="Rate" style="width: 110px;"></td>'
+                + '<td class="text-center"><button type="button" class="btn btn-link btn-sm text-danger p-0 pr-del" title="মুছে ফেলুন" aria-label="Remove"><i class="fa-solid fa-trash-can"></i></button></td>'
+                + '</tr>';
         }).join('');
+
         $('pcRatesEmpty').hidden = rows.length > 0;
 
         var counts = {};
         SHEET_ROWS.forEach(function (x) { counts[x.group] = (counts[x.group] || 0) + 1; });
-        $('pcRatesGroups').innerHTML = '<option value=""' + (rateGroup === '' ? ' selected' : '') + '>All ' + SHEET_ROWS.length + '</option>'
+        $('pcRatesGroups').innerHTML = '<option value=""' + (rateGroup === '' ? ' selected' : '') + '>সকল গ্রুপ (' + SHEET_ROWS.length + ')</option>'
             + GROUPS.filter(function (g) { return counts[g]; }).map(function (g) {
-                return '<option value="' + g + '"' + (rateGroup === g ? ' selected' : '') + '>' + g + ' ' + counts[g] + '</option>';
+                var gTitle = GROUP_TITLES_BN[g] || g;
+                return '<option value="' + g + '"' + (rateGroup === g ? ' selected' : '') + '>' + gTitle + ' (' + counts[g] + ')</option>';
             }).join('');
     }
 
@@ -771,15 +1232,19 @@
         $('pcCalcView').hidden = open;
         $('pcFoot').hidden = open;
         $('pcRatesPanel').hidden = !open;
-        $('pcRatesBtn').classList.toggle('is-active', open);
+        $('pcRatesBtn').classList.toggle('active', open);
         if (open) { renderRates(); fillAddLists(); }
         else reapplyRates();
     }
 
     function bindRates() {
-        var opts = GROUPS.map(function (g) { return '<option value="' + g + '">' + g + '</option>'; }).join('');
+        var opts = GROUPS.map(function (g) { 
+            var gTitle = GROUP_TITLES_BN[g] || g;
+            return '<option value="' + g + '">' + gTitle + ' (' + g + ')</option>'; 
+        }).join('');
+        
         $('prGroup').innerHTML = opts;
-        $('paGroup').innerHTML = '<option value="">All</option>' + opts;
+        $('paGroup').innerHTML = '<option value="">সকল গ্রুপ (All Groups)</option>' + opts;
         $('prGroup').addEventListener('change', fillAddLists);
         $('pcRatesBtn').addEventListener('click', function () { openRates($('pcRatesPanel').hidden); });
         $('pcRatesBack').addEventListener('click', function () { openRates(false); });
@@ -795,16 +1260,21 @@
                     if (g === 'Paper' && res.row.kind) addKind(res.row.kind);
                     $('prItem').value = ''; $('prKind').value = ''; $('prRate').value = '';
                     renderRates(); buildPaperLists(); fillAddLists();
-                    toast(res.created ? 'Added' : 'Updated');
+                    toast(res.created ? 'যুক্ত করা হয়েছে' : 'আপডেট করা হয়েছে');
                     $('prItem').focus();
-                }).catch(function () { toast('Not saved'); });
+                }).catch(function () { toast('সংরক্ষণ করা যায়নি'); });
         });
 
         $('pcRatesAdjust').addEventListener('submit', function (e) {
             e.preventDefault();
             api('POST', root().dataset.ratesAdjust, { group: $('paGroup').value || null, mode: $('paMode').value, value: num($('paValue').value) })
-                .then(function (res) { indexSheet(res.rows); renderRates(); $('paValue').value = ''; toast(res.changed + ' ✓'); })
-                .catch(function () { toast('Not applied'); });
+                .then(function (res) { 
+                    indexSheet(res.rows); 
+                    renderRates(); 
+                    $('paValue').value = ''; 
+                    toast(res.changed + ' টি দর সমন্বয় করা হয়েছে ✓'); 
+                })
+                .catch(function () { toast('প্রয়োগ করা যায়নি'); });
         });
 
         var body = $('pcRatesBody');
@@ -814,18 +1284,133 @@
             var row = SHEET_ROWS.filter(function (x) { return String(x.id) === tr.dataset.id; })[0];
             if (!row) return;
             api('POST', root().dataset.ratesStore, { group: row.group, item: row.item, kind: row.kind, rate: num(e.target.value) })
-                .then(function (res) { upsert(res.row); toast('Saved'); })
-                .catch(function () { e.target.value = row.rate; toast('Not saved'); });
+                .then(function (res) { upsert(res.row); toast('দর সংরক্ষিত হয়েছে'); })
+                .catch(function () { e.target.value = row.rate; toast('সংরক্ষণ করা যায়নি'); });
         });
+
         body.addEventListener('click', function (e) {
             var del = e.target.closest('.pr-del');
             if (!del) return;
             var tr = del.closest('tr');
-            if (!window.confirm('Remove?')) return;
+            if (!window.confirm('আপনি কি এই দর তালিকা থেকে মুছে ফেলতে চান?')) return;
             api('DELETE', root().dataset.ratesDelete + '/' + tr.dataset.id)
-                .then(function () { indexSheet(SHEET_ROWS.filter(function (x) { return String(x.id) !== tr.dataset.id; })); renderRates(); toast('Removed'); })
-                .catch(function () { toast('Not removed'); });
+                .then(function () { indexSheet(SHEET_ROWS.filter(function (x) { return String(x.id) !== tr.dataset.id; })); renderRates(); toast('মুছে ফেলা হয়েছে'); })
+                .catch(function () { toast('মুছে ফেলা যায়নি'); });
         });
+    }
+
+    // ── Input & Event Handling ──────────────────────────────────────────────
+    function onInput(e) {
+        var t = e.target;
+        var rowEl = t.closest && t.closest('.pc-row');
+        if (rowEl) {
+            var r = byId(rowEl.dataset.id);
+            if (!r) return;
+            if (t.classList.contains('pc-name')) { r.n = t.value; }
+            else if (t.classList.contains('pc-qty')) { r.qty = num(t.value); r.manual = true; }
+            else if (t.classList.contains('pc-rate')) { r.rate = num(t.value); r.touched = true; saveRate(r); }
+            else if (t.classList.contains('pc-ups')) { r.ups = Math.max(1, num(t.value)); r.upsManual = true; r.manual = false; recalcAuto(); }
+            else if (t.classList.contains('pc-waste')) { r.waste = num(t.value); r.manual = false; recalcAuto(); }
+            paint();
+            return;
+        }
+
+        if (t.id === 'pcSpecTextarea') {
+            t._manuallyEdited = true;
+            return;
+        }
+
+        recalcAuto();
+        paint();
+        saveLast();
+    }
+
+    function onChange(e) {
+        var t = e.target;
+        var rowEl = t.closest && t.closest('.pc-row');
+        if (!rowEl) { 
+            if (t.closest('.pc-job, .pc-summary')) { recalcAuto(); paint(); saveLast(); } 
+            return; 
+        }
+        var r = byId(rowEl.dataset.id);
+        if (!r) return;
+        if (t.classList.contains('pc-chk')) { r.on = t.checked; paint(); return; }
+        if (t.classList.contains('pc-name')) {
+            r.n = t.value;
+            if (variantKey(r) !== r.vk) { 
+                r.a = (GROUP_DEFAULT[r.g] || {}).a; 
+                r.b = (GROUP_DEFAULT[r.g] || {}).b; 
+                r.rate = rateFor(r); 
+                r.touched = false; 
+                r.manual = false; 
+                render(); 
+            }
+            return;
+        }
+        if (t.classList.contains('pc-stock')) {
+            var parsed = parseStock(t.value, r);
+            if (parsed) { r.a = parsed.a; r.b = parsed.b; r.rate = rateFor(r); r.touched = false; r.manual = false; render(); focusRate(r); } else { render(); }
+            return;
+        }
+        if (t.classList.contains('pc-a') || t.classList.contains('pc-b')) {
+            var raw = t.value;
+            var key = t.classList.contains('pc-a') ? 'a' : 'b';
+            r[key] = (key === 'a' && /^\d+(\.\d+)?$/.test(raw)) ? parseFloat(raw) : raw;
+            r.rate = rateFor(r); 
+            r.touched = false;
+            r.manual = false;
+            render();
+            focusRate(r);
+        }
+    }
+
+    function focusRate(r) {
+        var again = el.groups.querySelector('.pc-row[data-id="' + r.id + '"] .pc-rate');
+        if (again && !num(r.rate)) again.focus();
+    }
+
+    function onClick(e) {
+        var t = e.target;
+        var rowEl = t.closest && t.closest('.pc-row');
+        if (rowEl && (t.classList.contains('pc-pin') || t.closest('.pc-pin'))) {
+            var pr = byId(rowEl.dataset.id);
+            if (pr) saveToSheet(pr);
+            return;
+        }
+        if (rowEl && (t.classList.contains('pc-del') || t.closest('.pc-del'))) {
+            state.rows = state.rows.filter(function (r) { return String(r.id) !== rowEl.dataset.id; });
+            render();
+        } else if (rowEl && t.classList.contains('pc-auto')) {
+            var r = byId(rowEl.dataset.id);
+            if (r) { r.manual = false; render(); }
+        } else if (t.closest && t.closest('[data-q]')) {
+            $('pcQty').value = t.closest('[data-q]').dataset.q;
+            recalcAuto(); paint(); saveLast();
+        }
+    }
+
+    function addComponent(group) {
+        var names = NAMES[group] || ['Custom ' + group];
+        var used = state.rows.filter(function (r) { return r.g === group; }).map(function (r) { return r.n; });
+        var name = names.filter(function (n) { return used.indexOf(n) === -1; })[0] || names[0];
+        var spec = { g: group, n: name };
+        if (group === 'Paper') { spec.waste = 5; }
+        state.rows.push(newRow(spec));
+        render();
+        var rows = el.groups.querySelectorAll('[data-group="' + group + '"] .pc-row');
+        var last = rows[rows.length - 1];
+        if (last) {
+            var target = last.querySelector('.pc-stock, .pc-rate, .pc-name');
+            if (target) target.focus();
+        }
+    }
+
+    function onKey(e) {
+        if (e.key !== 'Enter' || !e.target.classList.contains('pc-rate')) return;
+        e.preventDefault();
+        var all = Array.prototype.slice.call(el.groups.querySelectorAll('.pc-row:not(.is-off) .pc-rate'));
+        var next = all[all.indexOf(e.target) + 1];
+        if (next) { next.focus(); next.select(); } else { el.add.focus(); }
     }
 
     // ── Boot ────────────────────────────────────────────────────────────────
@@ -833,31 +1418,122 @@
         var root = $('printCostCalculatorModal');
         if (!root || root.dataset.ready) return;
         root.dataset.ready = '1';
-        el.groups = $('pcGroups'); el.bars = $('pcBars'); el.types = $('pcTypes'); el.add = $('pcAdd'); el.plain = $('pcPlain'); el.tiers = $('pcTiers'); el.tiersWrap = $('pcTiersWrap');
+        
+        el.groups = $('pcGroups'); 
+        el.bars = $('pcBars'); 
+        el.types = $('pcTypes'); 
+        el.add = $('pcAdd'); 
+        el.addDetailed = $('pcAddDetailed');
+        el.plain = $('pcPlain'); 
+        el.tiers = $('pcTiers'); 
+        el.tiersWrap = $('pcTiersWrap');
 
-        $('pcSize').innerHTML = '<option value="">—</option>' + Object.keys(SIZES).map(function (k) { return '<option value="' + k + '">' + k + '</option>'; }).join('');
-        el.types.innerHTML = Object.keys(TYPES).map(function (k) { return '<button type="button" class="pc-type" data-type="' + k + '">' + TYPES[k].label + '</button>'; }).join('');
-        $('pcAddBar').innerHTML = GROUPS.map(function (g) { return '<button type="button" class="pc-addbtn" data-add="' + g + '">' + g + '</button>'; }).join('');
-        $('pcLists').innerHTML = GROUPS.map(function (g) { return '<datalist id="pcNames' + g + '">' + NAMES[g].map(function (n) { return '<option value="' + n + '">'; }).join('') + '</datalist>'; }).join('');
+        // Populate Trim Sizes dropdown
+        $('pcSize').innerHTML = Object.keys(SIZES).map(function (k) { 
+            return '<option value="' + k + '">' + (SIZES_BN[k] || k) + '</option>'; 
+        }).join('');
+
+        // Populate Job Types
+        el.types.innerHTML = Object.keys(TYPES).map(function (k) { 
+            return '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill pc-type fw-semibold px-2.5 py-1" data-type="' + k + '">' + TYPES[k].label + '</button>'; 
+        }).join('');
+
+        // Populate Component Add Bar
+        $('pcAddBar').innerHTML = GROUPS.map(function (g) { 
+            var gTitle = GROUP_TITLES_BN[g] || g;
+            var gIcon = GROUP_ICONS[g] || 'fa-tag';
+            return '<button type="button" class="btn btn-sm btn-outline-primary rounded-pill pc-addbtn py-0.5 px-2.5" data-add="' + g + '" style="font-size: 11px;">'
+                + '<i class="fa-solid ' + gIcon + ' me-1"></i>+' + gTitle 
+                + '</button>'; 
+        }).join('');
+
+        // Datalists
+        $('pcLists').innerHTML = GROUPS.map(function (g) { 
+            return '<datalist id="pcNames' + g + '">' + (NAMES[g] || []).map(function (n) { return '<option value="' + n + '">'; }).join('') + '</datalist>'; 
+        }).join('');
 
         buildPaperLists();
         bindRates();
-        el.types.addEventListener('click', function (e) { var b = e.target.closest('.pc-type'); if (b) applyType(b.dataset.type); });
-        $('pcAddBar').addEventListener('click', function (e) { var b = e.target.closest('[data-add]'); if (b) addComponent(b.dataset.add); });
+
+        // Event listeners
+        el.types.addEventListener('click', function (e) { 
+            var b = e.target.closest('.pc-type'); 
+            if (b) applyType(b.dataset.type); 
+        });
+
+        $('pcAddBar').addEventListener('click', function (e) { 
+            var b = e.target.closest('[data-add]'); 
+            if (b) addComponent(b.dataset.add); 
+        });
+
         root.addEventListener('input', onInput);
         root.addEventListener('change', onChange);
         root.addEventListener('click', onClick);
         root.addEventListener('keydown', onKey);
-        root.querySelectorAll('[data-qty]').forEach(function (b) { b.addEventListener('click', function () { $('pcQty').value = b.dataset.qty; recalcAuto(); paint(); saveLast(); }); });
-        root.querySelectorAll('[data-profit]').forEach(function (b) { b.addEventListener('click', function () { $('pcProfit').value = b.dataset.profit; paint(); saveLast(); }); });
+
+        root.querySelectorAll('[data-qty]').forEach(function (b) { 
+            b.addEventListener('click', function () { 
+                $('pcQty').value = b.dataset.qty; 
+                recalcAuto(); paint(); saveLast(); 
+            }); 
+        });
+
+        root.querySelectorAll('[data-profit]').forEach(function (b) { 
+            b.addEventListener('click', function () { 
+                $('pcProfit').value = b.dataset.profit; 
+                paint(); saveLast(); 
+            }); 
+        });
+
         $('pcReset').addEventListener('click', resetAll);
+
+        // Copy Full Sheet
         $('pcCopy').addEventListener('click', function () {
             var text = sheetText();
-            (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(function () { toast('Copied'); }, function () { toast('Not copied'); });
+            (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(
+                function () { toast('পূর্ণাঙ্গ খরচের শিট কপি হয়েছে ✓'); }, 
+                function () { toast('কপি করা যায়নি'); }
+            );
         });
+
+        // Copy Spec Box Text
+        var copySpecBtn = $('pcCopySpecBtn');
+        if (copySpecBtn) {
+            copySpecBtn.addEventListener('click', function () {
+                var spec = $('pcSpecTextarea').value;
+                if (!spec) return;
+                (navigator.clipboard ? navigator.clipboard.writeText(spec) : Promise.reject()).then(
+                    function () { toast('স্পেসিফিকেশন কপি হয়েছে ✓'); }, 
+                    function () { toast('কপি করা যায়নি'); }
+                );
+            });
+        }
+
+        // Refresh Spec Box
+        var refreshSpecBtn = $('pcRefreshSpec');
+        if (refreshSpecBtn) {
+            refreshSpecBtn.addEventListener('click', function () {
+                var specBox = $('pcSpecTextarea');
+                if (specBox) {
+                    specBox._manuallyEdited = false;
+                    updateSpecBox();
+                    toast('স্পেসিফিকেশন রিফ্রেশ করা হয়েছে');
+                }
+            });
+        }
+
+        // Single Consolidated Line Insert
         el.add.addEventListener('click', function () { insert(true); });
         el.plain.addEventListener('click', function () { insert(false); });
-        root.addEventListener('shown.bs.modal', function () { (($('pcQty').value) ? $('pcTitleIn') : $('pcQty')).focus(); });
+
+        // Itemized Breakdown Insert (New Feature!)
+        if (el.addDetailed) {
+            el.addDetailed.addEventListener('click', insertDetailed);
+        }
+
+        root.addEventListener('shown.bs.modal', function () { 
+            (($('pcQty').value) ? $('pcTitleIn') : $('pcQty')).focus(); 
+        });
 
         applyType('book');
         loadSheet();

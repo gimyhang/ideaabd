@@ -1070,9 +1070,22 @@ class IdeaAccountingController extends Controller
             $order = Order::with(['book', 'user', 'affiliate'])->findOrFail($id);
         } elseif ($type === 'invoice') {
             $invoice = IdeaInvoice::with(['payments', 'creator'])->findOrFail($id);
+            $typeBadge = match($invoice->type) {
+                'quotation' => 'কোটেশন / QUOTATION',
+                'tender'    => 'দরপত্র / TENDER',
+                'challan'   => 'চালান / CHALLAN',
+                default     => 'ইনভয়েস / INVOICE',
+            };
+            $firstItemTitle = is_array($invoice->items) && count($invoice->items)
+                ? ($invoice->items[0]['title'] ?? $invoice->items[0]['name'] ?? 'ইনভয়েস পণ্য ও বই')
+                : ($invoice->subject ?: 'ইনভয়েস বই/মালামাল');
+            $backUrl = ($invoice->type === 'quotation')
+                ? route('admin.accounting.index', ['stream' => 'invoices', 'type' => 'quotation'])
+                : route('admin.accounting.index', ['stream' => 'invoices']);
+
             $slip = [
                 'type'             => 'invoice',
-                'type_badge'       => 'ইনভয়েস / INVOICE',
+                'type_badge'       => $typeBadge,
                 'doc_no'           => $invoice->invoice_no,
                 'date'             => $invoice->invoice_date ? Carbon::parse($invoice->invoice_date)->format('d M, Y') : date('d M, Y'),
                 'customer_name'    => $invoice->customer_name ?: 'সম্মানিত গ্রাহক',
@@ -1086,11 +1099,11 @@ class IdeaAccountingController extends Controller
                 'payment_method'   => $invoice->payment_method ?: 'Cash',
                 'items'            => is_array($invoice->items) ? $invoice->items : [],
                 'items_count'      => is_array($invoice->items) ? count($invoice->items) : 1,
-                'items_title'      => is_array($invoice->items) && count($invoice->items) ? ($invoice->items[0]['name'] ?? 'ইনভয়েস পণ্য ও বই') : ($invoice->subject ?: 'ইনভয়েস বই/মালামাল'),
+                'items_title'      => $firstItemTitle,
                 'notes'            => $invoice->notes,
                 'reference_no'     => $invoice->reference_no,
                 'tracking_code'    => $invoice->reference_no,
-                'back_url'         => route('admin.accounting.index', ['stream' => 'invoices']),
+                'back_url'         => $backUrl,
                 'invoice_url'      => route('admin.accounting.invoices.show', $invoice->id),
             ];
         } elseif ($type === 'pos') {
@@ -1937,13 +1950,18 @@ class IdeaAccountingController extends Controller
 
     public function nextInvoiceNumber(Request $request): JsonResponse
     {
+        $category = $request->input('sales_category') ?? $request->input('category') ?? 'books';
+        $request->merge(['sales_category' => $category]);
+
         $validated = $request->validate([
-            'type' => 'required|in:invoice,challan,quotation,tender',
-            'sales_category' => 'required|in:books,stationery,printing_goods,other',
+            'type'           => 'required|in:invoice,challan,quotation,tender',
+            'sales_category' => 'nullable|in:books,stationery,printing_goods,other',
         ]);
 
+        $salesCategory = $validated['sales_category'] ?? 'books';
+
         return response()->json([
-            'invoice_no' => IdeaInvoice::nextNumber($validated['type'], $validated['sales_category']),
+            'invoice_no' => IdeaInvoice::nextNumber($validated['type'], $salesCategory),
         ]);
     }
 
@@ -4287,9 +4305,14 @@ class IdeaAccountingController extends Controller
 
     public function destroyInvoice(IdeaInvoice $invoice): RedirectResponse
     {
+        $isQuotation = ($invoice->type === 'quotation');
         DB::transaction(fn () => $invoice->deleteWithLedger());
 
-        return redirect()->route('admin.accounting.invoices.index')
+        $targetUrl = $isQuotation
+            ? route('admin.accounting.index', ['stream' => 'invoices', 'type' => 'quotation'])
+            : route('admin.accounting.invoices.index');
+
+        return redirect($targetUrl)
             ->with('success', 'ডকুমেন্টটি এবং এর পেমেন্ট ও আয়ের এন্ট্রি সফলভাবে মুছে ফেলা হয়েছে।');
     }
 

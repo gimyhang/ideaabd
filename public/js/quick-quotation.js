@@ -188,14 +188,17 @@
 
     function initCalculator() {
         var calcModal = doc.getElementById('printCostCalculatorModal');
-        doc.getElementById('qqCalc').addEventListener('click', function () {
-            reopenAfterCalc = true;
-            modalEl.addEventListener('hidden.bs.modal', function once() {
-                modalEl.removeEventListener('hidden.bs.modal', once);
-                if (typeof window.openPrintCostCalculator === 'function') window.openPrintCostCalculator();
+        var calcBtn = doc.getElementById('qqCalc');
+        if (calcBtn) {
+            calcBtn.addEventListener('click', function () {
+                reopenAfterCalc = true;
+                modalEl.addEventListener('hidden.bs.modal', function once() {
+                    modalEl.removeEventListener('hidden.bs.modal', once);
+                    if (typeof window.openPrintCostCalculator === 'function') window.openPrintCostCalculator();
+                });
+                window.bootstrap.Modal.getInstance(modalEl).hide();
             });
-            window.bootstrap.Modal.getInstance(modalEl).hide();
-        });
+        }
         if (calcModal) {
             calcModal.addEventListener('hidden.bs.modal', function () {
                 if (!reopenAfterCalc) return;
@@ -203,57 +206,62 @@
                 window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
             });
         }
+    }
 
-        function initQuotationDefaults() {
-            var date = doc.getElementById('qqDate');
-            var valid = doc.getElementById('qqValid');
-            var days = Math.max(1, parseInt(modalEl.dataset.validityDays, 10) || 30);
-            var validDate = new Date(date.value + 'T00:00:00');
-            validDate.setDate(validDate.getDate() + days);
-            doc.getElementById('qqValid').value = validDate.getFullYear() + '-'
-                + String(validDate.getMonth() + 1).padStart(2, '0') + '-'
-                + String(validDate.getDate()).padStart(2, '0');
+    function initQuotationDefaults() {
+        var date = doc.getElementById('qqDate');
+        var valid = doc.getElementById('qqValid');
+        if (!date || !valid) return;
+        var days = Math.max(1, parseInt(modalEl.dataset.validityDays, 10) || 30);
+        var validDate = new Date(date.value + 'T00:00:00');
+        validDate.setDate(validDate.getDate() + days);
+        valid.value = validDate.getFullYear() + '-'
+            + String(validDate.getMonth() + 1).padStart(2, '0') + '-'
+            + String(validDate.getDate()).padStart(2, '0');
+    }
+
+    function initNumberRefresh() {
+        var number = doc.getElementById('qqNo');
+        var autoNumber = doc.getElementById('qqAutoNumber');
+        var message = doc.getElementById('qqNumberError');
+        var categoryEl = doc.getElementById('qqCategory');
+        if (!number || !autoNumber) return;
+        var requestId = 0;
+        var manuallyEdited = false;
+
+        function refresh() {
+            if (manuallyEdited) return;
+            var id = ++requestId;
+            var url = new URL(modalEl.dataset.numberUrl, location.origin);
+            url.searchParams.set('type', 'quotation');
+            url.searchParams.set('sales_category', category());
+            fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+                .then(function (response) {
+                    if (!response.ok) throw new Error('Could not generate a quotation number.');
+                    return response.json();
+                })
+                .then(function (result) {
+                    if (id !== requestId || manuallyEdited) return;
+                    number.value = result.invoice_no;
+                    autoNumber.value = '1';
+                    if (message) message.textContent = '';
+                })
+                .catch(function (error) {
+                    if (id !== requestId) return;
+                    if (message) message.textContent = error.message;
+                });
         }
 
-        function initNumberRefresh() {
-            var number = doc.getElementById('qqNo');
-            var autoNumber = doc.getElementById('qqAutoNumber');
-            var message = doc.getElementById('qqNumberError');
-            var requestId = 0;
-            var manuallyEdited = false;
-
-            function refresh() {
-                if (manuallyEdited) return;
-                var id = ++requestId;
-                var url = new URL(modalEl.dataset.numberUrl, location.origin);
-                url.searchParams.set('type', 'quotation');
-                url.searchParams.set('sales_category', category());
-                fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
-                    .then(function (response) {
-                        if (!response.ok) throw new Error('Could not generate a quotation number.');
-                        return response.json();
-                    })
-                    .then(function (result) {
-                        if (id !== requestId || manuallyEdited) return;
-                        number.value = result.invoice_no;
-                        autoNumber.value = '1';
-                        message.textContent = '';
-                    })
-                    .catch(function (error) {
-                        if (id !== requestId) return;
-                        message.textContent = error.message;
-                    });
-            }
-
-            number.addEventListener('input', function () {
-                manuallyEdited = true;
-                autoNumber.value = '0';
-            });
-            doc.getElementById('qqCategory').addEventListener('change', function () {
+        number.addEventListener('input', function () {
+            manuallyEdited = true;
+            autoNumber.value = '0';
+        });
+        if (categoryEl) {
+            categoryEl.addEventListener('change', function () {
                 refresh();
             });
-            refresh();
         }
+        refresh();
     }
 
     // ── Boot ────────────────────────────────────────────────────────────────

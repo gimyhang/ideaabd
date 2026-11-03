@@ -23,15 +23,19 @@ class SiteSetting
                 $settings = [];
                 foreach ($rows as $row) {
                     $val = $row->value;
-                    $decoded = json_decode($val, true);
-                    if (json_last_error() === JSON_ERROR_NONE) {
-                        if (is_string($decoded)) {
-                            $second = json_decode($decoded, true);
-                            if (json_last_error() === JSON_ERROR_NONE && is_array($second)) {
-                                $decoded = $second;
+                    if ($val !== null && is_string($val)) {
+                        $decoded = json_decode($val, true);
+                        if (json_last_error() === JSON_ERROR_NONE) {
+                            if (is_string($decoded)) {
+                                $second = json_decode($decoded, true);
+                                if (json_last_error() === JSON_ERROR_NONE && is_array($second)) {
+                                    $decoded = $second;
+                                }
                             }
+                            $settings[$row->key] = $decoded;
+                        } else {
+                            $settings[$row->key] = $val;
                         }
-                        $settings[$row->key] = $decoded;
                     } else {
                         $settings[$row->key] = $val;
                     }
