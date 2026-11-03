@@ -173,28 +173,28 @@
                                 </div>
                             </div>
                             
-                            <div class="table-responsive m-0">
+                            <div class="table-responsive m-0 pc-table-wrap">
                                 <table class="table table-hover align-middle mb-0 pc-comp-table" id="pcMainTable">
                                     <colgroup>
-                                        <col style="width: 36px;">
-                                        <col style="width: 105px;">
+                                        <col style="width: 40px;">
+                                        <col style="width: 110px;">
                                         <col style="width: 180px;">
-                                        <col style="min-width: 250px;">
-                                        <col style="width: 160px;">
-                                        <col style="width: 160px;">
-                                        <col style="width: 160px;">
-                                        <col style="width: 36px;">
+                                        <col style="width: 410px;">
+                                        <col style="width: 140px;">
+                                        <col style="width: 140px;">
+                                        <col style="width: 140px;">
+                                        <col style="width: 40px;">
                                     </colgroup>
                                     <thead class="text-muted bg-light">
                                         <tr>
-                                            <th class="text-center" style="width: 36px;" title="Include">✓</th>
-                                            <th style="width: 105px;">Type</th>
+                                            <th class="text-center" style="width: 40px;" title="Include">✓</th>
+                                            <th style="width: 110px;">Type</th>
                                             <th style="width: 180px;">Item</th>
-                                            <th>Specification</th>
-                                            <th style="width: 160px;" class="text-end">Qty</th>
-                                            <th style="width: 160px;" class="text-end">Rate</th>
-                                            <th style="width: 160px;" class="text-end">Total</th>
-                                            <th class="text-center" style="width: 36px;"></th>
+                                            <th style="width: 410px;">Specification</th>
+                                            <th style="width: 140px;" class="text-end">Qty</th>
+                                            <th style="width: 140px;" class="text-end">Rate</th>
+                                            <th style="width: 140px;" class="text-end">Total</th>
+                                            <th class="text-center" style="width: 40px;"></th>
                                         </tr>
                                     </thead>
                                     <tbody id="pcRowsBody">

@@ -700,12 +700,12 @@
                 return '<option value="' + esc(k) + '"' + (String(k) === String(r.b) ? ' selected' : '') + '>' + (knownRate('Paper', r.a, k) ? '● ' : '') + esc(k) + '</option>';
             }).join('');
 
-            return '<div class="d-flex align-items-center gap-1.5 flex-nowrap w-100">'
-                + '<input class="form-control form-control-sm pc-stock font-monospace" list="pcPaper' + list + '" value="' + esc(stockText(r)) + '" placeholder="e.g. 80 GSM Offwhite" title="GSM & Paper Type" style="flex: 1 1 130px; min-width: 110px;">'
-                + (r.auto === 'sheet' ? '<div class="input-group input-group-sm pc-spec-mini" style="width: 76px;" title="Ups per sheet"><span class="input-group-text px-1 text-muted" style="font-size: 10px;">Ups</span><input type="number" class="form-control form-control-sm pc-ups text-end font-monospace px-1" min="1" step="1" value="' + esc(r.ups) + '"></div>' : '')
-                + '<div class="input-group input-group-sm pc-spec-mini" style="width: 82px;" title="Waste Percentage"><span class="input-group-text px-1 text-muted" style="font-size: 10px;">Waste</span><input type="number" class="form-control form-control-sm pc-waste text-end font-monospace px-1" min="0" step="1" value="' + esc(r.waste) + '"></div>'
-                + '<select class="form-select form-select-sm pc-var pc-paper-select pc-a font-monospace" style="width: 90px;" aria-label="GSM" title="GSM">' + gsmOptsHtml + '</select>'
-                + '<select class="form-select form-select-sm pc-var pc-paper-select pc-b" style="width: 115px;" aria-label="Type" title="Type">' + typeOptsHtml + '</select>'
+            return '<div class="d-flex align-items-center gap-1 flex-nowrap w-100">'
+                + '<input class="form-control form-control-sm pc-stock font-monospace" list="pcPaper' + list + '" value="' + esc(stockText(r)) + '" placeholder="e.g. 80 GSM Offwhite" title="GSM & Paper Type" style="flex: 1 1 110px; min-width: 95px;">'
+                + (r.auto === 'sheet' ? '<div class="input-group input-group-sm pc-spec-mini" style="width: 65px;" title="Ups per sheet"><span class="input-group-text px-1 text-muted" style="font-size: 10px;">Ups</span><input type="number" class="form-control form-control-sm pc-ups text-end font-monospace px-1" min="1" step="1" value="' + esc(r.ups) + '"></div>' : '')
+                + '<div class="input-group input-group-sm pc-spec-mini" style="width: 68px;" title="Waste Percentage"><span class="input-group-text px-1 text-muted" style="font-size: 10px;">W%</span><input type="number" class="form-control form-control-sm pc-waste text-end font-monospace px-1" min="0" step="1" value="' + esc(r.waste) + '"></div>'
+                + '<select class="form-select form-select-sm pc-var pc-paper-select pc-a font-monospace" style="width: 78px;" aria-label="GSM" title="GSM">' + gsmOptsHtml + '</select>'
+                + '<select class="form-select form-select-sm pc-var pc-paper-select pc-b" style="width: 95px;" aria-label="Type" title="Type">' + typeOptsHtml + '</select>'
                 + '</div>';
         }
 
@@ -755,11 +755,8 @@
             + specHtml(r)
             + '</td>'
             + '<td class="text-end align-middle col-qty">'
-            + '<div class="position-relative w-100">'
             + '<input type="number" class="form-control form-control-sm pc-qty text-end font-monospace" min="0" step="any" value="' + esc(r.qty) + '" aria-label="Quantity" placeholder="0">'
-            + '<button type="button" class="pc-auto badge bg-primary text-white border-0 position-absolute" style="top: -6px; right: 6px; font-size: 8.5px; padding: 2px 5px; cursor: pointer;" title="Auto Calculated"' + (r.manual && r.auto ? '' : ' hidden') + '>Auto</button>'
-            + '</div>'
-            + '<small class="pc-qty-note text-muted font-monospace d-block text-end pe-1" style="font-size: 10px;"></small>'
+            + '<small class="pc-qty-note text-muted font-monospace d-block text-end pe-1" style="font-size: 10px; line-height: 1.2;"></small>'
             + '</td>'
             + '<td class="text-end align-middle col-rate">'
             + '<div class="d-flex align-items-center justify-content-end gap-1 w-100">'
@@ -771,7 +768,7 @@
             + money(lineTotal(r))
             + '</td>'
             + '<td class="text-center align-middle col-del">'
-            + '<button type="button" class="btn btn-link btn-sm text-danger p-0 pc-del opacity-75 hover-opacity-100" title="Delete" aria-label="Remove" style="text-decoration:none; font-size:17px; line-height:1;">&times;</button>'
+            + '<button type="button" class="btn btn-link btn-sm text-danger p-0 pc-del opacity-75 hover-opacity-100" title="Delete" aria-label="Remove" style="text-decoration:none; font-size:18px; line-height:1;">&times;</button>'
             + '</td>'
             + '</tr>';
     }
