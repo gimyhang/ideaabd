@@ -184,6 +184,10 @@
         fillRow(target, { title: title, detail: spec, type: itemType, unit: unit, regular: (regularPrice > price ? regularPrice : ''), price: price, qty: qty });
         var cat = doc.getElementById('qqCategory');
         if (cat.value === 'books') cat.value = 'printing_goods';
+        reopenAfterCalc = true;
+        if (modalEl && window.bootstrap && !modalEl.classList.contains('show')) {
+            window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        }
     };
 
     function initCalculator() {

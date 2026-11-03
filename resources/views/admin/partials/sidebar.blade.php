@@ -84,6 +84,7 @@
             ['route' => 'admin.accounting.index',                  'icon' => 'scale-balanced',      'label' => 'Transactions'],
             ['route' => 'admin.accounting.invoices.index',         'icon' => 'file-invoice-dollar', 'label' => 'Invoices', 'url' => route('admin.accounting.index', ['stream' => 'invoices'])],
             ['route' => 'admin.accounting.invoices.index',         'icon' => 'file-lines',          'label' => 'Quotations', 'type' => 'quotation', 'url' => route('admin.accounting.index', ['stream' => 'invoices', 'type' => 'quotation'])],
+            ['route' => 'admin.accounting.invoices.index',         'icon' => 'calculator',          'label' => 'Calculator', 'type' => 'calculator', 'url' => route('admin.accounting.index', ['stream' => 'invoices', 'type' => 'quotation', 'calculator' => '1'])],
             ['route' => 'admin.accounting.customer-ledger.index', 'icon' => 'book-bookmark',       'label' => 'Ledger'],
             ['route' => 'admin.accounting.tax-vat-deductions.index', 'icon' => 'receipt',           'label' => 'Tax'],
             ['route' => 'admin.accounting.salary.index',           'icon' => 'money-check-dollar',  'label' => 'Payroll'],
@@ -157,7 +158,7 @@
         'Purchases' => 'ক্রয়', 'Payments' => 'পরিশোধ', 'Ledgers' => 'খতিয়ান', 'Monthly' => 'মাসিক', 'Items' => 'পণ্য',
         'Production' => 'উৎপাদন', 'Stock' => 'মজুদ', 'Locations' => 'অবস্থান', 'Transfers' => 'স্থানান্তর',
         'Wastage' => 'অপচয়', 'Alerts' => 'সতর্কতা', 'Movements' => 'চলাচল',
-        'Accounting' => 'হিসাব', 'Transactions' => 'লেনদেন', 'Invoices' => 'ইনভয়েস', 'Quotations' => 'কোটেশন',
+        'Accounting' => 'হিসাব', 'Transactions' => 'লেনদেন', 'Invoices' => 'ইনভয়েস', 'Quotations' => 'কোটেশন', 'Calculator' => 'ক্যালকুলেটর',
         'Ledger' => 'বহি', 'Tax' => 'কর', 'Payroll' => 'বেতন', 'Employees' => 'কর্মী',
         'Content' => 'কনটেন্ট', 'Blog' => 'ব্লগ', 'Honorariums' => 'সম্মানী', 'Webzines' => 'ওয়েবজিন',
         'Sales' => 'বিক্রয়', 'POS' => 'কাউন্টার', 'Orders' => 'অর্ডার', 'Bills' => 'বিল', 'Affiliates' => 'অ্যাফিলিয়েট', 
@@ -355,13 +356,20 @@
                                     $ownsPrefix = collect($items)->filter(fn ($o) => $o['route'] !== $item['route'] && str_starts_with($o['route'], $base . '.'))->isEmpty();
                                     $isRouteActive = request()->routeIs($item['route']) || request()->routeIs($item['route'] . '.*') || ($ownsPrefix && request()->routeIs($base . '.*'));
                                     $active = isset($item['category']) ? ($isRouteActive && request('category') === $item['category']) : ($isRouteActive && empty(request('category')));
-                                    // Invoices / Quotations are two views of one hub stream (stream=invoices, type=…)
+                                    // Invoices / Quotations / Calculator are views of one hub stream (stream=invoices, type=…)
                                     $onInvoiceStream = (request()->routeIs('admin.accounting.index') && request('stream') === 'invoices')
                                         || request()->routeIs('admin.accounting.invoices.*');
                                     if ($item['route'] === 'admin.accounting.invoices.index') {
-                                        $wantsQuotation = ($item['type'] ?? null) === 'quotation';
-                                        $isQuot = (request('type') === 'quotation') || (isset($invoice) && is_object($invoice) && (($invoice->type ?? null) === 'quotation'));
-                                        $active = $onInvoiceStream && ($isQuot === $wantsQuotation);
+                                        $itemType = $item['type'] ?? null;
+                                        if ($itemType === 'calculator') {
+                                            $active = $onInvoiceStream && (request('calculator') === '1' || request('calc') === '1');
+                                        } elseif ($itemType === 'quotation') {
+                                            $isQuot = ((request('type') === 'quotation') || (isset($invoice) && is_object($invoice) && (($invoice->type ?? null) === 'quotation'))) && !request('calculator') && !request('calc');
+                                            $active = $onInvoiceStream && $isQuot;
+                                        } else {
+                                            $isInv = (request('type') !== 'quotation' && !request('calculator') && !request('calc')) && !(isset($invoice) && is_object($invoice) && (($invoice->type ?? null) === 'quotation'));
+                                            $active = $onInvoiceStream && $isInv;
+                                        }
                                     } elseif ($item['route'] === 'admin.accounting.index' && $onInvoiceStream) {
                                         $active = false;
                                     }

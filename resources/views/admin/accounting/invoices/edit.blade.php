@@ -2108,6 +2108,7 @@
         }
         calcTotals();
     }
+    window.addPresetItem = addPresetItem;
 
     function onStationeryPresetSelected(selectEl) {
         if (!selectEl || !selectEl.value) return;

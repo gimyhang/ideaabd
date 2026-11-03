@@ -1077,6 +1077,7 @@
 
         var jobTitle = $('pcTitleIn').value.trim() || TYPES[state.type].defaultTitle;
         var count = 0;
+        var markup = (s.direct > 0 && s.total > 0) ? (s.total / s.direct) : 1;
 
         activeRows.forEach(function (r) {
             var gTitle = GROUP_TITLES_BN[r.g] || r.g;
@@ -1088,8 +1089,9 @@
             else if (r.g === 'Design') itemType = 'Service';
             else if (r.g === 'Transport' || r.g === 'Other') itemType = 'Product';
 
-            var unitPrice = round(lineTotal(r) / s.j.q, 2);
-            if (unitPrice <= 0.01) unitPrice = round(num(r.rate), 2);
+            var compTotal = round(lineTotal(r) * markup, 2);
+            var unitPrice = round(compTotal / s.j.q, 2);
+            if (unitPrice <= 0.01) unitPrice = round(num(r.rate) * markup, 2);
 
             window.addPresetItem(itemTitle, specDetail, itemType, $('pcUnit').value || 'Pcs', unitPrice, unitPrice, s.j.q);
             count++;

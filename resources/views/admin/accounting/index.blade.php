@@ -285,6 +285,9 @@
 
             {{-- Sub-Modules Quick Links --}}
             <div class="d-none d-xl-flex align-items-center gap-2 border-start ps-3" style="border-left: 1px solid #e2e8f0 !important;">
+                <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 text-dark fw-semibold" onclick="openPrintCostCalculator()" title="Cost Calculator" style="border: 1px solid #cbd5e1 !important;">
+                    <i class="fa-solid fa-calculator me-1 text-warning"></i>Calculator
+                </button>
                 <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 text-muted fw-semibold" title="Customer Ledger" style="border: 1px solid #cbd5e1 !important;">
                     <i class="fa-solid fa-users me-1 text-primary"></i>Ledger
                 </a>
@@ -307,16 +310,21 @@
     @endphp
     <div class="doc-type-bar" role="tablist" aria-label="Document type">
         @foreach ($docTypes as $key => $label)
-            <a href="{{ route('admin.accounting.index', array_filter(array_merge(request()->except('type', 'page'), ['stream' => 'invoices', 'type' => $key]))) }}"
+            <a href="{{ route('admin.accounting.index', array_filter(array_merge(request()->except('type', 'page', 'calculator', 'calc'), ['stream' => 'invoices', 'type' => $key]))) }}"
                class="doc-type-pill {{ (string) request('type', '') === (string) $key ? 'active' : '' }}">
                 {{ $label }}
                 <span>{{ number_format($key === '' ? $typeCounts->sum() : ($typeCounts[$key] ?? 0)) }}</span>
             </a>
         @endforeach
         @if (request('type') === 'quotation')
-            <button type="button" class="btn btn-warning btn-sm ms-auto fw-semibold text-dark rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#quickQuotationModal">
-                <i class="fa-solid fa-plus me-1"></i>Create
-            </button>
+            <div class="d-flex align-items-center gap-2 ms-auto">
+                <button type="button" class="btn btn-outline-warning btn-sm fw-semibold text-dark rounded-pill px-3" onclick="openPrintCostCalculator()" title="Cost Calculator">
+                    <i class="fa-solid fa-calculator me-1"></i>Calculator
+                </button>
+                <button type="button" class="btn btn-warning btn-sm fw-semibold text-dark rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#quickQuotationModal">
+                    <i class="fa-solid fa-plus me-1"></i>Create
+                </button>
+            </div>
         @endif
     </div>
 @endif
@@ -1148,6 +1156,14 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     }
+
+    @if(request('calculator') || request('calc'))
+        setTimeout(function () {
+            if (typeof openPrintCostCalculator === 'function') {
+                openPrintCostCalculator();
+            }
+        }, 150);
+    @endif
 });
 </script>
 @endpush
