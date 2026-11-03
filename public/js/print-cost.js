@@ -16,7 +16,7 @@
     var doc = document;
 
     var GROUPS = ['Design', 'Paper', 'CTP', 'Press', 'Lamination', 'Cutting', 'Binding', 'Packing', 'Transport', 'Other'];
-    
+
     var GROUP_TITLES_BN = {
         Design: 'Design',
         Paper: 'Paper',
@@ -75,67 +75,67 @@
     var plain = function (list) { return list.map(function (v) { return [v, v]; }); };
 
     var VARIANTS = {
-        PaperInner: { 
-            a: ['GSM', gsmOpts(GSM_INNER)], 
-            b: ['Kind', plain(['Offset White', 'Offwhite', 'Cream Munken', 'Art Paper', 'Matt Art Paper', 'Newsprint', 'Kraft', 'Bond Paper', 'NCR Top', 'NCR Middle', 'NCR Bottom', 'Sticker Gum'])] 
+        PaperInner: {
+            a: ['GSM', gsmOpts(GSM_INNER)],
+            b: ['Kind', plain(['Offset White', 'Offwhite', 'Cream Munken', 'Art Paper', 'Matt Art Paper', 'Newsprint', 'Kraft', 'Bond Paper', 'NCR Top', 'NCR Middle', 'NCR Bottom', 'Sticker Gum'])]
         },
-        PaperCover: { 
-            a: ['GSM', gsmOpts(GSM_COVER)], 
-            b: ['Kind', plain(['Art Card', 'Swedish Board', 'Matt Card', 'Duplex Board', 'Grey Board 1.5mm', 'Grey Board 2.0mm', 'Grey Board 2.5mm', 'Kraft Board', 'Ivory Card', 'Glossy Card'])] 
+        PaperCover: {
+            a: ['GSM', gsmOpts(GSM_COVER)],
+            b: ['Kind', plain(['Art Card', 'Swedish Board', 'Matt Card', 'Duplex Board', 'Grey Board 1.5mm', 'Grey Board 2.0mm', 'Grey Board 2.5mm', 'Kraft Board', 'Ivory Card', 'Glossy Card'])]
         },
-        Design: { 
-            a: ['Work', plain(['Layout Design', 'Cover Design', 'Proof Reading', 'Ebook Conversion', 'ISBN Processing', 'Dummy Copy', 'Logo & Branding', 'Illustration'])], 
-            b: ['Per', plain(['Job', 'Page'])] 
+        Design: {
+            a: ['Work', plain(['Layout Design', 'Cover Design', 'Proof Reading', 'Ebook Conversion', 'ISBN Processing', 'Dummy Copy', 'Logo & Branding', 'Illustration'])],
+            b: ['Per', plain(['Job', 'Page'])]
         },
-        CTP: { 
-            a: ['Plate', plain(['CTP Thermal', 'CTP Violet', 'CTCP', 'Film Negative', 'Zinc Block', 'Copper Die'])], 
-            b: ['Side', plain(['Inner', 'Cover', 'Spot UV', 'Foil Stamping', 'Emboss'])] 
+        CTP: {
+            a: ['Plate', plain(['CTP Thermal', 'CTP Violet', 'CTCP', 'Film Negative', 'Zinc Block', 'Copper Die'])],
+            b: ['Side', plain(['Inner', 'Cover', 'Spot UV', 'Foil Stamping', 'Emboss'])]
         },
-        Press: { 
-            a: ['Machine', plain(['Offset 4-Color', 'Offset 2-Color', 'Offset 1-Color', 'Digital Laser', 'Screen Print', 'Flex Banner', 'Letterpress'])], 
-            b: ['Side', plain(['Inner', 'Cover', 'Spot Color'])] 
+        Press: {
+            a: ['Machine', plain(['Offset 4-Color', 'Offset 2-Color', 'Offset 1-Color', 'Digital Laser', 'Screen Print', 'Flex Banner', 'Letterpress'])],
+            b: ['Side', plain(['Inner', 'Cover', 'Spot Color'])]
         },
-        Lamination: { 
-            a: ['Finish', plain(['Matt Lamination', 'Glossy Lamination', 'Velvet Soft-Touch', 'Thermal Matt', 'Thermal Glossy', 'Spot UV', 'Gold Foil', 'Silver Foil', 'Embossing', 'Scratch-off'])], 
-            b: ['Sides', plain(['Front (Single)', 'Both Sides'])] 
+        Lamination: {
+            a: ['Finish', plain(['Matt Lamination', 'Glossy Lamination', 'Velvet Soft-Touch', 'Thermal Matt', 'Thermal Glossy', 'Spot UV', 'Gold Foil', 'Silver Foil', 'Embossing', 'Scratch-off'])],
+            b: ['Sides', plain(['Front (Single)', 'Both Sides'])]
         },
-        Cutting: { 
-            a: ['Method', plain(['3-Knife Trim', 'Die Cut', 'Creasing', 'Perforation', 'Punching', 'Folding', 'Numbering', 'Corner Rounding'])], 
-            b: null 
+        Cutting: {
+            a: ['Method', plain(['3-Knife Trim', 'Die Cut', 'Creasing', 'Perforation', 'Punching', 'Folding', 'Numbering', 'Corner Rounding'])],
+            b: null
         },
-        Binding: { 
-            a: ['Method', plain(['Perfect Binding', 'Thread Sewn + Perfect', 'Hardcover / Case', 'Saddle Stitch (Pin)', 'Spiral Ring', 'Wire-O Double Ring', 'Pad Pasting', 'Jacket Pasting'])], 
-            b: null 
+        Binding: {
+            a: ['Method', plain(['Perfect Binding', 'Thread Sewn + Perfect', 'Hardcover / Case', 'Saddle Stitch (Pin)', 'Spiral Ring', 'Wire-O Double Ring', 'Pad Pasting', 'Jacket Pasting'])],
+            b: null
         },
-        Packing: { 
-            a: ['Material', plain(['Poly Bag Wrap', 'Paper Band', 'Master Carton', 'Shrink Film', 'Bubble Wrap', 'Wooden Pallet'])], 
-            b: ['Per', plain(['Copy', 'Dozen', 'Hundred', 'Carton', 'Lot'])] 
+        Packing: {
+            a: ['Material', plain(['Poly Bag Wrap', 'Paper Band', 'Master Carton', 'Shrink Film', 'Bubble Wrap', 'Wooden Pallet'])],
+            b: ['Per', plain(['Copy', 'Dozen', 'Hundred', 'Carton', 'Lot'])]
         },
-        Transport: { 
-            a: ['Work', plain(['Press to Office', 'Office to Client', 'Courier Transport', 'Loading Labor', 'Doorstep Delivery'])], 
-            b: ['Per', plain(['Lot', 'Copy', 'Hundred', 'Thousand', 'Carton'])] 
+        Transport: {
+            a: ['Work', plain(['Press to Office', 'Office to Client', 'Courier Transport', 'Loading Labor', 'Doorstep Delivery'])],
+            b: ['Per', plain(['Lot', 'Copy', 'Hundred', 'Thousand', 'Carton'])]
         },
         Other: { a: null, b: null }
     };
 
-    var PAPER_DEFAULT = { 
+    var PAPER_DEFAULT = {
         '80|offset white': 3200, '70|offset white': 2800, '70|offwhite': 3100, '80|offwhite': 3500,
-        '70|cream munken': 3800, '80|cream munken': 4200, '100|art paper': 4500, '120|matt art paper': 5200, 
-        '65|offset white': 2500, '55|newsprint': 2100, '80|kraft': 3000, '300|art card': 5800, '350|swedish board': 6500 
+        '70|cream munken': 3800, '80|cream munken': 4200, '100|art paper': 4500, '120|matt art paper': 5200,
+        '65|offset white': 2500, '55|newsprint': 2100, '80|kraft': 3000, '300|art card': 5800, '350|swedish board': 6500
     };
 
-    var SIZES = { 
-        Demy: [5.5, 8.5], 
-        Crown: [7.25, 9.5], 
-        Royal: [6.5, 9.5], 
-        A4: [8.3, 11.7], 
-        A5: [5.8, 8.3], 
-        A3: [11.7, 16.5], 
-        B5: [6.9, 9.8], 
-        Card: [3.5, 2.0], 
-        Poster: [18.0, 23.0], 
+    var SIZES = {
+        Demy: [5.5, 8.5],
+        Crown: [7.25, 9.5],
+        Royal: [6.5, 9.5],
+        A4: [8.3, 11.7],
+        A5: [5.8, 8.3],
+        A3: [11.7, 16.5],
+        B5: [6.9, 9.8],
+        Card: [3.5, 2.0],
+        Poster: [18.0, 23.0],
         Envelope: [10.0, 4.5],
-        Full: [23.0, 36.0] 
+        Full: [23.0, 36.0]
     };
 
     var SIZES_BN = {
@@ -152,10 +152,10 @@
         Full: 'Sheet (23"×36")'
     };
 
-    var SHEETS = { 
-        '23x36': [23, 36], 
-        '25x36': [25, 36], 
-        '20x30': [20, 30], 
+    var SHEETS = {
+        '23x36': [23, 36],
+        '25x36': [25, 36],
+        '20x30': [20, 30],
         '18x23': [18, 23],
         '27x38': [27, 38],
         '31x43': [31, 43]
@@ -164,146 +164,170 @@
     var P = function (g, n, o) { o = o || {}; o.g = g; o.n = n; return o; };
 
     var TYPES = {
-        book: { label: 'Book', unit: 'Copy', size: 'Demy', pages: true, defaultTitle: 'Book Printing', rows: [
-            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Page' }), 
-            P('Design', 'Cover Design', { auto: 'per', a: 'Cover Design', b: 'Job' }),
-            P('Paper', 'Inner Paper', { auto: 'paperBook', a: 80, b: 'Offwhite', waste: 5 }),
-            P('Paper', 'Cover Board', { auto: 'sheet', ups: 8, waste: 5, flat: true, noSize: true, a: 300, b: 'Art Card' }),
-            P('CTP', 'Inner Plates', { auto: 'platesBook', a: 'CTP Thermal', b: 'Inner' }), 
-            P('CTP', 'Cover Plates', { auto: 'platesCover', a: 'CTP Thermal', b: 'Cover' }),
-            P('Press', 'Inner Press (Offset)', { auto: 'pressBook', a: 'Offset 1-Color', b: 'Inner' }), 
-            P('Press', 'Cover Press (Offset)', { auto: 'pressCover', a: 'Offset 4-Color', b: 'Cover' }),
-            P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Matt Lamination', b: 'Front (Single)' }), 
-            P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
-            P('Binding', 'Perfect Glue Binding', { auto: 'copies', a: 'Perfect Binding' }),
-            P('Packing', 'Poly Bag Wrapping', { auto: 'per', a: 'Poly Bag Wrap', b: 'Copy', off: true }), 
-            P('Transport', 'Press to Office Delivery', { auto: 'per', a: 'Press to Office', b: 'Lot', off: true })
-        ] },
-        magazine: { label: 'Magazine', unit: 'Copy', size: 'A4', pages: true, defaultTitle: 'Magazine Printing', rows: [
-            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Page' }),
-            P('Design', 'Cover Design', { auto: 'per', a: 'Cover Design', b: 'Job' }),
-            P('Paper', 'Inner Paper', { auto: 'paperBook', a: 100, b: 'Art Paper', waste: 5 }),
-            P('Paper', 'Cover Board', { auto: 'sheet', ups: 4, waste: 5, flat: true, noSize: true, a: 250, b: 'Art Card' }),
-            P('CTP', 'Inner Plates', { auto: 'platesBook', a: 'CTP Thermal', b: 'Inner' }),
-            P('CTP', 'Cover Plates', { auto: 'platesCover', a: 'CTP Thermal', b: 'Cover' }),
-            P('Press', 'Inner Press (Offset)', { auto: 'pressBook', a: 'Offset 4-Color', b: 'Inner' }),
-            P('Press', 'Cover Press (Offset)', { auto: 'pressCover', a: 'Offset 4-Color', b: 'Cover' }),
-            P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Glossy Lamination', b: 'Front (Single)' }),
-            P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
-            P('Binding', 'Saddle Stitch (Pin)', { auto: 'copies', a: 'Saddle Stitch (Pin)' }),
-            P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
-        ] },
-        notebook: { label: 'Notebook', unit: 'Book', size: 'Demy', pages: true, defaultTitle: 'Executive Notebook & Diary', rows: [
-            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
-            P('Paper', 'Inner Paper', { auto: 'paperBook', a: 80, b: 'Cream Munken', waste: 5 }),
-            P('Paper', 'Cover Board', { auto: 'sheet', ups: 8, waste: 5, flat: true, noSize: true, a: 350, b: 'Grey Board 2.0mm' }),
-            P('CTP', 'Inner Plates', { auto: 'platesBook', a: 'CTP Thermal', b: 'Inner' }),
-            P('Press', 'Inner Press (Offset)', { auto: 'pressBook', a: 'Offset 2-Color', b: 'Inner' }),
-            P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Velvet Soft-Touch', b: 'Front (Single)' }),
-            P('Binding', 'Hardcover Binding', { auto: 'copies', a: 'Hardcover / Case' }),
-            P('Other', 'Ribbon Bookmark', { auto: 'copies', a: 'Ribbon Bookmark', b: 'Copy' })
-        ] },
-        brochure: { label: 'Brochure', unit: 'Pcs', size: 'A4', defaultTitle: 'Multicolor Tri-Fold Brochure', rows: [
-            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
-            P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 170, b: 'Matt Art Paper' }),
-            P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
-            P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
-            P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Matt Lamination', b: 'Both Sides' }),
-            P('Cutting', 'Creasing & Scoring', { auto: 'copies', a: 'Creasing' }),
-            P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
-        ] },
-        card: { label: 'Card', unit: 'Pcs', size: 'Card', defaultTitle: 'Premium Visiting Cards', rows: [
-            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
-            P('Paper', 'Cover Board', { auto: 'sheet', waste: 5, flat: true, a: 300, b: 'Art Card' }),
-            P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
-            P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
-            P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Matt Lamination', b: 'Both Sides' }),
-            P('Lamination', 'Spot UV Coating', { auto: 'copies', a: 'Spot UV', b: 'Front (Single)', off: true }),
-            P('Cutting', 'Die Cutting', { auto: 'copies', a: 'Die Cut' }),
-            P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
-        ] },
-        leaflet: { label: 'Leaflet', unit: 'Pcs', size: 'A4', defaultTitle: 'Color Flyer / Leaflet', rows: [
-            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
-            P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 120, b: 'Matt Art Paper' }),
-            P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
-            P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
-            P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
-            P('Packing', 'Paper Band', { auto: 'per', a: 'Paper Band', b: 'Hundred', off: true })
-        ] },
-        poster: { label: 'Poster', unit: 'Pcs', size: 'Poster', defaultTitle: 'Offset Color Poster', rows: [
-            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
-            P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 100, b: 'Art Paper' }),
-            P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
-            P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
-            P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Glossy Lamination', b: 'Front (Single)', off: true }),
-            P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' })
-        ] },
-        calendar: { label: 'Calendar', unit: 'Pcs', size: 'A3', pages: true, defaultTitle: 'Wall / Desk Calendar', rows: [
-            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
-            P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, a: 150, b: 'Matt Art Paper' }),
-            P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
-            P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
-            P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
-            P('Binding', 'Spiral Ring', { auto: 'copies', a: 'Spiral Ring' }),
-            P('Packing', 'Poly Bag Wrapping', { auto: 'per', a: 'Poly Bag Wrap', b: 'Copy', off: true })
-        ] },
-        box: { label: 'Box', unit: 'Pcs', size: 'A4', defaultTitle: 'Product Box / Carton', rows: [
-            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
-            P('Paper', 'Cover Board', { auto: 'sheet', waste: 8, flat: true, a: 350, b: 'Duplex Board' }),
-            P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
-            P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
-            P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Matt Lamination', b: 'Front (Single)' }),
-            P('Cutting', 'Die Cutting', { auto: 'copies', a: 'Die Cut' }),
-            P('Binding', 'Pad Pasting', { auto: 'copies', a: 'Pad Pasting' }),
-            P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
-        ] },
-        memo: { label: 'Memo', unit: 'Book', size: 'A5', pages: true, defaultTitle: 'Cash Memo / Bill Pad (3-Part)', rows: [
-            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
-            P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, a: 55, b: 'NCR Top' }),
-            P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, a: 55, b: 'NCR Middle' }),
-            P('Paper', 'Cover Board', { auto: 'sheet', waste: 5, flat: true, a: 200, b: 'Duplex Board' }),
-            P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
-            P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 1-Color', b: 'Inner' }),
-            P('Cutting', 'Perforation', { auto: 'copies', a: 'Perforation' }),
-            P('Cutting', 'Numbering', { auto: 'copies', a: 'Numbering' }),
-            P('Binding', 'Pad Pasting', { auto: 'copies', a: 'Pad Pasting' })
-        ] },
-        envelope: { label: 'Envelope', unit: 'Pcs', size: 'Envelope', defaultTitle: 'Printed Office Envelopes', rows: [
-            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
-            P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 100, b: 'Offset White' }),
-            P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
-            P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
-            P('Cutting', 'Die Cutting', { auto: 'copies', a: 'Die Cut' }),
-            P('Binding', 'Pad Pasting', { auto: 'copies', a: 'Pad Pasting' }),
-            P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
-        ] },
-        stationery: { label: 'Stationery', unit: 'Pcs', size: '', defaultTitle: 'Corporate Stationery Items', rows: [
-            P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
-            P('Other', 'Miscellaneous', { auto: 'copies', a: 'Corporate Item', b: 'Copy' }),
-            P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred' }),
-            P('Transport', 'Office to Client Door', { auto: 'per', a: 'Office to Client', b: 'Lot' })
-        ] },
+        book: {
+            label: 'Book', unit: 'Copy', size: 'Demy', pages: true, defaultTitle: 'Book Printing', rows: [
+                P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Page' }),
+                P('Design', 'Cover Design', { auto: 'per', a: 'Cover Design', b: 'Job' }),
+                P('Paper', 'Inner Paper', { auto: 'paperBook', a: 80, b: 'Offwhite', waste: 5 }),
+                P('Paper', 'Cover Board', { auto: 'sheet', ups: 8, waste: 5, flat: true, noSize: true, a: 300, b: 'Art Card' }),
+                P('CTP', 'Inner Plates', { auto: 'platesBook', a: 'CTP Thermal', b: 'Inner' }),
+                P('CTP', 'Cover Plates', { auto: 'platesCover', a: 'CTP Thermal', b: 'Cover' }),
+                P('Press', 'Inner Press (Offset)', { auto: 'pressBook', a: 'Offset 1-Color', b: 'Inner' }),
+                P('Press', 'Cover Press (Offset)', { auto: 'pressCover', a: 'Offset 4-Color', b: 'Cover' }),
+                P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Matt Lamination', b: 'Front (Single)' }),
+                P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
+                P('Binding', 'Perfect Glue Binding', { auto: 'copies', a: 'Perfect Binding' }),
+                P('Packing', 'Poly Bag Wrapping', { auto: 'per', a: 'Poly Bag Wrap', b: 'Copy', off: true }),
+                P('Transport', 'Press to Office Delivery', { auto: 'per', a: 'Press to Office', b: 'Lot', off: true })
+            ]
+        },
+        magazine: {
+            label: 'Magazine', unit: 'Copy', size: 'A4', pages: true, defaultTitle: 'Magazine Printing', rows: [
+                P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Page' }),
+                P('Design', 'Cover Design', { auto: 'per', a: 'Cover Design', b: 'Job' }),
+                P('Paper', 'Inner Paper', { auto: 'paperBook', a: 100, b: 'Art Paper', waste: 5 }),
+                P('Paper', 'Cover Board', { auto: 'sheet', ups: 4, waste: 5, flat: true, noSize: true, a: 250, b: 'Art Card' }),
+                P('CTP', 'Inner Plates', { auto: 'platesBook', a: 'CTP Thermal', b: 'Inner' }),
+                P('CTP', 'Cover Plates', { auto: 'platesCover', a: 'CTP Thermal', b: 'Cover' }),
+                P('Press', 'Inner Press (Offset)', { auto: 'pressBook', a: 'Offset 4-Color', b: 'Inner' }),
+                P('Press', 'Cover Press (Offset)', { auto: 'pressCover', a: 'Offset 4-Color', b: 'Cover' }),
+                P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Glossy Lamination', b: 'Front (Single)' }),
+                P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
+                P('Binding', 'Saddle Stitch (Pin)', { auto: 'copies', a: 'Saddle Stitch (Pin)' }),
+                P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
+            ]
+        },
+        notebook: {
+            label: 'Notebook', unit: 'Book', size: 'Demy', pages: true, defaultTitle: 'Executive Notebook & Diary', rows: [
+                P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+                P('Paper', 'Inner Paper', { auto: 'paperBook', a: 80, b: 'Cream Munken', waste: 5 }),
+                P('Paper', 'Cover Board', { auto: 'sheet', ups: 8, waste: 5, flat: true, noSize: true, a: 350, b: 'Grey Board 2.0mm' }),
+                P('CTP', 'Inner Plates', { auto: 'platesBook', a: 'CTP Thermal', b: 'Inner' }),
+                P('Press', 'Inner Press (Offset)', { auto: 'pressBook', a: 'Offset 2-Color', b: 'Inner' }),
+                P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Velvet Soft-Touch', b: 'Front (Single)' }),
+                P('Binding', 'Hardcover Binding', { auto: 'copies', a: 'Hardcover / Case' }),
+                P('Other', 'Ribbon Bookmark', { auto: 'copies', a: 'Ribbon Bookmark', b: 'Copy' })
+            ]
+        },
+        brochure: {
+            label: 'Brochure', unit: 'Pcs', size: 'A4', defaultTitle: 'Multicolor Tri-Fold Brochure', rows: [
+                P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+                P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 170, b: 'Matt Art Paper' }),
+                P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
+                P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+                P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Matt Lamination', b: 'Both Sides' }),
+                P('Cutting', 'Creasing & Scoring', { auto: 'copies', a: 'Creasing' }),
+                P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
+            ]
+        },
+        card: {
+            label: 'Card', unit: 'Pcs', size: 'Card', defaultTitle: 'Premium Visiting Cards', rows: [
+                P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+                P('Paper', 'Cover Board', { auto: 'sheet', waste: 5, flat: true, a: 300, b: 'Art Card' }),
+                P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
+                P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+                P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Matt Lamination', b: 'Both Sides' }),
+                P('Lamination', 'Spot UV Coating', { auto: 'copies', a: 'Spot UV', b: 'Front (Single)', off: true }),
+                P('Cutting', 'Die Cutting', { auto: 'copies', a: 'Die Cut' }),
+                P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
+            ]
+        },
+        leaflet: {
+            label: 'Leaflet', unit: 'Pcs', size: 'A4', defaultTitle: 'Color Flyer / Leaflet', rows: [
+                P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+                P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 120, b: 'Matt Art Paper' }),
+                P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
+                P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+                P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
+                P('Packing', 'Paper Band', { auto: 'per', a: 'Paper Band', b: 'Hundred', off: true })
+            ]
+        },
+        poster: {
+            label: 'Poster', unit: 'Pcs', size: 'Poster', defaultTitle: 'Offset Color Poster', rows: [
+                P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+                P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 100, b: 'Art Paper' }),
+                P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
+                P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+                P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Glossy Lamination', b: 'Front (Single)', off: true }),
+                P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' })
+            ]
+        },
+        calendar: {
+            label: 'Calendar', unit: 'Pcs', size: 'A3', pages: true, defaultTitle: 'Wall / Desk Calendar', rows: [
+                P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+                P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, a: 150, b: 'Matt Art Paper' }),
+                P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
+                P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+                P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
+                P('Binding', 'Spiral Ring', { auto: 'copies', a: 'Spiral Ring' }),
+                P('Packing', 'Poly Bag Wrapping', { auto: 'per', a: 'Poly Bag Wrap', b: 'Copy', off: true })
+            ]
+        },
+        box: {
+            label: 'Box', unit: 'Pcs', size: 'A4', defaultTitle: 'Product Box / Carton', rows: [
+                P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+                P('Paper', 'Cover Board', { auto: 'sheet', waste: 8, flat: true, a: 350, b: 'Duplex Board' }),
+                P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
+                P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+                P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Matt Lamination', b: 'Front (Single)' }),
+                P('Cutting', 'Die Cutting', { auto: 'copies', a: 'Die Cut' }),
+                P('Binding', 'Pad Pasting', { auto: 'copies', a: 'Pad Pasting' }),
+                P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
+            ]
+        },
+        memo: {
+            label: 'Memo', unit: 'Book', size: 'A5', pages: true, defaultTitle: 'Cash Memo / Bill Pad (3-Part)', rows: [
+                P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+                P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, a: 55, b: 'NCR Top' }),
+                P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, a: 55, b: 'NCR Middle' }),
+                P('Paper', 'Cover Board', { auto: 'sheet', waste: 5, flat: true, a: 200, b: 'Duplex Board' }),
+                P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
+                P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 1-Color', b: 'Inner' }),
+                P('Cutting', 'Perforation', { auto: 'copies', a: 'Perforation' }),
+                P('Cutting', 'Numbering', { auto: 'copies', a: 'Numbering' }),
+                P('Binding', 'Pad Pasting', { auto: 'copies', a: 'Pad Pasting' })
+            ]
+        },
+        envelope: {
+            label: 'Envelope', unit: 'Pcs', size: 'Envelope', defaultTitle: 'Printed Office Envelopes', rows: [
+                P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+                P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 100, b: 'Offset White' }),
+                P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
+                P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+                P('Cutting', 'Die Cutting', { auto: 'copies', a: 'Die Cut' }),
+                P('Binding', 'Pad Pasting', { auto: 'copies', a: 'Pad Pasting' }),
+                P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
+            ]
+        },
+        stationery: {
+            label: 'Stationery', unit: 'Pcs', size: '', defaultTitle: 'Corporate Stationery Items', rows: [
+                P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
+                P('Other', 'Miscellaneous', { auto: 'copies', a: 'Corporate Item', b: 'Copy' }),
+                P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred' }),
+                P('Transport', 'Office to Client Door', { auto: 'per', a: 'Office to Client', b: 'Lot' })
+            ]
+        },
         custom: { label: 'Custom', unit: 'Pcs', size: 'Demy', defaultTitle: 'Custom Production Item', rows: [] }
     };
 
     var TIERS = [250, 500, 1000, 2000, 3000, 5000, 10000];
 
-    var GROUP_AUTO = { 
-        Design: 'per', Paper: 'sheet', CTP: 'platesJob', Press: 'pressJob', 
-        Lamination: 'lam', Cutting: 'copies', Binding: 'copies', 
-        Packing: 'per', Transport: 'per', Other: 'one' 
+    var GROUP_AUTO = {
+        Design: 'per', Paper: 'sheet', CTP: 'platesJob', Press: 'pressJob',
+        Lamination: 'lam', Cutting: 'copies', Binding: 'copies',
+        Packing: 'per', Transport: 'per', Other: 'one'
     };
 
     var GROUP_DEFAULT = {
-        Design: { a: 'Layout Design', b: 'Job' }, 
-        Paper: { a: 80, b: 'Offset White' }, 
-        CTP: { a: 'CTP Thermal', b: 'Inner' }, 
+        Design: { a: 'Layout Design', b: 'Job' },
+        Paper: { a: 80, b: 'Offset White' },
+        CTP: { a: 'CTP Thermal', b: 'Inner' },
         Press: { a: 'Offset 4-Color', b: 'Inner' },
-        Lamination: { a: 'Matt Lamination', b: 'Front (Single)' }, 
-        Cutting: { a: '3-Knife Trim' }, 
-        Binding: { a: 'Perfect Binding' }, 
-        Packing: { a: 'Poly Bag Wrap', b: 'Copy' }, 
-        Transport: { a: 'Press to Office', b: 'Lot' }, 
+        Lamination: { a: 'Matt Lamination', b: 'Front (Single)' },
+        Cutting: { a: '3-Knife Trim' },
+        Binding: { a: 'Perfect Binding' },
+        Packing: { a: 'Poly Bag Wrap', b: 'Copy' },
+        Transport: { a: 'Press to Office', b: 'Lot' },
         Other: {}
     };
 
@@ -325,7 +349,7 @@
     function customKinds() { var k = readStore('pc-kinds'); return Array.isArray(k) ? k : (k.list || []); }
     function addKind(name) {
         var list = customKinds();
-        if (list.indexOf(name) === -1) { list.push(name); try { localStorage.setItem('pc-kinds', JSON.stringify({ list: list })); } catch (e) {} }
+        if (list.indexOf(name) === -1) { list.push(name); try { localStorage.setItem('pc-kinds', JSON.stringify({ list: list })); } catch (e) { } }
     }
     function kindsFor(r) {
         var base = variants(r).b ? variants(r).b[1].map(function (o) { return o[0]; }) : [];
@@ -335,7 +359,7 @@
     function customGsms() { var k = readStore('pc-gsms'); return Array.isArray(k) ? k : (k.list || []); }
     function addGsm(n) {
         var list = customGsms();
-        if (list.indexOf(n) === -1) { list.push(n); try { localStorage.setItem('pc-gsms', JSON.stringify({ list: list })); } catch (e) {} }
+        if (list.indexOf(n) === -1) { list.push(n); try { localStorage.setItem('pc-gsms', JSON.stringify({ list: list })); } catch (e) { } }
     }
     function gsmsFor(r) {
         var base = variants(r).a ? variants(r).a[1].map(function (o) { return o[0]; }) : [];
@@ -415,10 +439,10 @@
 
     // ── Local Storage Cache ────────────────────────────────────────────────
     function store(key, fn) {
-        try { var all = JSON.parse(localStorage.getItem(key) || '{}'); fn(all); localStorage.setItem(key, JSON.stringify(all)); } catch (e) {}
+        try { var all = JSON.parse(localStorage.getItem(key) || '{}'); fn(all); localStorage.setItem(key, JSON.stringify(all)); } catch (e) { }
     }
     function readStore(key) { try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { return {}; } }
-    
+
     var KEY_B = { Paper: 1, Packing: 1, Transport: 1, Design: 1 };
     var SHEET = {}, SHEET_ROWS = [], sheetLoaded = false;
     function norm(v) { return String(v == null ? '' : v).trim().toLowerCase(); }
@@ -448,20 +472,20 @@
     function saveRate(r) { store('pc-rates', function (m) { m[memKey(r)] = r.rate; }); }
     function saveLast() {
         store('pc-last', function (m) {
-            m[state.type] = { 
+            m[state.type] = {
                 title: $('pcTitleIn').value,
-                qty: $('pcQty').value, 
-                pages: $('pcPages').value, 
+                qty: $('pcQty').value,
+                pages: $('pcPages').value,
                 formas: $('pcFormasIn') ? $('pcFormasIn').value : '',
                 formaSize: $('pcFormaSize') ? $('pcFormaSize').value : '16',
-                colors: $('pcColors').value, 
-                sides: $('pcSides').value, 
+                colors: $('pcColors').value,
+                sides: $('pcSides').value,
                 plateMethod: $('pcPlateMethod') ? $('pcPlateMethod').value : 'work_and_turn',
-                size: $('pcSize').value, 
-                sheet: $('pcSheet').value, 
-                overhead: $('pcOverhead').value, 
-                profit: $('pcProfit').value, 
-                round: $('pcRound').value 
+                size: $('pcSize').value,
+                sheet: $('pcSheet').value,
+                overhead: $('pcOverhead').value,
+                profit: $('pcProfit').value,
+                round: $('pcRound').value
             };
         });
     }
@@ -611,7 +635,7 @@
             flat: !!spec.flat, noSize: !!spec.noSize,
             a: spec.a !== undefined ? spec.a : d.a, b: spec.b !== undefined ? spec.b : d.b
         };
-        r.rate = rateFor(r); 
+        r.rate = rateFor(r);
         r.touched = false;
         return r;
     }
@@ -624,15 +648,15 @@
         $('pcPagesWrap').hidden = !t.pages;
         if ($('pcFormasField')) $('pcFormasField').hidden = !t.pages;
         if (!keepJob) loadLast(type);
-        
+
         var badgeEl = $('pcActiveTypeBadge');
         if (badgeEl) badgeEl.textContent = t.label;
 
         if ($('pcTypeSelect')) $('pcTypeSelect').value = type;
 
         if (el.types) {
-            el.types.querySelectorAll('.pc-type').forEach(function (b) { 
-                b.classList.toggle('is-active', b.dataset.type === type); 
+            el.types.querySelectorAll('.pc-type').forEach(function (b) {
+                b.classList.toggle('is-active', b.dataset.type === type);
             });
         }
         render();
@@ -668,11 +692,11 @@
         var unit = q > 0 ? total / q : 0;
         var step = num($('pcRound').value);
         var rounded = false;
-        if (step > 0 && unit > 0) { 
-            var up = Math.ceil(unit / step - 1e-9) * step; 
-            rounded = up !== unit; 
-            unit = up; 
-            total = round(unit * q, 2); 
+        if (step > 0 && unit > 0) {
+            var up = Math.ceil(unit / step - 1e-9) * step;
+            rounded = up !== unit;
+            unit = up;
+            total = round(unit * q, 2);
         } else {
             unit = round(unit, 2);
         }
@@ -793,23 +817,23 @@
             rowEl.classList.toggle('is-off', !r.on);
             rowEl.classList.toggle('table-light', !r.on);
             rowEl.classList.toggle('opacity-50', !r.on);
-            
+
             var tot = rowEl.querySelector('.pc-total');
             if (tot) tot.textContent = money(lineTotal(r));
 
-            var q = rowEl.querySelector('.pc-qty'); 
+            var q = rowEl.querySelector('.pc-qty');
             if (q && doc.activeElement !== q) q.value = r.qty;
 
-            var u = rowEl.querySelector('.pc-ups'); 
+            var u = rowEl.querySelector('.pc-ups');
             if (u && doc.activeElement !== u) u.value = r.ups;
 
             var w = rowEl.querySelector('.pc-waste');
             if (w && doc.activeElement !== w && r.waste != null) w.value = r.waste;
 
-            var rate = rowEl.querySelector('.pc-rate'); 
+            var rate = rowEl.querySelector('.pc-rate');
             if (rate && doc.activeElement !== rate) rate.value = r.rate || '';
 
-            var autoBtn = rowEl.querySelector('.pc-auto'); 
+            var autoBtn = rowEl.querySelector('.pc-auto');
             if (autoBtn) autoBtn.hidden = !(r.manual && r.auto);
 
             var qNote = rowEl.querySelector('.pc-qty-note');
@@ -833,8 +857,8 @@
             pinState(rowEl.querySelector('.pc-pin'), r);
         });
 
-        el.groups.querySelectorAll('[data-sub]').forEach(function (s) { 
-            s.textContent = money(perGroup[s.dataset.sub] || 0); 
+        el.groups.querySelectorAll('[data-sub]').forEach(function (s) {
+            s.textContent = money(perGroup[s.dataset.sub] || 0);
         });
 
         var p = priceFor(j.q);
@@ -847,7 +871,7 @@
         $('pcRoundedNote').hidden = !p.rounded;
         $('pcFootTotal').textContent = money(p.total);
         $('pcFootUnit').textContent = j.q > 0 ? money(p.unit, 2) : '৳0.00';
-        
+
         $('pcFormas').textContent = j.formas ? String(j.formas) : '0';
         if ($('pcFormasIn') && doc.activeElement !== $('pcFormasIn') && j.formas > 0 && !$('pcFormasIn').value) {
             $('pcFormasIn').value = j.formas;
@@ -963,8 +987,8 @@
         if (j.q <= 1000) parts.push('Press: Min 1,000 Imp');
 
         var by = {};
-        state.rows.filter(function (r) { return r.on && lineTotal(r) > 0; }).forEach(function (r) { 
-            (by[r.g] = by[r.g] || []).push(label(r)); 
+        state.rows.filter(function (r) { return r.on && lineTotal(r) > 0; }).forEach(function (r) {
+            (by[r.g] = by[r.g] || []).push(label(r));
         });
 
         var comps = [];
@@ -991,9 +1015,9 @@
         var comps = [];
         GROUPS.forEach(function (g) {
             var items = state.rows.filter(function (r) { return r.g === g && r.on && lineTotal(r) > 0; })
-                .map(function (r) { 
+                .map(function (r) {
                     var bUnit = BASIS_BN[r.g] || BASIS[r.g];
-                    return label(r) + ' [' + r.qty + ' ' + bUnit + ' @ ৳' + r.rate + ' = ' + money(lineTotal(r)) + ']'; 
+                    return label(r) + ' [' + r.qty + ' ' + bUnit + ' @ ৳' + r.rate + ' = ' + money(lineTotal(r)) + ']';
                 });
             if (items.length) {
                 var gTitle = GROUP_TITLES_BN[g] || g;
@@ -1061,7 +1085,7 @@
     function toast(text) {
         var t = $('pcToast');
         if (!t) return;
-        t.textContent = text; 
+        t.textContent = text;
         t.hidden = false;
         clearTimeout(t._t);
         t._t = setTimeout(function () { t.hidden = true; }, 2200);
@@ -1138,13 +1162,13 @@
 
     function resetAll() {
         ['pcTitleIn', 'pcQty', 'pcPages', 'pcOverhead', 'pcProfit'].forEach(function (id) { var el = $(id); if (el) el.value = ''; });
-        if ($('pcColors')) $('pcColors').value = '4'; 
-        if ($('pcSides')) $('pcSides').value = '1'; 
+        if ($('pcColors')) $('pcColors').value = '4';
+        if ($('pcSides')) $('pcSides').value = '1';
         if ($('pcRound')) $('pcRound').value = '0';
         if ($('pcFormaSize')) $('pcFormaSize').value = '16';
-        if ($('pcSize')) $('pcSize').value = TYPES[state.type].size; 
+        if ($('pcSize')) $('pcSize').value = TYPES[state.type].size;
         if ($('pcSheet')) $('pcSheet').value = '23x36';
-        
+
         var specBox = $('pcSpecTextarea');
         if (specBox) {
             specBox._manuallyEdited = false;
@@ -1172,7 +1196,7 @@
         return fetch(rt.dataset.ratesUrl, { credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function (r) { if (!r.ok) throw new Error('rates'); return r.json(); })
             .then(function (rows) { indexSheet(rows); sheetLoaded = true; reapplyRates(); renderRates(); })
-            .catch(function () {});
+            .catch(function () { });
     }
 
     function reapplyRates() {
@@ -1273,11 +1297,11 @@
     }
 
     function bindRates() {
-        var opts = GROUPS.map(function (g) { 
+        var opts = GROUPS.map(function (g) {
             var gTitle = GROUP_TITLES_BN[g] || g;
-            return '<option value="' + g + '">' + gTitle + '</option>'; 
+            return '<option value="' + g + '">' + gTitle + '</option>';
         }).join('');
-        
+
         $('prGroup').innerHTML = opts;
         $('paGroup').innerHTML = '<option value="">All</option>' + opts;
         $('prGroup').addEventListener('change', fillAddLists);
@@ -1303,11 +1327,11 @@
         $('pcRatesAdjust').addEventListener('submit', function (e) {
             e.preventDefault();
             api('POST', root().dataset.ratesAdjust, { group: $('paGroup').value || null, mode: $('paMode').value, value: num($('paValue').value) })
-                .then(function (res) { 
-                    indexSheet(res.rows); 
-                    renderRates(); 
-                    $('paValue').value = ''; 
-                    toast(res.changed + ' rates adjusted ✓'); 
+                .then(function (res) {
+                    indexSheet(res.rows);
+                    renderRates();
+                    $('paValue').value = '';
+                    toast(res.changed + ' rates adjusted ✓');
                 })
                 .catch(function () { toast('Failed to apply'); });
         });
@@ -1420,13 +1444,13 @@
         }
         if (t.classList.contains('pc-name')) {
             r.n = t.value;
-            if (variantKey(r) !== r.vk) { 
-                r.a = (GROUP_DEFAULT[r.g] || {}).a; 
-                r.b = (GROUP_DEFAULT[r.g] || {}).b; 
-                r.rate = rateFor(r); 
-                r.touched = false; 
-                r.manual = false; 
-                render(); 
+            if (variantKey(r) !== r.vk) {
+                r.a = (GROUP_DEFAULT[r.g] || {}).a;
+                r.b = (GROUP_DEFAULT[r.g] || {}).b;
+                r.rate = rateFor(r);
+                r.touched = false;
+                r.manual = false;
+                render();
             }
             return;
         }
@@ -1453,7 +1477,7 @@
             var raw = t.value;
             var key = t.classList.contains('pc-a') ? 'a' : 'b';
             r[key] = (key === 'a' && /^\d+(\.\d+)?$/.test(raw)) ? parseFloat(raw) : raw;
-            r.rate = rateFor(r); 
+            r.rate = rateFor(r);
             r.touched = false;
             r.manual = false;
             if (r.g === 'Paper') {
@@ -1547,57 +1571,31 @@
         var root = $('printCostCalculatorModal');
         if (!root || root.dataset.ready) return;
         root.dataset.ready = '1';
-        
-        el.groups = $('pcRowsBody') || $('pcGroups'); 
-        el.bars = $('pcBars'); 
-        el.types = $('pcTypes'); 
-        el.add = $('pcAdd'); 
+
+        el.groups = $('pcRowsBody');
+        el.bars = $('pcBars');
+        el.types = $('pcTypes');
+        el.add = $('pcAdd');
         el.addDetailed = $('pcAddDetailed');
-        el.plain = $('pcPlain'); 
-        el.tiers = $('pcTiers'); 
+        el.plain = $('pcPlain');
+        el.tiers = $('pcTiers');
         el.tiersWrap = $('pcTiersWrap');
 
         // Populate Trim Sizes dropdown
         if ($('pcSize')) {
-            $('pcSize').innerHTML = Object.keys(SIZES).map(function (k) { 
-                return '<option value="' + k + '">' + (SIZES_BN[k] || k) + '</option>'; 
+            $('pcSize').innerHTML = Object.keys(SIZES).map(function (k) {
+                return '<option value="' + k + '">' + (SIZES_BN[k] || k) + '</option>';
             }).join('');
         }
 
-        // Populate Job Types dropdown (#pcTypeSelect)
-        var typeSelect = $('pcTypeSelect');
-        if (typeSelect) {
-            typeSelect.innerHTML = Object.keys(TYPES).map(function (k) { 
-                return '<option value="' + k + '"' + (k === state.type ? ' selected' : '') + '>' + TYPES[k].label + '</option>'; 
-            }).join('');
-            typeSelect.addEventListener('change', function () {
-                applyType(this.value);
-            });
-        }
-
-        // Populate Job Types tab buttons if present
+        // Populate Job Types tab buttons
         if (el.types) {
-            el.types.innerHTML = Object.keys(TYPES).map(function (k) { 
-                return '<button type="button" class="pc-type' + (k === state.type ? ' is-active' : '') + '" data-type="' + k + '">' + TYPES[k].label + '</button>'; 
+            el.types.innerHTML = Object.keys(TYPES).map(function (k) {
+                return '<button type="button" class="pc-type' + (k === state.type ? ' is-active' : '') + '" data-type="' + k + '">' + TYPES[k].label + '</button>';
             }).join('');
-            el.types.addEventListener('click', function (e) { 
-                var b = e.target.closest('.pc-type'); 
-                if (b) applyType(b.dataset.type); 
-            });
-        }
-
-        // Populate Component Add Bar if present
-        if ($('pcAddBar')) {
-            $('pcAddBar').innerHTML = GROUPS.map(function (g) { 
-                var gTitle = GROUP_TITLES_BN[g] || g;
-                var gIcon = GROUP_ICONS[g] || 'fa-tag';
-                return '<button type="button" class="pc-addbtn" data-add="' + g + '" title="Add ' + gTitle + '">'
-                    + '<i class="fa-solid ' + gIcon + ' me-1"></i>+' + gTitle 
-                    + '</button>'; 
-            }).join('');
-            $('pcAddBar').addEventListener('click', function (e) { 
-                var b = e.target.closest('[data-add]'); 
-                if (b) addComponent(b.dataset.add); 
+            el.types.addEventListener('click', function (e) {
+                var b = e.target.closest('.pc-type');
+                if (b) applyType(b.dataset.type);
             });
         }
 
@@ -1606,18 +1604,18 @@
         root.addEventListener('click', onClick);
         root.addEventListener('keydown', onKey);
 
-        root.querySelectorAll('[data-qty]').forEach(function (b) { 
-            b.addEventListener('click', function () { 
-                $('pcQty').value = b.dataset.qty; 
-                recalcAuto(); paint(); saveLast(); 
-            }); 
+        root.querySelectorAll('[data-qty]').forEach(function (b) {
+            b.addEventListener('click', function () {
+                $('pcQty').value = b.dataset.qty;
+                recalcAuto(); paint(); saveLast();
+            });
         });
 
-        root.querySelectorAll('[data-profit]').forEach(function (b) { 
-            b.addEventListener('click', function () { 
-                $('pcProfit').value = b.dataset.profit; 
-                paint(); saveLast(); 
-            }); 
+        root.querySelectorAll('[data-profit]').forEach(function (b) {
+            b.addEventListener('click', function () {
+                $('pcProfit').value = b.dataset.profit;
+                paint(); saveLast();
+            });
         });
 
         $('pcReset').addEventListener('click', resetAll);
@@ -1626,7 +1624,7 @@
         $('pcCopy').addEventListener('click', function () {
             var text = sheetText();
             (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(
-                function () { toast('Cost sheet copied ✓'); }, 
+                function () { toast('Cost sheet copied ✓'); },
                 function () { toast('Copy failed'); }
             );
         });
@@ -1638,7 +1636,7 @@
                 var spec = $('pcSpecTextarea').value;
                 if (!spec) return;
                 (navigator.clipboard ? navigator.clipboard.writeText(spec) : Promise.reject()).then(
-                    function () { toast('Specification copied ✓'); }, 
+                    function () { toast('Specification copied ✓'); },
                     function () { toast('Copy failed'); }
                 );
             });
@@ -1666,7 +1664,7 @@
             el.addDetailed.addEventListener('click', insertDetailed);
         }
 
-        root.addEventListener('shown.bs.modal', function () { 
+        root.addEventListener('shown.bs.modal', function () {
             var modalBody = root.querySelector('.modal-body');
             if (modalBody) modalBody.scrollTop = 0;
             var target = ($('pcQty').value) ? $('pcTitleIn') : $('pcQty');

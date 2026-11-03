@@ -29,9 +29,8 @@
                     <div class="pc-main d-flex flex-column gap-3">
                         {{-- 1.1 Job Specification Card --}}
                         <section class="pc-card pc-job shadow-xs">
-                            <header class="pc-card-head d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
+                            <header class="pc-card-head mb-2.5 pb-2 border-bottom">
                                 <h6 class="pc-h m-0 text-dark fw-bold">Specs</h6>
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-2 px-2.5 py-1 font-monospace fw-semibold" id="pcActiveTypeBadge" style="font-size: 11.5px;">Book</span>
                             </header>
 
                             {{-- Product Type Buttons Tab Bar --}}
@@ -198,10 +197,8 @@
                             </div>
                         </div>
 
-                        {{-- Hidden legacy anchors --}}
-                        <div id="pcGroups" class="d-none"></div>
+                        {{-- Dynamic Datalists Host --}}
                         <div id="pcLists" hidden></div>
-                        <div id="pcAddBar" class="d-none"></div>
 
                         {{-- 1.3 Live Specification & Quotation Text Preview (Collapsible) --}}
                         <section class="pc-card pc-spec-preview shadow-xs p-0 overflow-hidden is-collapsed" id="pcSpecPreviewCard">
