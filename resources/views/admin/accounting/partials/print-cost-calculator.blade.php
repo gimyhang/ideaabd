@@ -50,7 +50,7 @@
 
                                 <div class="pc-f pc-f-qty">
                                     <label for="pcQty" class="pc-label">Quantity</label>
-                                    <input id="pcQty" type="number" min="1" step="1" class="form-control form-control-sm text-end font-monospace fw-bold" inputmode="numeric" placeholder="1000">
+                                    <input id="pcQty" type="number" min="1" step="1" class="form-control form-control-sm text-end font-monospace fw-bold" inputmode="numeric" placeholder="1000" style="font-size: 14px;">
                                 </div>
 
                                 <div class="pc-f pc-f-unit">
@@ -63,29 +63,29 @@
                                 </div>
 
                                 <div class="pc-f pc-f-formas" id="pcFormasField">
-                                    <label for="pcFormasIn" class="pc-label">Formas</label>
-                                    <input id="pcFormasIn" type="number" min="0" step="any" class="form-control form-control-sm text-end font-monospace fw-bold" placeholder="8">
-                                </div>
-
-                                <div class="pc-f pc-f-col2" id="pcPagesWrap">
                                     <div class="d-flex align-items-center justify-content-between">
-                                        <label for="pcPages" class="pc-label mb-0">Pages</label>
+                                        <label for="pcFormasIn" class="pc-label mb-0">Formas</label>
                                         <span class="text-primary font-monospace small" id="pcFormasWrap" hidden style="font-size: 11px;">
-                                            Formas: <b id="pcFormas">0</b>
+                                            Auto: <b id="pcFormas">0</b>
                                         </span>
                                     </div>
                                     <div class="input-group input-group-sm">
-                                        <input id="pcPages" type="number" min="0" step="1" class="form-control form-control-sm text-end font-monospace" inputmode="numeric" placeholder="128">
-                                        <select id="pcFormaSize" class="form-select form-select-xs font-monospace bg-light" style="max-width: 65px; font-size: 11px;" title="Forma Size">
-                                            <option value="16" selected>16p</option>
-                                            <option value="8">8p</option>
-                                            <option value="4">4p</option>
-                                            <option value="32">32p</option>
+                                        <input id="pcFormasIn" type="number" min="0" step="any" class="form-control form-control-sm text-end font-monospace fw-bold" placeholder="8" style="font-size: 14px;">
+                                        <select id="pcFormaSize" class="form-select form-select-sm font-monospace bg-light fw-semibold" style="width: 140px; max-width: 150px; font-size: 12px;" title="Forma Size">
+                                            <option value="16" selected>16p (Forma)</option>
+                                            <option value="8">8p (Half)</option>
+                                            <option value="4">4p (Quarter)</option>
+                                            <option value="32">32p (Double)</option>
                                         </select>
                                     </div>
                                 </div>
 
-                                <div class="pc-f pc-f-col2">
+                                <div class="pc-f pc-f-pages" id="pcPagesWrap">
+                                    <label for="pcPages" class="pc-label">Pages</label>
+                                    <input id="pcPages" type="number" min="0" step="1" class="form-control form-control-sm text-end font-monospace fw-bold" inputmode="numeric" placeholder="128" style="font-size: 14px;">
+                                </div>
+
+                                <div class="pc-f pc-f-colors">
                                     <label for="pcColors" class="pc-label">Colors</label>
                                     <select id="pcColors" class="form-select form-select-sm">
                                         <option value="1">1 Color</option>
@@ -95,7 +95,7 @@
                                     </select>
                                 </div>
 
-                                <div class="pc-f pc-f-col2">
+                                <div class="pc-f pc-f-sides">
                                     <label for="pcSides" class="pc-label">Sides</label>
                                     <select id="pcSides" class="form-select form-select-sm">
                                         <option value="1" selected>1 Side</option>
@@ -103,7 +103,7 @@
                                     </select>
                                 </div>
 
-                                <div class="pc-f pc-f-col2" id="pcPlateMethodWrap">
+                                <div class="pc-f pc-f-plates" id="pcPlateMethodWrap">
                                     <label for="pcPlateMethod" class="pc-label">Plates</label>
                                     <select id="pcPlateMethod" class="form-select form-select-sm">
                                         <option value="work_and_turn" selected>Work &amp; Turn</option>
@@ -111,12 +111,12 @@
                                     </select>
                                 </div>
 
-                                <div class="pc-f pc-f-col2">
+                                <div class="pc-f pc-f-trim">
                                     <label for="pcSize" class="pc-label">Trim</label>
                                     <select id="pcSize" class="form-select form-select-sm"></select>
                                 </div>
 
-                                <div class="pc-f pc-f-col2">
+                                <div class="pc-f pc-f-sheet">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <label for="pcSheet" class="pc-label mb-0">Sheet</label>
                                         <span class="text-success font-monospace small" id="pcUpsWrap" hidden style="font-size: 11px;">

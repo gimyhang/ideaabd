@@ -164,19 +164,39 @@
 }
 
 #printCostCalculatorModal .pc-f-qty {
-    grid-column: span 3;
+    grid-column: span 4;
 }
 
 #printCostCalculatorModal .pc-f-unit {
-    grid-column: span 2;
+    grid-column: span 3;
 }
 
 #printCostCalculatorModal .pc-f-formas {
+    grid-column: span 4;
+}
+
+#printCostCalculatorModal .pc-f-pages {
     grid-column: span 2;
 }
 
-#printCostCalculatorModal .pc-f-col2 {
+#printCostCalculatorModal .pc-f-colors {
     grid-column: span 2;
+}
+
+#printCostCalculatorModal .pc-f-sides {
+    grid-column: span 2;
+}
+
+#printCostCalculatorModal .pc-f-plates {
+    grid-column: span 2;
+}
+
+#printCostCalculatorModal .pc-f-trim {
+    grid-column: span 6;
+}
+
+#printCostCalculatorModal .pc-f-sheet {
+    grid-column: span 6;
 }
 
 #printCostCalculatorModal .pc-f[hidden] {
