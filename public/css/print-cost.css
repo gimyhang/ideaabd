@@ -146,26 +146,37 @@
     box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25);
 }
 
-/* Job Specs Grid Layout */
+/* Job Specs Grid Layout (12 Columns) */
 #printCostCalculatorModal .pc-grid {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(12, minmax(0, 1fr));
     gap: 0.85rem 0.95rem;
 }
 
 #printCostCalculatorModal .pc-f {
     display: flex;
     flex-direction: column;
-    grid-column: span 2;
     min-width: 0;
 }
 
-#printCostCalculatorModal .pc-f-wide {
-    grid-column: span 6;
+#printCostCalculatorModal .pc-f-title {
+    grid-column: span 5;
 }
 
-#printCostCalculatorModal .pc-f-half {
+#printCostCalculatorModal .pc-f-qty {
     grid-column: span 3;
+}
+
+#printCostCalculatorModal .pc-f-unit {
+    grid-column: span 2;
+}
+
+#printCostCalculatorModal .pc-f-formas {
+    grid-column: span 2;
+}
+
+#printCostCalculatorModal .pc-f-col2 {
+    grid-column: span 2;
 }
 
 #printCostCalculatorModal .pc-f[hidden] {
@@ -433,24 +444,27 @@
 }
 
 #printCostCalculatorModal .col-item {
-    width: 190px;
-    min-width: 160px;
+    width: 180px;
+    min-width: 150px;
 }
 
 #printCostCalculatorModal .col-spec {
-    min-width: 270px;
+    min-width: 250px;
 }
 
 #printCostCalculatorModal .col-qty {
-    width: 95px;
+    width: 160px;
+    min-width: 150px;
 }
 
 #printCostCalculatorModal .col-rate {
-    width: 105px;
+    width: 160px;
+    min-width: 150px;
 }
 
 #printCostCalculatorModal .col-total {
-    width: 105px;
+    width: 160px;
+    min-width: 150px;
 }
 
 #printCostCalculatorModal .col-del {
@@ -458,17 +472,34 @@
     text-align: center;
 }
 
-/* 34px Standard Inputs for Laser Alignment */
+/* Double-wide Inputs for Qty & Rate for Effortless Manual Entry */
 #printCostCalculatorModal .pc-comp-table .pc-name,
 #printCostCalculatorModal .pc-comp-table .pc-stock,
-#printCostCalculatorModal .pc-comp-table .pc-qty,
-#printCostCalculatorModal .pc-comp-table .pc-rate,
 #printCostCalculatorModal .pc-comp-table .pc-group-select {
-    height: 34px;
+    height: 36px;
     border-radius: 6px;
     border: 1px solid #cbd5e1;
-    font-size: 0.86rem;
+    font-size: 0.88rem;
     background-color: #ffffff;
+}
+
+#printCostCalculatorModal .pc-comp-table .pc-qty,
+#printCostCalculatorModal .pc-comp-table .pc-rate {
+    height: 38px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 0 10px;
+    background-color: #ffffff;
+    width: 100%;
+}
+
+#printCostCalculatorModal .pc-comp-table .pc-qty:focus,
+#printCostCalculatorModal .pc-comp-table .pc-rate:focus {
+    border-color: #2563eb !important;
+    background-color: #f8fafc !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18) !important;
 }
 
 #printCostCalculatorModal .pc-comp-table .pc-group-select {
@@ -486,20 +517,16 @@
     width: 100%;
 }
 
-#printCostCalculatorModal .pc-comp-table .pc-qty,
-#printCostCalculatorModal .pc-comp-table .pc-rate {
-    font-weight: 600;
-}
-
 #printCostCalculatorModal .pc-rate.is-invalid {
     border-color: #f59e0b !important;
     background-image: none !important;
 }
 
 #printCostCalculatorModal .pc-total {
-    font-size: 0.95rem !important;
+    font-size: 1.05rem !important;
     font-weight: 700 !important;
     color: #0f172a !important;
+    letter-spacing: -0.01em;
 }
 
 /* Specification Micro Controls */

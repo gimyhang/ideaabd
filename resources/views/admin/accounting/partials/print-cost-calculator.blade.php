@@ -62,7 +62,12 @@
                                     </select>
                                 </div>
 
-                                <div class="pc-f" id="pcPagesWrap">
+                                <div class="pc-f pc-f-formas" id="pcFormasField">
+                                    <label for="pcFormasIn" class="pc-label">Formas</label>
+                                    <input id="pcFormasIn" type="number" min="0" step="any" class="form-control form-control-sm text-end font-monospace fw-bold" placeholder="8">
+                                </div>
+
+                                <div class="pc-f pc-f-col2" id="pcPagesWrap">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <label for="pcPages" class="pc-label mb-0">Pages</label>
                                         <span class="text-primary font-monospace small" id="pcFormasWrap" hidden style="font-size: 11px;">
@@ -71,7 +76,7 @@
                                     </div>
                                     <div class="input-group input-group-sm">
                                         <input id="pcPages" type="number" min="0" step="1" class="form-control form-control-sm text-end font-monospace" inputmode="numeric" placeholder="128">
-                                        <select id="pcFormaSize" class="form-select form-select-xs font-monospace bg-light" style="max-width: 68px; font-size: 11px;" title="Forma Size">
+                                        <select id="pcFormaSize" class="form-select form-select-xs font-monospace bg-light" style="max-width: 65px; font-size: 11px;" title="Forma Size">
                                             <option value="16" selected>16p</option>
                                             <option value="8">8p</option>
                                             <option value="4">4p</option>
@@ -80,7 +85,7 @@
                                     </div>
                                 </div>
 
-                                <div class="pc-f">
+                                <div class="pc-f pc-f-col2">
                                     <label for="pcColors" class="pc-label">Colors</label>
                                     <select id="pcColors" class="form-select form-select-sm">
                                         <option value="1">1 Color</option>
@@ -90,7 +95,7 @@
                                     </select>
                                 </div>
 
-                                <div class="pc-f">
+                                <div class="pc-f pc-f-col2">
                                     <label for="pcSides" class="pc-label">Sides</label>
                                     <select id="pcSides" class="form-select form-select-sm">
                                         <option value="1" selected>1 Side</option>
@@ -98,7 +103,7 @@
                                     </select>
                                 </div>
 
-                                <div class="pc-f" id="pcPlateMethodWrap">
+                                <div class="pc-f pc-f-col2" id="pcPlateMethodWrap">
                                     <label for="pcPlateMethod" class="pc-label">Plates</label>
                                     <select id="pcPlateMethod" class="form-select form-select-sm">
                                         <option value="work_and_turn" selected>Work &amp; Turn</option>
@@ -106,12 +111,12 @@
                                     </select>
                                 </div>
 
-                                <div class="pc-f">
+                                <div class="pc-f pc-f-col2">
                                     <label for="pcSize" class="pc-label">Trim</label>
                                     <select id="pcSize" class="form-select form-select-sm"></select>
                                 </div>
 
-                                <div class="pc-f">
+                                <div class="pc-f pc-f-col2">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <label for="pcSheet" class="pc-label mb-0">Sheet</label>
                                         <span class="text-success font-monospace small" id="pcUpsWrap" hidden style="font-size: 11px;">
@@ -173,22 +178,22 @@
                                     <colgroup>
                                         <col style="width: 36px;">
                                         <col style="width: 105px;">
-                                        <col style="width: 190px;">
-                                        <col style="min-width: 270px;">
-                                        <col style="width: 95px;">
-                                        <col style="width: 105px;">
-                                        <col style="width: 105px;">
+                                        <col style="width: 180px;">
+                                        <col style="min-width: 250px;">
+                                        <col style="width: 160px;">
+                                        <col style="width: 160px;">
+                                        <col style="width: 160px;">
                                         <col style="width: 36px;">
                                     </colgroup>
                                     <thead class="text-muted bg-light">
                                         <tr>
                                             <th class="text-center" style="width: 36px;" title="Include">✓</th>
                                             <th style="width: 105px;">Type</th>
-                                            <th style="width: 190px;">Item</th>
+                                            <th style="width: 180px;">Item</th>
                                             <th>Specification</th>
-                                            <th style="width: 95px;" class="text-end">Qty</th>
-                                            <th style="width: 105px;" class="text-end">Rate</th>
-                                            <th style="width: 105px;" class="text-end">Total</th>
+                                            <th style="width: 160px;" class="text-end">Qty</th>
+                                            <th style="width: 160px;" class="text-end">Rate</th>
+                                            <th style="width: 160px;" class="text-end">Total</th>
                                             <th class="text-center" style="width: 36px;"></th>
                                         </tr>
                                     </thead>

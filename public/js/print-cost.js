@@ -444,6 +444,7 @@
                 title: $('pcTitleIn').value,
                 qty: $('pcQty').value, 
                 pages: $('pcPages').value, 
+                formas: $('pcFormasIn') ? $('pcFormasIn').value : '',
                 formaSize: $('pcFormaSize') ? $('pcFormaSize').value : '16',
                 colors: $('pcColors').value, 
                 sides: $('pcSides').value, 
@@ -462,6 +463,7 @@
         $('pcTitleIn').value = v && v.title !== undefined ? v.title : (d.defaultTitle || '');
         $('pcQty').value = v ? v.qty : '1000';
         $('pcPages').value = v && d.pages ? v.pages : (d.pages ? '128' : '');
+        if ($('pcFormasIn')) $('pcFormasIn').value = v && v.formas !== undefined ? v.formas : (d.pages ? '8' : '');
         if ($('pcFormaSize')) $('pcFormaSize').value = v && v.formaSize ? v.formaSize : '16';
         $('pcColors').value = v ? v.colors : '4';
         $('pcSides').value = v ? v.sides : '1';
@@ -476,9 +478,20 @@
     // ── Calculations Engine ────────────────────────────────────────────────
     function job(qOverride) {
         var q = qOverride != null ? qOverride : num($('pcQty').value);
-        var pages = num($('pcPages').value);
         var formaSize = $('pcFormaSize') ? (num($('pcFormaSize').value) || 16) : 16;
-        var formas = pages > 0 ? Math.ceil(pages / formaSize) : 0;
+        var formasIn = $('pcFormasIn');
+        var pages = num($('pcPages').value);
+        var formas = 0;
+
+        if (formasIn && formasIn.value !== '') {
+            formas = num(formasIn.value);
+            if (!pages && formas > 0) {
+                pages = Math.round(formas * formaSize);
+            }
+        } else if (pages > 0) {
+            formas = Math.ceil(pages / formaSize);
+        }
+
         var plateMethod = $('pcPlateMethod') ? $('pcPlateMethod').value : 'work_and_turn';
 
         return {
@@ -601,6 +614,7 @@
         state.rows = t.rows.map(newRow);
         $('pcUnit').value = t.unit;
         $('pcPagesWrap').hidden = !t.pages;
+        if ($('pcFormasField')) $('pcFormasField').hidden = !t.pages;
         if (!keepJob) loadLast(type);
         
         var badgeEl = $('pcActiveTypeBadge');
@@ -741,19 +755,19 @@
             + specHtml(r)
             + '</td>'
             + '<td class="text-end align-middle col-qty">'
-            + '<div class="position-relative d-inline-block w-100">'
-            + '<input type="number" class="form-control form-control-sm pc-qty text-end font-monospace" min="0" step="any" value="' + esc(r.qty) + '" aria-label="Quantity">'
-            + '<button type="button" class="pc-auto badge bg-primary text-white border-0 position-absolute" style="top: -6px; right: 4px; font-size: 8.5px; padding: 2px 4px; cursor: pointer;" title="Auto Calculated"' + (r.manual && r.auto ? '' : ' hidden') + '>Auto</button>'
+            + '<div class="position-relative w-100">'
+            + '<input type="number" class="form-control form-control-sm pc-qty text-end font-monospace" min="0" step="any" value="' + esc(r.qty) + '" aria-label="Quantity" placeholder="0">'
+            + '<button type="button" class="pc-auto badge bg-primary text-white border-0 position-absolute" style="top: -6px; right: 6px; font-size: 8.5px; padding: 2px 5px; cursor: pointer;" title="Auto Calculated"' + (r.manual && r.auto ? '' : ' hidden') + '>Auto</button>'
             + '</div>'
-            + '<small class="pc-qty-note text-muted font-monospace d-block text-end" style="font-size: 9.5px;"></small>'
+            + '<small class="pc-qty-note text-muted font-monospace d-block text-end pe-1" style="font-size: 10px;"></small>'
             + '</td>'
             + '<td class="text-end align-middle col-rate">'
-            + '<div class="d-flex align-items-center justify-content-end gap-1">'
+            + '<div class="d-flex align-items-center justify-content-end gap-1 w-100">'
             + '<input type="number" class="form-control form-control-sm pc-rate text-end font-monospace' + (!num(r.rate) && r.on && num(r.qty) > 0 ? ' is-invalid border-danger' : '') + '" min="0" step="any" value="' + (r.rate || '') + '" aria-label="Rate" placeholder="0.00">'
-            + '<button type="button" class="btn btn-xs btn-outline-secondary pc-pin px-1 py-0.5 rounded" style="font-size: 10px;" title="Save" hidden>Pin</button>'
+            + '<button type="button" class="btn btn-xs btn-outline-secondary pc-pin px-1.5 py-1 rounded" style="font-size: 10px;" title="Save" hidden>Pin</button>'
             + '</div>'
             + '</td>'
-            + '<td class="text-end align-middle font-monospace fw-bold fs-6 pc-total text-dark col-total">'
+            + '<td class="text-end align-middle font-monospace fw-bold fs-6 pc-total text-dark col-total pe-2">'
             + money(lineTotal(r))
             + '</td>'
             + '<td class="text-center align-middle col-del">'
@@ -830,6 +844,9 @@
         $('pcFootUnit').textContent = j.q > 0 ? money(p.unit, 2) : '৳0.00';
         
         $('pcFormas').textContent = j.formas ? String(j.formas) : '0';
+        if ($('pcFormasIn') && doc.activeElement !== $('pcFormasIn') && j.formas > 0 && !$('pcFormasIn').value) {
+            $('pcFormasIn').value = j.formas;
+        }
         $('pcFormasWrap').hidden = !(TYPES[state.type].pages && j.pages);
 
         var layout = upsFor(j.size, j.sheet);
@@ -1331,6 +1348,29 @@
         if (t.id === 'pcSpecTextarea') {
             t._manuallyEdited = true;
             return;
+        }
+
+        if (t.id === 'pcFormasIn') {
+            var formaSize = $('pcFormaSize') ? (num($('pcFormaSize').value) || 16) : 16;
+            var fVal = num(t.value);
+            if (fVal > 0) {
+                $('pcPages').value = Math.round(fVal * formaSize);
+            } else if (t.value === '') {
+                $('pcPages').value = '';
+            }
+        } else if (t.id === 'pcPages') {
+            var formaSize = $('pcFormaSize') ? (num($('pcFormaSize').value) || 16) : 16;
+            var pVal = num(t.value);
+            if ($('pcFormasIn')) {
+                $('pcFormasIn').value = pVal > 0 ? (pVal / formaSize) : '';
+            }
+        } else if (t.id === 'pcFormaSize') {
+            var formaSize = num(t.value) || 16;
+            if ($('pcFormasIn') && $('pcFormasIn').value !== '') {
+                $('pcPages').value = Math.round(num($('pcFormasIn').value) * formaSize);
+            } else if ($('pcPages') && $('pcPages').value !== '') {
+                if ($('pcFormasIn')) $('pcFormasIn').value = (num($('pcPages').value) / formaSize);
+            }
         }
 
         recalcAuto();
