@@ -403,6 +403,14 @@
             kinds.forEach(function (k) { VARIANTS[key].a[1].forEach(function (g) { html += '<option value="' + g[0] + ' GSM ' + esc(k) + '">'; }); });
             dl.innerHTML = html;
         });
+
+        GROUPS.concat(['Other']).forEach(function (g) {
+            var id = 'pcNames' + g;
+            var dl = $(id);
+            if (!dl) { dl = doc.createElement('datalist'); dl.id = id; host.appendChild(dl); }
+            var names = NAMES[g] || [];
+            dl.innerHTML = names.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('');
+        });
     }
 
     // ── Local Storage Cache ────────────────────────────────────────────────
@@ -743,7 +751,7 @@
 
         var spec = specHtml(r);
 
-        return '<tr class="pc-row' + (r.on ? '' : ' is-off table-light opacity-50') + '" data-id="' + r.id + '">'
+        return '<tr class="pc-row' + (r.on ? '' : ' is-off table-light opacity-50') + '" data-id="' + r.id + '" data-group="' + r.g + '">'
             + '<td class="text-center align-top pt-2.5 col-chk">'
             + '<input type="checkbox" class="form-check-input pc-chk m-0" ' + (r.on ? 'checked' : '') + ' aria-label="Include">'
             + '</td>'
@@ -1379,6 +1387,14 @@
         var t = e.target;
         var rowEl = t.closest && t.closest('.pc-row');
         if (!rowEl) { 
+            if (t.id === 'pcFormaSize') {
+                var formaSize = num(t.value) || 16;
+                if ($('pcFormasIn') && $('pcFormasIn').value !== '') {
+                    $('pcPages').value = Math.round(num($('pcFormasIn').value) * formaSize);
+                } else if ($('pcPages') && $('pcPages').value !== '') {
+                    if ($('pcFormasIn')) $('pcFormasIn').value = (num($('pcPages').value) / formaSize);
+                }
+            }
             if (t.closest('.pc-job, .pc-summary')) { recalcAuto(); paint(); saveLast(); } 
             return; 
         }
@@ -1392,6 +1408,9 @@
             r.a = (GROUP_DEFAULT[r.g] || {}).a;
             r.b = (GROUP_DEFAULT[r.g] || {}).b;
             r.auto = GROUP_AUTO[r.g];
+            if (r.g === 'Paper' && state.type === 'book' && /inner/i.test(r.n)) {
+                r.auto = 'paperBook';
+            }
             r.rate = rateFor(r);
             r.touched = false;
             r.manual = false;
@@ -1413,7 +1432,21 @@
         }
         if (t.classList.contains('pc-stock')) {
             var parsed = parseStock(t.value, r);
-            if (parsed) { r.a = parsed.a; r.b = parsed.b; r.rate = rateFor(r); r.touched = false; r.manual = false; render(); focusRate(r); } else { render(); }
+            if (parsed) {
+                r.a = parsed.a;
+                r.b = parsed.b;
+                r.rate = rateFor(r);
+                r.touched = false;
+                r.manual = false;
+                var aSelect = rowEl.querySelector('.pc-a');
+                var bSelect = rowEl.querySelector('.pc-b');
+                if (aSelect) aSelect.value = String(r.a);
+                if (bSelect) bSelect.value = String(r.b);
+                paint();
+                focusRate(r);
+            } else {
+                paint();
+            }
             return;
         }
         if (t.classList.contains('pc-a') || t.classList.contains('pc-b')) {
@@ -1423,8 +1456,13 @@
             r.rate = rateFor(r); 
             r.touched = false;
             r.manual = false;
-            render();
-            focusRate(r);
+            if (r.g === 'Paper') {
+                var stockInput = rowEl.querySelector('.pc-stock');
+                if (stockInput) stockInput.value = stockText(r);
+            }
+            paint();
+            if (!num(r.rate)) focusRate(r);
+            return;
         }
     }
 
@@ -1487,11 +1525,12 @@
             gCard.classList.remove('is-collapsed');
         }
 
-        var rows = el.groups.querySelectorAll('[data-group="' + group + '"] .pc-row');
+        var rows = el.groups.querySelectorAll('.pc-row[data-group="' + group + '"]');
         var last = rows[rows.length - 1];
         if (last) {
-            var target = last.querySelector('.pc-stock, .pc-rate, .pc-name');
+            var target = last.querySelector('.pc-stock, .pc-name, .pc-rate');
             if (target && target.focus) target.focus({ preventScroll: true });
+            if (last.scrollIntoView) last.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     }
 
@@ -1634,6 +1673,7 @@
             if (target && target.focus) target.focus({ preventScroll: true });
         });
 
+        buildPaperLists();
         applyType('book');
         loadSheet();
     }
