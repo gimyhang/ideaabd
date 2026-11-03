@@ -655,37 +655,46 @@
     // ── Table Rendering ─────────────────────────────────────────────────────
     function render() {
         recalcAuto();
+        var collapsedMap = {};
+        if (el.groups) {
+            el.groups.querySelectorAll('.pc-group-card.is-collapsed').forEach(function (card) {
+                if (card.dataset.group) collapsedMap[card.dataset.group] = true;
+            });
+        }
+
         var html = '';
         GROUPS.forEach(function (g) {
             var rows = state.rows.filter(function (r) { return r.g === g; });
             if (!rows.length) return;
             var gTitle = GROUP_TITLES_BN[g] || g;
             var gIcon = GROUP_ICONS[g] || 'fa-tag';
-            var basisLabel = BASIS_BN[g] || BASIS[g];
+            var isCollapsed = !!collapsedMap[g];
 
-            html += '<section class="pc-card pc-group-card shadow-2xs p-0 overflow-hidden" data-group="' + g + '">';
-            html += '<header class="pc-group-head d-flex align-items-center justify-content-between px-3 py-2 bg-light border-bottom">'
+            html += '<section class="pc-card pc-group-card p-0 overflow-hidden' + (isCollapsed ? ' is-collapsed' : '') + '" data-group="' + g + '">';
+            html += '<header class="pc-group-head d-flex align-items-center justify-content-between px-3 py-2 border-bottom">'
                 + '<div class="d-flex align-items-center gap-2">'
-                + '<i class="fa-solid ' + gIcon + ' fs-6"></i>'
-                + '<h6 class="pc-h m-0 text-dark fw-bold" style="font-size: 13px;">' + gTitle + '</h6>'
-                + '<span class="badge bg-secondary-subtle text-secondary rounded-pill font-monospace" style="font-size: 10px;">' + rows.length + '</span>'
+                + '<i class="fa-solid fa-chevron-down pc-group-chevron text-muted" style="font-size: 11px;"></i>'
+                + '<i class="fa-solid ' + gIcon + ' text-primary" style="font-size: 13px;"></i>'
+                + '<h6 class="pc-h m-0 text-dark fw-bold" style="font-size: 12.5px;">' + gTitle + '</h6>'
+                + '<span class="badge bg-light text-muted border font-monospace px-1.5 py-0.5 rounded-1" style="font-size: 10px;">' + rows.length + '</span>'
                 + '</div>'
                 + '<div class="d-flex align-items-center gap-2">'
                 + '<span class="text-muted small" style="font-size: 11px;">Subtotal:</span>'
-                + '<strong class="pc-sub text-primary font-monospace fs-6" data-sub="' + g + '">৳0.00</strong>'
+                + '<strong class="pc-sub text-primary font-monospace" style="font-size: 13px;" data-sub="' + g + '">৳0.00</strong>'
+                + '<button type="button" class="btn btn-xs btn-outline-primary rounded-1 py-0 px-2 ms-1 pc-group-add-btn" data-add="' + g + '" title="Add item" style="font-size: 10.5px; height: 22px;">+ Add</button>'
                 + '</div>'
                 + '</header>';
 
             html += '<div class="table-responsive m-0">'
                 + '<table class="table table-hover align-middle mb-0 pc-comp-table" style="font-size: 12.5px;">'
-                + '<thead class="table-light text-muted" style="font-size: 11px; text-transform: uppercase;">'
+                + '<thead class="text-muted">'
                 + '<tr>'
                 + '<th style="width: 36px;" class="text-center" title="Include">✓</th>'
                 + '<th style="min-width: 200px;">ITEM</th>'
                 + '<th style="width: 140px;" class="text-end">QTY</th>'
                 + '<th style="width: 130px;" class="text-end">RATE</th>'
                 + '<th style="width: 125px;" class="text-end">TOTAL</th>'
-                + '<th style="width: 40px;" class="text-center"></th>'
+                + '<th style="width: 38px;" class="text-center"></th>'
                 + '</tr>'
                 + '</thead>'
                 + '<tbody>';
@@ -695,7 +704,7 @@
             html += '</tbody></table></div></section>';
         });
 
-        el.groups.innerHTML = html || '<div class="pc-empty p-4 text-center text-muted bg-white rounded-3 border">No components added. Click the buttons above to add components.</div>';
+        el.groups.innerHTML = html || '<div class="pc-empty p-4 text-center text-muted bg-white rounded-2 border">No components added. Click the buttons above to add components.</div>';
         paint();
     }
 
@@ -703,7 +712,7 @@
         if (!spec) return '';
         var opts = spec[1];
         var has = opts.some(function (o) { return String(o[0]) === String(current); });
-        return '<select class="form-select form-select-sm pc-var ' + cls + '" aria-label="' + esc(label) + '" style="font-size: 11.5px; border-radius: 8px;">'
+        return '<select class="form-select form-select-sm pc-var ' + cls + '" aria-label="' + esc(label) + '" style="font-size: 11.5px; border-radius: 6px; height: 30px;">'
             + (has ? '' : '<option value="" selected>' + esc(label) + '</option>')
             + opts.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(current) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>';
     }
@@ -886,7 +895,7 @@
             el.tiers.innerHTML = qs.map(function (q) {
                 var t = priceFor(q);
                 var isCur = (q === j.q);
-                return '<button type="button" class="btn btn-sm text-start d-flex align-items-center justify-content-between p-2 rounded-2 ' + (isCur ? 'btn-primary' : 'btn-outline-secondary') + '" data-q="' + q + '" style="font-size: 12px;">'
+                return '<button type="button" class="pc-tier' + (isCur ? ' is-current' : '') + '" data-q="' + q + '">'
                     + '<span class="fw-bold font-monospace">' + q.toLocaleString('en-US') + ' ' + $('pcUnit').value + '</span>'
                     + '<span class="font-monospace fw-bold">' + money(t.unit, 2) + ' /unit</span>'
                     + '</button>';
@@ -1382,12 +1391,25 @@
         if (rowEl && (t.classList.contains('pc-del') || t.closest('.pc-del'))) {
             state.rows = state.rows.filter(function (r) { return String(r.id) !== rowEl.dataset.id; });
             render();
+            return;
         } else if (rowEl && t.classList.contains('pc-auto')) {
             var r = byId(rowEl.dataset.id);
             if (r) { r.manual = false; render(); }
+            return;
         } else if (t.closest && t.closest('[data-q]')) {
             $('pcQty').value = t.closest('[data-q]').dataset.q;
             recalcAuto(); paint(); saveLast();
+            return;
+        }
+
+        // Accordion Group Header Click (toggle expand/collapse)
+        var gHead = t.closest && t.closest('.pc-group-head');
+        if (gHead && !t.closest('button, input, select, a, .form-check-input')) {
+            var gCard = gHead.closest('.pc-group-card');
+            if (gCard) {
+                gCard.classList.toggle('is-collapsed');
+            }
+            return;
         }
     }
 
@@ -1399,6 +1421,12 @@
         if (group === 'Paper') { spec.waste = 5; }
         state.rows.push(newRow(spec));
         render();
+
+        var gCard = el.groups.querySelector('.pc-group-card[data-group="' + group + '"]');
+        if (gCard && gCard.classList.contains('is-collapsed')) {
+            gCard.classList.remove('is-collapsed');
+        }
+
         var rows = el.groups.querySelectorAll('[data-group="' + group + '"] .pc-row');
         var last = rows[rows.length - 1];
         if (last) {
@@ -1437,14 +1465,14 @@
 
         // Populate Job Types
         el.types.innerHTML = Object.keys(TYPES).map(function (k) { 
-            return '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill pc-type fw-semibold px-2.5 py-1" data-type="' + k + '">' + TYPES[k].label + '</button>'; 
+            return '<button type="button" class="pc-type' + (k === state.type ? ' is-active' : '') + '" data-type="' + k + '">' + TYPES[k].label + '</button>'; 
         }).join('');
 
         // Populate Component Add Bar
         $('pcAddBar').innerHTML = GROUPS.map(function (g) { 
             var gTitle = GROUP_TITLES_BN[g] || g;
             var gIcon = GROUP_ICONS[g] || 'fa-tag';
-            return '<button type="button" class="btn btn-sm btn-outline-primary rounded-pill pc-addbtn py-0.5 px-2.5" data-add="' + g + '" style="font-size: 11px;">'
+            return '<button type="button" class="pc-addbtn" data-add="' + g + '" title="Add ' + gTitle + '">'
                 + '<i class="fa-solid ' + gIcon + ' me-1"></i>+' + gTitle 
                 + '</button>'; 
         }).join('');
