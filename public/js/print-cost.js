@@ -606,9 +606,13 @@
         var badgeEl = $('pcActiveTypeBadge');
         if (badgeEl) badgeEl.textContent = t.label;
 
-        el.types.querySelectorAll('.pc-type').forEach(function (b) { 
-            b.classList.toggle('is-active', b.dataset.type === type); 
-        });
+        if ($('pcTypeSelect')) $('pcTypeSelect').value = type;
+
+        if (el.types) {
+            el.types.querySelectorAll('.pc-type').forEach(function (b) { 
+                b.classList.toggle('is-active', b.dataset.type === type); 
+            });
+        }
         render();
     }
 
@@ -688,14 +692,24 @@
 
             html += '<div class="table-responsive m-0">'
                 + '<table class="table table-hover align-middle mb-0 pc-comp-table" style="font-size: 12.5px;">'
+                + '<colgroup>'
+                + '<col style="width: 38px;">'
+                + '<col style="width: 210px;">'
+                + '<col style="min-width: 270px;">'
+                + '<col style="width: 110px;">'
+                + '<col style="width: 115px;">'
+                + '<col style="width: 115px;">'
+                + '<col style="width: 38px;">'
+                + '</colgroup>'
                 + '<thead class="text-muted">'
                 + '<tr>'
-                + '<th style="width: 40px;" class="text-center" title="Include">✓</th>'
-                + '<th style="min-width: 320px;">ITEM</th>'
-                + '<th style="width: 130px;" class="text-end">QTY</th>'
-                + '<th style="width: 120px;" class="text-end">RATE</th>'
-                + '<th style="width: 120px;" class="text-end">TOTAL</th>'
-                + '<th style="width: 40px;" class="text-center"></th>'
+                + '<th class="text-center" style="width: 38px;" title="Include">✓</th>'
+                + '<th style="width: 210px;">ITEM</th>'
+                + '<th>SPECIFICATION</th>'
+                + '<th style="width: 110px;" class="text-end">QTY</th>'
+                + '<th style="width: 115px;" class="text-end">RATE</th>'
+                + '<th style="width: 115px;" class="text-end">TOTAL</th>'
+                + '<th class="text-center" style="width: 38px;"></th>'
                 + '</tr>'
                 + '</thead>'
                 + '<tbody>';
@@ -718,46 +732,80 @@
             + opts.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(current) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>';
     }
 
+    function specHtml(r) {
+        var v = variants(r);
+        if (r.g === 'Paper') {
+            var list = variantKey(r) === 'PaperCover' ? 'Cover' : 'Inner';
+            var gsmOptsHtml = gsmsFor(r).map(function (g) {
+                return '<option value="' + esc(g) + '"' + (String(g) === String(r.a) ? ' selected' : '') + '>' + (knownRate('Paper', g, r.b) ? '● ' : '') + esc(g) + ' GSM</option>';
+            }).join('');
+            var typeOptsHtml = kindsFor(r).map(function (k) {
+                return '<option value="' + esc(k) + '"' + (String(k) === String(r.b) ? ' selected' : '') + '>' + (knownRate('Paper', r.a, k) ? '● ' : '') + esc(k) + '</option>';
+            }).join('');
+
+            return '<div class="d-flex align-items-center gap-1.5 flex-nowrap w-100">'
+                + '<input class="form-control form-control-sm pc-stock font-monospace" list="pcPaper' + list + '" value="' + esc(stockText(r)) + '" placeholder="e.g. 80 GSM Offwhite" title="GSM & Paper Type" style="flex: 1 1 130px; min-width: 110px;">'
+                + (r.auto === 'sheet' ? '<div class="input-group input-group-sm pc-spec-mini" style="width: 76px;" title="Ups per sheet"><span class="input-group-text px-1 text-muted" style="font-size: 10px;">Ups</span><input type="number" class="form-control form-control-sm pc-ups text-end font-monospace px-1" min="1" step="1" value="' + esc(r.ups) + '"></div>' : '')
+                + '<div class="input-group input-group-sm pc-spec-mini" style="width: 82px;" title="Waste Percentage"><span class="input-group-text px-1 text-muted" style="font-size: 10px;">Waste</span><input type="number" class="form-control form-control-sm pc-waste text-end font-monospace px-1" min="0" step="1" value="' + esc(r.waste) + '"></div>'
+                + '<select class="form-select form-select-sm pc-var pc-paper-select pc-a font-monospace" style="width: 90px;" aria-label="GSM" title="GSM">' + gsmOptsHtml + '</select>'
+                + '<select class="form-select form-select-sm pc-var pc-paper-select pc-b" style="width: 115px;" aria-label="Type" title="Type">' + typeOptsHtml + '</select>'
+                + '</div>';
+        }
+
+        if (r.g === 'Design') {
+            return '<div class="d-flex align-items-center gap-1.5 flex-nowrap w-100">'
+                + '<div style="flex: 1; min-width: 120px;">' + select('pc-a', v.a ? v.a[0] : 'Work', v.a, r.a) + '</div>'
+                + '<div style="width: 100px;">' + select('pc-b', v.b ? v.b[0] : 'Basis', v.b, r.b) + '</div>'
+                + '</div>';
+        }
+
+        if (r.g === 'CTP' || r.g === 'Press' || r.g === 'Lamination' || r.g === 'Packing' || r.g === 'Transport') {
+            return '<div class="d-flex align-items-center gap-1.5 flex-nowrap w-100">'
+                + (v.a ? '<div style="flex: 1; min-width: 120px;">' + select('pc-a', v.a[0], v.a, r.a) + '</div>' : '')
+                + (v.b ? '<div style="flex: 1; min-width: 100px;">' + select('pc-b', v.b[0], v.b, r.b) + '</div>' : '')
+                + '</div>';
+        }
+
+        if (r.g === 'Cutting' || r.g === 'Binding') {
+            return '<div class="d-flex align-items-center gap-1.5 flex-nowrap w-100">'
+                + (v.a ? '<div style="flex: 1; min-width: 140px;">' + select('pc-a', v.a[0], v.a, r.a) + '</div>' : '')
+                + '</div>';
+        }
+
+        return '<span class="text-muted small ps-1">—</span>';
+    }
+
     function rowHtml(r) {
         var v = variants(r);
         r.vk = variantKey(r);
-        var extra = '';
-        var picks = select('pc-a', v.a ? v.a[0] : '', v.a, r.a) + select('pc-b', v.b ? v.b[0] : '', v.b, r.b);
-        if (r.g === 'Paper') { 
-            extra = paperBlock(r); 
-            picks = ''; 
-        }
 
         return '<tr class="pc-row' + (r.on ? '' : ' is-off table-light opacity-50') + '" data-id="' + r.id + '">'
-            + '<td class="text-center align-middle">'
-            + '<input type="checkbox" class="form-check-input pc-chk" ' + (r.on ? 'checked' : '') + ' aria-label="Include">'
+            + '<td class="text-center align-middle col-chk">'
+            + '<input type="checkbox" class="form-check-input pc-chk m-0" ' + (r.on ? 'checked' : '') + ' aria-label="Include">'
             + '</td>'
-            + '<td class="align-middle">'
-            + '<div class="d-flex flex-column gap-1">'
-            + '<div class="input-group input-group-sm">'
-            + '<input class="form-control form-control-sm pc-name fw-semibold text-dark" list="pcNames' + r.g + '" value="' + esc(r.n) + '" maxlength="80" aria-label="Item">'
-            + '</div>'
-            + (picks ? '<div class="pc-picks d-flex align-items-center gap-1.5 flex-wrap mt-0.5">' + picks + '</div>' : '')
-            + extra
-            + '</div>'
+            + '<td class="align-middle col-item">'
+            + '<input class="form-control form-control-sm pc-name fw-semibold text-dark" list="pcNames' + r.g + '" value="' + esc(r.n) + '" maxlength="80" aria-label="Item" placeholder="Item name">'
             + '</td>'
-            + '<td class="text-end align-middle">'
-            + '<div class="position-relative d-inline-block" style="width: 105px;">'
+            + '<td class="align-middle col-spec">'
+            + specHtml(r)
+            + '</td>'
+            + '<td class="text-end align-middle col-qty">'
+            + '<div class="position-relative d-inline-block w-100">'
             + '<input type="number" class="form-control form-control-sm pc-qty text-end font-monospace" min="0" step="any" value="' + esc(r.qty) + '" aria-label="Quantity">'
-            + '<button type="button" class="pc-auto badge bg-primary text-white border-0 position-absolute" style="top: -7px; right: 4px; font-size: 9px; cursor: pointer;" title="Auto Calculated"' + (r.manual && r.auto ? '' : ' hidden') + '>Auto</button>'
+            + '<button type="button" class="pc-auto badge bg-primary text-white border-0 position-absolute" style="top: -6px; right: 4px; font-size: 8.5px; padding: 2px 4px; cursor: pointer;" title="Auto Calculated"' + (r.manual && r.auto ? '' : ' hidden') + '>Auto</button>'
             + '</div>'
             + '<small class="pc-qty-note text-muted font-monospace d-block text-end" style="font-size: 9.5px;"></small>'
             + '</td>'
-            + '<td class="text-end align-middle">'
+            + '<td class="text-end align-middle col-rate">'
             + '<div class="d-flex align-items-center justify-content-end gap-1">'
-            + '<input type="number" class="form-control form-control-sm pc-rate text-end font-monospace' + (!num(r.rate) && r.on && num(r.qty) > 0 ? ' is-invalid border-danger' : '') + '" min="0" step="any" value="' + (r.rate || '') + '" aria-label="Rate" placeholder="0.00" style="width: 85px;">'
+            + '<input type="number" class="form-control form-control-sm pc-rate text-end font-monospace' + (!num(r.rate) && r.on && num(r.qty) > 0 ? ' is-invalid border-danger' : '') + '" min="0" step="any" value="' + (r.rate || '') + '" aria-label="Rate" placeholder="0.00">'
             + '<button type="button" class="btn btn-xs btn-outline-secondary pc-pin px-1 py-0.5 rounded" style="font-size: 10px;" title="Save" hidden><i class="fa-solid fa-thumbtack"></i></button>'
             + '</div>'
             + '</td>'
-            + '<td class="text-end align-middle font-monospace fw-bold fs-6 pc-total text-dark">'
+            + '<td class="text-end align-middle font-monospace fw-bold fs-6 pc-total text-dark col-total">'
             + money(lineTotal(r))
             + '</td>'
-            + '<td class="text-center align-middle">'
+            + '<td class="text-center align-middle col-del">'
             + '<button type="button" class="btn btn-link btn-sm text-danger p-0 pc-del opacity-75 hover-opacity-100" title="Delete" aria-label="Remove"><i class="fa-solid fa-trash-can"></i></button>'
             + '</td>'
             + '</tr>';
@@ -784,6 +832,9 @@
 
             var u = rowEl.querySelector('.pc-ups'); 
             if (u && doc.activeElement !== u) u.value = r.ups;
+
+            var w = rowEl.querySelector('.pc-waste');
+            if (w && doc.activeElement !== w && r.waste != null) w.value = r.waste;
 
             var rate = rowEl.querySelector('.pc-rate'); 
             if (rate && doc.activeElement !== rate) rate.value = r.rate || '';
@@ -1402,6 +1453,13 @@
             return;
         }
 
+        // Add Component (Dropdown items or group header +Add)
+        var addBtn = t.closest && t.closest('[data-add]');
+        if (addBtn) {
+            addComponent(addBtn.dataset.add);
+            return;
+        }
+
         // Accordion Group Header Click (toggle expand/collapse)
         var gHead = t.closest && t.closest('.pc-group-head');
         if (gHead && !t.closest('button, input, select, a, .form-check-input')) {
@@ -1459,42 +1517,48 @@
         el.tiersWrap = $('pcTiersWrap');
 
         // Populate Trim Sizes dropdown
-        $('pcSize').innerHTML = Object.keys(SIZES).map(function (k) { 
-            return '<option value="' + k + '">' + (SIZES_BN[k] || k) + '</option>'; 
-        }).join('');
+        if ($('pcSize')) {
+            $('pcSize').innerHTML = Object.keys(SIZES).map(function (k) { 
+                return '<option value="' + k + '">' + (SIZES_BN[k] || k) + '</option>'; 
+            }).join('');
+        }
 
-        // Populate Job Types
-        el.types.innerHTML = Object.keys(TYPES).map(function (k) { 
-            return '<button type="button" class="pc-type' + (k === state.type ? ' is-active' : '') + '" data-type="' + k + '">' + TYPES[k].label + '</button>'; 
-        }).join('');
+        // Populate Job Types dropdown (#pcTypeSelect)
+        var typeSelect = $('pcTypeSelect');
+        if (typeSelect) {
+            typeSelect.innerHTML = Object.keys(TYPES).map(function (k) { 
+                return '<option value="' + k + '"' + (k === state.type ? ' selected' : '') + '>' + TYPES[k].label + '</option>'; 
+            }).join('');
+            typeSelect.addEventListener('change', function () {
+                applyType(this.value);
+            });
+        }
 
-        // Populate Component Add Bar
-        $('pcAddBar').innerHTML = GROUPS.map(function (g) { 
-            var gTitle = GROUP_TITLES_BN[g] || g;
-            var gIcon = GROUP_ICONS[g] || 'fa-tag';
-            return '<button type="button" class="pc-addbtn" data-add="' + g + '" title="Add ' + gTitle + '">'
-                + '<i class="fa-solid ' + gIcon + ' me-1"></i>+' + gTitle 
-                + '</button>'; 
-        }).join('');
+        // Populate Job Types tab buttons if present
+        if (el.types) {
+            el.types.innerHTML = Object.keys(TYPES).map(function (k) { 
+                return '<button type="button" class="pc-type' + (k === state.type ? ' is-active' : '') + '" data-type="' + k + '">' + TYPES[k].label + '</button>'; 
+            }).join('');
+            el.types.addEventListener('click', function (e) { 
+                var b = e.target.closest('.pc-type'); 
+                if (b) applyType(b.dataset.type); 
+            });
+        }
 
-        // Datalists
-        $('pcLists').innerHTML = GROUPS.map(function (g) { 
-            return '<datalist id="pcNames' + g + '">' + (NAMES[g] || []).map(function (n) { return '<option value="' + n + '">'; }).join('') + '</datalist>'; 
-        }).join('');
-
-        buildPaperLists();
-        bindRates();
-
-        // Event listeners
-        el.types.addEventListener('click', function (e) { 
-            var b = e.target.closest('.pc-type'); 
-            if (b) applyType(b.dataset.type); 
-        });
-
-        $('pcAddBar').addEventListener('click', function (e) { 
-            var b = e.target.closest('[data-add]'); 
-            if (b) addComponent(b.dataset.add); 
-        });
+        // Populate Component Add Bar if present
+        if ($('pcAddBar')) {
+            $('pcAddBar').innerHTML = GROUPS.map(function (g) { 
+                var gTitle = GROUP_TITLES_BN[g] || g;
+                var gIcon = GROUP_ICONS[g] || 'fa-tag';
+                return '<button type="button" class="pc-addbtn" data-add="' + g + '" title="Add ' + gTitle + '">'
+                    + '<i class="fa-solid ' + gIcon + ' me-1"></i>+' + gTitle 
+                    + '</button>'; 
+            }).join('');
+            $('pcAddBar').addEventListener('click', function (e) { 
+                var b = e.target.closest('[data-add]'); 
+                if (b) addComponent(b.dataset.add); 
+            });
+        }
 
         root.addEventListener('input', onInput);
         root.addEventListener('change', onChange);

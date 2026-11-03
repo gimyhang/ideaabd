@@ -1,7 +1,7 @@
 {{-- Printing cost & production calculator. Shared by accounting hub, quotations, and invoice forms.
      Logic: public/js/print-cost.js. Hosts define window.addPresetItem(title, spec, itemType, unit, price, regularPrice, qty). --}}
-<link rel="stylesheet" href="{{ asset('css/print-cost.css') }}?v={{ @filemtime(public_path('css/print-cost.css')) ?: 3 }}">
-<script src="{{ asset('js/print-cost.js') }}?v={{ @filemtime(public_path('js/print-cost.js')) ?: 3 }}" defer></script>
+<link rel="stylesheet" href="{{ asset('css/print-cost.css') }}?v={{ @filemtime(public_path('css/print-cost.css')) ?: 4 }}">
+<script src="{{ asset('js/print-cost.js') }}?v={{ @filemtime(public_path('js/print-cost.js')) ?: 4 }}" defer></script>
 
 <div class="modal fade" id="printCostCalculatorModal" tabindex="-1" aria-labelledby="pcTitle" aria-hidden="true"
      data-rates-url="{{ route('admin.accounting.print-rates.index') }}"
@@ -42,17 +42,19 @@
                                 <h6 class="pc-h m-0 text-dark fw-bold d-flex align-items-center gap-1.5">
                                     <i class="fa-solid fa-sliders text-primary"></i> Specs
                                 </h6>
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-2 px-2 py-1 font-monospace" id="pcActiveTypeBadge" style="font-size: 11px;">
-                                    Book
-                                </span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <label for="pcTypeSelect" class="pc-label mb-0 text-muted" style="font-size: 11.5px;">Product:</label>
+                                    <select id="pcTypeSelect" class="form-select form-select-sm fw-bold border-primary text-primary" style="width: 175px; height: 32px; font-size: 12.5px;"></select>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-2 px-2 py-1 font-monospace d-none" id="pcActiveTypeBadge">Book</span>
+                                </div>
                             </header>
 
-                            {{-- Product Selection Segmented Tab Bar --}}
-                            <div class="pc-types mb-3" id="pcTypes" role="tablist" aria-label="Job type"></div>
+                            {{-- Legacy container kept hidden for backward JS compatibility --}}
+                            <div class="pc-types d-none" id="pcTypes" role="tablist"></div>
 
-                            {{-- Specifications Grid Layout --}}
+                            {{-- Clean, Equal-Height 2-Row Specifications Grid --}}
                             <div class="pc-grid">
-                                <div class="pc-f pc-f-wide">
+                                <div class="pc-f pc-f-title">
                                     <label for="pcTitleIn" class="pc-label">Title</label>
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-tag"></i></span>
@@ -60,20 +62,15 @@
                                     </div>
                                 </div>
 
-                                <div class="pc-f">
+                                <div class="pc-f pc-f-qty">
                                     <label for="pcQty" class="pc-label">Quantity</label>
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-boxes-stacked"></i></span>
                                         <input id="pcQty" type="number" min="1" step="1" class="form-control text-end font-monospace fw-bold" inputmode="numeric" placeholder="1000">
                                     </div>
-                                    <div class="pc-quick mt-1">
-                                        @foreach ([250, 500, 1000, 2000, 3000, 5000] as $n)
-                                            <button type="button" data-qty="{{ $n }}" class="pc-quick-chip">{{ number_format($n) }}</button>
-                                        @endforeach
-                                    </div>
                                 </div>
 
-                                <div class="pc-f">
+                                <div class="pc-f pc-f-unit">
                                     <label for="pcUnit" class="pc-label">Unit</label>
                                     <select id="pcUnit" class="form-select form-select-sm">
                                         @foreach (['Copy' => 'Copy', 'Pcs' => 'Pcs', 'Book' => 'Book', 'Set' => 'Set', 'Sheet' => 'Sheet', 'Ream' => 'Ream', 'Box' => 'Box', 'Lot' => 'Lot'] as $u => $label)
@@ -83,22 +80,21 @@
                                 </div>
 
                                 <div class="pc-f" id="pcPagesWrap">
-                                    <label for="pcPages" class="pc-label">Pages</label>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <label for="pcPages" class="pc-label mb-0">Pages</label>
+                                        <span class="text-primary font-monospace small" id="pcFormasWrap" hidden style="font-size: 11px;">
+                                            Formas: <b id="pcFormas">0</b>
+                                        </span>
+                                    </div>
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-file-lines"></i></span>
                                         <input id="pcPages" type="number" min="0" step="1" class="form-control text-end font-monospace" inputmode="numeric" placeholder="128">
-                                    </div>
-                                    <div class="d-flex align-items-center justify-content-between mt-1" id="pcFormasWrap" hidden>
-                                        <small class="text-muted" style="font-size: 11px;">Formas: <b id="pcFormas" class="text-primary font-monospace">0</b></small>
-                                        <div class="d-flex align-items-center gap-1">
-                                            <span class="text-muted" style="font-size: 10px;">Size:</span>
-                                            <select id="pcFormaSize" class="form-select form-select-xs py-0 px-1 font-monospace" style="font-size: 10.5px; width: 65px; height: 22px;">
-                                                <option value="16" selected>16p</option>
-                                                <option value="8">8p</option>
-                                                <option value="4">4p</option>
-                                                <option value="32">32p</option>
-                                            </select>
-                                        </div>
+                                        <select id="pcFormaSize" class="form-select form-select-xs font-monospace bg-light" style="max-width: 68px; font-size: 11px;" title="Forma Size">
+                                            <option value="16" selected>16p</option>
+                                            <option value="8">8p</option>
+                                            <option value="4">4p</option>
+                                            <option value="32">32p</option>
+                                        </select>
                                     </div>
                                 </div>
 
@@ -128,101 +124,99 @@
                                     </select>
                                 </div>
 
-                                <div class="pc-f pc-f-half">
+                                <div class="pc-f">
                                     <label for="pcSize" class="pc-label">Trim</label>
                                     <select id="pcSize" class="form-select form-select-sm"></select>
                                 </div>
 
-                                <div class="pc-f pc-f-half">
-                                    <label for="pcSheet" class="pc-label">Sheet</label>
+                                <div class="pc-f">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <label for="pcSheet" class="pc-label mb-0">Sheet</label>
+                                        <span class="text-success font-monospace small" id="pcUpsWrap" hidden style="font-size: 11px;">
+                                            Ups: <b id="pcUps">0</b>
+                                        </span>
+                                    </div>
                                     <select id="pcSheet" class="form-select form-select-sm">
                                         @foreach (['23x36' => '23×36 (Demy)', '25x36' => '25×36 (Royal)', '20x30' => '20×30 (Crown)', '18x23' => '18×23 (Half)', '27x38' => '27×38 (Large)', '31x43' => '31×43 (Jumbo)'] as $v => $label)
                                             <option value="{{ $v }}">{{ $label }}</option>
                                         @endforeach
                                     </select>
-                                    <small class="text-muted mt-1 d-block" id="pcUpsWrap" hidden style="font-size: 11px;">
-                                        Ups: <b id="pcUps" class="text-success font-monospace">0</b>
-                                    </small>
                                 </div>
                             </div>
 
-                            {{-- Live Production KPI Status Strip --}}
-                            <div class="pc-kpi-strip d-flex align-items-stretch gap-2.5 mt-3 pt-3 border-top flex-wrap" id="pcKpiStrip">
-                                <div class="pc-kpi-item flex-fill p-2.5 rounded-2 bg-light border">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <span class="pc-kpi-label small fw-bold text-muted text-uppercase" style="font-size: 10.5px;">
-                                            <i class="fa-solid fa-sheet-plastic text-warning me-1"></i> Paper
-                                        </span>
-                                        <span class="badge bg-warning-subtle text-warning-emphasis font-monospace px-1.5 py-0.5 rounded-1" style="font-size: 9.5px;" id="pcKpiPaperWaste">5% Waste</span>
-                                    </div>
-                                    <div class="pc-kpi-val fs-6 fw-bold font-monospace text-dark" id="pcKpiPaperReams">0.0 Reams</div>
-                                    <div class="pc-kpi-sub text-muted font-monospace" style="font-size: 10.5px;" id="pcKpiPaperSheets">0 Sheets</div>
+                            {{-- Compact Live Production KPI Status Bar (Single Line) --}}
+                            <div class="pc-kpi-bar d-flex align-items-center justify-content-between p-2 px-3 rounded-2 bg-light border mt-3 flex-wrap gap-2" id="pcKpiStrip">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="pc-kpi-badge badge bg-warning-subtle text-warning-emphasis border border-warning-subtle font-monospace px-2 py-1">
+                                        <i class="fa-solid fa-sheet-plastic me-1"></i> Paper: <b id="pcKpiPaperReams">0.0 Reams</b> (<span id="pcKpiPaperSheets">0 Sheets</span>, <span id="pcKpiPaperWaste">5% Waste</span>)
+                                    </span>
+                                    <span class="pc-kpi-badge badge bg-primary-subtle text-primary border border-primary-subtle font-monospace px-2 py-1">
+                                        <i class="fa-solid fa-book-open me-1"></i> Formas: <b id="pcKpiFormas">0 Formas</b> (<span id="pcKpiUpsBadge">16p / Sheet</span>, <span id="pcKpiFormaSub">0 Pages</span>)
+                                    </span>
                                 </div>
-
-                                <div class="pc-kpi-item flex-fill p-2.5 rounded-2 bg-light border">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <span class="pc-kpi-label small fw-bold text-muted text-uppercase" style="font-size: 10.5px;">
-                                            <i class="fa-solid fa-book-open text-primary me-1"></i> Formas
-                                        </span>
-                                        <span class="badge bg-primary-subtle text-primary font-monospace px-1.5 py-0.5 rounded-1" style="font-size: 9.5px;" id="pcKpiUpsBadge">16p / Sheet</span>
-                                    </div>
-                                    <div class="pc-kpi-val fs-6 fw-bold font-monospace text-dark" id="pcKpiFormas">0 Formas</div>
-                                    <div class="pc-kpi-sub text-muted font-monospace" style="font-size: 10.5px;" id="pcKpiFormaSub">0 Pages</div>
-                                </div>
-
-                                <div class="pc-kpi-item flex-fill p-2.5 rounded-2 bg-light border">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <span class="pc-kpi-label small fw-bold text-muted text-uppercase" style="font-size: 10.5px;">
-                                            <i class="fa-solid fa-barcode text-info me-1"></i> Plates
-                                        </span>
-                                        <span class="badge bg-info-subtle text-info font-monospace px-1.5 py-0.5 rounded-1" style="font-size: 9.5px;" id="pcKpiPlateMethodBadge">Work &amp; Turn</span>
-                                    </div>
-                                    <div class="pc-kpi-val fs-6 fw-bold font-monospace text-dark" id="pcKpiPlates">0 Plates</div>
-                                    <div class="pc-kpi-sub text-muted font-monospace" style="font-size: 10.5px;" id="pcKpiPlateSub">Inner 0 + Cover 0</div>
-                                </div>
-
-                                <div class="pc-kpi-item flex-fill p-2.5 rounded-2 bg-light border">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <span class="pc-kpi-label small fw-bold text-muted text-uppercase" style="font-size: 10.5px;">
-                                            <i class="fa-solid fa-print text-danger me-1"></i> Impressions
-                                        </span>
-                                        <span class="badge bg-danger-subtle text-danger font-monospace px-1.5 py-0.5 rounded-1" style="font-size: 9.5px;" id="pcKpiImpressionBadge" title="Minimum 1,000 charge">Min 1,000</span>
-                                    </div>
-                                    <div class="pc-kpi-val fs-6 fw-bold font-monospace text-dark" id="pcKpiImpressions">0 K</div>
-                                    <div class="pc-kpi-sub text-muted font-monospace" style="font-size: 10.5px;" id="pcKpiImpressionSub">Min 1,000 charge</div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="pc-kpi-badge badge bg-info-subtle text-info-emphasis border border-info-subtle font-monospace px-2 py-1">
+                                        <i class="fa-solid fa-barcode me-1"></i> Plates: <b id="pcKpiPlates">0 Plates</b> (<span id="pcKpiPlateMethodBadge">Work &amp; Turn</span>, <span id="pcKpiPlateSub">Inner 0 + Cover 0</span>)
+                                    </span>
+                                    <span class="pc-kpi-badge badge bg-danger-subtle text-danger-emphasis border border-danger-subtle font-monospace px-2 py-1">
+                                        <i class="fa-solid fa-print me-1"></i> Press: <b id="pcKpiImpressions">0 K</b> (<span id="pcKpiImpressionBadge">Min 1,000</span>, <span id="pcKpiImpressionSub">Min 1,000 charge</span>)
+                                    </span>
                                 </div>
                             </div>
                         </section>
 
-                        {{-- 1.2 Component Add Bar --}}
-                        <div class="pc-addbar d-flex align-items-center justify-content-between p-2.5 rounded-2 bg-white border flex-wrap gap-2 shadow-xs">
-                            <span class="pc-addlabel small fw-bold text-muted text-uppercase d-flex align-items-center gap-1.5" style="font-size: 11px;">
-                                <i class="fa-solid fa-plus-circle text-primary"></i> Add:
-                            </span>
-                            <div id="pcAddBar" class="pc-addbtns d-flex flex-wrap gap-1.5"></div>
+                        {{-- 1.2 Dynamic Component Add Toolbar --}}
+                        <div class="pc-addbar d-flex align-items-center justify-content-between p-2 px-3 rounded-2 bg-white border shadow-xs">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="dropdown">
+                                    <button class="btn btn-primary btn-sm rounded-2 px-3 fw-bold dropdown-toggle" type="button" id="pcAddDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fa-solid fa-plus-circle me-1.5"></i> Add Component
+                                    </button>
+                                    <ul class="dropdown-menu shadow-sm" aria-labelledby="pcAddDropdown">
+                                        @foreach ([
+                                            'Design' => ['fa-pen-ruler', 'Design (Layout, Cover, Proof)'],
+                                            'Paper' => ['fa-sheet-plastic', 'Paper (Inner, Cover, Board)'],
+                                            'CTP' => ['fa-barcode', 'Plates (CTP Thermal, Violet)'],
+                                            'Press' => ['fa-print', 'Press (Offset, Digital, Letterpress)'],
+                                            'Lamination' => ['fa-wand-magic-sparkles', 'Lamination (Matt, Gloss, UV, Foil)'],
+                                            'Cutting' => ['fa-scissors', 'Cutting (3-Knife, Die-cut, Creasing)'],
+                                            'Binding' => ['fa-book', 'Binding (Perfect, Sewn, Pin, Spiral)'],
+                                            'Packing' => ['fa-boxes-packing', 'Packing (Poly, Band, Carton)'],
+                                            'Transport' => ['fa-truck', 'Transport (Press to Client, Delivery)'],
+                                            'Other' => ['fa-ellipsis', 'Other Expenses']
+                                        ] as $g => $data)
+                                            <li><a class="dropdown-item py-1.5 px-3 small fw-semibold" href="javascript:void(0)" data-add="{{ $g }}"><i class="fa-solid {{ $data[0] }} me-2 text-primary"></i> {{ $data[1] }}</a></li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                                <span class="text-muted small" style="font-size: 11.5px;">Click to dynamically add any printing or finishing stage</span>
+                            </div>
+                            <div id="pcAddBar" class="d-none"></div>
                         </div>
 
                         {{-- 1.3 Dynamic Component Groups Table (Accordion) --}}
                         <div id="pcGroups" class="pc-groups d-flex flex-column gap-2.5"></div>
                         <div id="pcLists" hidden></div>
 
-                        {{-- 1.4 Live Specification & Quotation Text Preview --}}
-                        <section class="pc-card pc-spec-preview shadow-xs">
-                            <header class="pc-card-head d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom">
-                                <h6 class="pc-h m-0 text-dark fw-bold d-flex align-items-center gap-1.5" style="font-size: 12px;">
-                                    <i class="fa-solid fa-file-invoice text-success"></i> Preview
-                                </h6>
+                        {{-- 1.4 Live Specification & Quotation Text Preview (Collapsible) --}}
+                        <section class="pc-card pc-spec-preview shadow-xs p-0 overflow-hidden is-collapsed">
+                            <header class="pc-group-head d-flex align-items-center justify-content-between px-3 py-2 cursor-pointer user-select-none">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-chevron-down pc-group-chevron text-muted" style="font-size: 11px;"></i>
+                                    <i class="fa-solid fa-file-invoice text-success" style="font-size: 13px;"></i>
+                                    <h6 class="pc-h m-0 text-dark fw-bold" style="font-size: 12.5px;">Quotation Spec Preview</h6>
+                                </div>
                                 <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" id="pcRefreshSpec" title="Refresh">
                                     <i class="fa-solid fa-rotate me-1"></i>Refresh
                                 </button>
                             </header>
-                            <div class="pc-spec-box">
+                            <div class="p-3 border-top table-responsive">
                                 <textarea id="pcSpecTextarea" class="form-control font-monospace" rows="3" style="font-size: 12px; line-height: 1.5; resize: vertical;" 
                                           placeholder="Specifications will be generated automatically..."></textarea>
-                                <div class="d-flex align-items-center justify-content-between mt-1 text-muted small" style="font-size: 11px;">
+                                <div class="d-flex align-items-center justify-content-between mt-2 text-muted small" style="font-size: 11px;">
                                     <span><i class="fa-solid fa-circle-info me-1 text-primary"></i>Included in quotation details.</span>
-                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-2 px-2 py-0.5" id="pcCopySpecBtn">
-                                        <i class="fa-regular fa-copy me-1"></i>Copy
+                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-2 px-2.5 py-1" id="pcCopySpecBtn">
+                                        <i class="fa-regular fa-copy me-1"></i>Copy Specs
                                     </button>
                                 </div>
                             </div>
@@ -270,11 +264,6 @@
                                             <input id="pcProfit" type="number" min="0" max="500" step="0.5" class="form-control form-control-sm text-end font-monospace fw-bold text-success rounded-2" style="width: 70px;" placeholder="20">
                                             <b id="pcProfitAmt" class="font-monospace text-success" style="min-width: 65px; text-align: right;">৳0.00</b>
                                         </dd>
-                                    </div>
-                                    <div class="pc-quick pc-quick-profit d-flex justify-content-end gap-1 mt-1.5">
-                                        @foreach ([10, 15, 20, 25, 30, 40] as $p)
-                                            <button type="button" data-profit="{{ $p }}" class="pc-profit-chip">{{ $p }}%</button>
-                                        @endforeach
                                     </div>
                                 </div>
 
@@ -419,9 +408,9 @@
             {{-- Modal Footer --}}
             <div class="modal-footer pc-foot bg-white border-top py-2.5 px-4 d-flex align-items-center justify-content-between flex-wrap gap-2" id="pcFoot">
                 <div class="pc-foot-sum d-flex align-items-center gap-3">
-                    <span class="pc-missing badge bg-warning text-dark border border-warning-subtle rounded-2 px-2.5 py-1" id="pcMissing" hidden></span>
                     <span class="small text-muted font-monospace">Rate: <b id="pcFootUnit" class="text-primary fs-6">৳0.00</b></span>
                     <span class="small text-muted font-monospace">Total: <b id="pcFootTotal" class="text-dark fs-6">৳0.00</b></span>
+                    <span class="pc-missing d-none" id="pcMissing"></span>
                 </div>
 
                 <div class="pc-foot-actions d-flex align-items-center gap-2">
