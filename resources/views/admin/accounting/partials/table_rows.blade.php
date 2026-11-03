@@ -168,7 +168,7 @@
                     @endphp
                     <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2 py-1" 
                             onclick="openUniversalQuickPayModal('{{ $targetType }}', {{ $item->id }}, '{{ $item->doc_no }}', {{ $item->due_amount }}, '{{ addslashes($item->party_name) }}')" 
-                            title="Receive Payment" style="border: 1px solid #86efac;">
+                            title="Pay" style="border: 1px solid #86efac;">
                         <i class="fa-solid fa-hand-holding-dollar"></i>
                     </button>
                 @endif
@@ -177,7 +177,7 @@
                 @if($item->can_sync_invoice && $item->sync_url)
                     <form action="{{ $item->sync_url }}" method="POST" class="d-inline" onsubmit="return confirm('Do you want to create an invoice for this online order?');">
                         @csrf
-                        <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1" title="Create Invoice" style="border: 1px solid #93c5fd;">
+                        <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1" title="Invoice" style="border: 1px solid #93c5fd;">
                             <i class="fa-solid fa-file-circle-plus text-primary"></i>
                         </button>
                     </form>
@@ -185,14 +185,14 @@
 
                 {{-- View Details --}}
                 @if($item->view_url)
-                    <a href="{{ $item->view_url }}" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1" title="View Details" style="border: 1px solid #93c5fd;">
+                    <a href="{{ $item->view_url }}" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1" title="View" style="border: 1px solid #93c5fd;">
                         <i class="fa-solid fa-eye"></i>
                     </a>
                 @endif
 
                 {{-- Universal Slip --}}
                 @if(!empty($item->slip_url))
-                    <a href="{{ $item->slip_url }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" title="View Slip" style="border: 1px solid #cbd5e1;">
+                    <a href="{{ $item->slip_url }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" title="Slip" style="border: 1px solid #cbd5e1;">
                         <i class="fa-solid fa-receipt"></i>
                     </a>
                 @endif
@@ -223,7 +223,7 @@
             <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center p-4 mb-3" style="width: 75px; height: 75px; border: 1px solid #e2e8f0;">
                 <i class="fa-solid fa-magnifying-glass fs-2 text-muted opacity-50"></i>
             </div>
-            <h6 class="fw-bold text-dark mb-0">No records found</h6>
+            <h6 class="fw-bold text-dark mb-0">Empty</h6>
         </td>
     </tr>
 @endforelse

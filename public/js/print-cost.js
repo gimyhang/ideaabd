@@ -1,5 +1,5 @@
 /*
- * Printing & Production Cost Calculator (ক্যালকুলেটর ইঞ্জিন)
+ * Printing & Production Cost Calculator
  * Supports Books, Magazines, Diaries, Brochures, Cards, Leaflets, Packaging, Stationery & Custom items.
  *
  * Capabilities:
@@ -18,16 +18,16 @@
     var GROUPS = ['Design', 'Paper', 'CTP', 'Press', 'Lamination', 'Cutting', 'Binding', 'Packing', 'Transport', 'Other'];
     
     var GROUP_TITLES_BN = {
-        Design: 'ডিজাইন ও প্রি-প্রেস',
-        Paper: 'কাগজ ও বোর্ড',
-        CTP: 'সিটিপি প্লেট',
-        Press: 'ছাপা ও প্রেস প্রিন্টিং',
-        Lamination: 'লেমিনেশন ও কোটিং',
-        Cutting: 'কাটিং ও সাইজিং',
-        Binding: 'বাইন্ডিং ও বাঁধাই',
-        Packing: 'প্যাকিং ও মোড়ক',
-        Transport: 'পরিবহন ও ডেলিভারি',
-        Other: 'অন্যান্য / বিবিধ'
+        Design: 'Design',
+        Paper: 'Paper',
+        CTP: 'Plates',
+        Press: 'Press',
+        Lamination: 'Lamination',
+        Cutting: 'Cutting',
+        Binding: 'Binding',
+        Packing: 'Packing',
+        Transport: 'Transport',
+        Other: 'Other'
     };
 
     var GROUP_ICONS = {
@@ -50,9 +50,9 @@
     };
 
     var BASIS_BN = {
-        Design: 'আইটেম', Paper: 'রিম (Reams)', CTP: 'প্লেট (Plates)', Press: 'হাজার ইমপ্রেশন',
-        Lamination: 'কপি/পিস', Cutting: 'কপি/পিস', Binding: 'কপি/পিস',
-        Packing: 'পরিমাণ', Transport: 'লট/টিপ', Other: 'পরিমাণ'
+        Design: 'Qty', Paper: 'Reams', CTP: 'Plates', Press: 'Thousands',
+        Lamination: 'Copies', Cutting: 'Copies', Binding: 'Copies',
+        Packing: 'Qty', Transport: 'Qty', Other: 'Qty'
     };
 
     var NAMES = {
@@ -139,17 +139,17 @@
     };
 
     var SIZES_BN = {
-        Demy: 'ডিমাই (৫.৫"×৮.৫")',
-        Crown: 'ক্রাউন (৭.২৫"×৯.৫")',
-        Royal: 'রয়্যাল (৬.৫"×৯.৫")',
-        A4: 'A4 (৮.৩"×১১.৭")',
-        A5: 'A5 (৫.৮"×৮.৩")',
-        A3: 'A3 (১১.৭"×১৬.৫")',
-        B5: 'B5 (৬.৯"×৯.৮")',
-        Card: 'ভিজিটিং কার্ড (৩.৫"×২.০")',
-        Poster: 'পোস্টার (১৮"×২৩")',
-        Envelope: 'খাম (১০"×৪.৫")',
-        Full: 'ফুল শিট (২৩"×৩৬")'
+        Demy: 'Demy (5.5"×8.5")',
+        Crown: 'Crown (7.25"×9.5")',
+        Royal: 'Royal (6.5"×9.5")',
+        A4: 'A4 (8.3"×11.7")',
+        A5: 'A5 (5.8"×8.3")',
+        A3: 'A3 (11.7"×16.5")',
+        B5: 'B5 (6.9"×9.8")',
+        Card: 'Card (3.5"×2.0")',
+        Poster: 'Poster (18"×23")',
+        Envelope: 'Envelope (10"×4.5")',
+        Full: 'Sheet (23"×36")'
     };
 
     var SHEETS = { 
@@ -164,7 +164,7 @@
     var P = function (g, n, o) { o = o || {}; o.g = g; o.n = n; return o; };
 
     var TYPES = {
-        book: { label: 'বই (Book)', unit: 'Copy', size: 'Demy', pages: true, defaultTitle: 'বই মুদ্রণ ও প্রকাশনা', rows: [
+        book: { label: 'Book', unit: 'Copy', size: 'Demy', pages: true, defaultTitle: 'Book Printing', rows: [
             P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Page' }), 
             P('Design', 'Cover Design', { auto: 'per', a: 'Cover Design', b: 'Job' }),
             P('Paper', 'Inner Paper', { auto: 'paperBook', a: 80, b: 'Offwhite', waste: 5 }),
@@ -179,7 +179,7 @@
             P('Packing', 'Poly Bag Wrapping', { auto: 'per', a: 'Poly Bag Wrap', b: 'Copy', off: true }), 
             P('Transport', 'Press to Office Delivery', { auto: 'per', a: 'Press to Office', b: 'Lot', off: true })
         ] },
-        magazine: { label: 'ম্যাগাজিন / স্মরণিকা (Magazine)', unit: 'Copy', size: 'A4', pages: true, defaultTitle: 'ম্যাগাজিন / স্মরণিকা মুদ্রণ', rows: [
+        magazine: { label: 'Magazine', unit: 'Copy', size: 'A4', pages: true, defaultTitle: 'Magazine Printing', rows: [
             P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Page' }),
             P('Design', 'Cover Design', { auto: 'per', a: 'Cover Design', b: 'Job' }),
             P('Paper', 'Inner Paper', { auto: 'paperBook', a: 100, b: 'Art Paper', waste: 5 }),
@@ -193,7 +193,7 @@
             P('Binding', 'Saddle Stitch (Pin)', { auto: 'copies', a: 'Saddle Stitch (Pin)' }),
             P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
         ] },
-        notebook: { label: 'ডায়েরি / নোটবুক (Diary)', unit: 'Book', size: 'Demy', pages: true, defaultTitle: 'এক্সিকিউটিভ ডায়েরি ও নোটবুক', rows: [
+        notebook: { label: 'Notebook', unit: 'Book', size: 'Demy', pages: true, defaultTitle: 'Executive Notebook & Diary', rows: [
             P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
             P('Paper', 'Inner Paper', { auto: 'paperBook', a: 80, b: 'Cream Munken', waste: 5 }),
             P('Paper', 'Cover Board', { auto: 'sheet', ups: 8, waste: 5, flat: true, noSize: true, a: 350, b: 'Grey Board 2.0mm' }),
@@ -203,7 +203,7 @@
             P('Binding', 'Hardcover Binding', { auto: 'copies', a: 'Hardcover / Case' }),
             P('Other', 'Ribbon Bookmark', { auto: 'copies', a: 'Ribbon Bookmark', b: 'Copy' })
         ] },
-        brochure: { label: 'ব্রোশিউর / ফোল্ডার (Brochure)', unit: 'Pcs', size: 'A4', defaultTitle: 'মাল্টিকালার ৩-ফোল্ড ব্রোশিউর', rows: [
+        brochure: { label: 'Brochure', unit: 'Pcs', size: 'A4', defaultTitle: 'Multicolor Tri-Fold Brochure', rows: [
             P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
             P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 170, b: 'Matt Art Paper' }),
             P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
@@ -212,7 +212,7 @@
             P('Cutting', 'Creasing & Scoring', { auto: 'copies', a: 'Creasing' }),
             P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
         ] },
-        card: { label: 'ভিজিটিং কার্ড (Visiting Card)', unit: 'Pcs', size: 'Card', defaultTitle: 'প্রিমিয়াম বিজনেস ভিজিটিং কার্ড', rows: [
+        card: { label: 'Card', unit: 'Pcs', size: 'Card', defaultTitle: 'Premium Visiting Cards', rows: [
             P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
             P('Paper', 'Cover Board', { auto: 'sheet', waste: 5, flat: true, a: 300, b: 'Art Card' }),
             P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
@@ -222,7 +222,7 @@
             P('Cutting', 'Die Cutting', { auto: 'copies', a: 'Die Cut' }),
             P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
         ] },
-        leaflet: { label: 'লিফলেট / ফ্লায়ার (Leaflet)', unit: 'Pcs', size: 'A4', defaultTitle: 'প্রচারপত্র / কালার লিফলেট', rows: [
+        leaflet: { label: 'Leaflet', unit: 'Pcs', size: 'A4', defaultTitle: 'Color Flyer / Leaflet', rows: [
             P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
             P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 120, b: 'Matt Art Paper' }),
             P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
@@ -230,7 +230,7 @@
             P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
             P('Packing', 'Paper Band', { auto: 'per', a: 'Paper Band', b: 'Hundred', off: true })
         ] },
-        poster: { label: 'পোস্টার (Poster)', unit: 'Pcs', size: 'Poster', defaultTitle: 'ফুল কালার অফসেট পোস্টার', rows: [
+        poster: { label: 'Poster', unit: 'Pcs', size: 'Poster', defaultTitle: 'Offset Color Poster', rows: [
             P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
             P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 100, b: 'Art Paper' }),
             P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
@@ -238,7 +238,7 @@
             P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Glossy Lamination', b: 'Front (Single)', off: true }),
             P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' })
         ] },
-        calendar: { label: 'ক্যালেন্ডার (Calendar)', unit: 'Pcs', size: 'A3', pages: true, defaultTitle: 'ওয়াল / ডেস্ক ক্যালেন্ডার', rows: [
+        calendar: { label: 'Calendar', unit: 'Pcs', size: 'A3', pages: true, defaultTitle: 'Wall / Desk Calendar', rows: [
             P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
             P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, a: 150, b: 'Matt Art Paper' }),
             P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
@@ -247,7 +247,7 @@
             P('Binding', 'Spiral Ring', { auto: 'copies', a: 'Spiral Ring' }),
             P('Packing', 'Poly Bag Wrapping', { auto: 'per', a: 'Poly Bag Wrap', b: 'Copy', off: true })
         ] },
-        box: { label: 'প্যাকেজিং বক্স (Box)', unit: 'Pcs', size: 'A4', defaultTitle: 'প্যাকেজিং কার্টন / প্রোডাক্ট বক্স', rows: [
+        box: { label: 'Box', unit: 'Pcs', size: 'A4', defaultTitle: 'Product Box / Carton', rows: [
             P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
             P('Paper', 'Cover Board', { auto: 'sheet', waste: 8, flat: true, a: 350, b: 'Duplex Board' }),
             P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
@@ -257,7 +257,7 @@
             P('Binding', 'Pad Pasting', { auto: 'copies', a: 'Pad Pasting' }),
             P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
         ] },
-        memo: { label: 'ক্যাশ মেমো / চালান বই (Memo Pad)', unit: 'Book', size: 'A5', pages: true, defaultTitle: 'ক্যাশ মেমো / চালান ভাউচার বই (৩ পার্ট)', rows: [
+        memo: { label: 'Memo', unit: 'Book', size: 'A5', pages: true, defaultTitle: 'Cash Memo / Bill Pad (3-Part)', rows: [
             P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
             P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, a: 55, b: 'NCR Top' }),
             P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, a: 55, b: 'NCR Middle' }),
@@ -268,7 +268,7 @@
             P('Cutting', 'Numbering', { auto: 'copies', a: 'Numbering' }),
             P('Binding', 'Pad Pasting', { auto: 'copies', a: 'Pad Pasting' })
         ] },
-        envelope: { label: 'খাম ও অফিসিয়াল প্যাড (Envelope)', unit: 'Pcs', size: 'Envelope', defaultTitle: 'অফিসিয়াল প্রিন্টেড খাম ও লেটারহেড', rows: [
+        envelope: { label: 'Envelope', unit: 'Pcs', size: 'Envelope', defaultTitle: 'Printed Office Envelopes', rows: [
             P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
             P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 100, b: 'Offset White' }),
             P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
@@ -277,13 +277,13 @@
             P('Binding', 'Pad Pasting', { auto: 'copies', a: 'Pad Pasting' }),
             P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
         ] },
-        stationery: { label: 'স্টেশনারি ও সাপ্লাই (Stationery)', unit: 'Pcs', size: '', defaultTitle: 'কর্পোরেট স্টেশনারি ও গিফট প্যাক', rows: [
+        stationery: { label: 'Stationery', unit: 'Pcs', size: '', defaultTitle: 'Corporate Stationery Items', rows: [
             P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
             P('Other', 'Miscellaneous', { auto: 'copies', a: 'Corporate Item', b: 'Copy' }),
             P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred' }),
             P('Transport', 'Office to Client Door', { auto: 'per', a: 'Office to Client', b: 'Lot' })
         ] },
-        custom: { label: 'কাস্টম জব (Custom Item)', unit: 'Pcs', size: 'Demy', defaultTitle: 'কাস্টম আইটেম উৎপাদন ও সাপ্লাই', rows: [] }
+        custom: { label: 'Custom', unit: 'Pcs', size: 'Demy', defaultTitle: 'Custom Production Item', rows: [] }
     };
 
     var TIERS = [250, 500, 1000, 2000, 3000, 5000, 10000];
@@ -378,13 +378,13 @@
         var list = variantKey(r) === 'PaperCover' ? 'Cover' : 'Inner';
         return '<div class="pc-paper d-flex flex-column gap-1.5 mt-1">'
             + '<div class="pc-paper-top d-flex align-items-center gap-2 flex-wrap">'
-            + '<input class="form-control form-control-sm pc-stock font-monospace" list="pcPaper' + list + '" value="' + esc(stockText(r)) + '" aria-label="Paper" title="GSM & Paper Kind" placeholder="যেমন: 80 GSM Offwhite" style="min-width: 170px; flex: 1;">'
-            + (r.auto === 'sheet' ? '<div class="input-group input-group-sm" style="width: 110px;"><span class="input-group-text bg-light" style="font-size: 10.5px;">আপস</span><input type="number" class="form-control form-control-sm pc-ups text-end font-monospace" min="1" step="1" value="' + esc(r.ups) + '"></div>' : '')
-            + '<div class="input-group input-group-sm" style="width: 110px;"><span class="input-group-text bg-light" style="font-size: 10.5px;">অপচয় %</span><input type="number" class="form-control form-control-sm pc-waste text-end font-monospace" min="0" step="1" value="' + esc(r.waste) + '"></div>'
+            + '<input class="form-control form-control-sm pc-stock font-monospace" list="pcPaper' + list + '" value="' + esc(stockText(r)) + '" aria-label="Paper" title="GSM & Paper Kind" placeholder="e.g. 80 GSM Offwhite" style="min-width: 170px; flex: 1;">'
+            + (r.auto === 'sheet' ? '<div class="input-group input-group-sm" style="width: 110px;"><span class="input-group-text bg-light" style="font-size: 10.5px;">Ups</span><input type="number" class="form-control form-control-sm pc-ups text-end font-monospace" min="1" step="1" value="' + esc(r.ups) + '"></div>' : '')
+            + '<div class="input-group input-group-sm" style="width: 110px;"><span class="input-group-text bg-light" style="font-size: 10.5px;">Waste %</span><input type="number" class="form-control form-control-sm pc-waste text-end font-monospace" min="0" step="1" value="' + esc(r.waste) + '"></div>'
             + '</div>'
             + '<div class="pc-picks d-flex align-items-center gap-2 flex-wrap">' 
             + pickRow(gsmsFor(r), r.a, 'pc-a', 'GSM:', '', function (g) { return knownRate('Paper', g, r.b); })
-            + pickRow(kindsFor(r), r.b, 'pc-b', 'ধরন:', '', function (k) { return knownRate('Paper', r.a, k); }) 
+            + pickRow(kindsFor(r), r.b, 'pc-b', 'Type:', '', function (k) { return knownRate('Paper', r.a, k); }) 
             + '</div>'
             + '</div>';
     }
@@ -545,8 +545,8 @@
             }
             case 'platesBook': {
                 // Plates based on Formas, Colors, and Plate Method:
-                // Work & Turn (ফার্মা উল্টানো) = 1 plate per color per forma
-                // Sheetwise (শিটওয়াইজ - ফ্রন্ট ও ব্যাক আলাদা) = 2 plates per color per forma
+                // Work & Turn = 1 plate per color per forma
+                // Sheetwise = 2 plates per color per forma
                 var methodMultiplier = (j.plateMethod === 'sheetwise') ? 2 : 1;
                 return j.formas * j.colors * methodMultiplier;
             }
@@ -667,11 +667,11 @@
             html += '<header class="pc-group-head d-flex align-items-center justify-content-between px-3 py-2 bg-light border-bottom">'
                 + '<div class="d-flex align-items-center gap-2">'
                 + '<i class="fa-solid ' + gIcon + ' fs-6"></i>'
-                + '<h6 class="pc-h m-0 text-dark fw-bold" style="font-size: 13px;">' + gTitle + ' (' + g + ')</h6>'
-                + '<span class="badge bg-secondary-subtle text-secondary rounded-pill font-monospace" style="font-size: 10px;">' + rows.length + ' আইটেম</span>'
+                + '<h6 class="pc-h m-0 text-dark fw-bold" style="font-size: 13px;">' + gTitle + '</h6>'
+                + '<span class="badge bg-secondary-subtle text-secondary rounded-pill font-monospace" style="font-size: 10px;">' + rows.length + '</span>'
                 + '</div>'
                 + '<div class="d-flex align-items-center gap-2">'
-                + '<span class="text-muted small" style="font-size: 11px;">সাবটোটাল:</span>'
+                + '<span class="text-muted small" style="font-size: 11px;">Subtotal:</span>'
                 + '<strong class="pc-sub text-primary font-monospace fs-6" data-sub="' + g + '">৳0.00</strong>'
                 + '</div>'
                 + '</header>';
@@ -680,11 +680,11 @@
                 + '<table class="table table-hover align-middle mb-0 pc-comp-table" style="font-size: 12.5px;">'
                 + '<thead class="table-light text-muted" style="font-size: 11px; text-transform: uppercase;">'
                 + '<tr>'
-                + '<th style="width: 36px;" class="text-center" title="অন্তর্ভুক্ত করুন">✓</th>'
-                + '<th style="min-width: 200px;">উপাদান ও বিবরণ</th>'
-                + '<th style="width: 140px;" class="text-end">পরিমাণ (' + basisLabel + ')</th>'
-                + '<th style="width: 130px;" class="text-end">দর ৳ (Rate)</th>'
-                + '<th style="width: 125px;" class="text-end">মোট ৳ (Total)</th>'
+                + '<th style="width: 36px;" class="text-center" title="Include">✓</th>'
+                + '<th style="min-width: 200px;">ITEM</th>'
+                + '<th style="width: 140px;" class="text-end">QTY</th>'
+                + '<th style="width: 130px;" class="text-end">RATE</th>'
+                + '<th style="width: 125px;" class="text-end">TOTAL</th>'
                 + '<th style="width: 40px;" class="text-center"></th>'
                 + '</tr>'
                 + '</thead>'
@@ -695,7 +695,7 @@
             html += '</tbody></table></div></section>';
         });
 
-        el.groups.innerHTML = html || '<div class="pc-empty p-4 text-center text-muted bg-white rounded-3 border">কোনো উপাদান যুক্ত করা হয়নি। ওপরে বাটনে ক্লিক করে উপাদান যোগ করুন।</div>';
+        el.groups.innerHTML = html || '<div class="pc-empty p-4 text-center text-muted bg-white rounded-3 border">No components added. Click the buttons above to add components.</div>';
         paint();
     }
 
@@ -741,14 +741,14 @@
             + '<td class="text-end align-middle">'
             + '<div class="d-flex align-items-center justify-content-end gap-1">'
             + '<input type="number" class="form-control form-control-sm pc-rate text-end font-monospace' + (!num(r.rate) && r.on && num(r.qty) > 0 ? ' is-invalid border-danger' : '') + '" min="0" step="any" value="' + (r.rate || '') + '" aria-label="Rate" placeholder="0.00" style="width: 85px;">'
-            + '<button type="button" class="btn btn-xs btn-outline-secondary pc-pin px-1 py-0.5 rounded" style="font-size: 10px;" title="রেট চার্টে সেভ করুন" hidden><i class="fa-solid fa-thumbtack"></i></button>'
+            + '<button type="button" class="btn btn-xs btn-outline-secondary pc-pin px-1 py-0.5 rounded" style="font-size: 10px;" title="Save" hidden><i class="fa-solid fa-thumbtack"></i></button>'
             + '</div>'
             + '</td>'
             + '<td class="text-end align-middle font-monospace fw-bold fs-6 pc-total text-dark">'
             + money(lineTotal(r))
             + '</td>'
             + '<td class="text-center align-middle">'
-            + '<button type="button" class="btn btn-link btn-sm text-danger p-0 pc-del opacity-75 hover-opacity-100" title="মুছে ফেলুন" aria-label="Remove"><i class="fa-solid fa-trash-can"></i></button>'
+            + '<button type="button" class="btn btn-link btn-sm text-danger p-0 pc-del opacity-75 hover-opacity-100" title="Delete" aria-label="Remove"><i class="fa-solid fa-trash-can"></i></button>'
             + '</td>'
             + '</tr>';
     }
@@ -784,11 +784,11 @@
             var qNote = rowEl.querySelector('.pc-qty-note');
             if (qNote) {
                 if (r.g === 'Paper') {
-                    qNote.textContent = Math.round(num(r.qty) * 500).toLocaleString('en-US') + ' শিট';
+                    qNote.textContent = Math.round(num(r.qty) * 500).toLocaleString('en-US') + ' Sheets';
                 } else if (r.g === 'CTP') {
-                    qNote.textContent = (r.auto === 'platesBook' ? j.formas + ' ফর্মা × ' + j.colors + ' কালার' : (r.auto === 'platesCover' ? 'কভার ৪ প্লেট' : 'প্লেট'));
+                    qNote.textContent = (r.auto === 'platesBook' ? j.formas + ' formas × ' + j.colors + ' col' : (r.auto === 'platesCover' ? 'Cover 4 plates' : 'Plates'));
                 } else if (r.g === 'Press') {
-                    qNote.textContent = (j.q <= 1000 ? 'মিনিমাম ১০০০ ছাপ' : Math.round(num(r.qty) * 1000).toLocaleString('en-US') + ' ছাপ');
+                    qNote.textContent = (j.q <= 1000 ? 'Min 1,000 Imp' : Math.round(num(r.qty) * 1000).toLocaleString('en-US') + ' imp');
                 } else {
                     qNote.textContent = '';
                 }
@@ -830,17 +830,17 @@
             var totalPaperReams = 0;
             state.rows.filter(function (r) { return r.g === 'Paper' && r.on; }).forEach(function (r) { totalPaperReams += num(r.qty); });
             var totalPaperSheets = Math.round(totalPaperReams * 500);
-            if ($('pcKpiPaperReams')) $('pcKpiPaperReams').textContent = totalPaperReams.toFixed(2) + ' রিম';
-            if ($('pcKpiPaperSheets')) $('pcKpiPaperSheets').textContent = totalPaperSheets.toLocaleString('en-US') + ' শিট প্রেস কাগজ';
+            if ($('pcKpiPaperReams')) $('pcKpiPaperReams').textContent = totalPaperReams.toFixed(2) + ' Reams';
+            if ($('pcKpiPaperSheets')) $('pcKpiPaperSheets').textContent = totalPaperSheets.toLocaleString('en-US') + ' Press Sheets';
 
             var wasteVal = 5;
             var paperRow = state.rows.filter(function (r) { return r.g === 'Paper' && r.on; })[0];
             if (paperRow && paperRow.waste != null) wasteVal = paperRow.waste;
-            if ($('pcKpiPaperWaste')) $('pcKpiPaperWaste').textContent = wasteVal + '% অপচয়';
+            if ($('pcKpiPaperWaste')) $('pcKpiPaperWaste').textContent = wasteVal + '% Waste';
 
-            if ($('pcKpiFormas')) $('pcKpiFormas').textContent = j.formas ? j.formas + ' ফর্মা' : '১ ফর্মা';
-            if ($('pcKpiFormaSub')) $('pcKpiFormaSub').textContent = j.pages ? j.pages + ' পৃষ্ঠা (' + j.formaSize + ' পৃ./ফর্মা)' : (SIZES_BN[j.size] || j.size);
-            if ($('pcKpiUpsBadge')) $('pcKpiUpsBadge').textContent = layout > 0 ? '১ শিটে ' + layout + ' Ups' : (j.formaSize + ' পৃ. ফর্মা');
+            if ($('pcKpiFormas')) $('pcKpiFormas').textContent = j.formas ? j.formas + ' Formas' : '1 Forma';
+            if ($('pcKpiFormaSub')) $('pcKpiFormaSub').textContent = j.pages ? j.pages + ' Pages (' + j.formaSize + ' p/forma)' : (SIZES_BN[j.size] || j.size);
+            if ($('pcKpiUpsBadge')) $('pcKpiUpsBadge').textContent = layout > 0 ? layout + ' Ups / Sheet' : (j.formaSize + ' p. Forma');
 
             var totalPlates = 0, innerPlates = 0, coverPlates = 0;
             state.rows.filter(function (r) { return r.g === 'CTP' && r.on; }).forEach(function (r) {
@@ -848,24 +848,24 @@
                 totalPlates += q;
                 if (/cover/i.test(r.n)) coverPlates += q; else innerPlates += q;
             });
-            if ($('pcKpiPlates')) $('pcKpiPlates').textContent = totalPlates + ' টি প্লেট';
-            if ($('pcKpiPlateSub')) $('pcKpiPlateSub').textContent = 'ইনার ' + innerPlates + ' + কভার ' + coverPlates;
-            if ($('pcKpiPlateMethodBadge')) $('pcKpiPlateMethodBadge').textContent = j.plateMethod === 'sheetwise' ? 'শিটওয়াইজ' : 'ফার্মা উল্টা';
+            if ($('pcKpiPlates')) $('pcKpiPlates').textContent = totalPlates + ' Plates';
+            if ($('pcKpiPlateSub')) $('pcKpiPlateSub').textContent = 'Inner ' + innerPlates + ' + Cover ' + coverPlates;
+            if ($('pcKpiPlateMethodBadge')) $('pcKpiPlateMethodBadge').textContent = j.plateMethod === 'sheetwise' ? 'Sheetwise' : 'Work & Turn';
 
             var totalImpressions = 0;
             state.rows.filter(function (r) { return r.g === 'Press' && r.on; }).forEach(function (r) { totalImpressions += num(r.qty); });
-            if ($('pcKpiImpressions')) $('pcKpiImpressions').textContent = totalImpressions.toFixed(1) + ' হাজার';
+            if ($('pcKpiImpressions')) $('pcKpiImpressions').textContent = totalImpressions.toFixed(1) + 'k';
             if (j.q <= 1000) {
-                if ($('pcKpiImpressionBadge')) $('pcKpiImpressionBadge').textContent = '১-১০০০ মিনিমাম';
-                if ($('pcKpiImpressionSub')) $('pcKpiImpressionSub').textContent = j.q + ' কপি (মিনিমাম ১০০০ ছাপ ধার্য)';
+                if ($('pcKpiImpressionBadge')) $('pcKpiImpressionBadge').textContent = 'Min 1,000';
+                if ($('pcKpiImpressionSub')) $('pcKpiImpressionSub').textContent = j.q + ' copies (Min 1,000 rate)';
             } else {
-                if ($('pcKpiImpressionBadge')) $('pcKpiImpressionBadge').textContent = 'হাজার ভিত্তিক';
-                if ($('pcKpiImpressionSub')) $('pcKpiImpressionSub').textContent = Math.round(totalImpressions * 1000).toLocaleString('en-US') + ' মোট ছাপ';
+                if ($('pcKpiImpressionBadge')) $('pcKpiImpressionBadge').textContent = 'Per Thousand';
+                if ($('pcKpiImpressionSub')) $('pcKpiImpressionSub').textContent = Math.round(totalImpressions * 1000).toLocaleString('en-US') + ' impressions';
             }
         }
 
         $('pcMissing').hidden = missing === 0;
-        $('pcMissing').textContent = missing ? 'দর বাকি: ' + missing + ' টি আইটেমে' : '';
+        $('pcMissing').textContent = missing ? 'Missing Rates: ' + missing : '';
 
         // Bars
         el.bars.innerHTML = GROUPS.filter(function (g) { return (perGroup[g] || 0) > 0; }).map(function (g) {
@@ -877,7 +877,7 @@
                 + '</div>'
                 + '<div class="progress" style="height: 6px;"><div class="progress-bar bg-primary" role="progressbar" style="width: ' + share + '%"></div></div>'
                 + '</div>';
-        }).join('') || '<div class="pc-empty text-muted small text-center py-2">— কোনো খরচ রেকর্ড হয়নি —</div>';
+        }).join('') || '<div class="pc-empty text-muted small text-center py-2">— No expenses recorded —</div>';
 
         // Tiers
         if (p.direct > 0) {
@@ -888,7 +888,7 @@
                 var isCur = (q === j.q);
                 return '<button type="button" class="btn btn-sm text-start d-flex align-items-center justify-content-between p-2 rounded-2 ' + (isCur ? 'btn-primary' : 'btn-outline-secondary') + '" data-q="' + q + '" style="font-size: 12px;">'
                     + '<span class="fw-bold font-monospace">' + q.toLocaleString('en-US') + ' ' + $('pcUnit').value + '</span>'
-                    + '<span class="font-monospace fw-bold">' + money(t.unit, 2) + ' /ইউনিট</span>'
+                    + '<span class="font-monospace fw-bold">' + money(t.unit, 2) + ' /unit</span>'
                     + '</button>';
             }).join('');
             el.tiersWrap.hidden = false;
@@ -915,7 +915,7 @@
         var bits = [];
         if (v.a && r.a !== undefined && r.a !== '') bits.push(typeof r.a === 'number' ? r.a + ' GSM' : r.a);
         if (v.b && r.b !== undefined && r.b !== '' && ['Per'].indexOf(v.b[0]) === -1 && ['Side', 'Sides'].indexOf(v.b[0]) === -1) bits.push(r.b);
-        if (r.g === 'Lamination' && r.b === 'Both Sides') bits.push('উভয় পাশ');
+        if (r.g === 'Lamination' && r.b === 'Both Sides') bits.push('Both Sides');
         return r.n + (bits.length ? ' (' + bits.join(', ') + ')' : '');
     }
 
@@ -923,11 +923,11 @@
         var j = job();
         var parts = [];
         var sizeLabel = SIZES_BN[j.size] || j.size;
-        if (sizeLabel) parts.push('সাইজ: ' + sizeLabel);
-        if (j.pages) parts.push('পৃষ্ঠা: ' + j.pages + ' পৃ. (' + (j.formas || 1) + ' ফর্মা)');
-        parts.push('মুদ্রণ: ' + j.colors + ' কালার' + (j.sides === 2 ? ' (উভয় পাশ)' : ' (এক পাশ)'));
-        parts.push('প্লেট: ' + (j.plateMethod === 'sheetwise' ? 'শিটওয়াইজ' : 'ফার্মা উল্টা'));
-        if (j.q <= 1000) parts.push('ছাপা: মিনিমাম ১০০০ বিল');
+        if (sizeLabel) parts.push('Size: ' + sizeLabel);
+        if (j.pages) parts.push('Pages: ' + j.pages + ' (' + (j.formas || 1) + ' Formas)');
+        parts.push('Print: ' + j.colors + ' Colors' + (j.sides === 2 ? ' (Both Sides)' : ' (1 Side)'));
+        parts.push('Plates: ' + (j.plateMethod === 'sheetwise' ? 'Sheetwise' : 'Work & Turn'));
+        if (j.q <= 1000) parts.push('Press: Min 1,000 Imp');
 
         var by = {};
         state.rows.filter(function (r) { return r.on && lineTotal(r) > 0; }).forEach(function (r) { 
@@ -949,11 +949,11 @@
         var j = job();
         var parts = [];
         var sizeLabel = SIZES_BN[j.size] || j.size;
-        if (sizeLabel) parts.push('সাইজ: ' + sizeLabel);
-        if (j.pages) parts.push('পৃষ্ঠা: ' + j.pages + ' পৃ. (' + (j.formas || 1) + ' ফর্মা)');
-        parts.push('মুদ্রণ: ' + j.colors + ' কালার' + (j.sides === 2 ? ' (উভয় পাশ)' : ' (এক পাশ)'));
-        parts.push('প্লেট: ' + (j.plateMethod === 'sheetwise' ? 'শিটওয়াইজ' : 'ফার্মা উল্টা'));
-        if (j.q <= 1000) parts.push('ছাপা: মিনিমাম ১০০০ বিল');
+        if (sizeLabel) parts.push('Size: ' + sizeLabel);
+        if (j.pages) parts.push('Pages: ' + j.pages + ' (' + (j.formas || 1) + ' Formas)');
+        parts.push('Print: ' + j.colors + ' Colors' + (j.sides === 2 ? ' (Both Sides)' : ' (1 Side)'));
+        parts.push('Plates: ' + (j.plateMethod === 'sheetwise' ? 'Sheetwise' : 'Work & Turn'));
+        if (j.q <= 1000) parts.push('Press: Min 1,000 Imp');
 
         var comps = [];
         GROUPS.forEach(function (g) {
@@ -986,14 +986,14 @@
         var title = ($('pcTitleIn').value.trim()) || TYPES[state.type].defaultTitle;
         var lines = [
             '==================================================',
-            'উৎপাদন খরচ ও স্পেসিফিকেশন শিট: ' + title,
-            'কাজের ধরন: ' + TYPES[state.type].label + ' | পরিমাণ: ' + s.j.q + ' ' + $('pcUnit').value,
+            'Cost & Specification Sheet: ' + title,
+            'Job Type: ' + TYPES[state.type].label + ' | Quantity: ' + s.j.q + ' ' + $('pcUnit').value,
             '==================================================',
             '',
-            'স্পেসিফিকেশন:',
+            'Specification:',
             specText(),
             '',
-            'উপাদানভিত্তিক বিস্তারিত খরচ বিবরণী:'
+            'Component Breakdown:'
         ];
 
         GROUPS.forEach(function (g) {
@@ -1009,17 +1009,17 @@
         });
 
         lines.push('');
-        lines.push('উৎপাদন খরচ (Direct Cost): ' + money(s.direct));
+        lines.push('Direct Cost: ' + money(s.direct));
         if (num($('pcOverhead').value) > 0) {
-            lines.push('ওভারহেড (' + $('pcOverhead').value + '%): ' + money(s.cost - s.direct));
+            lines.push('Overhead (' + $('pcOverhead').value + '%): ' + money(s.cost - s.direct));
         }
-        lines.push('মোট খরচ (Total Cost): ' + money(s.cost));
+        lines.push('Total Cost: ' + money(s.cost));
         if (num($('pcProfit').value) > 0) {
-            lines.push('লাভের মার্জিন (' + $('pcProfit').value + '%): ' + money(s.total - s.cost));
+            lines.push('Profit Margin (' + $('pcProfit').value + '%): ' + money(s.total - s.cost));
         }
         lines.push('--------------------------------------------------');
-        lines.push('সর্বমোট কোটেশন মূল্য: ' + money(s.total));
-        lines.push('প্রতি ' + $('pcUnit').value + '-এর দর: ' + money(s.unit, 2));
+        lines.push('Total Price: ' + money(s.total));
+        lines.push('Rate per ' + $('pcUnit').value + ': ' + money(s.unit, 2));
         lines.push('==================================================');
 
         return lines.join('\n');
@@ -1038,8 +1038,8 @@
     // 1. Single consolidated line insertion
     function insert(withRates) {
         var s = paint();
-        if (!(s.j.q > 0)) { toast('পরিমাণ (Quantity) প্রদান করুন'); $('pcQty').focus(); return; }
-        if (!(s.total > 0)) { toast('উপাদানের দর (Rate) পূরণ করুন'); return; }
+        if (!(s.j.q > 0)) { toast('Enter quantity'); $('pcQty').focus(); return; }
+        if (!(s.total > 0)) { toast('Enter rates'); return; }
 
         var title = $('pcTitleIn').value.trim() || TYPES[state.type].defaultTitle;
         var specBox = $('pcSpecTextarea');
@@ -1051,27 +1051,27 @@
 
         if (typeof window.addPresetItem === 'function') {
             window.addPresetItem(title, spec, itemType, $('pcUnit').value || 'Pcs', s.unit, s.unit, s.j.q);
-            toast('কোটেশনে যুক্ত করা হয়েছে ✓');
+            toast('Added to quotation ✓');
         }
 
         var modal = window.bootstrap && window.bootstrap.Modal.getInstance($('printCostCalculatorModal'));
         if (modal) modal.hide();
     }
 
-    // 2. Itemized Component Breakdown (আলাদা আলাদা আইটেম হিসেবে কোটেশনে যুক্ত করা)
+    // 2. Itemized Component Breakdown (Add components as individual lines to quotation)
     function insertDetailed() {
         var s = paint();
-        if (!(s.j.q > 0)) { toast('পরিমাণ (Quantity) প্রদান করুন'); $('pcQty').focus(); return; }
-        if (!(s.total > 0)) { toast('উপাদানের দর (Rate) পূরণ করুন'); return; }
+        if (!(s.j.q > 0)) { toast('Enter quantity'); $('pcQty').focus(); return; }
+        if (!(s.total > 0)) { toast('Enter rates'); return; }
 
         var activeRows = state.rows.filter(function (r) { return r.on && lineTotal(r) > 0; });
         if (!activeRows.length) {
-            toast('কোনো সক্রিয় উপাদান নেই');
+            toast('No active components');
             return;
         }
 
         if (typeof window.addPresetItem !== 'function') {
-            toast('হোস্ট পেজে addPresetItem পাওয়া যায়নি');
+            toast('Host method not found');
             return;
         }
 
@@ -1095,7 +1095,7 @@
             count++;
         });
 
-        toast(count + ' টি উপাদান কোটেশনে যুক্ত হয়েছে ✓');
+        toast(count + ' items added to quotation ✓');
 
         var modal = window.bootstrap && window.bootstrap.Modal.getInstance($('printCostCalculatorModal'));
         if (modal) modal.hide();
@@ -1166,7 +1166,7 @@
         if (!sheetLoaded || !num(r.rate)) { btn.hidden = true; return; }
         btn.hidden = false;
         var same = s && Math.abs(s.rate - num(r.rate)) < 0.005;
-        btn.textContent = !s ? 'সেভ' : (same ? 'সংরক্ষিত' : 'আপডেট');
+        btn.textContent = !s ? 'Save' : (same ? 'Saved' : 'Update');
         btn.classList.toggle('btn-success', !!same);
         btn.classList.toggle('btn-outline-secondary', !same);
         btn.disabled = !!same;
@@ -1177,8 +1177,8 @@
             upsert(res.row);
             paint();
             renderRates();
-            toast('রেট চার্টে সংরক্ষিত হয়েছে ✓');
-        }).catch(function () { toast('সংরক্ষণ করা যায়নি'); });
+            toast('Saved to rates ✓');
+        }).catch(function () { toast('Save failed'); });
     }
 
     // ── Rate sheet panel ────────────────────────────────────────────────────
@@ -1199,7 +1199,7 @@
                 + '<td class="fw-semibold">' + esc(x.item) + (x.group === 'Paper' && x.item ? ' GSM' : '') + '</td>'
                 + '<td class="text-muted">' + esc(x.kind || '—') + '</td>'
                 + '<td class="text-end font-monospace"><input type="number" class="form-control form-control-sm pr-rate text-end font-monospace d-inline-block" min="0" step="0.01" value="' + esc(x.rate) + '" aria-label="Rate" style="width: 110px;"></td>'
-                + '<td class="text-center"><button type="button" class="btn btn-link btn-sm text-danger p-0 pr-del" title="মুছে ফেলুন" aria-label="Remove"><i class="fa-solid fa-trash-can"></i></button></td>'
+                + '<td class="text-center"><button type="button" class="btn btn-link btn-sm text-danger p-0 pr-del" title="Delete" aria-label="Remove"><i class="fa-solid fa-trash-can"></i></button></td>'
                 + '</tr>';
         }).join('');
 
@@ -1207,7 +1207,7 @@
 
         var counts = {};
         SHEET_ROWS.forEach(function (x) { counts[x.group] = (counts[x.group] || 0) + 1; });
-        $('pcRatesGroups').innerHTML = '<option value=""' + (rateGroup === '' ? ' selected' : '') + '>সকল গ্রুপ (' + SHEET_ROWS.length + ')</option>'
+        $('pcRatesGroups').innerHTML = '<option value=""' + (rateGroup === '' ? ' selected' : '') + '>All (' + SHEET_ROWS.length + ')</option>'
             + GROUPS.filter(function (g) { return counts[g]; }).map(function (g) {
                 var gTitle = GROUP_TITLES_BN[g] || g;
                 return '<option value="' + g + '"' + (rateGroup === g ? ' selected' : '') + '>' + gTitle + ' (' + counts[g] + ')</option>';
@@ -1240,11 +1240,11 @@
     function bindRates() {
         var opts = GROUPS.map(function (g) { 
             var gTitle = GROUP_TITLES_BN[g] || g;
-            return '<option value="' + g + '">' + gTitle + ' (' + g + ')</option>'; 
+            return '<option value="' + g + '">' + gTitle + '</option>'; 
         }).join('');
         
         $('prGroup').innerHTML = opts;
-        $('paGroup').innerHTML = '<option value="">সকল গ্রুপ (All Groups)</option>' + opts;
+        $('paGroup').innerHTML = '<option value="">All</option>' + opts;
         $('prGroup').addEventListener('change', fillAddLists);
         $('pcRatesBtn').addEventListener('click', function () { openRates($('pcRatesPanel').hidden); });
         $('pcRatesBack').addEventListener('click', function () { openRates(false); });
@@ -1260,9 +1260,9 @@
                     if (g === 'Paper' && res.row.kind) addKind(res.row.kind);
                     $('prItem').value = ''; $('prKind').value = ''; $('prRate').value = '';
                     renderRates(); buildPaperLists(); fillAddLists();
-                    toast(res.created ? 'যুক্ত করা হয়েছে' : 'আপডেট করা হয়েছে');
+                    toast(res.created ? 'Added' : 'Updated');
                     $('prItem').focus();
-                }).catch(function () { toast('সংরক্ষণ করা যায়নি'); });
+                }).catch(function () { toast('Save failed'); });
         });
 
         $('pcRatesAdjust').addEventListener('submit', function (e) {
@@ -1272,9 +1272,9 @@
                     indexSheet(res.rows); 
                     renderRates(); 
                     $('paValue').value = ''; 
-                    toast(res.changed + ' টি দর সমন্বয় করা হয়েছে ✓'); 
+                    toast(res.changed + ' rates adjusted ✓'); 
                 })
-                .catch(function () { toast('প্রয়োগ করা যায়নি'); });
+                .catch(function () { toast('Failed to apply'); });
         });
 
         var body = $('pcRatesBody');
@@ -1284,18 +1284,18 @@
             var row = SHEET_ROWS.filter(function (x) { return String(x.id) === tr.dataset.id; })[0];
             if (!row) return;
             api('POST', root().dataset.ratesStore, { group: row.group, item: row.item, kind: row.kind, rate: num(e.target.value) })
-                .then(function (res) { upsert(res.row); toast('দর সংরক্ষিত হয়েছে'); })
-                .catch(function () { e.target.value = row.rate; toast('সংরক্ষণ করা যায়নি'); });
+                .then(function (res) { upsert(res.row); toast('Rate saved'); })
+                .catch(function () { e.target.value = row.rate; toast('Save failed'); });
         });
 
         body.addEventListener('click', function (e) {
             var del = e.target.closest('.pr-del');
             if (!del) return;
             var tr = del.closest('tr');
-            if (!window.confirm('আপনি কি এই দর তালিকা থেকে মুছে ফেলতে চান?')) return;
+            if (!window.confirm('Are you sure you want to delete this rate?')) return;
             api('DELETE', root().dataset.ratesDelete + '/' + tr.dataset.id)
-                .then(function () { indexSheet(SHEET_ROWS.filter(function (x) { return String(x.id) !== tr.dataset.id; })); renderRates(); toast('মুছে ফেলা হয়েছে'); })
-                .catch(function () { toast('মুছে ফেলা যায়নি'); });
+                .then(function () { indexSheet(SHEET_ROWS.filter(function (x) { return String(x.id) !== tr.dataset.id; })); renderRates(); toast('Deleted'); })
+                .catch(function () { toast('Delete failed'); });
         });
     }
 
@@ -1491,8 +1491,8 @@
         $('pcCopy').addEventListener('click', function () {
             var text = sheetText();
             (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(
-                function () { toast('পূর্ণাঙ্গ খরচের শিট কপি হয়েছে ✓'); }, 
-                function () { toast('কপি করা যায়নি'); }
+                function () { toast('Cost sheet copied ✓'); }, 
+                function () { toast('Copy failed'); }
             );
         });
 
@@ -1503,8 +1503,8 @@
                 var spec = $('pcSpecTextarea').value;
                 if (!spec) return;
                 (navigator.clipboard ? navigator.clipboard.writeText(spec) : Promise.reject()).then(
-                    function () { toast('স্পেসিফিকেশন কপি হয়েছে ✓'); }, 
-                    function () { toast('কপি করা যায়নি'); }
+                    function () { toast('Specification copied ✓'); }, 
+                    function () { toast('Copy failed'); }
                 );
             });
         }
@@ -1517,7 +1517,7 @@
                 if (specBox) {
                     specBox._manuallyEdited = false;
                     updateSpecBox();
-                    toast('স্পেসিফিকেশন রিফ্রেশ করা হয়েছে');
+                    toast('Specification refreshed');
                 }
             });
         }

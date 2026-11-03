@@ -37,7 +37,7 @@
                         <input id="qqDate" type="date" name="invoice_date" class="form-control" value="{{ date('Y-m-d') }}" required>
                     </div>
                     <div class="col-md-4 col-12">
-                        <label class="form-label" for="qqValid">Valid until</label>
+                        <label class="form-label" for="qqValid">Valid</label>
                         <input id="qqValid" type="date" name="valid_until" class="form-control" value="{{ date('Y-m-d', strtotime('+' . (int)($invoiceSettings['quotation_default_validity_days'] ?? 30) . ' days')) }}" required>
                     </div>
 
@@ -83,7 +83,7 @@
                                 <input id="qqDiscount" type="number" name="discount" min="0" step="0.01" value="0" class="form-control text-end">
                             </div>
                             <div class="col-6">
-                                <label class="form-label" for="qqTaxPct">Tax %</label>
+                                <label class="form-label" for="qqTaxPct">Tax</label>
                                 <input id="qqTaxPct" type="number" min="0" max="100" step="0.01" value="0" class="form-control text-end">
                             </div>
                             <div class="col-12">
@@ -91,7 +91,7 @@
                                 <textarea id="qqNotes" name="notes" class="form-control" rows="2" maxlength="1000">{{ $invoiceSettings['quotation_default_notes'] ?? '' }}</textarea>
                             </div>
                             <div class="col-12">
-                                <label class="form-label" for="qqTerms">Terms &amp; conditions</label>
+                                <label class="form-label" for="qqTerms">Terms</label>
                                 <textarea id="qqTerms" name="terms_conditions" class="form-control" rows="3" maxlength="2000">{{ $invoiceSettings['quotation_default_terms'] ?? '' }}</textarea>
                             </div>
                         </div>
@@ -108,7 +108,7 @@
             </div>
 
             <div class="modal-footer">
-                <a href="{{ route('admin.accounting.invoices.create', ['type' => 'quotation']) }}" class="btn btn-outline-secondary me-auto">Full form</a>
+                <a href="{{ route('admin.accounting.invoices.create', ['type' => 'quotation']) }}" class="btn btn-outline-secondary me-auto">Full</a>
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                 <button type="submit" class="btn btn-primary">Save</button>
             </div>

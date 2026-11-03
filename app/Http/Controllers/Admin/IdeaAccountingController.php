@@ -1005,11 +1005,11 @@ class IdeaAccountingController extends Controller
             'id'                      => $item->id,
             'global_id'               => 'inv_' . $item->id,
             'stream'                  => 'invoices',
-            'stream_label'            => $isOnlineOrder ? 'ORD' : 'INV',
-            'stream_badge_class'      => $isOnlineOrder ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle',
-            'channel'                 => $isOnlineOrder ? 'online_invoiced' : 'institutional',
-            'channel_label'           => $isOnlineOrder ? 'ONLINE' : 'INVOICE',
-            'channel_badge_class'     => $isOnlineOrder ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle',
+            'stream_label'            => $isOnlineOrder ? 'ORD' : ($item->type === 'quotation' ? 'QUOT' : ($item->type === 'challan' ? 'CHAL' : ($item->type === 'tender' ? 'TEND' : 'INV'))),
+            'stream_badge_class'      => $isOnlineOrder ? 'bg-success-subtle text-success border border-success-subtle' : ($item->type === 'quotation' ? 'bg-warning-subtle text-dark border border-warning-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle'),
+            'channel'                 => $isOnlineOrder ? 'online_invoiced' : ($item->type === 'quotation' ? 'quotation' : 'institutional'),
+            'channel_label'           => $isOnlineOrder ? 'ONLINE' : ($item->type === 'quotation' ? 'QUOTATION' : ($item->type === 'challan' ? 'CHALLAN' : ($item->type === 'tender' ? 'TENDER' : 'INVOICE'))),
+            'channel_badge_class'     => $isOnlineOrder ? 'bg-success-subtle text-success border border-success-subtle' : ($item->type === 'quotation' ? 'bg-warning-subtle text-dark border border-warning-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle'),
             'doc_no'                  => $item->invoice_no,
             'invoice_no'              => $item->invoice_no,
             'doc_type'                => $typeLabel,
@@ -1027,7 +1027,12 @@ class IdeaAccountingController extends Controller
             'customer_address'        => $item->customer_address,
             'category'                => $item->sales_category ?: 'books',
             'sales_category'          => $item->sales_category ?: 'books',
-            'category_label'          => $item->category_label ?? 'Books & Publications',
+            'category_label'          => match($item->sales_category) {
+                'printing_goods' => 'Printing',
+                'stationery'     => 'Stationery',
+                'books'          => 'Books',
+                default          => (ucfirst((string)($item->sales_category ?: 'General'))),
+            },
             'items_count'             => is_array($item->items) ? count($item->items) : 1,
             'items_summary'           => is_array($item->items) ? count($item->items) . ' Items' : ($item->subject ?: 'Sales Invoice'),
             'total_amount'            => (float) $item->grand_total,
@@ -1071,14 +1076,14 @@ class IdeaAccountingController extends Controller
         } elseif ($type === 'invoice') {
             $invoice = IdeaInvoice::with(['payments', 'creator'])->findOrFail($id);
             $typeBadge = match($invoice->type) {
-                'quotation' => 'কোটেশন / QUOTATION',
-                'tender'    => 'দরপত্র / TENDER',
-                'challan'   => 'চালান / CHALLAN',
-                default     => 'ইনভয়েস / INVOICE',
+                'quotation' => 'QUOTATION',
+                'tender'    => 'TENDER',
+                'challan'   => 'CHALLAN',
+                default     => 'INVOICE',
             };
             $firstItemTitle = is_array($invoice->items) && count($invoice->items)
-                ? ($invoice->items[0]['title'] ?? $invoice->items[0]['name'] ?? 'ইনভয়েস পণ্য ও বই')
-                : ($invoice->subject ?: 'ইনভয়েস বই/মালামাল');
+                ? ($invoice->items[0]['title'] ?? $invoice->items[0]['name'] ?? 'Items')
+                : ($invoice->subject ?: 'Invoice Items');
             $backUrl = ($invoice->type === 'quotation')
                 ? route('admin.accounting.index', ['stream' => 'invoices', 'type' => 'quotation'])
                 : route('admin.accounting.index', ['stream' => 'invoices']);
@@ -1088,9 +1093,9 @@ class IdeaAccountingController extends Controller
                 'type_badge'       => $typeBadge,
                 'doc_no'           => $invoice->invoice_no,
                 'date'             => $invoice->invoice_date ? Carbon::parse($invoice->invoice_date)->format('d M, Y') : date('d M, Y'),
-                'customer_name'    => $invoice->customer_name ?: 'সম্মানিত গ্রাহক',
+                'customer_name'    => $invoice->customer_name ?: 'Client',
                 'customer_phone'   => $invoice->customer_phone,
-                'customer_address' => $invoice->customer_address ?: ($invoice->customer_org ? 'প্রতিষ্ঠান: ' . $invoice->customer_org : 'অফিস / প্রতিষ্ঠান'),
+                'customer_address' => $invoice->customer_address ?: ($invoice->customer_org ? 'Organization: ' . $invoice->customer_org : 'Client Address'),
                 'customer_org'     => $invoice->customer_org,
                 'total_amount'     => (float) $invoice->grand_total,
                 'paid_amount'      => (float) $invoice->paid_amount,

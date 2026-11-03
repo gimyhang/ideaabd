@@ -289,7 +289,7 @@
                     <i class="fa-solid fa-users me-1 text-primary"></i>Ledger
                 </a>
                 <a href="{{ route('admin.accounting.tax-vat-deductions.index') }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 text-muted fw-semibold" title="Tax & VAT Register" style="border: 1px solid #cbd5e1 !important;">
-                    <i class="fa-solid fa-landmark me-1 text-warning"></i>Tax / VAT
+                    <i class="fa-solid fa-landmark me-1 text-warning"></i>Tax
                 </a>
                 <a href="{{ route('admin.accounting.reports.index') }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 text-muted fw-semibold" title="Financial Reports" style="border: 1px solid #cbd5e1 !important;">
                     <i class="fa-solid fa-chart-pie me-1 text-success"></i>Reports
@@ -314,7 +314,9 @@
             </a>
         @endforeach
         @if (request('type') === 'quotation')
-            <button type="button" class="btn btn-warning btn-sm ms-auto fw-semibold text-dark" data-bs-toggle="modal" data-bs-target="#quickQuotationModal">New quotation</button>
+            <button type="button" class="btn btn-warning btn-sm ms-auto fw-semibold text-dark rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#quickQuotationModal">
+                <i class="fa-solid fa-plus me-1"></i>Create
+            </button>
         @endif
     </div>
 @endif
@@ -327,7 +329,7 @@
              style="border: 1px solid #bfdbfe !important; border-top: 2px solid #2563eb !important; background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);">
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
-                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">TOTAL TURNOVER</span>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">TURNOVER</span>
                     <h4 class="fw-bold text-primary mb-0 mt-1.5 font-monospace">৳{{ number_format($stats['total_turnover'], 2) }}</h4>
                 </div>
                 <div class="acc-stat-icon bg-primary-subtle text-primary flex-shrink-0" style="border: 1px solid #bfdbfe;">
@@ -347,7 +349,7 @@
              style="border: 1px solid #bbf7d0 !important; border-top: 2px solid #16a34a !important; background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);">
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
-                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">TOTAL COLLECTED</span>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">COLLECTED</span>
                     <h4 class="fw-bold text-success mb-0 mt-1.5 font-monospace">৳{{ number_format($stats['total_collected'], 2) }}</h4>
                 </div>
                 <div class="acc-stat-icon bg-success-subtle text-success flex-shrink-0" style="border: 1px solid #bbf7d0;">
@@ -367,7 +369,7 @@
              style="border: 1px solid #fed7aa !important; border-top: 2px solid #ea580c !important; background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%);">
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
-                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">TOTAL DUE</span>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">DUE</span>
                     <h4 class="fw-bold text-warning mb-0 mt-1.5 font-monospace" style="color: #ea580c !important;">৳{{ number_format($stats['total_due'], 2) }}</h4>
                 </div>
                 <div class="acc-stat-icon bg-warning-subtle text-warning flex-shrink-0" style="border: 1px solid #fed7aa; color: #ea580c !important;">
@@ -375,8 +377,8 @@
                 </div>
             </div>
             <div class="d-flex align-items-center justify-content-between pt-2.5 mt-auto border-top small text-muted" style="font-size: 11px; border-top: 1px solid rgba(234, 88, 12, 0.15) !important;">
-                <span>Invoice Due: <strong class="text-dark">৳{{ number_format($stats['invoices_due']) }}</strong></span>
-                <span>Seller Due: <strong class="text-dark">৳{{ number_format($stats['bills_due']) }}</strong></span>
+                <span>Invoice: <strong class="text-dark">৳{{ number_format($stats['invoices_due']) }}</strong></span>
+                <span>Seller: <strong class="text-dark">৳{{ number_format($stats['bills_due']) }}</strong></span>
             </div>
         </div>
     </div>
@@ -387,7 +389,7 @@
              style="border: 1px solid #fecdd3 !important; border-top: 2px solid #e11d48 !important; background: linear-gradient(135deg, #fff1f2 0%, #ffffff 100%);">
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
-                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">TOTAL EXPENSES</span>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">EXPENSES</span>
                     <h4 class="fw-bold text-danger mb-0 mt-1.5 font-monospace">৳{{ number_format($stats['total_expenses'], 2) }}</h4>
                 </div>
                 <div class="acc-stat-icon bg-danger-subtle text-danger flex-shrink-0" style="border: 1px solid #fecdd3;">
@@ -407,7 +409,7 @@
              style="border: 1px solid #cffafe !important; border-top: 2px solid #0891b2 !important; background: linear-gradient(135deg, #ecfeff 0%, #ffffff 100%);">
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
-                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">NET CASH BALANCE</span>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">BALANCE</span>
                     <h4 class="fw-bold {{ $stats['net_balance'] >= 0 ? 'text-info' : 'text-danger' }} mb-0 mt-1.5 font-monospace" style="{{ $stats['net_balance'] >= 0 ? 'color: #0891b2 !important;' : '' }}">৳{{ number_format($stats['net_balance'], 2) }}</h4>
                 </div>
                 <div class="acc-stat-icon bg-info-subtle text-info flex-shrink-0" style="border: 1px solid #cffafe; color: #0891b2 !important;">
@@ -415,7 +417,7 @@
                 </div>
             </div>
             <div class="d-flex align-items-center justify-content-between pt-2.5 mt-auto border-top small text-muted" style="font-size: 11px; border-top: 1px solid rgba(8, 145, 178, 0.15) !important;">
-                <span>Month Net: <strong class="{{ $stats['this_month_net'] >= 0 ? 'text-success' : 'text-danger' }}">৳{{ number_format($stats['this_month_net']) }}</strong></span>
+                <span>Month: <strong class="{{ $stats['this_month_net'] >= 0 ? 'text-success' : 'text-danger' }}">৳{{ number_format($stats['this_month_net']) }}</strong></span>
                 <span class="badge {{ $stats['net_balance'] >= 0 ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle' }} rounded-pill px-2 py-0.5" style="font-size: 10px;">
                     {{ $stats['net_balance'] >= 0 ? 'Surplus' : 'Deficit' }}
                 </span>
@@ -445,7 +447,7 @@
                             <span class="badge bg-primary-subtle text-primary p-1.5 rounded-circle fs-6">
                                 <i class="fa-solid fa-chart-line"></i>
                             </span>
-                            <span>Cash Flow Trend</span>
+                            <span>Cashflow</span>
                         </h6>
                     </div>
                 </div>
@@ -462,7 +464,7 @@
                             <span class="badge bg-danger-subtle text-danger p-1.5 rounded-circle fs-6">
                                 <i class="fa-solid fa-chart-pie"></i>
                             </span>
-                            <span>Expense Breakdown</span>
+                            <span>Expenses</span>
                         </h6>
                     </div>
                 </div>
@@ -480,17 +482,17 @@
         {{-- Quick Date Presets & Toggle Section --}}
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5 mb-3.5 pb-3 border-bottom" style="border-bottom: 1px solid #f1f5f9 !important;">
             <div class="d-flex flex-wrap align-items-center gap-2">
-                <span class="small fw-bold text-muted text-uppercase me-1"><i class="fa-solid fa-calendar-days me-1"></i> FILTERS:</span>
+                <span class="small fw-bold text-muted text-uppercase me-1"><i class="fa-solid fa-calendar-days me-1"></i> FILTER:</span>
                 <a href="{{ route('admin.accounting.index', array_merge(request()->all(), ['date_preset' => 'today', 'date_from' => date('Y-m-d'), 'date_to' => date('Y-m-d')])) }}" 
                    class="filter-preset-pill {{ request('date_preset') === 'today' || (request('date_from') == date('Y-m-d') && request('date_to') == date('Y-m-d')) ? 'active' : '' }}">Today</a>
                 <a href="{{ route('admin.accounting.index', array_merge(request()->all(), ['date_preset' => 'yesterday', 'date_from' => date('Y-m-d', strtotime('-1 day')), 'date_to' => date('Y-m-d', strtotime('-1 day'))])) }}" 
                    class="filter-preset-pill {{ request('date_preset') === 'yesterday' ? 'active' : '' }}">Yesterday</a>
                 <a href="{{ route('admin.accounting.index', array_merge(request()->all(), ['date_preset' => 'this_week', 'date_from' => date('Y-m-d', strtotime('monday this week')), 'date_to' => date('Y-m-d')])) }}" 
-                   class="filter-preset-pill {{ request('date_preset') === 'this_week' ? 'active' : '' }}">This Week</a>
+                   class="filter-preset-pill {{ request('date_preset') === 'this_week' ? 'active' : '' }}">Week</a>
                 <a href="{{ route('admin.accounting.index', array_merge(request()->all(), ['date_preset' => 'this_month', 'date_from' => date('Y-m-01'), 'date_to' => date('Y-m-t')])) }}" 
-                   class="filter-preset-pill {{ request('date_preset') === 'this_month' || request('date_from') == date('Y-m-01') ? 'active' : '' }}">This Month</a>
+                   class="filter-preset-pill {{ request('date_preset') === 'this_month' || request('date_from') == date('Y-m-01') ? 'active' : '' }}">Month</a>
                 <a href="{{ route('admin.accounting.index', array_merge(request()->all(), ['date_preset' => 'this_year', 'date_from' => date('Y-01-01'), 'date_to' => date('Y-12-31')])) }}" 
-                   class="filter-preset-pill {{ request('date_preset') === 'this_year' ? 'active' : '' }}">This Year</a>
+                   class="filter-preset-pill {{ request('date_preset') === 'this_year' ? 'active' : '' }}">Year</a>
                 <a href="{{ route('admin.accounting.index', request()->only('stream')) }}" 
                    class="filter-preset-pill {{ !request()->hasAny(['date_from', 'date_to', 'date_preset', 'payment_status', 'payment_method', 'search', 'category']) ? 'active' : '' }}">All</a>
             </div>
@@ -517,7 +519,7 @@
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-light border-end-0 text-muted" style="border: 1px solid #cbd5e1; border-right: none;"><i class="fa-solid fa-magnifying-glass"></i></span>
                     <input type="text" name="search" id="liveSearchInput" class="form-control form-control-sm border-start-0 ps-0" 
-                           placeholder="Search transaction, doc #, client, phone..." value="{{ $search }}" autocomplete="off" style="border: 1px solid #cbd5e1; border-left: none;">
+                           placeholder="Search..." value="{{ $search }}" autocomplete="off" style="border: 1px solid #cbd5e1; border-left: none;">
                     @if($search)
                         <button type="button" class="btn btn-sm btn-outline-secondary border-start-0" onclick="clearSearchInput()" title="Clear" style="border: 1px solid #cbd5e1; border-left: none;">
                             <i class="fa-solid fa-xmark"></i>
@@ -529,9 +531,9 @@
             {{-- 2. Stream Filter --}}
             <div class="col-6 col-md-2">
                 <select name="stream" class="form-select form-select-sm" onchange="this.form.submit()" style="border: 1px solid #cbd5e1;">
-                    <option value="all" @selected($stream === 'all' || empty($stream))>All Streams</option>
-                    <option value="online" @selected($stream === 'online')>Online Orders</option>
-                    <option value="offline" @selected($stream === 'offline')>Offline Sales</option>
+                    <option value="all" @selected($stream === 'all' || empty($stream))>All</option>
+                    <option value="online" @selected($stream === 'online')>Online</option>
+                    <option value="offline" @selected($stream === 'offline')>Offline</option>
                     <option value="invoices" @selected($stream === 'invoices')>Invoices</option>
                     <option value="income" @selected($stream === 'income')>Income</option>
                     <option value="expense" @selected($stream === 'expense')>Expense</option>
@@ -543,7 +545,7 @@
             @if($stream === 'invoices' && in_array(request('type'), ['quotation', 'tender'], true))
             <div class="col-6 col-md-2">
                 <select name="proposal_status" class="form-select form-select-sm" onchange="this.form.submit()" style="border: 1px solid #cbd5e1;">
-                    <option value="">All proposal statuses</option>
+                    <option value="">All</option>
                     @foreach(['draft' => 'Draft', 'sent' => 'Sent', 'accepted' => 'Accepted', 'rejected' => 'Rejected', 'expired' => 'Expired'] as $status => $label)
                         <option value="{{ $status }}" @selected($proposalStatus === $status)>{{ $label }}</option>
                     @endforeach
@@ -553,7 +555,7 @@
             @unless($stream === 'invoices' && in_array(request('type'), ['quotation', 'tender'], true))
                 <div class="col-6 col-md-1.5">
                     <select name="payment_status" class="form-select form-select-sm" onchange="this.form.submit()" style="border: 1px solid #cbd5e1;">
-                        <option value="">All Status</option>
+                        <option value="">Status</option>
                         <option value="paid" @selected($paymentStatus === 'paid')>Paid</option>
                         <option value="partial" @selected($paymentStatus === 'partial')>Partial</option>
                         <option value="unpaid" @selected($paymentStatus === 'unpaid')>Unpaid</option>
@@ -565,11 +567,11 @@
             @unless($stream === 'invoices' && in_array(request('type'), ['quotation', 'tender'], true))
                 <div class="col-6 col-md-1.5">
                     <select name="payment_method" class="form-select form-select-sm" onchange="this.form.submit()" style="border: 1px solid #cbd5e1;">
-                        <option value="">All Methods</option>
+                        <option value="">Method</option>
                         <option value="Cash" @selected($paymentMethod === 'Cash')>Cash</option>
                         <option value="bKash" @selected($paymentMethod === 'bKash')>bKash</option>
                         <option value="Nagad" @selected($paymentMethod === 'Nagad')>Nagad</option>
-                        <option value="Bank" @selected($paymentMethod === 'Bank' || $paymentMethod === 'Bank Transfer')>Bank Transfer</option>
+                        <option value="Bank" @selected($paymentMethod === 'Bank' || $paymentMethod === 'Bank Transfer')>Bank</option>
                         <option value="cod" @selected($paymentMethod === 'cod')>COD</option>
                         <option value="Cheque" @selected($paymentMethod === 'Cheque')>Cheque</option>
                     </select>
@@ -578,19 +580,19 @@
 
             {{-- 5. Date From & To --}}
             <div class="col-6 col-md-1.5">
-                <input type="date" name="date_from" class="form-control form-control-sm" value="{{ $dateFrom }}" title="From Date" style="border: 1px solid #cbd5e1;">
+                <input type="date" name="date_from" class="form-control form-control-sm" value="{{ $dateFrom }}" title="From" style="border: 1px solid #cbd5e1;">
             </div>
             <div class="col-6 col-md-1.5">
-                <input type="date" name="date_to" class="form-control form-control-sm" value="{{ $dateTo }}" title="To Date" style="border: 1px solid #cbd5e1;">
+                <input type="date" name="date_to" class="form-control form-control-sm" value="{{ $dateTo }}" title="To" style="border: 1px solid #cbd5e1;">
             </div>
 
             {{-- 6. Submit & Reset --}}
             <div class="col-6 col-md-1 d-flex gap-1.5">
-                <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold" title="Apply Filter">
+                <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold" title="Filter">
                     <i class="fa-solid fa-filter"></i>
                 </button>
                 @if(request()->hasAny(['search', 'payment_status', 'payment_method', 'date_from', 'date_to', 'date_preset', 'category']))
-                    <a href="{{ route('admin.accounting.index', ['stream' => $stream]) }}" class="btn btn-light btn-sm border text-muted" title="Reset Filters" style="border: 1px solid #cbd5e1 !important;">
+                    <a href="{{ route('admin.accounting.index', ['stream' => $stream]) }}" class="btn btn-light btn-sm border text-muted" title="Reset" style="border: 1px solid #cbd5e1 !important;">
                         <i class="fa-solid fa-rotate-left"></i>
                     </a>
                 @endif
@@ -608,23 +610,29 @@
             </span>
             <div>
                 <h6 class="fw-bold text-dark mb-0 fs-6">
-                    @if($stream === 'online')
-                        Online Orders
+                    @if(request('type') === 'quotation')
+                        Quotations
+                    @elseif(request('type') === 'challan')
+                        Challans
+                    @elseif(request('type') === 'tender')
+                        Tenders
+                    @elseif($stream === 'online')
+                        Online
                     @elseif($stream === 'offline')
-                        Offline Sales & Bills
+                        Offline
                     @elseif($stream === 'invoices')
-                        Invoices & Challans
+                        Invoices
                     @elseif($stream === 'income')
-                        Income Entries
+                        Income
                     @elseif($stream === 'expense')
-                        Expense Entries
+                        Expense
                     @elseif($stream === 'purchases')
-                        Supplier Purchases
+                        Purchases
                     @else
-                        All Transactions & Billing
+                        Transactions
                     @endif
                 </h6>
-                <small class="text-muted" style="font-size: 11.5px;">Live central transactions ledger & records stream</small>
+                <small class="text-muted" style="font-size: 11.5px;">Records</small>
             </div>
         </div>
 
@@ -639,15 +647,17 @@
         <table class="table table-hover align-middle mb-0" id="unifiedAccountingTable" style="min-width: 1050px;">
             <thead class="table-light text-muted small text-uppercase" style="font-size: 11px; border-bottom: 1px solid #e2e8f0 !important;">
                 <tr>
-                    <th class="ps-4 py-3.5" style="width: 140px;">DATE & CHANNEL</th>
-                    <th class="py-3.5 px-3" style="width: 175px;">DOC #</th>
-                    <th class="py-3.5 px-3" style="min-width: 200px;">CLIENT / STAKEHOLDER</th>
-                    <th class="py-3.5 px-3" style="min-width: 180px;">DETAILS / ITEMS</th>
+                    <th class="ps-4 py-3.5" style="width: 140px;">DATE</th>
+                    <th class="py-3.5 px-3" style="width: 175px;">DOC</th>
+                    <th class="py-3.5 px-3" style="min-width: 200px;">CLIENT</th>
+                    <th class="py-3.5 px-3" style="min-width: 180px;">ITEMS</th>
                     <th class="py-3.5 px-3 text-end" style="width: 120px;">TOTAL</th>
                     <th class="py-3.5 px-3 text-end" style="width: 115px;">PAID</th>
                     <th class="py-3.5 px-3 text-end" style="width: 115px;">DUE</th>
                     <th class="py-3.5 px-3 text-center" style="width: 130px;">STATUS</th>
                     <th class="pe-4 py-3.5 text-center" style="width: 140px;">ACTION</th>
+                </tr>
+            </thead>
                 </tr>
             </thead>
             <tbody id="accountingTableBody">
@@ -698,13 +708,13 @@
                             <strong class="text-dark" id="quickPayCustomerName">—</strong>
                         </div>
                         <div class="text-end">
-                            <span class="small text-muted d-block">Due Amount:</span>
+                            <span class="small text-muted d-block">Due:</span>
                             <strong class="text-danger font-monospace fs-5" id="quickPayDueText">৳0.00</strong>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">Payment Amount (৳) *</label>
+                        <label class="form-label small fw-bold text-dark">Amount (৳) *</label>
                         <div class="input-group">
                             <span class="input-group-text bg-success text-white fw-bold">৳</span>
                             <input type="number" step="0.01" name="amount" id="quickPayAmountInput" class="form-control fw-bold text-success fs-5 rounded-end-3" placeholder="0.00" min="0.01" required>
@@ -713,11 +723,11 @@
 
                     <div class="row g-2.5 mb-3">
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">Payment Date *</label>
+                            <label class="form-label small fw-bold text-dark">Date *</label>
                             <input type="date" name="payment_date" class="form-control rounded-3" value="{{ date('Y-m-d') }}" required style="border: 1px solid #cbd5e1;">
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">Payment Method *</label>
+                            <label class="form-label small fw-bold text-dark">Method *</label>
                             <select name="payment_method" class="form-select rounded-3" required style="border: 1px solid #cbd5e1;">
                                 <option value="Cash">Cash</option>
                                 <option value="bKash">bKash</option>
@@ -729,7 +739,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-muted">Transaction Reference</label>
+                        <label class="form-label small fw-semibold text-muted">Reference</label>
                         <input type="text" name="transaction_ref" class="form-control rounded-3" placeholder="Reference number or TrxID" style="border: 1px solid #cbd5e1;">
                     </div>
 
@@ -742,7 +752,7 @@
                 <div class="modal-footer bg-light py-2.5 px-4 d-flex justify-content-between align-items-center">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-success rounded-pill px-5 fw-bold shadow-sm" id="quickPaySubmitBtn">
-                        <i class="fa-solid fa-check me-1"></i> Confirm Payment
+                        <i class="fa-solid fa-check me-1"></i> Confirm
                     </button>
                 </div>
             </form>
@@ -800,7 +810,7 @@
                             <input type="date" name="entry_date" class="form-control rounded-3" value="{{ date('Y-m-d') }}" required style="border: 1px solid #cbd5e1;">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Client / Customer Name</label>
+                            <label class="form-label small fw-bold text-dark">Client</label>
                             <input type="text" name="party_name" class="form-control rounded-3" placeholder="Client or payer name" style="border: 1px solid #cbd5e1;">
                         </div>
                         <div class="col-12">
@@ -815,7 +825,7 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Payment Method *</label>
+                            <label class="form-label small fw-bold text-dark">Method *</label>
                             <select name="payment_method" class="form-select rounded-3" required style="border: 1px solid #cbd5e1;">
                                 <option value="Cash">Cash</option>
                                 <option value="bKash">bKash</option>
@@ -825,7 +835,7 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold text-muted">Receipt / Voucher #</label>
+                            <label class="form-label small fw-semibold text-muted">Receipt</label>
                             <input type="text" name="voucher_no" class="form-control rounded-3" placeholder="Receipt or voucher number" style="border: 1px solid #cbd5e1;">
                         </div>
                         <div class="col-md-6">
@@ -838,7 +848,7 @@
                 <div class="modal-footer bg-light py-2.5 px-4 d-flex justify-content-between align-items-center">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-success rounded-pill px-5 fw-bold shadow-sm">
-                        <i class="fa-solid fa-floppy-disk me-1.5"></i> Save Income
+                        <i class="fa-solid fa-floppy-disk me-1.5"></i> Save
                     </button>
                 </div>
             </form>
@@ -856,7 +866,7 @@
                         <i class="fa-solid fa-cart-shopping fs-6"></i>
                     </span>
                     <div>
-                        <h5 class="modal-title fw-bold mb-0" id="newExpenseModalLabel">Record Expense</h5>
+                        <h5 class="modal-title fw-bold mb-0" id="newExpenseModalLabel">Expense</h5>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -873,12 +883,12 @@
                             <span>Category *</span>
                         </label>
                         <div class="d-flex flex-wrap gap-1.5 mb-2" id="quickExpenseCategoryChips">
-                            <button type="button" class="category-chip" onclick="selectExpCat('Paper Purchase', this)">Paper Purchase</button>
-                            <button type="button" class="category-chip" onclick="selectExpCat('Printing & Press', this)">Printing & Press</button>
-                            <button type="button" class="category-chip" onclick="selectExpCat('Binding & Finishing', this)">Binding & Finishing</button>
-                            <button type="button" class="category-chip" onclick="selectExpCat('Design & Editorial', this)">Design & Editorial</button>
-                            <button type="button" class="category-chip" onclick="selectExpCat('Office Rent & Utility', this)">Office Rent & Utility</button>
-                            <button type="button" class="category-chip" onclick="selectExpCat('Transport & Courier', this)">Transport & Courier</button>
+                            <button type="button" class="category-chip" onclick="selectExpCat('Paper Purchase', this)">Paper</button>
+                            <button type="button" class="category-chip" onclick="selectExpCat('Printing & Press', this)">Printing</button>
+                            <button type="button" class="category-chip" onclick="selectExpCat('Binding & Finishing', this)">Binding</button>
+                            <button type="button" class="category-chip" onclick="selectExpCat('Design & Editorial', this)">Design</button>
+                            <button type="button" class="category-chip" onclick="selectExpCat('Office Rent & Utility', this)">Office</button>
+                            <button type="button" class="category-chip" onclick="selectExpCat('Transport & Courier', this)">Transport</button>
                         </div>
                         <select name="category" id="expCategorySelect" class="form-select rounded-3" required style="border: 1px solid #cbd5e1;">
                             <option value="">Select Category...</option>
@@ -894,7 +904,7 @@
                             <input type="date" name="entry_date" class="form-control rounded-3" value="{{ date('Y-m-d') }}" required style="border: 1px solid #cbd5e1;">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Vendor / Payee Name</label>
+                            <label class="form-label small fw-bold text-dark">Vendor</label>
                             <input type="text" name="party_name" class="form-control rounded-3" placeholder="Vendor or payee name" style="border: 1px solid #cbd5e1;">
                         </div>
                         <div class="col-12">
@@ -909,7 +919,7 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Payment Method *</label>
+                            <label class="form-label small fw-bold text-dark">Method *</label>
                             <select name="payment_method" class="form-select rounded-3" required style="border: 1px solid #cbd5e1;">
                                 <option value="Cash">Cash</option>
                                 <option value="bKash">bKash</option>
@@ -919,7 +929,7 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold text-muted">Voucher / Bill #</label>
+                            <label class="form-label small fw-semibold text-muted">Voucher</label>
                             <input type="text" name="voucher_no" class="form-control rounded-3" placeholder="Voucher or bill number" style="border: 1px solid #cbd5e1;">
                         </div>
                         <div class="col-md-6">
@@ -932,7 +942,7 @@
                 <div class="modal-footer bg-light py-2.5 px-4 d-flex justify-content-between align-items-center">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-danger rounded-pill px-5 fw-bold shadow-sm">
-                        <i class="fa-solid fa-floppy-disk me-1.5"></i> Save Expense
+                        <i class="fa-solid fa-floppy-disk me-1.5"></i> Save
                     </button>
                 </div>
             </form>
