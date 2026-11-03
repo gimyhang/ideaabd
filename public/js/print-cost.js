@@ -660,66 +660,9 @@
     // ── Table Rendering ─────────────────────────────────────────────────────
     function render() {
         recalcAuto();
-        var collapsedMap = {};
-        if (el.groups) {
-            el.groups.querySelectorAll('.pc-group-card.is-collapsed').forEach(function (card) {
-                if (card.dataset.group) collapsedMap[card.dataset.group] = true;
-            });
-        }
-
-        var html = '';
-        GROUPS.forEach(function (g) {
-            var rows = state.rows.filter(function (r) { return r.g === g; });
-            if (!rows.length) return;
-            var gTitle = GROUP_TITLES_BN[g] || g;
-            var gIcon = GROUP_ICONS[g] || 'fa-tag';
-            var isCollapsed = !!collapsedMap[g];
-
-            html += '<section class="pc-card pc-group-card p-0 overflow-hidden' + (isCollapsed ? ' is-collapsed' : '') + '" data-group="' + g + '">';
-            html += '<header class="pc-group-head d-flex align-items-center justify-content-between px-3 py-2 border-bottom">'
-                + '<div class="d-flex align-items-center gap-2">'
-                + '<i class="fa-solid fa-chevron-down pc-group-chevron text-muted" style="font-size: 11px;"></i>'
-                + '<i class="fa-solid ' + gIcon + ' text-primary" style="font-size: 13px;"></i>'
-                + '<h6 class="pc-h m-0 text-dark fw-bold" style="font-size: 12.5px;">' + gTitle + '</h6>'
-                + '<span class="badge bg-light text-muted border font-monospace px-1.5 py-0.5 rounded-1" style="font-size: 10px;">' + rows.length + '</span>'
-                + '</div>'
-                + '<div class="d-flex align-items-center gap-2">'
-                + '<span class="text-muted small" style="font-size: 11px;">Subtotal:</span>'
-                + '<strong class="pc-sub text-primary font-monospace" style="font-size: 13px;" data-sub="' + g + '">৳0.00</strong>'
-                + '<button type="button" class="btn btn-xs btn-outline-primary rounded-1 py-0 px-2 ms-1 pc-group-add-btn" data-add="' + g + '" title="Add item" style="font-size: 10.5px; height: 22px;">+ Add</button>'
-                + '</div>'
-                + '</header>';
-
-            html += '<div class="table-responsive m-0">'
-                + '<table class="table table-hover align-middle mb-0 pc-comp-table" style="font-size: 12.5px;">'
-                + '<colgroup>'
-                + '<col style="width: 38px;">'
-                + '<col style="width: 210px;">'
-                + '<col style="min-width: 270px;">'
-                + '<col style="width: 110px;">'
-                + '<col style="width: 115px;">'
-                + '<col style="width: 115px;">'
-                + '<col style="width: 38px;">'
-                + '</colgroup>'
-                + '<thead class="text-muted">'
-                + '<tr>'
-                + '<th class="text-center" style="width: 38px;" title="Include">✓</th>'
-                + '<th style="width: 210px;">ITEM</th>'
-                + '<th>SPECIFICATION</th>'
-                + '<th style="width: 110px;" class="text-end">QTY</th>'
-                + '<th style="width: 115px;" class="text-end">RATE</th>'
-                + '<th style="width: 115px;" class="text-end">TOTAL</th>'
-                + '<th class="text-center" style="width: 38px;"></th>'
-                + '</tr>'
-                + '</thead>'
-                + '<tbody>';
-
-            rows.forEach(function (r) { html += rowHtml(r); });
-
-            html += '</tbody></table></div></section>';
-        });
-
-        el.groups.innerHTML = html || '<div class="pc-empty p-4 text-center text-muted bg-white rounded-2 border">No components added. Click the buttons above to add components.</div>';
+        var html = state.rows.map(rowHtml).join('');
+        el.groups.innerHTML = html || '<tr><td colspan="8" class="text-center text-muted py-4">No items added. Click "+ Add Item" above.</td></tr>';
+        if ($('pcRowCountBadge')) $('pcRowCountBadge').textContent = state.rows.length;
         paint();
     }
 
@@ -779,9 +722,17 @@
         var v = variants(r);
         r.vk = variantKey(r);
 
+        var groupOpts = GROUPS.map(function (g) {
+            var gTitle = GROUP_TITLES_BN[g] || g;
+            return '<option value="' + g + '"' + (g === r.g ? ' selected' : '') + '>' + gTitle + '</option>';
+        }).join('');
+
         return '<tr class="pc-row' + (r.on ? '' : ' is-off table-light opacity-50') + '" data-id="' + r.id + '">'
             + '<td class="text-center align-middle col-chk">'
             + '<input type="checkbox" class="form-check-input pc-chk m-0" ' + (r.on ? 'checked' : '') + ' aria-label="Include">'
+            + '</td>'
+            + '<td class="align-middle col-type">'
+            + '<select class="form-select form-select-sm pc-group-select pc-g" data-id="' + r.id + '" aria-label="Type">' + groupOpts + '</select>'
             + '</td>'
             + '<td class="align-middle col-item">'
             + '<input class="form-control form-control-sm pc-name fw-semibold text-dark" list="pcNames' + r.g + '" value="' + esc(r.n) + '" maxlength="80" aria-label="Item" placeholder="Item name">'
@@ -799,14 +750,14 @@
             + '<td class="text-end align-middle col-rate">'
             + '<div class="d-flex align-items-center justify-content-end gap-1">'
             + '<input type="number" class="form-control form-control-sm pc-rate text-end font-monospace' + (!num(r.rate) && r.on && num(r.qty) > 0 ? ' is-invalid border-danger' : '') + '" min="0" step="any" value="' + (r.rate || '') + '" aria-label="Rate" placeholder="0.00">'
-            + '<button type="button" class="btn btn-xs btn-outline-secondary pc-pin px-1 py-0.5 rounded" style="font-size: 10px;" title="Save" hidden><i class="fa-solid fa-thumbtack"></i></button>'
+            + '<button type="button" class="btn btn-xs btn-outline-secondary pc-pin px-1 py-0.5 rounded" style="font-size: 10px;" title="Save" hidden>Pin</button>'
             + '</div>'
             + '</td>'
             + '<td class="text-end align-middle font-monospace fw-bold fs-6 pc-total text-dark col-total">'
             + money(lineTotal(r))
             + '</td>'
             + '<td class="text-center align-middle col-del">'
-            + '<button type="button" class="btn btn-link btn-sm text-danger p-0 pc-del opacity-75 hover-opacity-100" title="Delete" aria-label="Remove"><i class="fa-solid fa-trash-can"></i></button>'
+            + '<button type="button" class="btn btn-link btn-sm text-danger p-0 pc-del opacity-75 hover-opacity-100" title="Delete" aria-label="Remove" style="text-decoration:none; font-size:17px; line-height:1;">&times;</button>'
             + '</td>'
             + '</tr>';
     }
@@ -1397,6 +1348,20 @@
         var r = byId(rowEl.dataset.id);
         if (!r) return;
         if (t.classList.contains('pc-chk')) { r.on = t.checked; paint(); return; }
+        if (t.classList.contains('pc-g')) {
+            r.g = t.value;
+            var names = NAMES[r.g] || ['Custom ' + r.g];
+            r.n = names[0];
+            r.a = (GROUP_DEFAULT[r.g] || {}).a;
+            r.b = (GROUP_DEFAULT[r.g] || {}).b;
+            r.auto = GROUP_AUTO[r.g];
+            r.rate = rateFor(r);
+            r.touched = false;
+            r.manual = false;
+            recalcAuto();
+            render();
+            return;
+        }
         if (t.classList.contains('pc-name')) {
             r.n = t.value;
             if (variantKey(r) !== r.vk) { 
@@ -1507,7 +1472,7 @@
         if (!root || root.dataset.ready) return;
         root.dataset.ready = '1';
         
-        el.groups = $('pcGroups'); 
+        el.groups = $('pcRowsBody') || $('pcGroups'); 
         el.bars = $('pcBars'); 
         el.types = $('pcTypes'); 
         el.add = $('pcAdd'); 

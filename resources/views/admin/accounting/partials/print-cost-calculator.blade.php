@@ -1,7 +1,7 @@
 {{-- Printing cost & production calculator. Shared by accounting hub, quotations, and invoice forms.
      Logic: public/js/print-cost.js. Hosts define window.addPresetItem(title, spec, itemType, unit, price, regularPrice, qty). --}}
-<link rel="stylesheet" href="{{ asset('css/print-cost.css') }}?v={{ @filemtime(public_path('css/print-cost.css')) ?: 4 }}">
-<script src="{{ asset('js/print-cost.js') }}?v={{ @filemtime(public_path('js/print-cost.js')) ?: 4 }}" defer></script>
+<link rel="stylesheet" href="{{ asset('css/print-cost.css') }}?v={{ @filemtime(public_path('css/print-cost.css')) ?: 5 }}">
+<script src="{{ asset('js/print-cost.js') }}?v={{ @filemtime(public_path('js/print-cost.js')) ?: 5 }}" defer></script>
 
 <div class="modal fade" id="printCostCalculatorModal" tabindex="-1" aria-labelledby="pcTitle" aria-hidden="true"
      data-rates-url="{{ route('admin.accounting.print-rates.index') }}"
@@ -12,22 +12,13 @@
         <div class="modal-content pc shadow-sm">
             {{-- Modal Header --}}
             <div class="modal-header bg-white border-bottom py-2.5 px-4">
-                <div class="d-flex align-items-center gap-2.5">
-                    <div class="pc-header-icon rounded-2 d-flex align-items-center justify-content-center bg-primary-subtle text-primary">
-                        <i class="fa-solid fa-calculator fs-5"></i>
-                    </div>
-                    <div>
-                        <h5 class="modal-title fw-bold text-dark mb-0 fs-5" id="pcTitle">Calculator</h5>
-                        <p class="text-muted small mb-0 font-monospace" style="font-size: 11px;">Cost Estimator &amp; Quotation Generator</p>
-                    </div>
+                <div>
+                    <h5 class="modal-title fw-bold text-dark mb-0 fs-5" id="pcTitle">Calculator</h5>
+                    <p class="text-muted small mb-0 font-monospace" style="font-size: 11px;">Cost Estimator &amp; Quotation Generator</p>
                 </div>
                 <div class="pc-head-actions d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-outline-primary btn-sm rounded-2 px-3 fw-semibold" id="pcRatesBtn" title="Rates">
-                        <i class="fa-solid fa-layer-group me-1.5"></i> Rates
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-2 px-2.5" id="pcReset" title="Reset">
-                        <i class="fa-solid fa-rotate-left me-1"></i> Reset
-                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm rounded-2 px-3 fw-semibold" id="pcRatesBtn" title="Rates">Rates</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-2 px-2.5" id="pcReset" title="Reset">Reset</button>
                     <button type="button" class="btn-close ms-1" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             </div>
@@ -39,9 +30,7 @@
                         {{-- 1.1 Job Specification Card --}}
                         <section class="pc-card pc-job shadow-xs">
                             <header class="pc-card-head d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                                <h6 class="pc-h m-0 text-dark fw-bold d-flex align-items-center gap-1.5">
-                                    <i class="fa-solid fa-sliders text-primary"></i> Specs
-                                </h6>
+                                <h6 class="pc-h m-0 text-dark fw-bold">Specs</h6>
                                 <div class="d-flex align-items-center gap-2">
                                     <label for="pcTypeSelect" class="pc-label mb-0 text-muted" style="font-size: 11.5px;">Product:</label>
                                     <select id="pcTypeSelect" class="form-select form-select-sm fw-bold border-primary text-primary" style="width: 175px; height: 32px; font-size: 12.5px;"></select>
@@ -56,18 +45,12 @@
                             <div class="pc-grid">
                                 <div class="pc-f pc-f-title">
                                     <label for="pcTitleIn" class="pc-label">Title</label>
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-tag"></i></span>
-                                        <input id="pcTitleIn" class="form-control" maxlength="150" placeholder="Job / Item title...">
-                                    </div>
+                                    <input id="pcTitleIn" class="form-control form-control-sm" maxlength="150" placeholder="Job / Item title...">
                                 </div>
 
                                 <div class="pc-f pc-f-qty">
                                     <label for="pcQty" class="pc-label">Quantity</label>
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-boxes-stacked"></i></span>
-                                        <input id="pcQty" type="number" min="1" step="1" class="form-control text-end font-monospace fw-bold" inputmode="numeric" placeholder="1000">
-                                    </div>
+                                    <input id="pcQty" type="number" min="1" step="1" class="form-control form-control-sm text-end font-monospace fw-bold" inputmode="numeric" placeholder="1000">
                                 </div>
 
                                 <div class="pc-f pc-f-unit">
@@ -87,8 +70,7 @@
                                         </span>
                                     </div>
                                     <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-file-lines"></i></span>
-                                        <input id="pcPages" type="number" min="0" step="1" class="form-control text-end font-monospace" inputmode="numeric" placeholder="128">
+                                        <input id="pcPages" type="number" min="0" step="1" class="form-control form-control-sm text-end font-monospace" inputmode="numeric" placeholder="128">
                                         <select id="pcFormaSize" class="form-select form-select-xs font-monospace bg-light" style="max-width: 68px; font-size: 11px;" title="Forma Size">
                                             <option value="16" selected>16p</option>
                                             <option value="8">8p</option>
@@ -144,80 +126,99 @@
                                 </div>
                             </div>
 
-                            {{-- Compact Live Production KPI Status Bar (Single Line) --}}
+                            {{-- Compact Live Production KPI Status Bar (Single Line, No Icons) --}}
                             <div class="pc-kpi-bar d-flex align-items-center justify-content-between p-2 px-3 rounded-2 bg-light border mt-3 flex-wrap gap-2" id="pcKpiStrip">
                                 <div class="d-flex align-items-center gap-2 flex-wrap">
                                     <span class="pc-kpi-badge badge bg-warning-subtle text-warning-emphasis border border-warning-subtle font-monospace px-2 py-1">
-                                        <i class="fa-solid fa-sheet-plastic me-1"></i> Paper: <b id="pcKpiPaperReams">0.0 Reams</b> (<span id="pcKpiPaperSheets">0 Sheets</span>, <span id="pcKpiPaperWaste">5% Waste</span>)
+                                        Paper: <b id="pcKpiPaperReams">0.0 Reams</b> (<span id="pcKpiPaperSheets">0 Sheets</span>, <span id="pcKpiPaperWaste">5% Waste</span>)
                                     </span>
                                     <span class="pc-kpi-badge badge bg-primary-subtle text-primary border border-primary-subtle font-monospace px-2 py-1">
-                                        <i class="fa-solid fa-book-open me-1"></i> Formas: <b id="pcKpiFormas">0 Formas</b> (<span id="pcKpiUpsBadge">16p / Sheet</span>, <span id="pcKpiFormaSub">0 Pages</span>)
+                                        Formas: <b id="pcKpiFormas">0 Formas</b> (<span id="pcKpiUpsBadge">16p / Sheet</span>, <span id="pcKpiFormaSub">0 Pages</span>)
                                     </span>
                                 </div>
                                 <div class="d-flex align-items-center gap-2 flex-wrap">
                                     <span class="pc-kpi-badge badge bg-info-subtle text-info-emphasis border border-info-subtle font-monospace px-2 py-1">
-                                        <i class="fa-solid fa-barcode me-1"></i> Plates: <b id="pcKpiPlates">0 Plates</b> (<span id="pcKpiPlateMethodBadge">Work &amp; Turn</span>, <span id="pcKpiPlateSub">Inner 0 + Cover 0</span>)
+                                        Plates: <b id="pcKpiPlates">0 Plates</b> (<span id="pcKpiPlateMethodBadge">Work &amp; Turn</span>, <span id="pcKpiPlateSub">Inner 0 + Cover 0</span>)
                                     </span>
                                     <span class="pc-kpi-badge badge bg-danger-subtle text-danger-emphasis border border-danger-subtle font-monospace px-2 py-1">
-                                        <i class="fa-solid fa-print me-1"></i> Press: <b id="pcKpiImpressions">0 K</b> (<span id="pcKpiImpressionBadge">Min 1,000</span>, <span id="pcKpiImpressionSub">Min 1,000 charge</span>)
+                                        Press: <b id="pcKpiImpressions">0 K</b> (<span id="pcKpiImpressionBadge">Min 1,000</span>, <span id="pcKpiImpressionSub">Min 1,000 charge</span>)
                                     </span>
                                 </div>
                             </div>
                         </section>
 
-                        {{-- 1.2 Dynamic Component Add Toolbar --}}
-                        <div class="pc-addbar d-flex align-items-center justify-content-between p-2 px-3 rounded-2 bg-white border shadow-xs">
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="dropdown">
-                                    <button class="btn btn-primary btn-sm rounded-2 px-3 fw-bold dropdown-toggle" type="button" id="pcAddDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fa-solid fa-plus-circle me-1.5"></i> Add Component
-                                    </button>
-                                    <ul class="dropdown-menu shadow-sm" aria-labelledby="pcAddDropdown">
-                                        @foreach ([
-                                            'Design' => ['fa-pen-ruler', 'Design (Layout, Cover, Proof)'],
-                                            'Paper' => ['fa-sheet-plastic', 'Paper (Inner, Cover, Board)'],
-                                            'CTP' => ['fa-barcode', 'Plates (CTP Thermal, Violet)'],
-                                            'Press' => ['fa-print', 'Press (Offset, Digital, Letterpress)'],
-                                            'Lamination' => ['fa-wand-magic-sparkles', 'Lamination (Matt, Gloss, UV, Foil)'],
-                                            'Cutting' => ['fa-scissors', 'Cutting (3-Knife, Die-cut, Creasing)'],
-                                            'Binding' => ['fa-book', 'Binding (Perfect, Sewn, Pin, Spiral)'],
-                                            'Packing' => ['fa-boxes-packing', 'Packing (Poly, Band, Carton)'],
-                                            'Transport' => ['fa-truck', 'Transport (Press to Client, Delivery)'],
-                                            'Other' => ['fa-ellipsis', 'Other Expenses']
-                                        ] as $g => $data)
-                                            <li><a class="dropdown-item py-1.5 px-3 small fw-semibold" href="javascript:void(0)" data-add="{{ $g }}"><i class="fa-solid {{ $data[0] }} me-2 text-primary"></i> {{ $data[1] }}</a></li>
-                                        @endforeach
-                                    </ul>
+                        {{-- 1.2 Dynamic Single Unified Items Table --}}
+                        <div class="pc-card p-0 overflow-hidden shadow-xs border">
+                            <div class="d-flex align-items-center justify-content-between p-2.5 px-3 bg-white border-bottom flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <h6 class="pc-h m-0 text-dark fw-bold">Items</h6>
+                                    <span class="badge bg-light text-muted border font-monospace" id="pcRowCountBadge">0</span>
                                 </div>
-                                <span class="text-muted small" style="font-size: 11.5px;">Click to dynamically add any printing or finishing stage</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="dropdown">
+                                        <button class="btn btn-primary btn-sm rounded-2 px-3 fw-semibold dropdown-toggle" type="button" id="pcAddDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 12px; height: 32px;">
+                                            + Add Item
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="pcAddDropdown" style="font-size: 12px;">
+                                            @foreach (['Design', 'Paper', 'CTP', 'Press', 'Lamination', 'Cutting', 'Binding', 'Packing', 'Transport', 'Other'] as $g)
+                                                <li><a class="dropdown-item py-1.5 px-3 fw-medium" href="javascript:void(0)" data-add="{{ $g }}">+ {{ $g }}</a></li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
-                            <div id="pcAddBar" class="d-none"></div>
+                            
+                            <div class="table-responsive m-0">
+                                <table class="table table-hover align-middle mb-0 pc-comp-table" id="pcMainTable">
+                                    <colgroup>
+                                        <col style="width: 36px;">
+                                        <col style="width: 105px;">
+                                        <col style="width: 190px;">
+                                        <col style="min-width: 270px;">
+                                        <col style="width: 95px;">
+                                        <col style="width: 105px;">
+                                        <col style="width: 105px;">
+                                        <col style="width: 36px;">
+                                    </colgroup>
+                                    <thead class="text-muted bg-light">
+                                        <tr>
+                                            <th class="text-center" style="width: 36px;" title="Include">✓</th>
+                                            <th style="width: 105px;">Type</th>
+                                            <th style="width: 190px;">Item</th>
+                                            <th>Specification</th>
+                                            <th style="width: 95px;" class="text-end">Qty</th>
+                                            <th style="width: 105px;" class="text-end">Rate</th>
+                                            <th style="width: 105px;" class="text-end">Total</th>
+                                            <th class="text-center" style="width: 36px;"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pcRowsBody">
+                                        {{-- Dynamic rows rendered here by print-cost.js --}}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
 
-                        {{-- 1.3 Dynamic Component Groups Table (Accordion) --}}
-                        <div id="pcGroups" class="pc-groups d-flex flex-column gap-2.5"></div>
+                        {{-- Hidden legacy anchors --}}
+                        <div id="pcGroups" class="d-none"></div>
                         <div id="pcLists" hidden></div>
+                        <div id="pcAddBar" class="d-none"></div>
 
-                        {{-- 1.4 Live Specification & Quotation Text Preview (Collapsible) --}}
-                        <section class="pc-card pc-spec-preview shadow-xs p-0 overflow-hidden is-collapsed">
-                            <header class="pc-group-head d-flex align-items-center justify-content-between px-3 py-2 cursor-pointer user-select-none">
+                        {{-- 1.3 Live Specification & Quotation Text Preview (Collapsible) --}}
+                        <section class="pc-card pc-spec-preview shadow-xs p-0 overflow-hidden is-collapsed" id="pcSpecPreviewCard">
+                            <header class="pc-group-head d-flex align-items-center justify-content-between px-3 py-2 cursor-pointer user-select-none bg-light border-bottom">
                                 <div class="d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-chevron-down pc-group-chevron text-muted" style="font-size: 11px;"></i>
-                                    <i class="fa-solid fa-file-invoice text-success" style="font-size: 13px;"></i>
-                                    <h6 class="pc-h m-0 text-dark fw-bold" style="font-size: 12.5px;">Quotation Spec Preview</h6>
+                                    <span class="pc-group-chevron text-muted" style="font-size: 11px;">▾</span>
+                                    <h6 class="pc-h m-0 text-dark fw-bold" style="font-size: 12px;">Quote Spec Preview</h6>
                                 </div>
-                                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" id="pcRefreshSpec" title="Refresh">
-                                    <i class="fa-solid fa-rotate me-1"></i>Refresh
-                                </button>
+                                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted small" id="pcRefreshSpec" title="Refresh">Refresh</button>
                             </header>
                             <div class="p-3 border-top table-responsive">
                                 <textarea id="pcSpecTextarea" class="form-control font-monospace" rows="3" style="font-size: 12px; line-height: 1.5; resize: vertical;" 
                                           placeholder="Specifications will be generated automatically..."></textarea>
                                 <div class="d-flex align-items-center justify-content-between mt-2 text-muted small" style="font-size: 11px;">
-                                    <span><i class="fa-solid fa-circle-info me-1 text-primary"></i>Included in quotation details.</span>
-                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-2 px-2.5 py-1" id="pcCopySpecBtn">
-                                        <i class="fa-regular fa-copy me-1"></i>Copy Specs
-                                    </button>
+                                    <span>Included in quotation details.</span>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-2 px-2.5 py-1" id="pcCopySpecBtn">Copy Specs</button>
                                 </div>
                             </div>
                         </section>
@@ -227,9 +228,7 @@
                     <aside class="pc-side">
                         <section class="pc-card pc-summary shadow-xs mb-3">
                             <header class="pc-card-head d-flex align-items-center justify-content-between mb-2.5 pb-1.5 border-bottom">
-                                <h6 class="pc-h m-0 text-dark fw-bold d-flex align-items-center gap-1.5" style="font-size: 12px;">
-                                    <i class="fa-solid fa-chart-pie text-primary"></i> Summary
-                                </h6>
+                                <h6 class="pc-h m-0 text-dark fw-bold" style="font-size: 12px;">Summary</h6>
                             </header>
 
                             {{-- Component breakdown visual progress bars --}}
@@ -302,9 +301,7 @@
                         {{-- Quantity Tiers Price Comparison --}}
                         <section class="pc-card pc-tiers shadow-xs" id="pcTiersWrap" hidden>
                             <header class="pc-card-head d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom">
-                                <h6 class="pc-h m-0 text-dark fw-bold d-flex align-items-center gap-1" style="font-size: 12px;">
-                                    <i class="fa-solid fa-layer-group text-primary"></i> Tiers
-                                </h6>
+                                <h6 class="pc-h m-0 text-dark fw-bold" style="font-size: 12px;">Tiers</h6>
                                 <span class="text-muted" style="font-size: 10px;">Select</span>
                             </header>
                             <div class="pc-tier-list d-flex flex-column gap-1.5" id="pcTiers"></div>
@@ -316,9 +313,7 @@
                 <div class="pc-rates" id="pcRatesPanel" hidden>
                     <div class="pc-rates-top d-flex align-items-center justify-content-between gap-3 mb-3 pb-2 border-bottom flex-wrap">
                         <div class="d-flex align-items-center gap-2">
-                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-2 px-3" id="pcRatesBack">
-                                <i class="fa-solid fa-arrow-left me-1"></i> Back
-                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-2 px-3" id="pcRatesBack">Back</button>
                             <h6 class="pc-h m-0 text-dark fw-bold fs-6">Rates</h6>
                         </div>
                         <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end" style="max-width: 480px;">
@@ -331,7 +326,7 @@
                         <div class="col-md-7">
                             <form class="pc-card pc-rates-add h-100 shadow-xs" id="pcRatesAdd" autocomplete="off">
                                 <header class="pc-card-head mb-2 pb-1 border-bottom">
-                                    <h6 class="pc-h m-0 text-dark fw-bold small"><i class="fa-solid fa-plus text-primary me-1"></i> New</h6>
+                                    <h6 class="pc-h m-0 text-dark fw-bold small">New</h6>
                                 </header>
                                 <div class="row g-2 align-items-end">
                                     <div class="col-md-3 col-6">
@@ -352,7 +347,7 @@
                                         <label for="prRate" class="form-label small mb-1">Rate</label>
                                         <div class="input-group input-group-sm">
                                             <input id="prRate" type="number" min="0" step="0.01" class="form-control form-control-sm text-end font-monospace rounded-start-2" required placeholder="0.00">
-                                            <button type="submit" class="btn btn-primary btn-sm px-2.5 rounded-end-2" title="Save"><i class="fa-solid fa-check"></i></button>
+                                            <button type="submit" class="btn btn-primary btn-sm px-2.5 rounded-end-2" title="Save">Save</button>
                                         </div>
                                     </div>
                                 </div>
@@ -362,7 +357,7 @@
                         <div class="col-md-5">
                             <form class="pc-card pc-rates-adjust h-100 shadow-xs" id="pcRatesAdjust">
                                 <header class="pc-card-head mb-2 pb-1 border-bottom">
-                                    <h6 class="pc-h m-0 text-dark fw-bold small"><i class="fa-solid fa-percent text-warning me-1"></i> Adjust</h6>
+                                    <h6 class="pc-h m-0 text-dark fw-bold small">Adjust</h6>
                                 </header>
                                 <div class="row g-2 align-items-end">
                                     <div class="col-4">
@@ -377,7 +372,7 @@
                                         <label for="paValue" class="form-label small mb-1">Value</label>
                                         <div class="input-group input-group-sm">
                                             <input id="paValue" type="number" step="0.01" class="form-control form-control-sm text-end font-monospace rounded-start-2" required placeholder="+5">
-                                            <button type="submit" class="btn btn-outline-primary btn-sm px-2.5 rounded-end-2" title="Apply"><i class="fa-solid fa-bolt"></i></button>
+                                            <button type="submit" class="btn btn-outline-primary btn-sm px-2.5 rounded-end-2" title="Apply">Apply</button>
                                         </div>
                                     </div>
                                 </div>
@@ -415,24 +410,16 @@
 
                 <div class="pc-foot-actions d-flex align-items-center gap-2">
                     {{-- Copy breakdown to clipboard --}}
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-2 px-3" id="pcCopy" title="Copy">
-                        <i class="fa-regular fa-copy me-1"></i> Copy
-                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-2 px-3" id="pcCopy" title="Copy">Copy</button>
 
                     {{-- Insert as Itemized Breakdown --}}
-                    <button type="button" class="btn btn-outline-primary btn-sm rounded-2 px-3 fw-semibold" id="pcAddDetailed" disabled title="Breakdown">
-                        <i class="fa-solid fa-list-check me-1.5"></i> Breakdown
-                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm rounded-2 px-3 fw-semibold" id="pcAddDetailed" disabled title="Breakdown">Breakdown</button>
 
                     {{-- Insert as Single Consolidated Line with Full Spec --}}
-                    <button type="button" class="btn btn-primary btn-sm rounded-2 px-3.5 fw-bold shadow-xs" id="pcAdd" disabled title="Insert">
-                        <i class="fa-solid fa-file-circle-plus me-1.5"></i> Insert
-                    </button>
+                    <button type="button" class="btn btn-primary btn-sm rounded-2 px-3.5 fw-bold shadow-xs" id="pcAdd" disabled title="Insert">Insert</button>
 
                     {{-- Plain --}}
-                    <button type="button" class="btn btn-light btn-sm rounded-2 px-2.5 text-muted border" id="pcPlain" disabled title="Plain">
-                        Plain
-                    </button>
+                    <button type="button" class="btn btn-light btn-sm rounded-2 px-2.5 text-muted border" id="pcPlain" disabled title="Plain">Plain</button>
                 </div>
             </div>
 
