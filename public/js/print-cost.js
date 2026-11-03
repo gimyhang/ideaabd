@@ -675,7 +675,7 @@
     function render() {
         recalcAuto();
         var html = state.rows.map(rowHtml).join('');
-        el.groups.innerHTML = html || '<tr><td colspan="8" class="text-center text-muted py-4">No items added. Click "+ Add Item" above.</td></tr>';
+        el.groups.innerHTML = html || '<tr><td colspan="7" class="text-center text-muted py-4">No items added. Click "+ Add Item" above.</td></tr>';
         if ($('pcRowCountBadge')) $('pcRowCountBadge').textContent = state.rows.length;
         paint();
     }
@@ -684,7 +684,7 @@
         if (!spec) return '';
         var opts = spec[1];
         var has = opts.some(function (o) { return String(o[0]) === String(current); });
-        return '<select class="form-select pc-var ' + cls + '" aria-label="' + esc(label) + '">'
+        return '<select class="form-select form-select-sm pc-var ' + cls + '" aria-label="' + esc(label) + '">'
             + (has ? '' : '<option value="" selected>' + esc(label) + '</option>')
             + opts.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(current) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>';
     }
@@ -700,36 +700,36 @@
                 return '<option value="' + esc(k) + '"' + (String(k) === String(r.b) ? ' selected' : '') + '>' + (knownRate('Paper', r.a, k) ? '● ' : '') + esc(k) + '</option>';
             }).join('');
 
-            return '<div class="d-flex align-items-center gap-1 flex-nowrap w-100">'
-                + '<input class="form-control form-control-sm pc-stock font-monospace" list="pcPaper' + list + '" value="' + esc(stockText(r)) + '" placeholder="e.g. 80 GSM Offwhite" title="GSM & Paper Type" style="flex: 1 1 110px; min-width: 95px;">'
-                + (r.auto === 'sheet' ? '<div class="input-group input-group-sm pc-spec-mini" style="width: 65px;" title="Ups per sheet"><span class="input-group-text px-1 text-muted" style="font-size: 10px;">Ups</span><input type="number" class="form-control form-control-sm pc-ups text-end font-monospace px-1" min="1" step="1" value="' + esc(r.ups) + '"></div>' : '')
-                + '<div class="input-group input-group-sm pc-spec-mini" style="width: 68px;" title="Waste Percentage"><span class="input-group-text px-1 text-muted" style="font-size: 10px;">W%</span><input type="number" class="form-control form-control-sm pc-waste text-end font-monospace px-1" min="0" step="1" value="' + esc(r.waste) + '"></div>'
-                + '<select class="form-select form-select-sm pc-var pc-paper-select pc-a font-monospace" style="width: 78px;" aria-label="GSM" title="GSM">' + gsmOptsHtml + '</select>'
-                + '<select class="form-select form-select-sm pc-var pc-paper-select pc-b" style="width: 95px;" aria-label="Type" title="Type">' + typeOptsHtml + '</select>'
+            return '<div class="d-flex align-items-center gap-1.5 flex-wrap w-100 pc-spec-row">'
+                + '<input class="form-control form-control-sm pc-stock font-monospace" list="pcPaper' + list + '" value="' + esc(stockText(r)) + '" placeholder="e.g. 80 GSM Offwhite" title="GSM & Paper Type" style="flex: 2 1 160px; min-width: 140px;">'
+                + (r.auto === 'sheet' ? '<div class="input-group input-group-sm pc-spec-mini" style="width: 82px;" title="Ups per sheet"><span class="input-group-text px-1 text-muted" style="font-size: 10px;">Ups</span><input type="number" class="form-control form-control-sm pc-ups text-end font-monospace px-1" min="1" step="1" value="' + esc(r.ups) + '"></div>' : '')
+                + '<div class="input-group input-group-sm pc-spec-mini" style="width: 88px;" title="Waste Percentage"><span class="input-group-text px-1 text-muted" style="font-size: 10px;">W%</span><input type="number" class="form-control form-control-sm pc-waste text-end font-monospace px-1" min="0" step="1" value="' + esc(r.waste) + '"></div>'
+                + '<select class="form-select form-select-sm pc-var pc-paper-select pc-a font-monospace" style="width: 95px;" aria-label="GSM" title="GSM">' + gsmOptsHtml + '</select>'
+                + '<select class="form-select form-select-sm pc-var pc-paper-select pc-b" style="flex: 1 1 120px; min-width: 110px;" aria-label="Type" title="Type">' + typeOptsHtml + '</select>'
                 + '</div>';
         }
 
         if (r.g === 'Design') {
-            return '<div class="d-flex align-items-center gap-1.5 flex-nowrap w-100">'
-                + '<div style="flex: 1; min-width: 120px;">' + select('pc-a', v.a ? v.a[0] : 'Work', v.a, r.a) + '</div>'
-                + '<div style="width: 100px;">' + select('pc-b', v.b ? v.b[0] : 'Basis', v.b, r.b) + '</div>'
+            return '<div class="d-flex align-items-center gap-1.5 flex-wrap w-100 pc-spec-row">'
+                + '<div style="flex: 2 1 180px; min-width: 140px;">' + select('pc-a', v.a ? v.a[0] : 'Work', v.a, r.a) + '</div>'
+                + '<div style="flex: 1 1 110px; min-width: 90px;">' + select('pc-b', v.b ? v.b[0] : 'Basis', v.b, r.b) + '</div>'
                 + '</div>';
         }
 
         if (r.g === 'CTP' || r.g === 'Press' || r.g === 'Lamination' || r.g === 'Packing' || r.g === 'Transport') {
-            return '<div class="d-flex align-items-center gap-1.5 flex-nowrap w-100">'
-                + (v.a ? '<div style="flex: 1; min-width: 120px;">' + select('pc-a', v.a[0], v.a, r.a) + '</div>' : '')
-                + (v.b ? '<div style="flex: 1; min-width: 100px;">' + select('pc-b', v.b[0], v.b, r.b) + '</div>' : '')
+            return '<div class="d-flex align-items-center gap-1.5 flex-wrap w-100 pc-spec-row">'
+                + (v.a ? '<div style="flex: 2 1 180px; min-width: 140px;">' + select('pc-a', v.a[0], v.a, r.a) + '</div>' : '')
+                + (v.b ? '<div style="flex: 1 1 140px; min-width: 100px;">' + select('pc-b', v.b[0], v.b, r.b) + '</div>' : '')
                 + '</div>';
         }
 
         if (r.g === 'Cutting' || r.g === 'Binding') {
-            return '<div class="d-flex align-items-center gap-1.5 flex-nowrap w-100">'
-                + (v.a ? '<div style="flex: 1; min-width: 140px;">' + select('pc-a', v.a[0], v.a, r.a) + '</div>' : '')
+            return '<div class="d-flex align-items-center gap-1.5 flex-wrap w-100 pc-spec-row">'
+                + (v.a ? '<div style="flex: 1 1 200px; min-width: 150px;">' + select('pc-a', v.a[0], v.a, r.a) + '</div>' : '')
                 + '</div>';
         }
 
-        return '<span class="text-muted small ps-1">—</span>';
+        return '';
     }
 
     function rowHtml(r) {
@@ -741,34 +741,34 @@
             return '<option value="' + g + '"' + (g === r.g ? ' selected' : '') + '>' + gTitle + '</option>';
         }).join('');
 
+        var spec = specHtml(r);
+
         return '<tr class="pc-row' + (r.on ? '' : ' is-off table-light opacity-50') + '" data-id="' + r.id + '">'
-            + '<td class="text-center align-middle col-chk">'
+            + '<td class="text-center align-top pt-2.5 col-chk">'
             + '<input type="checkbox" class="form-check-input pc-chk m-0" ' + (r.on ? 'checked' : '') + ' aria-label="Include">'
             + '</td>'
-            + '<td class="align-middle col-type">'
+            + '<td class="align-top pt-2 col-type">'
             + '<select class="form-select form-select-sm pc-group-select pc-g" data-id="' + r.id + '" aria-label="Type">' + groupOpts + '</select>'
             + '</td>'
-            + '<td class="align-middle col-item">'
+            + '<td class="align-top py-2 col-item-spec">'
+            + '<div class="pc-item-row mb-1.5">'
             + '<input class="form-control form-control-sm pc-name fw-semibold text-dark" list="pcNames' + r.g + '" value="' + esc(r.n) + '" maxlength="80" aria-label="Item" placeholder="Item name">'
-            + '</td>'
-            + '<td class="align-middle col-spec">'
-            + specHtml(r)
-            + '</td>'
-            + '<td class="text-end align-middle col-qty">'
-            + '<input type="number" class="form-control form-control-sm pc-qty text-end font-monospace" min="0" step="any" value="' + esc(r.qty) + '" aria-label="Quantity" placeholder="0">'
-            + '<small class="pc-qty-note text-muted font-monospace d-block text-end pe-1" style="font-size: 10px; line-height: 1.2;"></small>'
-            + '</td>'
-            + '<td class="text-end align-middle col-rate">'
-            + '<div class="d-flex align-items-center justify-content-end gap-1 w-100">'
-            + '<input type="number" class="form-control form-control-sm pc-rate text-end font-monospace' + (!num(r.rate) && r.on && num(r.qty) > 0 ? ' is-invalid border-danger' : '') + '" min="0" step="any" value="' + (r.rate || '') + '" aria-label="Rate" placeholder="0.00">'
-            + '<button type="button" class="btn btn-xs btn-outline-secondary pc-pin px-1.5 py-1 rounded" style="font-size: 10px;" title="Save" hidden>Pin</button>'
             + '</div>'
+            + (spec ? '<div class="pc-spec-wrap">' + spec + '</div>' : '')
             + '</td>'
-            + '<td class="text-end align-middle font-monospace fw-bold fs-6 pc-total text-dark col-total pe-2">'
-            + money(lineTotal(r))
+            + '<td class="text-end align-top pt-2 col-qty">'
+            + '<input type="number" class="form-control form-control-sm pc-qty text-end font-monospace fw-bold" min="0" step="any" value="' + esc(r.qty) + '" aria-label="Quantity" placeholder="0">'
+            + '<div class="pc-qty-note text-muted font-monospace text-end pe-1 mt-1" style="font-size: 11px; height: 18px; line-height: 18px;"></div>'
             + '</td>'
-            + '<td class="text-center align-middle col-del">'
-            + '<button type="button" class="btn btn-link btn-sm text-danger p-0 pc-del opacity-75 hover-opacity-100" title="Delete" aria-label="Remove" style="text-decoration:none; font-size:18px; line-height:1;">&times;</button>'
+            + '<td class="text-end align-top pt-2 col-rate">'
+            + '<input type="number" class="form-control form-control-sm pc-rate text-end font-monospace fw-bold' + (!num(r.rate) && r.on && num(r.qty) > 0 ? ' is-invalid border-danger' : '') + '" min="0" step="any" value="' + (r.rate || '') + '" aria-label="Rate" placeholder="0.00">'
+            + '<div class="d-flex justify-content-end align-items-center mt-1" style="height: 18px;"><button type="button" class="btn btn-xs btn-outline-secondary pc-pin px-1.5 py-0 rounded" style="font-size: 10px; line-height: 16px;" title="Save" hidden>Pin</button></div>'
+            + '</td>'
+            + '<td class="text-end align-top pt-2 col-total pe-2">'
+            + '<div class="font-monospace fw-bold fs-6 pc-total text-dark pt-1">' + money(lineTotal(r)) + '</div>'
+            + '</td>'
+            + '<td class="text-center align-top pt-2 col-del">'
+            + '<button type="button" class="btn btn-link btn-sm text-danger p-0 pc-del opacity-75 hover-opacity-100" title="Delete" aria-label="Remove" style="text-decoration:none; font-size:20px; line-height:1; margin-top: 3px;">&times;</button>'
             + '</td>'
             + '</tr>';
     }

@@ -414,7 +414,7 @@
 #printCostCalculatorModal .pc-comp-table {
     margin: 0;
     width: 100% !important;
-    min-width: 1200px !important;
+    min-width: 980px !important;
     table-layout: fixed !important;
 }
 
@@ -438,15 +438,15 @@
 }
 
 #printCostCalculatorModal .pc-comp-table td {
-    padding: 0.45rem 0.55rem;
-    vertical-align: middle;
+    padding: 0.5rem 0.55rem;
+    vertical-align: top;
     overflow: visible;
 }
 
 #printCostCalculatorModal tr.pc-row {
     transition: background-color 0.12s ease;
-    border-bottom: 1px solid #f1f5f9;
-    height: 48px;
+    border-bottom: 1px solid #e2e8f0;
+    min-height: 74px;
 }
 
 #printCostCalculatorModal tr.pc-row:last-child {
@@ -467,56 +467,77 @@
 
 /* Table Column Widths & Layout */
 #printCostCalculatorModal .col-chk {
-    width: 40px !important;
+    width: 38px !important;
     text-align: center;
 }
 
 #printCostCalculatorModal .col-type {
-    width: 110px !important;
+    width: 105px !important;
 }
 
-#printCostCalculatorModal .col-item {
-    width: 180px !important;
-}
-
-#printCostCalculatorModal .col-spec {
-    width: 410px !important;
+#printCostCalculatorModal .col-item-spec {
+    min-width: 380px !important;
 }
 
 #printCostCalculatorModal .col-qty {
-    width: 140px !important;
+    width: 135px !important;
 }
 
 #printCostCalculatorModal .col-rate {
-    width: 140px !important;
+    width: 135px !important;
 }
 
 #printCostCalculatorModal .col-total {
-    width: 140px !important;
+    width: 135px !important;
 }
 
 #printCostCalculatorModal .col-del {
-    width: 40px !important;
+    width: 38px !important;
     text-align: center;
 }
 
-/* Double-wide Inputs for Qty & Rate for Effortless Manual Entry */
-#printCostCalculatorModal .pc-comp-table .pc-name,
-#printCostCalculatorModal .pc-comp-table .pc-stock,
-#printCostCalculatorModal .pc-comp-table .pc-group-select {
-    height: 36px;
+#printCostCalculatorModal .pc-item-row {
+    width: 100%;
+}
+
+#printCostCalculatorModal .pc-spec-wrap {
+    width: 100%;
+}
+
+#printCostCalculatorModal .pc-spec-row {
+    min-height: 32px;
+}
+
+/* Clean, Spacious Inputs for Qty & Rate for Effortless Manual Entry */
+#printCostCalculatorModal .pc-comp-table .pc-name {
+    height: 34px;
     border-radius: 6px;
     border: 1px solid #cbd5e1;
     font-size: 0.88rem;
+    font-weight: 600;
+    color: #0f172a;
+    background-color: #ffffff;
+    width: 100%;
+}
+
+#printCostCalculatorModal .pc-comp-table .pc-stock {
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.85rem;
     background-color: #ffffff;
 }
 
 #printCostCalculatorModal .pc-comp-table .pc-group-select {
+    height: 34px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.84rem;
     font-weight: 600;
     color: #334155;
     background-color: #f8fafc;
-    padding: 0 18px 0 8px;
-    background-size: 9px 9px;
+    padding: 0 16px 0 8px;
+    background-size: 8px 8px;
     background-position: right 6px center;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -525,7 +546,7 @@
 
 #printCostCalculatorModal .pc-comp-table .pc-qty,
 #printCostCalculatorModal .pc-comp-table .pc-rate {
-    height: 38px;
+    height: 34px;
     border-radius: 6px;
     border: 1px solid #cbd5e1;
     font-size: 0.95rem;
