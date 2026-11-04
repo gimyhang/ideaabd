@@ -126,12 +126,14 @@
 
     var SIZES = {
         Demy: [5.5, 8.5],
-        Crown: [7.25, 9.5],
-        Royal: [6.5, 9.5],
+        Crown: [5.0, 7.3],
+        Royal: [6.25, 9.25],
+        CrownQuarto: [7.25, 9.5],
+        DemyQuarto: [8.5, 11.0],
         A4: [8.3, 11.7],
         A5: [5.8, 8.3],
-        A3: [11.7, 16.5],
         B5: [6.9, 9.8],
+        A3: [11.7, 16.5],
         Card: [3.5, 2.0],
         Poster: [18.0, 23.0],
         Envelope: [10.0, 4.5],
@@ -139,13 +141,15 @@
     };
 
     var SIZES_BN = {
-        Demy: 'Demy (5.5"×8.5")',
-        Crown: 'Crown (7.25"×9.5")',
-        Royal: 'Royal (6.5"×9.5")',
-        A4: 'A4 (8.3"×11.7")',
-        A5: 'A5 (5.8"×8.3")',
+        Demy: 'Demy 1/8 (5.5"×8.5") [বই/উপন্যাস]',
+        Crown: 'Crown 1/8 (5.0"×7.3") [গল্প/কবিতা]',
+        Royal: 'Royal 1/8 (6.25"×9.25") [বড়/একাডেমিক]',
+        CrownQuarto: 'Crown 1/4 (7.25"×9.5") [ছড়া/অ্যালবাম]',
+        DemyQuarto: 'Demy 1/4 (8.5"×11") [বড় অ্যালবাম]',
+        A4: 'A4 (8.3"×11.7") [ম্যাগাজিন/রিপোর্ট]',
+        A5: 'A5 (5.8"×8.3") [বই/ডায়েরি]',
+        B5: 'B5 (6.9"×9.8") [জার্নাল/বই]',
         A3: 'A3 (11.7"×16.5")',
-        B5: 'B5 (6.9"×9.8")',
         Card: 'Card (3.5"×2.0")',
         Poster: 'Poster (18"×23")',
         Envelope: 'Envelope (10"×4.5")',
@@ -154,11 +158,26 @@
 
     var SHEETS = {
         '23x36': [23, 36],
-        '25x36': [25, 36],
         '20x30': [20, 30],
+        '25x37': [25, 37],
+        '25x36': [25, 36],
         '18x23': [18, 23],
         '27x38': [27, 38],
         '31x43': [31, 43]
+    };
+
+    var SIZE_DEFAULTS = {
+        Demy: { sheet: '23x36', formaSize: 16, ups: 8 },
+        Crown: { sheet: '20x30', formaSize: 16, ups: 8 },
+        Royal: { sheet: '25x37', formaSize: 16, ups: 8 },
+        CrownQuarto: { sheet: '20x30', formaSize: 8, ups: 4 },
+        DemyQuarto: { sheet: '23x36', formaSize: 8, ups: 4 },
+        A4: { sheet: '23x36', formaSize: 8, ups: 4 },
+        A5: { sheet: '23x36', formaSize: 16, ups: 8 },
+        B5: { sheet: '20x30', formaSize: 16, ups: 8 },
+        A3: { sheet: '23x36', formaSize: 4, ups: 2 },
+        Card: { sheet: '20x30', formaSize: 1, ups: 25 },
+        Poster: { sheet: '23x36', formaSize: 1, ups: 2 }
     };
 
     var P = function (g, n, o) { o = o || {}; o.g = g; o.n = n; return o; };
@@ -492,16 +511,29 @@
     function loadLast(type) {
         var v = readStore('pc-last')[type];
         var d = TYPES[type];
+        var curSize = v && v.size !== undefined ? v.size : d.size;
+        var sDef = SIZE_DEFAULTS[curSize] || { sheet: '23x36', formaSize: 16 };
         $('pcTitleIn').value = v && v.title !== undefined ? v.title : (d.defaultTitle || '');
         $('pcQty').value = v ? v.qty : '1000';
         $('pcPages').value = v && d.pages ? v.pages : (d.pages ? '128' : '');
-        if ($('pcFormasIn')) $('pcFormasIn').value = v && v.formas !== undefined ? v.formas : (d.pages ? '8' : '');
-        if ($('pcFormaSize')) $('pcFormaSize').value = v && v.formaSize ? v.formaSize : '16';
+        $('pcSize').value = curSize;
+        if ($('pcFormaSize')) $('pcFormaSize').value = v && v.formaSize ? v.formaSize : String(sDef.formaSize || 16);
+        var formaSize = $('pcFormaSize') ? (num($('pcFormaSize').value) || 16) : 16;
+        if ($('pcFormasIn')) {
+            if (v && v.formas !== undefined) {
+                $('pcFormasIn').value = v.formas;
+            } else if (d.pages) {
+                var p = num($('pcPages').value) || 128;
+                var f = p / formaSize;
+                $('pcFormasIn').value = (f % 1 === 0 ? f : f.toFixed(2));
+            } else {
+                $('pcFormasIn').value = '';
+            }
+        }
         $('pcColors').value = v ? v.colors : '4';
         $('pcSides').value = v ? v.sides : '1';
         if ($('pcPlateMethod')) $('pcPlateMethod').value = v && v.plateMethod ? v.plateMethod : 'work_and_turn';
-        $('pcSize').value = v && v.size !== undefined ? v.size : d.size;
-        $('pcSheet').value = v ? v.sheet : '23x36';
+        $('pcSheet').value = v ? v.sheet : (sDef.sheet || '23x36');
         $('pcOverhead').value = v && v.overhead !== undefined ? v.overhead : '0';
         $('pcProfit').value = v && v.profit !== undefined ? v.profit : '20';
         $('pcRound').value = v ? v.round : '0';
@@ -512,7 +544,8 @@
         var q = qOverride != null ? qOverride : num($('pcQty').value);
         var formaSize = $('pcFormaSize') ? (num($('pcFormaSize').value) || 16) : 16;
         var formasIn = $('pcFormasIn');
-        var pages = num($('pcPages').value);
+        var pagesIn = $('pcPages');
+        var pages = pagesIn ? num(pagesIn.value) : 0;
         var formas = 0;
 
         if (formasIn && formasIn.value !== '') {
@@ -521,7 +554,7 @@
                 pages = Math.round(formas * formaSize);
             }
         } else if (pages > 0) {
-            formas = Math.ceil(pages / formaSize);
+            formas = pages / formaSize;
         }
 
         var plateMethod = $('pcPlateMethod') ? $('pcPlateMethod').value : 'work_and_turn';
@@ -573,13 +606,17 @@
             case 'lam': return q * (r.b === 'Both Sides' ? 2 : 1);
             case 'paperBook': {
                 // Book Inner Paper:
-                // Formas = ceil(pages / formaSize)
-                // Total full press sheets = (formas * q) * (1 + waste% / 100)
-                // Total reams = sheets / 500
+                // 1 Full Sheet (23x36, 20x30, 25x37) yields 2 Formas (or 1 Forma on half-sheet like 18x23).
+                // Net Sheets = (j.formas * q) / formasPerSheet
+                // Total Sheets = Net Sheets * (1 + wastePct / 100)
+                // Total Reams = Total Sheets / 500
                 if (!j.formas || q <= 0) return 0;
                 var wastePct = num(r.waste) != null ? num(r.waste) : 5;
-                var sheets = (j.formas * q) * (1 + wastePct / 100);
-                return round(sheets / 500, 2);
+                var isHalfSheet = (j.sheet === '18x23');
+                var formasPerSheet = isHalfSheet ? 1 : 2;
+                var netSheets = (j.formas * q) / formasPerSheet;
+                var totalSheets = netSheets * (1 + wastePct / 100);
+                return round(totalSheets / 500, 2);
             }
             case 'sheet': {
                 // Cover board or flat single sheet items:
@@ -590,16 +627,17 @@
                 return round(sheets / 500, 2);
             }
             case 'platesBook': {
-                // Plates based on Formas, Colors, and Plate Method:
+                // Plates based on Formas (integer), Colors, and Plate Method:
                 // Work & Turn = 1 plate per color per forma
                 // Sheetwise = 2 plates per color per forma
+                var plateFormas = Math.ceil(j.formas);
                 var methodMultiplier = (j.plateMethod === 'sheetwise') ? 2 : 1;
-                return j.formas * j.colors * methodMultiplier;
+                return plateFormas * j.colors * methodMultiplier;
             }
             case 'platesCover': {
                 // Cover Plate: Standard 4 CTP plates for 4-Color (CMYK)
                 var coverSides = (r.b === 'Both Sides' || j.sides === 2) ? 2 : 1;
-                var coverColors = j.colors >= 4 ? 4 : (j.colors || 4);
+                var coverColors = 4; // Book Cover is standard CMYK 4-Color
                 return coverColors * coverSides;
             }
             case 'platesJob': {
@@ -609,9 +647,9 @@
             case 'pressBook': {
                 // Offset Printing Impression for Books:
                 // Formas * Minimum 1,000 impression multiplier * sides
-                // For 1-1,000 copies, exactly 1 thousand per forma!
+                var pressFormas = Math.ceil(j.formas);
                 var sides = (j.plateMethod === 'sheetwise' && j.sides === 2) ? 2 : 1;
-                return round(j.formas * impressionMultiplier * sides, 1);
+                return round(pressFormas * impressionMultiplier * sides, 1);
             }
             case 'pressCover': {
                 // Cover press impression:
@@ -839,11 +877,29 @@
             var qNote = rowEl.querySelector('.pc-qty-note');
             if (qNote) {
                 if (r.g === 'Paper') {
-                    qNote.textContent = Math.round(num(r.qty) * 500).toLocaleString('en-US') + ' Sheets';
+                    var sh = Math.round(num(r.qty) * 500);
+                    var rm = Math.floor(num(r.qty));
+                    var dis = Math.round((num(r.qty) - rm) * 20);
+                    var parts = [];
+                    if (rm > 0) parts.push(rm + ' Ream' + (rm > 1 ? 's' : ''));
+                    if (dis > 0) parts.push(dis + ' Dista');
+                    var bnText = parts.length ? ' (' + parts.join(', ') + ')' : '';
+                    qNote.textContent = sh.toLocaleString('en-US') + ' Sheets' + bnText;
                 } else if (r.g === 'CTP') {
-                    qNote.textContent = (r.auto === 'platesBook' ? j.formas + ' formas × ' + j.colors + ' col' : (r.auto === 'platesCover' ? 'Cover 4 plates' : 'Plates'));
+                    if (r.auto === 'platesBook') {
+                        var mLabel = j.plateMethod === 'sheetwise' ? 'Sheetwise 2x' : 'Work & Turn 1x';
+                        qNote.textContent = Math.ceil(j.formas) + ' formas × ' + j.colors + ' col (' + mLabel + ')';
+                    } else if (r.auto === 'platesCover') {
+                        qNote.textContent = 'Cover CMYK 4-Col' + (r.b === 'Both Sides' ? ' (Both Sides = 8 Plt)' : ' = 4 Plt');
+                    } else {
+                        qNote.textContent = 'Plates';
+                    }
                 } else if (r.g === 'Press') {
-                    qNote.textContent = (j.q <= 1000 ? 'Min 1,000 Imp' : Math.round(num(r.qty) * 1000).toLocaleString('en-US') + ' imp');
+                    if (j.q <= 1000) {
+                        qNote.textContent = (r.auto === 'pressBook' ? Math.ceil(j.formas) + ' formas × Min 1k' : 'Min 1,000 Imp');
+                    } else {
+                        qNote.textContent = Math.round(num(r.qty) * 1000).toLocaleString('en-US') + ' imp (' + (j.q / 1000) + 'k)';
+                    }
                 } else {
                     qNote.textContent = '';
                 }
@@ -872,9 +928,10 @@
         $('pcFootTotal').textContent = money(p.total);
         $('pcFootUnit').textContent = j.q > 0 ? money(p.unit, 2) : '৳0.00';
 
-        $('pcFormas').textContent = j.formas ? String(j.formas) : '0';
+        var formasStr = j.formas ? (j.formas % 1 === 0 ? String(j.formas) : j.formas.toFixed(2)) : '0';
+        $('pcFormas').textContent = formasStr;
         if ($('pcFormasIn') && doc.activeElement !== $('pcFormasIn') && j.formas > 0 && !$('pcFormasIn').value) {
-            $('pcFormasIn').value = j.formas;
+            $('pcFormasIn').value = formasStr;
         }
         $('pcFormasWrap').hidden = !(TYPES[state.type].pages && j.pages);
 
@@ -887,17 +944,22 @@
             var totalPaperReams = 0;
             state.rows.filter(function (r) { return r.g === 'Paper' && r.on; }).forEach(function (r) { totalPaperReams += num(r.qty); });
             var totalPaperSheets = Math.round(totalPaperReams * 500);
-            if ($('pcKpiPaperReams')) $('pcKpiPaperReams').textContent = totalPaperReams.toFixed(2) + ' Reams';
-            if ($('pcKpiPaperSheets')) $('pcKpiPaperSheets').textContent = totalPaperSheets.toLocaleString('en-US') + ' Press Sheets';
+            var rm = Math.floor(totalPaperReams);
+            var dis = Math.round((totalPaperReams - rm) * 20);
+            var distaStr = (rm > 0 ? rm + ' রিম ' : '') + (dis > 0 ? dis + ' দিস্তা' : (rm === 0 ? '০ দিস্তা' : ''));
+
+            if ($('pcKpiPaperReams')) $('pcKpiPaperReams').textContent = totalPaperReams.toFixed(2) + ' Reams (' + distaStr + ')';
+            if ($('pcKpiPaperSheets')) $('pcKpiPaperSheets').textContent = totalPaperSheets.toLocaleString('en-US') + ' Sheets';
 
             var wasteVal = 5;
             var paperRow = state.rows.filter(function (r) { return r.g === 'Paper' && r.on; })[0];
             if (paperRow && paperRow.waste != null) wasteVal = paperRow.waste;
             if ($('pcKpiPaperWaste')) $('pcKpiPaperWaste').textContent = wasteVal + '% Waste';
 
-            if ($('pcKpiFormas')) $('pcKpiFormas').textContent = j.formas ? j.formas + ' Formas' : '1 Forma';
-            if ($('pcKpiFormaSub')) $('pcKpiFormaSub').textContent = j.pages ? j.pages + ' Pages (' + j.formaSize + ' p/forma)' : (SIZES_BN[j.size] || j.size);
-            if ($('pcKpiUpsBadge')) $('pcKpiUpsBadge').textContent = layout > 0 ? layout + ' Ups / Sheet' : (j.formaSize + ' p. Forma');
+            var formasDisplay = j.formas ? (j.formas % 1 === 0 ? j.formas : j.formas.toFixed(2)) : '0';
+            if ($('pcKpiFormas')) $('pcKpiFormas').textContent = formasDisplay + ' Formas';
+            if ($('pcKpiFormaSub')) $('pcKpiFormaSub').textContent = j.pages ? j.pages + ' Pages (' + j.formaSize + 'p / forma)' : (SIZES_BN[j.size] || j.size);
+            if ($('pcKpiUpsBadge')) $('pcKpiUpsBadge').textContent = SIZES_BN[j.size] ? SIZES_BN[j.size].split(' ')[0] : j.size;
 
             var totalPlates = 0, innerPlates = 0, coverPlates = 0;
             state.rows.filter(function (r) { return r.g === 'CTP' && r.on; }).forEach(function (r) {
@@ -907,7 +969,7 @@
             });
             if ($('pcKpiPlates')) $('pcKpiPlates').textContent = totalPlates + ' Plates';
             if ($('pcKpiPlateSub')) $('pcKpiPlateSub').textContent = 'Inner ' + innerPlates + ' + Cover ' + coverPlates;
-            if ($('pcKpiPlateMethodBadge')) $('pcKpiPlateMethodBadge').textContent = j.plateMethod === 'sheetwise' ? 'Sheetwise' : 'Work & Turn';
+            if ($('pcKpiPlateMethodBadge')) $('pcKpiPlateMethodBadge').textContent = j.plateMethod === 'sheetwise' ? 'Sheetwise (2x)' : 'Work & Turn (1x)';
 
             var totalImpressions = 0;
             state.rows.filter(function (r) { return r.g === 'Press' && r.on; }).forEach(function (r) { totalImpressions += num(r.qty); });
@@ -916,7 +978,7 @@
                 if ($('pcKpiImpressionBadge')) $('pcKpiImpressionBadge').textContent = 'Min 1,000';
                 if ($('pcKpiImpressionSub')) $('pcKpiImpressionSub').textContent = j.q + ' copies (Min 1,000 rate)';
             } else {
-                if ($('pcKpiImpressionBadge')) $('pcKpiImpressionBadge').textContent = 'Per Thousand';
+                if ($('pcKpiImpressionBadge')) $('pcKpiImpressionBadge').textContent = 'Per 1,000';
                 if ($('pcKpiImpressionSub')) $('pcKpiImpressionSub').textContent = Math.round(totalImpressions * 1000).toLocaleString('en-US') + ' impressions';
             }
         }
@@ -981,7 +1043,8 @@
         var parts = [];
         var sizeLabel = SIZES_BN[j.size] || j.size;
         if (sizeLabel) parts.push('Size: ' + sizeLabel);
-        if (j.pages) parts.push('Pages: ' + j.pages + ' (' + (j.formas || 1) + ' Formas)');
+        var fStr = j.formas ? (j.formas % 1 === 0 ? j.formas : j.formas.toFixed(2)) : '1';
+        if (j.pages) parts.push('Pages: ' + j.pages + ' (' + fStr + ' Formas)');
         parts.push('Print: ' + j.colors + ' Colors' + (j.sides === 2 ? ' (Both Sides)' : ' (1 Side)'));
         parts.push('Plates: ' + (j.plateMethod === 'sheetwise' ? 'Sheetwise' : 'Work & Turn'));
         if (j.q <= 1000) parts.push('Press: Min 1,000 Imp');
@@ -1007,7 +1070,8 @@
         var parts = [];
         var sizeLabel = SIZES_BN[j.size] || j.size;
         if (sizeLabel) parts.push('Size: ' + sizeLabel);
-        if (j.pages) parts.push('Pages: ' + j.pages + ' (' + (j.formas || 1) + ' Formas)');
+        var fStr = j.formas ? (j.formas % 1 === 0 ? j.formas : j.formas.toFixed(2)) : '1';
+        if (j.pages) parts.push('Pages: ' + j.pages + ' (' + fStr + ' Formas)');
         parts.push('Print: ' + j.colors + ' Colors' + (j.sides === 2 ? ' (Both Sides)' : ' (1 Side)'));
         parts.push('Plates: ' + (j.plateMethod === 'sheetwise' ? 'Sheetwise' : 'Work & Turn'));
         if (j.q <= 1000) parts.push('Press: Min 1,000 Imp');
@@ -1412,11 +1476,37 @@
         var t = e.target;
         var rowEl = t.closest && t.closest('.pc-row');
         if (!rowEl) { 
+            if (t.id === 'pcSize') {
+                var def = SIZE_DEFAULTS[t.value];
+                if (def) {
+                    if ($('pcSheet') && def.sheet) {
+                        $('pcSheet').value = def.sheet;
+                    }
+                    if ($('pcFormaSize') && def.formaSize) {
+                        $('pcFormaSize').value = String(def.formaSize);
+                        if ($('pcPages') && $('pcPages').value !== '') {
+                            var pVal = num($('pcPages').value);
+                            if ($('pcFormasIn')) {
+                                var f = pVal > 0 ? (pVal / def.formaSize) : '';
+                                $('pcFormasIn').value = (typeof f === 'number' ? (f % 1 === 0 ? f : f.toFixed(2)) : '');
+                            }
+                        }
+                    }
+                    state.rows.forEach(function (r) {
+                        if (/cover/i.test(r.n) && r.auto === 'sheet' && !r.upsManual) {
+                            r.ups = def.ups;
+                        }
+                    });
+                }
+            }
             if (t.id === 'pcFormaSize') {
                 var formaSize = num(t.value) || 16;
                 if ($('pcPages') && $('pcPages').value !== '') {
                     var pVal = num($('pcPages').value);
-                    if ($('pcFormasIn')) $('pcFormasIn').value = (pVal > 0 ? (pVal / formaSize) : '');
+                    if ($('pcFormasIn')) {
+                        var f = pVal > 0 ? (pVal / formaSize) : '';
+                        $('pcFormasIn').value = (typeof f === 'number' ? (f % 1 === 0 ? f : f.toFixed(2)) : '');
+                    }
                 } else if ($('pcFormasIn') && $('pcFormasIn').value !== '') {
                     $('pcPages').value = Math.round(num($('pcFormasIn').value) * formaSize);
                 }
