@@ -669,7 +669,7 @@
         var d = GROUP_DEFAULT[spec.g] || {};
         var r = {
             id: ++state.seq, g: spec.g, n: spec.n, on: !spec.off, auto: spec.auto || GROUP_AUTO[spec.g], manual: false,
-            qty: 0, rate: 0, ups: spec.ups || 8, upsManual: !!spec.ups, waste: spec.waste == null ? 5 : spec.waste,
+            qty: 0, rate: 0, ups: spec.ups || 8, upsManual: false, waste: spec.waste == null ? 5 : spec.waste,
             flat: !!spec.flat, noSize: !!spec.noSize,
             a: spec.a !== undefined ? spec.a : d.a, b: spec.b !== undefined ? spec.b : d.b
         };
@@ -1225,7 +1225,7 @@
     }
 
     function resetAll() {
-        ['pcTitleIn', 'pcQty', 'pcPages', 'pcOverhead', 'pcProfit'].forEach(function (id) { var el = $(id); if (el) el.value = ''; });
+        ['pcTitleIn', 'pcQty', 'pcPages', 'pcFormasIn', 'pcOverhead', 'pcProfit'].forEach(function (id) { var el = $(id); if (el) el.value = ''; });
         if ($('pcColors')) $('pcColors').value = '4';
         if ($('pcSides')) $('pcSides').value = '1';
         if ($('pcRound')) $('pcRound').value = '0';
