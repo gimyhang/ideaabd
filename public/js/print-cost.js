@@ -126,14 +126,19 @@
 
     var SIZES = {
         Demy: [5.5, 8.5],
-        Crown: [5.0, 7.3],
-        Royal: [6.25, 9.25],
-        CrownQuarto: [7.25, 9.5],
         DemyQuarto: [8.5, 11.0],
+        DemyMini: [4.25, 5.5],
+        Crown: [5.0, 7.3],
+        CrownQuarto: [7.25, 9.5],
+        CrownMini: [3.6, 5.0],
+        Royal: [6.25, 9.25],
+        RoyalQuarto: [9.25, 12.5],
         A4: [8.3, 11.7],
         A5: [5.8, 8.3],
-        B5: [6.9, 9.8],
+        A6: [4.1, 5.8],
         A3: [11.7, 16.5],
+        B5: [6.9, 9.8],
+        B4: [9.8, 13.8],
         Card: [3.5, 2.0],
         Poster: [18.0, 23.0],
         Envelope: [10.0, 4.5],
@@ -142,14 +147,19 @@
 
     var SIZES_BN = {
         Demy: 'Demy (5.5"×8.5")',
-        Crown: 'Crown (5"×7.3")',
-        Royal: 'Royal (6.25"×9.25")',
         DemyQuarto: 'Demy 1/4 (8.5"×11")',
+        DemyMini: 'Demy 1/16 (4.25"×5.5")',
+        Crown: 'Crown (5"×7.3")',
         CrownQuarto: 'Crown 1/4 (7.25"×9.5")',
+        CrownMini: 'Crown 1/16 (3.6"×5")',
+        Royal: 'Royal (6.25"×9.25")',
+        RoyalQuarto: 'Royal 1/4 (9.25"×12.5")',
         A4: 'A4 (8.3"×11.7")',
         A5: 'A5 (5.8"×8.3")',
-        B5: 'B5 (6.9"×9.8")',
+        A6: 'A6 (4.1"×5.8")',
         A3: 'A3 (11.7"×16.5")',
+        B5: 'B5 (6.9"×9.8")',
+        B4: 'B4 (9.8"×13.8")',
         Card: 'Card (3.5"×2")',
         Poster: 'Poster (18"×23")',
         Envelope: 'Envelope (10"×4.5")',
@@ -160,24 +170,30 @@
         '23x36': [23, 36],
         '20x30': [20, 30],
         '25x37': [25, 37],
-        '25x36': [25, 36],
-        '18x23': [18, 23],
         '27x38': [27, 38],
-        '31x43': [31, 43]
+        '31x43': [31, 43],
+        '18x23': [18, 23],
+        '15x20': [15, 20],
+        '18.5x25': [18.5, 25]
     };
 
     var SIZE_DEFAULTS = {
-        Demy:        { sheet: '23x36', formaSize: 16, platePages: 8, ups: 8 },
-        Crown:       { sheet: '20x30', formaSize: 16, platePages: 8, ups: 8 },
-        Royal:       { sheet: '25x37', formaSize: 16, platePages: 8, ups: 8 },
-        DemyQuarto:  { sheet: '23x36', formaSize: 8,  platePages: 4, ups: 4 },
-        CrownQuarto: { sheet: '20x30', formaSize: 8,  platePages: 4, ups: 4 },
-        A4:          { sheet: '23x36', formaSize: 8,  platePages: 4, ups: 4 },
-        A5:          { sheet: '23x36', formaSize: 16, platePages: 8, ups: 8 },
-        B5:          { sheet: '20x30', formaSize: 16, platePages: 8, ups: 8 },
-        A3:          { sheet: '23x36', formaSize: 4,  platePages: 2, ups: 2 },
-        Card:        { sheet: '20x30', formaSize: 1,  platePages: 1, ups: 25 },
-        Poster:      { sheet: '23x36', formaSize: 1,  platePages: 1, ups: 2 }
+        Demy:        { sheet: '23x36', machine: '18×23', formaSize: 16, platePages: 8, ups: 8 },
+        DemyQuarto:  { sheet: '23x36', machine: '18×23', formaSize: 8,  platePages: 4, ups: 4 },
+        DemyMini:    { sheet: '23x36', machine: '18×23', formaSize: 32, platePages: 16, ups: 16 },
+        Crown:       { sheet: '20x30', machine: '15×20', formaSize: 16, platePages: 8, ups: 8 },
+        CrownQuarto: { sheet: '20x30', machine: '15×20', formaSize: 8,  platePages: 4, ups: 4 },
+        CrownMini:   { sheet: '20x30', machine: '15×20', formaSize: 32, platePages: 16, ups: 16 },
+        Royal:       { sheet: '25x37', machine: '18.5×25', formaSize: 16, platePages: 8, ups: 8 },
+        RoyalQuarto: { sheet: '25x37', machine: '18.5×25', formaSize: 8,  platePages: 4, ups: 4 },
+        A4:          { sheet: '23x36', machine: '18×23', formaSize: 8,  platePages: 4, ups: 4 },
+        A5:          { sheet: '23x36', machine: '18×23', formaSize: 16, platePages: 8, ups: 8 },
+        A6:          { sheet: '23x36', machine: '18×23', formaSize: 32, platePages: 16, ups: 16 },
+        A3:          { sheet: '23x36', machine: '18×23', formaSize: 4,  platePages: 2, ups: 2 },
+        B5:          { sheet: '27x38', machine: '19×27', formaSize: 16, platePages: 8, ups: 8 },
+        B4:          { sheet: '27x38', machine: '19×27', formaSize: 8,  platePages: 4, ups: 4 },
+        Card:        { sheet: '20x30', machine: '10×15', formaSize: 1,  platePages: 1, ups: 25 },
+        Poster:      { sheet: '23x36', machine: '18×23', formaSize: 1,  platePages: 1, ups: 2 }
     };
 
     var P = function (g, n, o) { o = o || {}; o.g = g; o.n = n; return o; };
@@ -606,13 +622,14 @@
             case 'lam': return q * (r.b === 'Both Sides' ? 2 : 1);
             case 'paperBook': {
                 // Book Inner Paper:
-                // 1 Full Sheet (23x36, 20x30, 25x37) yields 2 Formas (or 1 Forma on half-sheet like 18x23).
+                // 1 Full Sheet (23x36, 20x30, 25x37, 27x38, 31x43) yields 2 Formas.
+                // 1 Cut Machine Sheet (18x23, 15x20, 18.5x25) prints 1 Forma.
                 // Net Sheets = (j.formas * q) / formasPerSheet
                 // Total Sheets = Net Sheets * (1 + wastePct / 100)
                 // Total Reams = Total Sheets / 500
                 if (!j.formas || q <= 0) return 0;
                 var wastePct = num(r.waste) != null ? num(r.waste) : 5;
-                var isHalfSheet = (j.sheet === '18x23');
+                var isHalfSheet = (j.sheet === '18x23' || j.sheet === '15x20' || j.sheet === '18.5x25');
                 var formasPerSheet = isHalfSheet ? 1 : 2;
                 var netSheets = (j.formas * q) / formasPerSheet;
                 var totalSheets = netSheets * (1 + wastePct / 100);
@@ -947,7 +964,10 @@
             var totalPaperSheets = Math.round(totalPaperReams * 500);
             var rm = Math.floor(totalPaperReams);
             var dis = Math.round((totalPaperReams - rm) * 20);
-            var distaStr = (rm > 0 ? rm + ' রিম ' : '') + (dis > 0 ? dis + ' দিস্তা' : (rm === 0 ? '০ দিস্তা' : ''));
+            var parts = [];
+            if (rm > 0) parts.push(rm + ' Rm');
+            if (dis > 0) parts.push(dis + ' Dis');
+            var distaStr = parts.join(', ') || '0 Rm';
 
             if ($('pcKpiPaperReams')) $('pcKpiPaperReams').textContent = totalPaperReams.toFixed(2) + ' Reams (' + distaStr + ')';
             if ($('pcKpiPaperSheets')) $('pcKpiPaperSheets').textContent = totalPaperSheets.toLocaleString('en-US') + ' Sheets';
