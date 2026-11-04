@@ -703,6 +703,7 @@
         $('pcPagesWrap').hidden = !t.pages;
         if ($('pcFormasField')) $('pcFormasField').hidden = !t.pages;
         if (!keepJob) loadLast(type);
+        if (type === 'book') syncBookGeometry('init');
 
         var badgeEl = $('pcActiveTypeBadge');
         if (badgeEl) badgeEl.textContent = t.label;
@@ -1449,6 +1450,65 @@
         });
     }
 
+    // ── Book Geometry & Sheet Synchronizer ──────────────────────────────────
+    function syncBookGeometry(trigger) {
+        var sizeEl = $('pcSize');
+        if (!sizeEl) return;
+        var sizeKey = sizeEl.value || 'Demy';
+        var sheetEl = $('pcSheet');
+        var formaEl = $('pcFormaSize');
+        var pagesEl = $('pcPages');
+        var formasEl = $('pcFormasIn');
+        var def = SIZE_DEFAULTS[sizeKey] || {};
+
+        if (trigger === 'size') {
+            if (sheetEl && def.sheet) {
+                sheetEl.value = def.sheet;
+            }
+            if (formaEl && def.formaSize) {
+                formaEl.value = String(def.formaSize);
+            }
+            state.rows.forEach(function (r) {
+                if (/cover/i.test(r.n) && r.auto === 'sheet' && !r.upsManual && def.ups) {
+                    r.ups = def.ups;
+                }
+            });
+        } else if (trigger === 'sheet') {
+            var sheetKey = sheetEl ? sheetEl.value : (def.sheet || '23x36');
+            if (def.sheet === sheetKey && def.formaSize && formaEl) {
+                formaEl.value = String(def.formaSize);
+            } else {
+                var isCutSheet = (sheetKey === '18x23' || sheetKey === '15x20' || sheetKey === '18.5x25');
+                var layout = upsFor(sizeKey, sheetKey);
+                var computedFormaSize = isCutSheet ? (layout * 2) : layout;
+                if (computedFormaSize > 0 && formaEl) {
+                    formaEl.value = String(computedFormaSize);
+                }
+            }
+        }
+
+        var formaSize = formaEl ? (num(formaEl.value) || def.formaSize || 16) : 16;
+
+        if (trigger === 'formas') {
+            if (formasEl && pagesEl) {
+                var fVal = num(formasEl.value);
+                pagesEl.value = fVal > 0 ? Math.round(fVal * formaSize) : '';
+            }
+        } else if (trigger === 'pages' || trigger === 'size' || trigger === 'sheet' || trigger === 'formaSize' || trigger === 'init') {
+            if (pagesEl && formasEl) {
+                var pVal = num(pagesEl.value);
+                if (pVal > 0) {
+                    var f = pVal / formaSize;
+                    formasEl.value = (f % 1 === 0 ? String(f) : f.toFixed(2));
+                } else if (formasEl.value !== '' && trigger === 'formaSize') {
+                    pagesEl.value = Math.round(num(formasEl.value) * formaSize);
+                } else if (pagesEl.value === '') {
+                    formasEl.value = '';
+                }
+            }
+        }
+    }
+
     // ── Input & Event Handling ──────────────────────────────────────────────
     function onInput(e) {
         var t = e.target;
@@ -1471,27 +1531,11 @@
         }
 
         if (t.id === 'pcFormasIn') {
-            var formaSize = $('pcFormaSize') ? (num($('pcFormaSize').value) || 16) : 16;
-            var fVal = num(t.value);
-            if (fVal > 0) {
-                $('pcPages').value = Math.round(fVal * formaSize);
-            } else if (t.value === '') {
-                $('pcPages').value = '';
-            }
+            syncBookGeometry('formas');
         } else if (t.id === 'pcPages') {
-            var formaSize = $('pcFormaSize') ? (num($('pcFormaSize').value) || 16) : 16;
-            var pVal = num(t.value);
-            if ($('pcFormasIn')) {
-                $('pcFormasIn').value = pVal > 0 ? (pVal / formaSize) : '';
-            }
+            syncBookGeometry('pages');
         } else if (t.id === 'pcFormaSize') {
-            var formaSize = num(t.value) || 16;
-            if ($('pcPages') && $('pcPages').value !== '') {
-                var pVal = num($('pcPages').value);
-                if ($('pcFormasIn')) $('pcFormasIn').value = (pVal > 0 ? (pVal / formaSize) : '');
-            } else if ($('pcFormasIn') && $('pcFormasIn').value !== '') {
-                $('pcPages').value = Math.round(num($('pcFormasIn').value) * formaSize);
-            }
+            syncBookGeometry('formaSize');
         }
 
         recalcAuto();
@@ -1504,39 +1548,11 @@
         var rowEl = t.closest && t.closest('.pc-row');
         if (!rowEl) { 
             if (t.id === 'pcSize') {
-                var def = SIZE_DEFAULTS[t.value];
-                if (def) {
-                    if ($('pcSheet') && def.sheet) {
-                        $('pcSheet').value = def.sheet;
-                    }
-                    if ($('pcFormaSize') && def.formaSize) {
-                        $('pcFormaSize').value = String(def.formaSize);
-                        if ($('pcPages') && $('pcPages').value !== '') {
-                            var pVal = num($('pcPages').value);
-                            if ($('pcFormasIn')) {
-                                var f = pVal > 0 ? (pVal / def.formaSize) : '';
-                                $('pcFormasIn').value = (typeof f === 'number' ? (f % 1 === 0 ? f : f.toFixed(2)) : '');
-                            }
-                        }
-                    }
-                    state.rows.forEach(function (r) {
-                        if (/cover/i.test(r.n) && r.auto === 'sheet' && !r.upsManual) {
-                            r.ups = def.ups;
-                        }
-                    });
-                }
-            }
-            if (t.id === 'pcFormaSize') {
-                var formaSize = num(t.value) || 16;
-                if ($('pcPages') && $('pcPages').value !== '') {
-                    var pVal = num($('pcPages').value);
-                    if ($('pcFormasIn')) {
-                        var f = pVal > 0 ? (pVal / formaSize) : '';
-                        $('pcFormasIn').value = (typeof f === 'number' ? (f % 1 === 0 ? f : f.toFixed(2)) : '');
-                    }
-                } else if ($('pcFormasIn') && $('pcFormasIn').value !== '') {
-                    $('pcPages').value = Math.round(num($('pcFormasIn').value) * formaSize);
-                }
+                syncBookGeometry('size');
+            } else if (t.id === 'pcSheet') {
+                syncBookGeometry('sheet');
+            } else if (t.id === 'pcFormaSize') {
+                syncBookGeometry('formaSize');
             }
             if (t.closest('.pc-job, .pc-summary')) { recalcAuto(); paint(); saveLast(); } 
             return; 
