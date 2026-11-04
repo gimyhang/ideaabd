@@ -165,14 +165,13 @@
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-white border-end-0 text-muted fw-bold" id="tenderRefLabel" style="font-size: 11.5px; height: 34px;">Ref / PO No</span>
                         <input type="text" name="reference_no" id="f-reference_no" class="form-control bg-white font-monospace" 
-                               placeholder="e.g. PO/2026/089" value="{{ old('reference_no') }}" style="height: 34px;">
+                               value="{{ old('reference_no') }}" style="height: 34px;">
                     </div>
                 </div>
                 <div class="col-md-9">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-white border-end-0 text-muted fw-bold" id="tenderSubjectLabel" style="font-size: 11.5px; height: 34px;">Subject <span class="text-danger">*</span></span>
                         <input type="text" name="subject" id="f-subject" class="form-control bg-white fw-semibold" 
-                               placeholder="e.g. Book Sales / Printing & Publishing Services..." 
                                value="{{ old('subject', $currentType === 'tender' ? 'Tender for Supply of Books, Publications & Stationery' : ($currentType === 'quotation' ? ($invoiceSettings['quotation_default_subject'] ?? 'Price Quotation for Book Printing & Publication') : '')) }}" style="height: 34px;">
                     </div>
                 </div>
@@ -224,7 +223,6 @@
                                 <span class="input-group-text bg-white text-muted" style="width: 85px; font-size: 11.5px;">Name <span class="text-danger">*</span></span>
                                 <input type="text" name="customer_name" id="inputCustomerName" 
                                        class="form-control client-autocomplete-input fw-bold text-dark @error('customer_name') is-invalid @enderror" 
-                                       placeholder="Start typing client or contact person name (auto-fills registered data)..." 
                                        value="{{ old('customer_name') }}" required autocomplete="off" style="height: 34px;">
                             </div>
                         </div>
@@ -233,7 +231,7 @@
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-white text-muted" style="width: 85px; font-size: 11px;">Designation</span>
                                 <input type="text" name="customer_designation" id="inputCustomerDesignation" 
-                                       class="form-control" placeholder="e.g. Executive Director, Headmaster..." 
+                                       class="form-control" 
                                        value="{{ old('customer_designation') }}" style="height: 34px;">
                             </div>
                         </div>
@@ -242,7 +240,6 @@
                                 <span class="input-group-text bg-white text-muted" style="width: 85px; font-size: 11px;">Organization</span>
                                 <input type="text" name="customer_org" id="inputCustomerOrg" 
                                        class="form-control client-autocomplete-input text-primary fw-semibold" 
-                                       placeholder="Library, Bookshop, School..." 
                                        value="{{ old('customer_org') }}" autocomplete="off" style="height: 34px;">
                             </div>
                         </div>
@@ -252,14 +249,14 @@
                                 <span class="input-group-text bg-white text-muted" style="width: 85px; font-size: 11px;">Phone / WA</span>
                                 <input type="text" name="customer_phone" id="inputCustomerPhone" 
                                        class="form-control client-autocomplete-input font-monospace fw-semibold" 
-                                       placeholder="017XXXXXXXX" value="{{ old('customer_phone') }}" autocomplete="off" style="height: 34px;">
+                                       value="{{ old('customer_phone') }}" autocomplete="off" style="height: 34px;">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-white text-muted" style="width: 85px; font-size: 11px;">Email</span>
                                 <input type="email" name="customer_email" id="inputCustomerEmail" 
-                                       class="form-control font-monospace" placeholder="customer@example.com" 
+                                       class="form-control font-monospace" 
                                        value="{{ old('customer_email') }}" style="height: 34px;">
                             </div>
                         </div>
@@ -268,7 +265,7 @@
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-white text-muted" style="width: 85px; font-size: 11px;">Address</span>
                                 <input type="text" name="customer_address" id="inputCustomerAddress" 
-                                       class="form-control" placeholder="Shipping destination or full address..." 
+                                       class="form-control" 
                                        value="{{ old('customer_address') }}" style="height: 34px;">
                             </div>
                         </div>
@@ -461,7 +458,7 @@
                         <td class="position-relative book-search-container" style="min-width: 250px;">
                             <div class="input-group input-group-sm">
                                 <input type="text" name="items[0][title]" class="form-control form-control-sm item-title fw-bold" 
-                                       placeholder="Search book title, author, ISBN..." required 
+                                       required 
                                        oninput="handleLiveBookSearch(this, 0)" 
                                        onfocus="handleLiveBookSearch(this, 0)" 
                                        onkeydown="handleBookSearchKeydown(event, 0)"
@@ -475,7 +472,7 @@
                         </td>
                         <td>
                             <input type="text" name="items[0][author_name]" class="form-control form-control-sm item-author" 
-                                   placeholder="Author / Spec" autocomplete="off" style="height: 36px; font-size: 12.5px;">
+                                   autocomplete="off" style="height: 36px; font-size: 12.5px;">
                         </td>
                         <td>
                             <select name="items[0][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, 0)" style="height: 36px; font-size: 12.5px;">
@@ -500,7 +497,7 @@
                         </td>
                         <td>
                             <input type="text" name="items[0][unit]" class="form-control form-control-sm item-unit text-center font-monospace" 
-                                   value="Copy" placeholder="Unit" autocomplete="off" style="height: 36px; font-size: 12.5px;">
+                                   value="Copy" autocomplete="off" style="height: 36px; font-size: 12.5px;">
                         </td>
                         <td>
                             <input type="number" step="0.01" name="items[0][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
@@ -508,11 +505,11 @@
                         </td>
                         <td>
                             <input type="number" step="0.01" name="items[0][regular_price]" class="form-control form-control-sm item-regular-price text-end font-monospace" 
-                                   value="0" min="0" placeholder="0.00" oninput="calcRow(0, 'regular_price')" style="height: 36px; font-size: 12.5px;">
+                                   value="0" min="0" oninput="calcRow(0, 'regular_price')" style="height: 36px; font-size: 12.5px;">
                         </td>
                         <td>
                             <input type="number" step="0.01" name="items[0][discount_percent]" class="form-control form-control-sm item-discount-percent text-center font-monospace fw-bold text-success" 
-                                   value="0" min="0" max="100" placeholder="0" oninput="calcRow(0, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
+                                   value="0" min="0" max="100" oninput="calcRow(0, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
                         </td>
                         <td>
                             <input type="number" step="0.01" name="items[0][price]" class="form-control form-control-sm item-price text-end font-monospace fw-bold text-primary" 
@@ -585,8 +582,7 @@
                     <div class="mb-2.5">
                         <textarea name="terms_conditions" id="termsConditionsInput" rows="3" 
                                   class="form-control form-control-sm rounded-2 font-monospace" 
-                                  style="font-size: 11.5px; line-height: 1.45;" 
-                                  placeholder="Enter terms & conditions or choose template above...">{{ old('terms_conditions', $currentType === 'quotation' ? ($invoiceSettings['quotation_default_terms'] ?? '') : ($invoiceSettings['terms_and_conditions'] ?? '')) }}</textarea>
+                                  style="font-size: 11.5px; line-height: 1.45;">{{ old('terms_conditions', $currentType === 'quotation' ? ($invoiceSettings['quotation_default_terms'] ?? '') : ($invoiceSettings['terms_and_conditions'] ?? '')) }}</textarea>
                     </div>
 
                     <div>
@@ -594,8 +590,7 @@
                             <i class="fa-solid fa-comment-dots me-1 text-warning"></i>Special Notes / Remarks (Prints on document)
                         </label>
                         <textarea name="notes" rows="2" class="form-control form-control-sm rounded-2" 
-                                  style="font-size: 11.5px; line-height: 1.4;" 
-                                  placeholder="e.g. Dispatched via Sundarban Courier, freight paid by recipient...">{{ old('notes', $currentType === 'quotation' ? ($invoiceSettings['quotation_default_notes'] ?? '') : '') }}</textarea>
+                                  style="font-size: 11.5px; line-height: 1.4;">{{ old('notes', $currentType === 'quotation' ? ($invoiceSettings['quotation_default_notes'] ?? '') : '') }}</textarea>
                     </div>
                 </div>
             </div>
@@ -753,26 +748,26 @@
                     <div id="quickBookAlert"></div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-dark mb-1">Book Title <span class="text-danger">*</span></label>
-                        <input type="text" id="qbTitle" class="form-control form-control-sm fw-bold" placeholder="Enter full book title..." required>
+                        <input type="text" id="qbTitle" class="form-control form-control-sm fw-bold" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-dark mb-1">Author Name</label>
-                        <input type="text" id="qbAuthor" class="form-control form-control-sm" placeholder="Author name...">
+                        <input type="text" id="qbAuthor" class="form-control form-control-sm">
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label small fw-bold text-dark mb-1">Regular Price (৳) <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" id="qbPrice" class="form-control form-control-sm font-monospace fw-bold" placeholder="0.00" required>
+                            <input type="number" step="0.01" id="qbPrice" class="form-control form-control-sm font-monospace fw-bold" required>
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-bold text-dark mb-1">Discount / Selling Price (৳)</label>
-                            <input type="number" step="0.01" id="qbDiscountPrice" class="form-control form-control-sm font-monospace" placeholder="0.00">
+                            <input type="number" step="0.01" id="qbDiscountPrice" class="form-control form-control-sm font-monospace">
                         </div>
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label small fw-bold text-dark mb-1">Hardcover Price (৳)</label>
-                            <input type="number" step="0.01" id="qbHardcoverPrice" class="form-control form-control-sm font-monospace" placeholder="0.00">
+                            <input type="number" step="0.01" id="qbHardcoverPrice" class="form-control form-control-sm font-monospace">
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-bold text-dark mb-1">Cover Type</label>
@@ -790,7 +785,7 @@
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-bold text-dark mb-1">ISBN (Optional)</label>
-                            <input type="text" id="qbIsbn" class="form-control form-control-sm font-monospace" placeholder="978-...">
+                            <input type="text" id="qbIsbn" class="form-control form-control-sm font-monospace">
                         </div>
                     </div>
                     <div class="alert alert-light border py-2 px-3 small text-muted mb-0 rounded-3">
@@ -912,7 +907,7 @@
             }
             if (tenderSubjectLabel) tenderSubjectLabel.innerHTML = 'Subject <span class="text-danger">*</span>';
             if (tenderRefLabel) tenderRefLabel.textContent = 'Ref / Memo No';
-            if (subjectInput) subjectInput.placeholder = 'e.g. Tender for Supply of Books, Publications & Stationery...';
+            if (subjectInput) subjectInput.placeholder = '';
             if (validityPresetRow) validityPresetRow.style.display = '';
             paymentSection.classList.add('d-none');
             quotationNotice.classList.remove('d-none');
@@ -947,7 +942,7 @@
             }
             if (tenderSubjectLabel) tenderSubjectLabel.innerHTML = 'Subject <span class="text-danger">*</span>';
             if (tenderRefLabel) tenderRefLabel.textContent = 'Ref / Quotation No';
-            if (subjectInput) subjectInput.placeholder = 'e.g. Price Quotation for Book Printing & Publication...';
+            if (subjectInput) subjectInput.placeholder = '';
             if (validityPresetRow) validityPresetRow.style.display = '';
             paymentSection.classList.add('d-none');
             quotationNotice.classList.remove('d-none');
@@ -973,7 +968,7 @@
             }
             if (tenderSubjectLabel) tenderSubjectLabel.innerHTML = 'Subject';
             if (tenderRefLabel) tenderRefLabel.textContent = 'Challan Ref No';
-            if (subjectInput) subjectInput.placeholder = 'e.g. Delivery of Printed Books & Materials...';
+            if (subjectInput) subjectInput.placeholder = '';
             if (validityPresetRow) validityPresetRow.style.display = 'none';
             paymentSection.classList.remove('d-none');
             quotationNotice.classList.add('d-none');
@@ -1000,7 +995,7 @@
             }
             if (tenderSubjectLabel) tenderSubjectLabel.innerHTML = 'Subject';
             if (tenderRefLabel) tenderRefLabel.textContent = 'Ref / PO No';
-            if (subjectInput) subjectInput.placeholder = 'e.g. Book Sales / Printing & Publishing Services...';
+            if (subjectInput) subjectInput.placeholder = '';
             if (validityPresetRow) validityPresetRow.style.display = 'none';
             paymentSection.classList.remove('d-none');
             quotationNotice.classList.add('d-none');
@@ -1362,27 +1357,19 @@
         const currentSalesCat = catSelect ? catSelect.value : 'books';
         let defaultItemType = 'Book (Hardcover)';
         let defaultUnit = 'Copy';
-        let defaultTitlePlaceholder = 'Search book title, author, ISBN...';
-        let defaultAuthorPlaceholder = 'Author / Spec';
         let isBook = true;
 
         if (currentSalesCat === 'stationery') {
             defaultItemType = 'Stationery';
             defaultUnit = 'Pcs';
-            defaultTitlePlaceholder = 'Item / Stationery title & description...';
-            defaultAuthorPlaceholder = 'Model / Specification';
             isBook = false;
         } else if (currentSalesCat === 'printing_goods') {
             defaultItemType = 'Printing & Binding';
             defaultUnit = 'Copy';
-            defaultTitlePlaceholder = 'Printing job / Item description...';
-            defaultAuthorPlaceholder = 'Size / GSM / Specification';
             isBook = false;
         } else if (currentSalesCat === 'other') {
             defaultItemType = 'Product';
             defaultUnit = 'Pcs';
-            defaultTitlePlaceholder = 'Product / Item description...';
-            defaultAuthorPlaceholder = 'Specification / Notes';
             isBook = false;
         }
 
@@ -1396,7 +1383,7 @@
             <td class="position-relative book-search-container" style="min-width: 250px;">
                 <div class="input-group input-group-sm">
                     <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title fw-bold" 
-                           placeholder="${defaultTitlePlaceholder}" required 
+                           required 
                            oninput="handleLiveBookSearch(this, ${i})" 
                            onfocus="handleLiveBookSearch(this, ${i})" 
                            onkeydown="handleBookSearchKeydown(event, ${i})" 
@@ -1410,7 +1397,7 @@
             </td>
             <td>
                 <input type="text" name="items[${i}][author_name]" class="form-control form-control-sm item-author" 
-                       placeholder="${defaultAuthorPlaceholder}" autocomplete="off" style="height: 36px; font-size: 12.5px;">
+                       autocomplete="off" style="height: 36px; font-size: 12.5px;">
             </td>
             <td>
                 <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})" style="height: 36px; font-size: 12.5px;">
@@ -1435,7 +1422,7 @@
             </td>
             <td>
                 <input type="text" name="items[${i}][unit]" class="form-control form-control-sm item-unit text-center font-monospace" 
-                       value="${defaultUnit}" placeholder="Unit" autocomplete="off" style="height: 36px; font-size: 12.5px;">
+                       value="${defaultUnit}" autocomplete="off" style="height: 36px; font-size: 12.5px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
@@ -1443,11 +1430,11 @@
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control form-control-sm item-regular-price text-end font-monospace" 
-                       value="0" min="0" placeholder="0.00" oninput="calcRow(${i}, 'regular_price')" style="height: 36px; font-size: 12.5px;">
+                       value="0" min="0" oninput="calcRow(${i}, 'regular_price')" style="height: 36px; font-size: 12.5px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control form-control-sm item-discount-percent text-center font-monospace fw-bold text-success" 
-                       value="0" min="0" max="100" placeholder="0" oninput="calcRow(${i}, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
+                       value="0" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][price]" class="form-control form-control-sm item-price text-end font-monospace fw-bold text-primary" 
@@ -1499,7 +1486,7 @@
             <td class="position-relative book-search-container" style="min-width: 250px;">
                 <div class="input-group input-group-sm">
                     <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title fw-bold" 
-                           placeholder="${isBook ? 'Search book title, author, ISBN...' : 'Item / Product description...'}" required 
+                           required 
                            oninput="handleLiveBookSearch(this, ${i})" 
                            onfocus="handleLiveBookSearch(this, ${i})" 
                            onkeydown="handleBookSearchKeydown(event, ${i})" 
@@ -1513,7 +1500,7 @@
             </td>
             <td>
                 <input type="text" name="items[${i}][author_name]" class="form-control form-control-sm item-author" 
-                       value="${escapeHtml(author)}" placeholder="${isBook ? 'Author / Spec' : 'Model / Specification / Notes'}" autocomplete="off" style="height: 36px; font-size: 12.5px;">
+                       value="${escapeHtml(author)}" autocomplete="off" style="height: 36px; font-size: 12.5px;">
             </td>
             <td>
                 <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})" style="height: 36px; font-size: 12.5px;">
@@ -1538,7 +1525,7 @@
             </td>
             <td>
                 <input type="text" name="items[${i}][unit]" class="form-control form-control-sm item-unit text-center font-monospace" 
-                       value="${escapeHtml(unit)}" placeholder="Unit" autocomplete="off" style="height: 36px; font-size: 12.5px;">
+                       value="${escapeHtml(unit)}" autocomplete="off" style="height: 36px; font-size: 12.5px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
@@ -1546,11 +1533,11 @@
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control form-control-sm item-regular-price text-end font-monospace" 
-                       value="${regPrice}" min="0" placeholder="0.00" oninput="calcRow(${i}, 'regular_price')" style="height: 36px; font-size: 12.5px;">
+                       value="${regPrice}" min="0" oninput="calcRow(${i}, 'regular_price')" style="height: 36px; font-size: 12.5px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control form-control-sm item-discount-percent text-center font-monospace fw-bold text-success" 
-                       value="${disc}" min="0" max="100" placeholder="0" oninput="calcRow(${i}, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
+                       value="${disc}" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][price]" class="form-control form-control-sm item-price text-end font-monospace fw-bold text-primary" 
@@ -2255,16 +2242,16 @@
             tr.className = 'item-row';
             tr.setAttribute('data-row', i);
             tr.innerHTML = `
-                <td class="text-center text-muted fw-bold item-serial-num font-monospace" style="width: 38px;">#</td>
-                <td class="position-relative book-search-container" style="min-width: 290px;">
+                <td class="text-center text-muted fw-bold item-serial-num font-monospace" style="width: 34px;">#</td>
+                <td class="position-relative book-search-container" style="min-width: 250px;">
                     <div class="input-group input-group-sm">
-                        <textarea name="items[${i}][title]" class="form-control item-title fw-bold" rows="2" 
-                                  placeholder="${isBookTypeVal(defType) ? 'Search book title, author, ISBN...' : 'Item / Product description...'}" required 
-                                  oninput="handleLiveBookSearch(this, ${i})" 
-                                  onfocus="handleLiveBookSearch(this, ${i})" 
-                                  onkeydown="handleBookSearchKeydown(event, ${i})" 
-                                  autocomplete="off" style="font-size: 13px; min-height: 48px; line-height: 1.4; resize: vertical;">${escapeHtml(title)}</textarea>
-                        <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBookTypeVal(defType) ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 48px;">
+                        <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title fw-bold" 
+                               required 
+                               oninput="handleLiveBookSearch(this, ${i})" 
+                               onfocus="handleLiveBookSearch(this, ${i})" 
+                               onkeydown="handleBookSearchKeydown(event, ${i})" 
+                               autocomplete="off" style="font-size: 13px; height: 36px;" value="${escapeHtml(title)}">
+                        <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBookTypeVal(defType) ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="height: 36px;">
                             <i class="fa-solid fa-plus"></i>
                         </button>
                     </div>
@@ -2272,11 +2259,11 @@
                     <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 420px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
                 </td>
                 <td>
-                    <input type="text" name="items[${i}][author_name]" class="form-control item-author" 
-                           value="${authorSpec || ''}" placeholder="${isBookTypeVal(defType) ? 'Author / Spec' : 'Model / Specification / Notes'}" autocomplete="off">
+                    <input type="text" name="items[${i}][author_name]" class="form-control form-control-sm item-author" 
+                           value="${authorSpec || ''}" autocomplete="off" style="height: 36px; font-size: 12.5px;">
                 </td>
                 <td>
-                    <select name="items[${i}][item_type]" class="form-select item-type-select" onchange="onTypeChange(this, ${i})">
+                    <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})" style="height: 36px; font-size: 12.5px;">
                         <optgroup label="Books & Publications">
                             <option value="Book (Hardcover)" ${defType === 'Book (Hardcover)' ? 'selected' : ''}>Book (Hardcover)</option>
                             <option value="Book (Paperback)" ${defType === 'Book (Paperback)' ? 'selected' : ''}>Book (Paperback)</option>
@@ -2297,32 +2284,32 @@
                     </select>
                 </td>
                 <td>
-                    <input type="text" name="items[${i}][unit]" class="form-control item-unit text-center font-monospace" 
-                           value="${unit || (isBookTypeVal(defType) ? 'Copy' : 'Pcs')}" placeholder="Unit" autocomplete="off">
+                    <input type="text" name="items[${i}][unit]" class="form-control form-control-sm item-unit text-center font-monospace" 
+                           value="${unit || (isBookTypeVal(defType) ? 'Copy' : 'Pcs')}" autocomplete="off" style="height: 36px; font-size: 12.5px;">
                 </td>
                 <td>
-                    <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control item-qty text-center font-monospace fw-bold" 
-                           value="${qtyVal}" min="0.01" required oninput="calcRow(${i}, 'qty')">
+                    <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
+                           value="${qtyVal}" min="0.01" required oninput="calcRow(${i}, 'qty')" style="height: 36px; font-size: 13px;">
                 </td>
                 <td>
-                    <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control item-regular-price text-end font-monospace" 
-                           value="${regularPrice}" min="0" placeholder="0.00" oninput="calcRow(${i}, 'regular_price')">
+                    <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control form-control-sm item-regular-price text-end font-monospace" 
+                           value="${regularPrice}" min="0" oninput="calcRow(${i}, 'regular_price')" style="height: 36px; font-size: 12.5px;">
                 </td>
                 <td>
-                    <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control item-discount-percent text-center font-monospace fw-bold text-success" 
-                           value="${discountPct}" min="0" max="100" placeholder="0" oninput="calcRow(${i}, 'discount_percent')">
+                    <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control form-control-sm item-discount-percent text-center font-monospace fw-bold text-success" 
+                           value="${discountPct}" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
                 </td>
                 <td>
-                    <input type="number" step="0.01" name="items[${i}][price]" class="form-control item-price text-end font-monospace fw-bold text-primary" 
-                           value="${defPrice}" min="0" required oninput="calcRow(${i}, 'unit_price')">
+                    <input type="number" step="0.01" name="items[${i}][price]" class="form-control form-control-sm item-price text-end font-monospace fw-bold text-primary" 
+                           value="${defPrice}" min="0" required oninput="calcRow(${i}, 'unit_price')" style="height: 36px; font-size: 13px;">
                 </td>
-                <td class="text-end fw-bold text-dark item-subtotal font-monospace fs-6">৳${lineTotal.toFixed(2)}</td>
+                <td class="text-end fw-bold text-dark item-subtotal font-monospace" style="font-size: 13.5px;">৳${lineTotal.toFixed(2)}</td>
                 <td class="text-center text-nowrap">
                     <div class="d-inline-flex align-items-center gap-1">
-                        <button type="button" class="btn btn-sm btn-light text-secondary border-0 p-1.5 rounded-2" onclick="duplicateRow(this)" title="Duplicate Row">
+                        <button type="button" class="btn btn-xs btn-light text-secondary border p-1 rounded-2" onclick="duplicateRow(this)" title="Duplicate Row">
                             <i class="fa-regular fa-copy"></i>
                         </button>
-                        <button type="button" class="btn btn-sm btn-light text-danger border-0 p-1.5 rounded-2" onclick="removeRow(this)" title="Remove">
+                        <button type="button" class="btn btn-xs btn-light text-danger border p-1 rounded-2" onclick="removeRow(this)" title="Remove">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
