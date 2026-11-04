@@ -177,31 +177,38 @@
     grid-column: span 3;
 }
 
-#printCostCalculatorModal .pc-f-formas {
-    grid-column: span 4;
+#printCostCalculatorModal .pc-f-trim {
+    grid-column: span 3;
+}
+
+#printCostCalculatorModal .pc-f-sheet {
+    grid-column: span 3;
 }
 
 #printCostCalculatorModal .pc-f-pages {
     grid-column: span 2;
 }
 
+#printCostCalculatorModal .pc-f-formas {
+    grid-column: span 4;
+}
+
 #printCostCalculatorModal .pc-f-colors {
-    grid-column: span 2;
+    grid-column: span 3;
 }
 
 #printCostCalculatorModal .pc-f-sides {
-    grid-column: span 2;
+    grid-column: span 3;
 }
 
 #printCostCalculatorModal .pc-f-plates {
-    grid-column: span 2;
-}
-
-#printCostCalculatorModal .pc-f-trim {
     grid-column: span 6;
 }
 
-#printCostCalculatorModal .pc-f-sheet {
+#printCostCalculatorModal .pc-job-no-pages .pc-f-trim,
+#printCostCalculatorModal .pc-job-no-pages .pc-f-sheet,
+#printCostCalculatorModal .pc-job:has(#pcPagesWrap[hidden]) .pc-f-trim,
+#printCostCalculatorModal .pc-job:has(#pcPagesWrap[hidden]) .pc-f-sheet {
     grid-column: span 6;
 }
 

@@ -42,17 +42,21 @@
                             </div>
 
                             {{-- Clean, Equal-Height 2-Row Specifications Grid --}}
+                            {{-- Clean, Balanced Specifications Grid (Row 1: Title & Volume; Row 2: Geometry & Formas; Row 3: Press & Plates) --}}
                             <div class="pc-grid">
+                                {{-- 1. Job Title --}}
                                 <div class="pc-f pc-f-title">
                                     <label for="pcTitleIn" class="pc-label">Title</label>
                                     <input id="pcTitleIn" class="form-control form-control-sm" maxlength="150" placeholder="Job / Item title...">
                                 </div>
 
+                                {{-- 2. Quantity --}}
                                 <div class="pc-f pc-f-qty">
                                     <label for="pcQty" class="pc-label">Quantity</label>
                                     <input id="pcQty" type="number" min="1" step="1" class="form-control form-control-sm text-end font-monospace fw-bold" inputmode="numeric" placeholder="1000" style="font-size: 14px;">
                                 </div>
 
+                                {{-- 3. Unit --}}
                                 <div class="pc-f pc-f-unit">
                                     <label for="pcUnit" class="pc-label">Unit</label>
                                     <select id="pcUnit" class="form-select form-select-sm">
@@ -62,6 +66,34 @@
                                     </select>
                                 </div>
 
+                                {{-- 4. Book Trim Size --}}
+                                <div class="pc-f pc-f-trim">
+                                    <label for="pcSize" class="pc-label">Trim</label>
+                                    <select id="pcSize" class="form-select form-select-sm"></select>
+                                </div>
+
+                                {{-- 5. Paper Sheet Size --}}
+                                <div class="pc-f pc-f-sheet">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <label for="pcSheet" class="pc-label mb-0">Sheet</label>
+                                        <span class="text-success font-monospace small" id="pcUpsWrap" hidden style="font-size: 11px;">
+                                            Ups: <b id="pcUps">0</b>
+                                        </span>
+                                    </div>
+                                    <select id="pcSheet" class="form-select form-select-sm">
+                                        @foreach (['23x36' => '23×36 (Demy)', '20x30' => '20×30 (Crown)', '25x37' => '25×37 (Royal)', '27x38' => '27×38 (Double Crown)', '31x43' => '31×43 (Jumbo)', '18x23' => '18×23 (Half Demy)', '15x20' => '15×20 (Half Crown)', '18.5x25' => '18.5×25 (Half Royal)'] as $v => $label)
+                                            <option value="{{ $v }}">{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                {{-- 6. Book Pages (Input comes BEFORE Formas) --}}
+                                <div class="pc-f pc-f-pages" id="pcPagesWrap">
+                                    <label for="pcPages" class="pc-label">Pages</label>
+                                    <input id="pcPages" type="number" min="0" step="1" class="form-control form-control-sm text-end font-monospace fw-bold" inputmode="numeric" placeholder="128" style="font-size: 14px;">
+                                </div>
+
+                                {{-- 7. Formas (Calculated from Pages + Forma Size) --}}
                                 <div class="pc-f pc-f-formas" id="pcFormasField">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <label for="pcFormasIn" class="pc-label mb-0">Formas</label>
@@ -80,11 +112,7 @@
                                     </div>
                                 </div>
 
-                                <div class="pc-f pc-f-pages" id="pcPagesWrap">
-                                    <label for="pcPages" class="pc-label">Pages</label>
-                                    <input id="pcPages" type="number" min="0" step="1" class="form-control form-control-sm text-end font-monospace fw-bold" inputmode="numeric" placeholder="128" style="font-size: 14px;">
-                                </div>
-
+                                {{-- 8. Colors --}}
                                 <div class="pc-f pc-f-colors">
                                     <label for="pcColors" class="pc-label">Colors</label>
                                     <select id="pcColors" class="form-select form-select-sm">
@@ -95,6 +123,7 @@
                                     </select>
                                 </div>
 
+                                {{-- 9. Sides --}}
                                 <div class="pc-f pc-f-sides">
                                     <label for="pcSides" class="pc-label">Sides</label>
                                     <select id="pcSides" class="form-select form-select-sm">
@@ -103,30 +132,12 @@
                                     </select>
                                 </div>
 
+                                {{-- 10. Plates (Sheetwise / Work & Turn) --}}
                                 <div class="pc-f pc-f-plates" id="pcPlateMethodWrap">
                                     <label for="pcPlateMethod" class="pc-label">Plates</label>
                                     <select id="pcPlateMethod" class="form-select form-select-sm">
                                         <option value="sheetwise" selected>2 Plates/Forma (Sheetwise)</option>
                                         <option value="work_and_turn">1 Plate/Forma (Work &amp; Turn)</option>
-                                    </select>
-                                </div>
-
-                                <div class="pc-f pc-f-trim">
-                                    <label for="pcSize" class="pc-label">Trim</label>
-                                    <select id="pcSize" class="form-select form-select-sm"></select>
-                                </div>
-
-                                <div class="pc-f pc-f-sheet">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <label for="pcSheet" class="pc-label mb-0">Sheet</label>
-                                        <span class="text-success font-monospace small" id="pcUpsWrap" hidden style="font-size: 11px;">
-                                            Ups: <b id="pcUps">0</b>
-                                        </span>
-                                    </div>
-                                    <select id="pcSheet" class="form-select form-select-sm">
-                                        @foreach (['23x36' => '23×36 (Demy)', '20x30' => '20×30 (Crown)', '25x37' => '25×37 (Royal)', '27x38' => '27×38 (Double Crown)', '31x43' => '31×43 (Jumbo)', '18x23' => '18×23 (Half Demy)', '15x20' => '15×20 (Half Crown)', '18.5x25' => '18.5×25 (Half Royal)'] as $v => $label)
-                                            <option value="{{ $v }}">{{ $label }}</option>
-                                        @endforeach
                                     </select>
                                 </div>
                             </div>

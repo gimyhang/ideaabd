@@ -702,6 +702,8 @@
         $('pcUnit').value = t.unit;
         $('pcPagesWrap').hidden = !t.pages;
         if ($('pcFormasField')) $('pcFormasField').hidden = !t.pages;
+        var jobCard = $('pcTitleIn') ? $('pcTitleIn').closest('.pc-job') : null;
+        if (jobCard) jobCard.classList.toggle('pc-job-no-pages', !t.pages);
         if (!keepJob) loadLast(type);
         if (type === 'book') syncBookGeometry('init');
 
