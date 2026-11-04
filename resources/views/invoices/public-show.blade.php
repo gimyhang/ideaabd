@@ -596,6 +596,50 @@
         ->get()
         ->keyBy('id');
     $matchedBooksByTitle = $matchedBooks->keyBy('title');
+
+    $docTypes = [
+        'quotation' => [
+            'title'       => $settings['quotation_title_bn'] ?? 'PRICE QUOTATION',
+            'label'       => 'Quotation',
+            'badge_style' => 'background-color: #fef3c7; color: #b45309; border-color: #fcd34d;',
+            'icon'        => 'fa-solid fa-file-invoice-dollar',
+            'box_title'   => 'QUOTATION & ESTIMATE DETAILS',
+            'box_icon'    => 'fa-solid fa-calculator',
+            'gen_label'   => 'Computer-generated quotation',
+            'page1_name'  => 'Quotation',
+        ],
+        'tender' => [
+            'title'       => $settings['tender_title_bn'] ?? 'TENDER PROPOSAL',
+            'label'       => 'Tender',
+            'badge_style' => 'background-color: #f3e8ff; color: #7e22ce; border-color: #d8b4fe;',
+            'icon'        => 'fa-solid fa-file-signature',
+            'box_title'   => 'TENDER & BID DETAILS',
+            'box_icon'    => 'fa-solid fa-handshake',
+            'gen_label'   => 'Computer-generated tender proposal',
+            'page1_name'  => 'Tender',
+        ],
+        'challan' => [
+            'title'       => $settings['challan_title_bn'] ?? 'DELIVERY CHALLAN',
+            'label'       => 'Challan',
+            'badge_style' => 'background-color: #e0f2fe; color: #0369a1; border-color: #7dd3fc;',
+            'icon'        => 'fa-solid fa-truck-fast',
+            'box_title'   => 'CHALLAN & DISPATCH DETAILS',
+            'box_icon'    => 'fa-solid fa-boxes-packing',
+            'gen_label'   => 'Computer-generated delivery challan',
+            'page1_name'  => 'Challan',
+        ],
+        'invoice' => [
+            'title'       => $settings['invoice_title_bn'] ?? 'INVOICE / BILL',
+            'label'       => 'Invoice / Bill',
+            'badge_style' => 'background-color: #dcfce7; color: #15803d; border-color: #86efac;',
+            'icon'        => 'fa-solid fa-receipt',
+            'box_title'   => 'ORDER & PAYMENT DETAILS',
+            'box_icon'    => 'fa-solid fa-credit-card',
+            'gen_label'   => 'Computer-generated bill / cash memo',
+            'page1_name'  => 'Bill',
+        ],
+    ];
+    $curDoc = $docTypes[$invoice->type] ?? $docTypes['invoice'];
 @endphp
 
 {{-- Top Action Bar for Customer --}}
@@ -606,32 +650,32 @@
                 <img src="{{ $logoSrc }}" alt="Logo" style="height: 32px; width: 64px; object-fit: contain;">
                 <span class="fw-bold fs-6 d-none d-sm-inline">{{ $settings['business_name'] ?? 'Idea Publication' }}</span>
             </a>
-            <span class="badge bg-primary-subtle text-primary border ms-2">
-                {{ ucfirst($invoice->type) }} #{{ $invoice->invoice_no }}
+            <span class="badge border ms-2 d-inline-flex align-items-center gap-1.5 fw-semibold" style="{{ $curDoc['badge_style'] }}; font-size: 11px;">
+                <i class="{{ $curDoc['icon'] }}"></i> {{ $curDoc['label'] }} #{{ $invoice->invoice_no }}
             </span>
         </div>
 
         <div class="d-flex flex-wrap align-items-center gap-2">
-            @if($invoice->type === 'invoice')
-                <div class="btn-group btn-group-sm">
+            <div class="btn-group btn-group-sm">
+                @if($invoice->type !== 'challan')
                     <button type="button" class="btn btn-outline-primary active" id="btnShowBoth" onclick="setViewMode('both')">
-                        <i class="fas fa-file-lines me-1"></i>Both Pages (Bill & Challan)
+                        <i class="fa-solid fa-file-lines me-1"></i>Both Pages ({{ $curDoc['page1_name'] }} & Challan)
                     </button>
                     <button type="button" class="btn btn-outline-primary" id="btnShowBill" onclick="setViewMode('bill')">
-                        <i class="fas fa-receipt me-1"></i>Page 1 (Bill)
+                        <i class="{{ $curDoc['icon'] }} me-1"></i>Page 1 ({{ $curDoc['page1_name'] }})
                     </button>
-                    <button type="button" class="btn btn-outline-primary" id="btnShowChallan" onclick="setViewMode('challan')">
-                        <i class="fas fa-truck me-1"></i>Page 2 (Challan)
-                    </button>
-                </div>
-            @endif
+                @endif
+                <button type="button" class="btn btn-outline-primary {{ $invoice->type === 'challan' ? 'active' : '' }}" id="btnShowChallan" onclick="setViewMode('challan')">
+                    <i class="fa-solid fa-truck-fast me-1"></i>Page 2 (Challan)
+                </button>
+            </div>
 
             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copyInvoiceLink()" id="btnCopyLink">
-                <i class="fas fa-copy me-1"></i>Copy Link
+                <i class="fa-solid fa-copy me-1"></i>Copy Link
             </button>
 
             <button type="button" class="btn btn-primary btn-sm fw-semibold shadow-sm" onclick="window.print()">
-                <i class="fas fa-print me-1"></i> Print / Download PDF
+                <i class="fa-solid fa-print me-1"></i> Print / Download PDF
             </button>
         </div>
     </div>
@@ -656,25 +700,33 @@
                                 <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</div>
                                 <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</div>
                                 <div class="text-muted invoice-contact-info d-flex flex-wrap align-items-center gap-x-2 gap-y-1 mt-1" style="font-size: 9.5px; line-height: 1.35;">
-                                    <span class="d-inline-flex align-items-center text-dark">
-                                        <i class="fa-solid fa-location-dot text-danger me-1" style="font-size: 10px;"></i>
-                                        <span>{{ $bizAddress }}</span>
-                                    </span>
-                                    <span class="text-muted opacity-50">·</span>
-                                    <a href="tel:{{ $bizPhone }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Call Us">
-                                        <i class="fa-solid fa-phone text-primary me-1" style="font-size: 10px;"></i>
-                                        <span class="fw-semibold">{{ $bizPhone }}</span>
-                                    </a>
-                                    <span class="text-muted opacity-50">·</span>
-                                    <a href="https://wa.me/{{ $cleanBizWa }}" target="_blank" class="text-dark text-decoration-none d-inline-flex align-items-center" title="WhatsApp Us">
-                                        <i class="fa-brands fa-whatsapp text-success me-1" style="font-size: 11.5px;"></i>
-                                        <span class="fw-semibold">{{ $bizWhatsapp }}</span>
-                                    </a>
-                                    <span class="text-muted opacity-50">·</span>
-                                    <a href="mailto:{{ $bizEmail }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Email Us">
-                                        <i class="fa-solid fa-envelope text-secondary me-1" style="font-size: 10px;"></i>
-                                        <span>{{ $bizEmail }}</span>
-                                    </a>
+                                    @if(!empty($bizAddress))
+                                        <span class="d-inline-flex align-items-center text-dark">
+                                            <i class="fa-solid fa-location-dot text-danger me-1" style="font-size: 10px;"></i>
+                                            <span>{{ $bizAddress }}</span>
+                                        </span>
+                                    @endif
+                                    @if(!empty($bizPhone))
+                                        @if(!empty($bizAddress))<span class="text-muted opacity-50">·</span>@endif
+                                        <a href="tel:{{ $bizPhone }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Call Us">
+                                            <i class="fa-solid fa-phone text-primary me-1" style="font-size: 10px;"></i>
+                                            <span class="fw-semibold">{{ $bizPhone }}</span>
+                                        </a>
+                                    @endif
+                                    @if(!empty($bizWhatsapp))
+                                        <span class="text-muted opacity-50">·</span>
+                                        <a href="https://wa.me/{{ $cleanBizWa }}" target="_blank" class="text-dark text-decoration-none d-inline-flex align-items-center" title="WhatsApp Us">
+                                            <i class="fa-brands fa-whatsapp text-success me-1" style="font-size: 11.5px;"></i>
+                                            <span class="fw-semibold">{{ $bizWhatsapp }}</span>
+                                        </a>
+                                    @endif
+                                    @if(!empty($bizEmail))
+                                        <span class="text-muted opacity-50">·</span>
+                                        <a href="mailto:{{ $bizEmail }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Email Us">
+                                            <i class="fa-solid fa-envelope text-secondary me-1" style="font-size: 10px;"></i>
+                                            <span>{{ $bizEmail }}</span>
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -682,28 +734,10 @@
 
                     <div class="col-5 col-print-5 text-end mt-0">
                         @php
-                            $badgeStyles = [
-                                'challan'   => 'background-color: #e0f2fe; color: #0369a1; border-color: #7dd3fc;',
-                                'quotation' => 'background-color: #fef3c7; color: #b45309; border-color: #fcd34d;',
-                                'tender'    => 'background-color: #f3e8ff; color: #7e22ce; border-color: #d8b4fe;',
-                                'invoice'   => 'background-color: #dcfce7; color: #15803d; border-color: #86efac;',
-                            ];
-                            $badgeTitles = [
-                                'challan'   => 'DELIVERY CHALLAN',
-                                'quotation' => 'PRICE QUOTATION',
-                                'tender'    => 'TENDER PROPOSAL',
-                                'invoice'   => 'INVOICE / BILL',
-                            ];
-                            $computerGeneratedLabels = [
-                                'challan'   => 'Computer-generated delivery challan',
-                                'quotation' => 'Computer-generated quotation',
-                                'tender'    => 'Computer-generated tender',
-                                'invoice'   => 'Computer-generated bill',
-                            ];
                             $catBadge = $invoice->category_badge;
                         @endphp
-                        <span class="badge border px-2 py-0.5 rounded-pill mb-0.5 d-inline-block fw-bold" style="font-size: 10px; {{ $badgeStyles[$invoice->type] ?? $badgeStyles['invoice'] }}">
-                            {{ $badgeTitles[$invoice->type] ?? 'INVOICE / BILL' }}
+                        <span class="badge border px-2.5 py-1 rounded-pill mb-0.5 d-inline-flex align-items-center gap-1.5 fw-bold" style="font-size: 10px; {{ $curDoc['badge_style'] }}">
+                            <i class="{{ $curDoc['icon'] }}"></i> {{ $curDoc['title'] }}
                         </span>
                         @if($invoice->sales_category && $invoice->sales_category !== 'books')
                             <span class="badge border {{ $catBadge['bg'] }} px-2 py-0.5 rounded-pill mb-0.5 d-inline-block fw-bold ms-1" style="font-size: 10px;">
@@ -713,11 +747,11 @@
                         <div class="fw-bold text-dark mb-0 font-monospace invoice-no-text" style="font-size: 13pt; line-height: 1.2;">#{{ $invoice->invoice_no }}</div>
                         
                         <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.2;">
-                            <i class="fas fa-desktop me-1"></i>{{ $computerGeneratedLabels[$invoice->type] ?? 'Computer-generated bill' }}
+                            <i class="fa-solid fa-desktop me-1"></i>{{ $curDoc['gen_label'] }}
                             · Date: <strong>{{ $invoice->invoice_date ? $invoice->invoice_date->format('d M, Y') : '—' }}</strong>
                         </div>
                         @if($invoice->valid_until)
-                            <div class="text-danger fw-semibold" style="font-size: 9px;"><i class="fas fa-hourglass-half me-0.5"></i>Valid until: {{ $invoice->valid_until->format('d M, Y') }}</div>
+                            <div class="text-danger fw-semibold" style="font-size: 9px;"><i class="fa-solid fa-hourglass-half me-0.5"></i>Valid until: {{ $invoice->valid_until->format('d M, Y') }}</div>
                         @endif
                     </div>
                 </div>
@@ -813,9 +847,9 @@
                                 @endif
                             </table>
                         </div>
-                        {{-- Right Column: ORDER & PAYMENT DETAILS --}}
+                        {{-- Right Column: ORDER & PAYMENT DETAILS (Dynamic Category & Document Mode) --}}
                         <div class="col-5 col-print-5 col-order-info">
-                            <div class="text-muted text-uppercase fw-bold mb-1" style="font-size: 11px; letter-spacing: 0.2px;"><i class="fa-solid fa-file-invoice me-1.5 text-primary"></i>ORDER & PAYMENT DETAILS:</div>
+                            <div class="text-muted text-uppercase fw-bold mb-1" style="font-size: 11px; letter-spacing: 0.2px;"><i class="{{ $curDoc['box_icon'] }} me-1.5 text-primary"></i>{{ $curDoc['box_title'] }}:</div>
                             <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
                                 <tr>
                                     <td class="colon-label" style="width: 85px;">Doc Type</td>
@@ -1152,38 +1186,46 @@
                                     <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</div>
                                     <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</div>
                                     <div class="text-muted invoice-contact-info d-flex flex-wrap align-items-center gap-x-2 gap-y-1 mt-1" style="font-size: 9.5px; line-height: 1.35;">
-                                        <span class="d-inline-flex align-items-center text-dark">
-                                            <i class="fa-solid fa-location-dot text-danger me-1" style="font-size: 10px;"></i>
-                                            <span>{{ $bizAddress }}</span>
-                                        </span>
-                                        <span class="text-muted opacity-50">·</span>
-                                        <a href="tel:{{ $bizPhone }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Call Us">
-                                            <i class="fa-solid fa-phone text-primary me-1" style="font-size: 10px;"></i>
-                                            <span class="fw-semibold">{{ $bizPhone }}</span>
-                                        </a>
-                                        <span class="text-muted opacity-50">·</span>
-                                        <a href="https://wa.me/{{ $cleanBizWa }}" target="_blank" class="text-dark text-decoration-none d-inline-flex align-items-center" title="WhatsApp Us">
-                                            <i class="fa-brands fa-whatsapp text-success me-1" style="font-size: 11.5px;"></i>
-                                            <span class="fw-semibold">{{ $bizWhatsapp }}</span>
-                                        </a>
-                                        <span class="text-muted opacity-50">·</span>
-                                        <a href="mailto:{{ $bizEmail }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Email Us">
-                                            <i class="fa-solid fa-envelope text-secondary me-1" style="font-size: 10px;"></i>
-                                            <span>{{ $bizEmail }}</span>
-                                        </a>
+                                        @if(!empty($bizAddress))
+                                            <span class="d-inline-flex align-items-center text-dark">
+                                                <i class="fa-solid fa-location-dot text-danger me-1" style="font-size: 10px;"></i>
+                                                <span>{{ $bizAddress }}</span>
+                                            </span>
+                                        @endif
+                                        @if(!empty($bizPhone))
+                                            @if(!empty($bizAddress))<span class="text-muted opacity-50">·</span>@endif
+                                            <a href="tel:{{ $bizPhone }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Call Us">
+                                                <i class="fa-solid fa-phone text-primary me-1" style="font-size: 10px;"></i>
+                                                <span class="fw-semibold">{{ $bizPhone }}</span>
+                                            </a>
+                                        @endif
+                                        @if(!empty($bizWhatsapp))
+                                            <span class="text-muted opacity-50">·</span>
+                                            <a href="https://wa.me/{{ $cleanBizWa }}" target="_blank" class="text-dark text-decoration-none d-inline-flex align-items-center" title="WhatsApp Us">
+                                                <i class="fa-brands fa-whatsapp text-success me-1" style="font-size: 11.5px;"></i>
+                                                <span class="fw-semibold">{{ $bizWhatsapp }}</span>
+                                            </a>
+                                        @endif
+                                        @if(!empty($bizEmail))
+                                            <span class="text-muted opacity-50">·</span>
+                                            <a href="mailto:{{ $bizEmail }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Email Us">
+                                                <i class="fa-solid fa-envelope text-secondary me-1" style="font-size: 10px;"></i>
+                                                <span>{{ $bizEmail }}</span>
+                                            </a>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-5 col-print-5 text-end mt-0">
-                            <span class="badge border px-2 py-0.5 rounded-pill mb-0.5 d-inline-block fw-bold" style="font-size: 10px; background-color: #e0f2fe; color: #0369a1; border-color: #7dd3fc;">
-                                DELIVERY CHALLAN
+                            <span class="badge border px-2.5 py-1 rounded-pill mb-0.5 d-inline-flex align-items-center gap-1.5 fw-bold" style="font-size: 10px; {{ $docTypes['challan']['badge_style'] }}">
+                                <i class="{{ $docTypes['challan']['icon'] }}"></i> {{ $docTypes['challan']['title'] }}
                             </span>
                             <div class="fw-bold text-dark mb-0 font-monospace invoice-no-text" style="font-size: 13pt; line-height: 1.2;">#{{ $invoice->invoice_no }}</div>
                             
                             <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.2;">
-                                <i class="fa-solid fa-truck me-1"></i>Computer-generated delivery challan · Date: <strong>{{ $invoice->invoice_date ? $invoice->invoice_date->format('d M, Y') : '—' }}</strong>
+                                <i class="fa-solid fa-truck-fast me-1"></i>Computer-generated delivery challan · Date: <strong>{{ $invoice->invoice_date ? $invoice->invoice_date->format('d M, Y') : '—' }}</strong>
                             </div>
                             <div class="text-muted" style="font-size: 9px;">Linked Bill #: <strong>#{{ $invoice->invoice_no }}</strong></div>
                         </div>
