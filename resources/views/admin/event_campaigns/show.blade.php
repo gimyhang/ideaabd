@@ -943,8 +943,8 @@
                 <button type="button" class="btn btn-sm btn-info text-white rounded-pill px-3 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" onclick="openBulkBroadcastSmsModal()" title="একবারে ইভেন্ট আপডেট মেসেজ পাঠান">
                     <i class="fa-solid fa-paper-plane"></i> <span>আপডেট এসএমএস</span>
                 </button>
-                <a href="{{ route('admin.event-campaigns.print-all', $campaign->id) }}?{{ http_build_query(request()->all()) }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-xs" title="বর্তমান ফিল্টার অনুযায়ী সকল এন্ট্রি এক কমান্ডে প্রিন্ট করুন">
-                    <i class="fa-solid fa-print me-1.5"></i> প্রিন্ট
+                <a href="{{ route('admin.event-campaigns.print-all', $campaign->id) }}?{{ http_build_query(request()->all()) }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-xs" title="বর্তমান ফিল্টার অনুযায়ী সকল তালিকা ও আবেদন ফরম এক কমান্ডে প্রিন্ট করুন">
+                    <i class="fa-solid fa-print me-1.5"></i> প্রিন্ট (তালিকা ও ফরম)
                 </a>
                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5" onclick="window.print()" title="বর্তমান পেজ প্রিন্ট">
                     <i class="fa-solid fa-file-invoice me-1"></i> পেজ
@@ -1281,11 +1281,11 @@
                                                 @csrf
                                                 <input type="hidden" name="status" value="{{ in_array($reg->status, ['confirmed', 'approved', 'selected']) ? 'pending' : 'confirmed' }}">
                                                 @if(in_array($reg->status, ['confirmed', 'approved', 'selected']))
-                                                    <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 text-nowrap shadow-xs quick-status-btn" style="font-size: 11px;" title="Approved (ক্লিক করে পেন্ডিং করুন)">
+                                                    <button type="button" onclick="handleQuickStatusAction(this.closest('form'), this); return false;" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 text-nowrap shadow-xs quick-status-btn" style="font-size: 11px;" title="Approved (ক্লিক করে পেন্ডিং করুন)">
                                                         <i class="fa-solid fa-circle-check me-1"></i> Approved
                                                     </button>
                                                 @else
-                                                    <button type="button" class="btn btn-sm btn-warning text-dark rounded-pill px-2.5 py-1 text-nowrap shadow-xs quick-status-btn" style="font-size: 11px;" title="অবিলম্বে এপ্রুভ করুন">
+                                                    <button type="button" onclick="handleQuickStatusAction(this.closest('form'), this); return false;" class="btn btn-sm btn-warning text-dark rounded-pill px-2.5 py-1 text-nowrap shadow-xs quick-status-btn" style="font-size: 11px;" title="অবিলম্বে এপ্রুভ করুন">
                                                         <i class="fa-solid fa-check me-1"></i> Approve
                                                     </button>
                                                 @endif
@@ -1296,11 +1296,11 @@
                                                 @csrf
                                                 <input type="hidden" name="status" value="{{ $reg->status === 'rejected' ? 'pending' : 'rejected' }}">
                                                 @if($reg->status === 'rejected')
-                                                    <button type="button" class="btn btn-sm btn-danger rounded-pill px-2 py-1 text-nowrap shadow-xs quick-status-btn" style="font-size: 11px;" title="Rejected (ক্লিক করে পেন্ডিং করুন)">
+                                                    <button type="button" onclick="handleQuickStatusAction(this.closest('form'), this); return false;" class="btn btn-sm btn-danger rounded-pill px-2 py-1 text-nowrap shadow-xs quick-status-btn" style="font-size: 11px;" title="Rejected (ক্লিক করে পেন্ডিং করুন)">
                                                         <i class="fa-solid fa-circle-xmark me-1"></i> Rejected
                                                     </button>
                                                 @else
-                                                    <button type="button" class="btn btn-sm btn-outline-danger bg-white rounded-pill px-2 py-1 text-nowrap shadow-xs quick-status-btn" style="font-size: 11px;" title="আবেদন অবিলম্বে বাতিল করুন">
+                                                    <button type="button" onclick="handleQuickStatusAction(this.closest('form'), this); return false;" class="btn btn-sm btn-outline-danger bg-white rounded-pill px-2 py-1 text-nowrap shadow-xs quick-status-btn" style="font-size: 11px;" title="আবেদন অবিলম্বে বাতিল করুন">
                                                         <i class="fa-solid fa-xmark me-1"></i> বাতিল
                                                     </button>
                                                 @endif
@@ -1408,7 +1408,7 @@
                                                         <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}" data-status-action="modal-approve">
                                                             @csrf
                                                             <input type="hidden" name="status" value="confirmed">
-                                                            <button type="button" class="btn btn-sm {{ in_array($reg->status, ['confirmed', 'selected', 'approved']) ? 'btn-success text-white' : 'btn-outline-success border-0 text-success' }} px-3 py-1 fw-bold rounded-pill quick-status-btn" title="নিবন্ধন অবিলম্বে এপ্রুভ করুন">
+                                                            <button type="button" onclick="handleQuickStatusAction(this.closest('form'), this); return false;" class="btn btn-sm {{ in_array($reg->status, ['confirmed', 'selected', 'approved']) ? 'btn-success text-white' : 'btn-outline-success border-0 text-success' }} px-3 py-1 fw-bold rounded-pill quick-status-btn" title="নিবন্ধন অবিলম্বে এপ্রুভ করুন">
                                                                 <i class="fa-solid fa-circle-check me-1"></i> {{ in_array($reg->status, ['confirmed', 'selected', 'approved']) ? 'এপ্রুভড' : 'এপ্রুভ করুন' }}
                                                             </button>
                                                         </form>
@@ -1417,7 +1417,7 @@
                                                         <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}" data-status-action="modal-reject">
                                                             @csrf
                                                             <input type="hidden" name="status" value="rejected">
-                                                            <button type="button" class="btn btn-sm {{ $reg->status === 'rejected' ? 'btn-danger text-white' : 'btn-outline-danger border-0 text-danger' }} px-3 py-1 fw-bold rounded-pill quick-status-btn" title="নিবন্ধন অবিলম্বে বাতিল করুন">
+                                                            <button type="button" onclick="handleQuickStatusAction(this.closest('form'), this); return false;" class="btn btn-sm {{ $reg->status === 'rejected' ? 'btn-danger text-white' : 'btn-outline-danger border-0 text-danger' }} px-3 py-1 fw-bold rounded-pill quick-status-btn" title="নিবন্ধন অবিলম্বে বাতিল করুন">
                                                                 <i class="fa-solid fa-circle-xmark me-1"></i> {{ $reg->status === 'rejected' ? 'বাতিলকৃত' : 'বাতিল করুন' }}
                                                             </button>
                                                         </form>
@@ -1426,7 +1426,7 @@
                                                         <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}" data-status-action="modal-pending" id="modalPendingForm_{{ $reg->id }}" style="{{ $reg->status === 'pending' ? 'display: none !important;' : '' }}">
                                                             @csrf
                                                             <input type="hidden" name="status" value="pending">
-                                                            <button type="button" class="btn btn-sm btn-outline-warning border-0 text-dark px-2.5 py-1 rounded-pill quick-status-btn" title="পেন্ডিংয়ে ফেরত নিন">
+                                                            <button type="button" onclick="handleQuickStatusAction(this.closest('form'), this); return false;" class="btn btn-sm btn-outline-warning border-0 text-dark px-2.5 py-1 rounded-pill quick-status-btn" title="পেন্ডিংয়ে ফেরত নিন">
                                                                 <i class="fa-solid fa-clock-rotate-left me-0.5"></i> পেন্ডিং
                                                             </button>
                                                         </form>
@@ -5499,6 +5499,7 @@
                     const input = approveForm.querySelector('input[name="status"]');
                     const btn = approveForm.querySelector('button');
                     if (input && btn) {
+                        btn.setAttribute('onclick', "handleQuickStatusAction(this.closest('form'), this); return false;");
                         if (isApproved) {
                             input.value = 'pending';
                             btn.className = 'btn btn-sm btn-success rounded-pill px-2.5 py-1 text-nowrap shadow-xs quick-status-btn';
@@ -5517,6 +5518,7 @@
                     const input = rejectForm.querySelector('input[name="status"]');
                     const btn = rejectForm.querySelector('button');
                     if (input && btn) {
+                        btn.setAttribute('onclick', "handleQuickStatusAction(this.closest('form'), this); return false;");
                         if (isRejected) {
                             input.value = 'pending';
                             btn.className = 'btn btn-sm btn-danger rounded-pill px-2 py-1 text-nowrap shadow-xs quick-status-btn';
@@ -5648,7 +5650,7 @@
         };
 
         // Universal Zero-Scroll Quick Status Switch Handler (Completely prevents page jumping, crawling, or scrolling)
-        function handleQuickStatusAction(form, triggerBtn) {
+        window.handleQuickStatusAction = function(form, triggerBtn) {
             if (!form || form.getAttribute('data-submitting') === 'true') return;
 
             // 1. Lock the exact current scroll position
@@ -5683,22 +5685,35 @@
             const formData = new FormData(form);
             const actionUrl = form.getAttribute('action');
 
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || form.querySelector('input[name="_token"]')?.value || '';
+            const headers = {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            };
+            if (csrfToken) {
+                headers['X-CSRF-TOKEN'] = csrfToken;
+            }
+
             fetch(actionUrl, {
                 method: 'POST',
                 body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
+                headers: headers
             })
-            .then(res => res.json())
+            .then(async res => {
+                const isJson = (res.headers.get('content-type') || '').includes('application/json');
+                const data = isJson ? await res.json() : { success: res.ok, message: await res.text() };
+                if (!res.ok && (!data || !data.message)) {
+                    data.message = 'সার্ভার ত্রুটি: ' + res.status;
+                }
+                return data;
+            })
             .then(data => {
                 if (submitBtn) {
                     submitBtn.innerHTML = origHtml;
                 }
                 finalizeBtn();
 
-                if (data.success) {
+                if (data && data.success) {
                     const regId = form.getAttribute('data-reg-id');
                     const newStatus = data.status || 'pending';
                     const counts = {
@@ -5707,10 +5722,11 @@
                     };
                     window.updateParticipantRowStatus(regId, newStatus, counts, data.message || 'স্ট্যাটাস সফলভাবে আপডেট হয়েছে!');
                 } else {
+                    const errMsg = (data && data.message) ? data.message : 'স্ট্যাটাস পরিবর্তন ব্যর্থ হয়েছে।';
                     if (window.showToast) {
-                        window.showToast(data.message || 'স্ট্যাটাস পরিবর্তন ব্যর্থ হয়েছে।', true);
+                        window.showToast(errMsg, true);
                     } else {
-                        alert(data.message || 'স্ট্যাটাস পরিবর্তন ব্যর্থ হয়েছে।');
+                        alert(errMsg);
                     }
                 }
                 restoreScrollIfShifted();
@@ -5725,7 +5741,7 @@
                     window.showToast('সার্ভার সংযোগে ত্রুটি হয়েছে', true);
                 }
             });
-        }
+        };
 
         // Intercept button click event in capturing phase to prevent any default click jump
         document.addEventListener('click', function(e) {
@@ -6013,7 +6029,6 @@
                     window.scrollTo({ top: lockedScrollY, behavior: 'instant' });
                 });
             }, true);
-        });
     </script>
 @endpush
 @endsection
