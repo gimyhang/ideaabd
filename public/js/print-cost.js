@@ -141,16 +141,16 @@
     };
 
     var SIZES_BN = {
-        Demy: 'Demy 1/8 (5.5"×8.5") [বই/উপন্যাস]',
-        Crown: 'Crown 1/8 (5.0"×7.3") [গল্প/কবিতা]',
-        Royal: 'Royal 1/8 (6.25"×9.25") [বড়/একাডেমিক]',
-        CrownQuarto: 'Crown 1/4 (7.25"×9.5") [ছড়া/অ্যালবাম]',
-        DemyQuarto: 'Demy 1/4 (8.5"×11") [বড় অ্যালবাম]',
-        A4: 'A4 (8.3"×11.7") [ম্যাগাজিন/রিপোর্ট]',
-        A5: 'A5 (5.8"×8.3") [বই/ডায়েরি]',
-        B5: 'B5 (6.9"×9.8") [জার্নাল/বই]',
+        Demy: 'Demy (5.5"×8.5")',
+        Crown: 'Crown (5"×7.3")',
+        Royal: 'Royal (6.25"×9.25")',
+        DemyQuarto: 'Demy 1/4 (8.5"×11")',
+        CrownQuarto: 'Crown 1/4 (7.25"×9.5")',
+        A4: 'A4 (8.3"×11.7")',
+        A5: 'A5 (5.8"×8.3")',
+        B5: 'B5 (6.9"×9.8")',
         A3: 'A3 (11.7"×16.5")',
-        Card: 'Card (3.5"×2.0")',
+        Card: 'Card (3.5"×2")',
         Poster: 'Poster (18"×23")',
         Envelope: 'Envelope (10"×4.5")',
         Full: 'Sheet (23"×36")'
@@ -167,17 +167,17 @@
     };
 
     var SIZE_DEFAULTS = {
-        Demy: { sheet: '23x36', formaSize: 16, ups: 8 },
-        Crown: { sheet: '20x30', formaSize: 16, ups: 8 },
-        Royal: { sheet: '25x37', formaSize: 16, ups: 8 },
-        CrownQuarto: { sheet: '20x30', formaSize: 8, ups: 4 },
-        DemyQuarto: { sheet: '23x36', formaSize: 8, ups: 4 },
-        A4: { sheet: '23x36', formaSize: 8, ups: 4 },
-        A5: { sheet: '23x36', formaSize: 16, ups: 8 },
-        B5: { sheet: '20x30', formaSize: 16, ups: 8 },
-        A3: { sheet: '23x36', formaSize: 4, ups: 2 },
-        Card: { sheet: '20x30', formaSize: 1, ups: 25 },
-        Poster: { sheet: '23x36', formaSize: 1, ups: 2 }
+        Demy:        { sheet: '23x36', formaSize: 16, platePages: 8, ups: 8 },
+        Crown:       { sheet: '20x30', formaSize: 16, platePages: 8, ups: 8 },
+        Royal:       { sheet: '25x37', formaSize: 16, platePages: 8, ups: 8 },
+        DemyQuarto:  { sheet: '23x36', formaSize: 8,  platePages: 4, ups: 4 },
+        CrownQuarto: { sheet: '20x30', formaSize: 8,  platePages: 4, ups: 4 },
+        A4:          { sheet: '23x36', formaSize: 8,  platePages: 4, ups: 4 },
+        A5:          { sheet: '23x36', formaSize: 16, platePages: 8, ups: 8 },
+        B5:          { sheet: '20x30', formaSize: 16, platePages: 8, ups: 8 },
+        A3:          { sheet: '23x36', formaSize: 4,  platePages: 2, ups: 2 },
+        Card:        { sheet: '20x30', formaSize: 1,  platePages: 1, ups: 25 },
+        Poster:      { sheet: '23x36', formaSize: 1,  platePages: 1, ups: 2 }
     };
 
     var P = function (g, n, o) { o = o || {}; o.g = g; o.n = n; return o; };
@@ -532,7 +532,7 @@
         }
         $('pcColors').value = v ? v.colors : '4';
         $('pcSides').value = v ? v.sides : '1';
-        if ($('pcPlateMethod')) $('pcPlateMethod').value = v && v.plateMethod ? v.plateMethod : 'work_and_turn';
+        if ($('pcPlateMethod')) $('pcPlateMethod').value = v && v.plateMethod ? v.plateMethod : 'sheetwise';
         $('pcSheet').value = v ? v.sheet : (sDef.sheet || '23x36');
         $('pcOverhead').value = v && v.overhead !== undefined ? v.overhead : '0';
         $('pcProfit').value = v && v.profit !== undefined ? v.profit : '20';
@@ -557,7 +557,7 @@
             formas = pages / formaSize;
         }
 
-        var plateMethod = $('pcPlateMethod') ? $('pcPlateMethod').value : 'work_and_turn';
+        var plateMethod = $('pcPlateMethod') ? $('pcPlateMethod').value : 'sheetwise';
 
         return {
             q: q,
@@ -887,8 +887,9 @@
                     qNote.textContent = sh.toLocaleString('en-US') + ' Sheets' + bnText;
                 } else if (r.g === 'CTP') {
                     if (r.auto === 'platesBook') {
-                        var mLabel = j.plateMethod === 'sheetwise' ? 'Sheetwise 2x' : 'Work & Turn 1x';
-                        qNote.textContent = Math.ceil(j.formas) + ' formas × ' + j.colors + ' col (' + mLabel + ')';
+                        var pltPerForma = (j.plateMethod === 'sheetwise' ? 2 : 1) * j.colors;
+                        var mLabel = j.plateMethod === 'sheetwise' ? '2 Plt/Forma' : '1 Plt/Forma';
+                        qNote.textContent = Math.ceil(j.formas) + ' formas × ' + pltPerForma + ' plt (' + mLabel + ')';
                     } else if (r.auto === 'platesCover') {
                         qNote.textContent = 'Cover CMYK 4-Col' + (r.b === 'Both Sides' ? ' (Both Sides = 8 Plt)' : ' = 4 Plt');
                     } else {
@@ -956,9 +957,11 @@
             if (paperRow && paperRow.waste != null) wasteVal = paperRow.waste;
             if ($('pcKpiPaperWaste')) $('pcKpiPaperWaste').textContent = wasteVal + '% Waste';
 
+            var curDef = SIZE_DEFAULTS[j.size] || { platePages: 8, formaSize: 16 };
+            var platePagesInfo = curDef.platePages ? curDef.platePages + 'p/Plate → ' : '';
             var formasDisplay = j.formas ? (j.formas % 1 === 0 ? j.formas : j.formas.toFixed(2)) : '0';
             if ($('pcKpiFormas')) $('pcKpiFormas').textContent = formasDisplay + ' Formas';
-            if ($('pcKpiFormaSub')) $('pcKpiFormaSub').textContent = j.pages ? j.pages + ' Pages (' + j.formaSize + 'p / forma)' : (SIZES_BN[j.size] || j.size);
+            if ($('pcKpiFormaSub')) $('pcKpiFormaSub').textContent = j.pages ? j.pages + ' Pages (' + platePagesInfo + j.formaSize + 'p Forma)' : (SIZES_BN[j.size] || j.size);
             if ($('pcKpiUpsBadge')) $('pcKpiUpsBadge').textContent = SIZES_BN[j.size] ? SIZES_BN[j.size].split(' ')[0] : j.size;
 
             var totalPlates = 0, innerPlates = 0, coverPlates = 0;
@@ -969,7 +972,7 @@
             });
             if ($('pcKpiPlates')) $('pcKpiPlates').textContent = totalPlates + ' Plates';
             if ($('pcKpiPlateSub')) $('pcKpiPlateSub').textContent = 'Inner ' + innerPlates + ' + Cover ' + coverPlates;
-            if ($('pcKpiPlateMethodBadge')) $('pcKpiPlateMethodBadge').textContent = j.plateMethod === 'sheetwise' ? 'Sheetwise (2x)' : 'Work & Turn (1x)';
+            if ($('pcKpiPlateMethodBadge')) $('pcKpiPlateMethodBadge').textContent = j.plateMethod === 'sheetwise' ? '2 Plates/Forma' : '1 Plate/Forma';
 
             var totalImpressions = 0;
             state.rows.filter(function (r) { return r.g === 'Press' && r.on; }).forEach(function (r) { totalImpressions += num(r.qty); });
@@ -1043,10 +1046,12 @@
         var parts = [];
         var sizeLabel = SIZES_BN[j.size] || j.size;
         if (sizeLabel) parts.push('Size: ' + sizeLabel);
+        var curDef = SIZE_DEFAULTS[j.size] || { platePages: 8, formaSize: 16 };
         var fStr = j.formas ? (j.formas % 1 === 0 ? j.formas : j.formas.toFixed(2)) : '1';
-        if (j.pages) parts.push('Pages: ' + j.pages + ' (' + fStr + ' Formas)');
+        var platePages = curDef.platePages || (j.formaSize / 2);
+        if (j.pages) parts.push('Pages: ' + j.pages + ' (' + fStr + ' Formas | ' + j.formaSize + 'p Forma, ' + platePages + 'p/Plate)');
         parts.push('Print: ' + j.colors + ' Colors' + (j.sides === 2 ? ' (Both Sides)' : ' (1 Side)'));
-        parts.push('Plates: ' + (j.plateMethod === 'sheetwise' ? 'Sheetwise' : 'Work & Turn'));
+        parts.push('Plates: ' + (j.plateMethod === 'sheetwise' ? '2 Plates/Forma (Sheetwise)' : '1 Plate/Forma (Work & Turn)'));
         if (j.q <= 1000) parts.push('Press: Min 1,000 Imp');
 
         var by = {};
@@ -1070,10 +1075,12 @@
         var parts = [];
         var sizeLabel = SIZES_BN[j.size] || j.size;
         if (sizeLabel) parts.push('Size: ' + sizeLabel);
+        var curDef = SIZE_DEFAULTS[j.size] || { platePages: 8, formaSize: 16 };
         var fStr = j.formas ? (j.formas % 1 === 0 ? j.formas : j.formas.toFixed(2)) : '1';
-        if (j.pages) parts.push('Pages: ' + j.pages + ' (' + fStr + ' Formas)');
+        var platePages = curDef.platePages || (j.formaSize / 2);
+        if (j.pages) parts.push('Pages: ' + j.pages + ' (' + fStr + ' Formas | ' + j.formaSize + 'p Forma, ' + platePages + 'p/Plate)');
         parts.push('Print: ' + j.colors + ' Colors' + (j.sides === 2 ? ' (Both Sides)' : ' (1 Side)'));
-        parts.push('Plates: ' + (j.plateMethod === 'sheetwise' ? 'Sheetwise' : 'Work & Turn'));
+        parts.push('Plates: ' + (j.plateMethod === 'sheetwise' ? '2 Plates/Forma (Sheetwise)' : '1 Plate/Forma (Work & Turn)'));
         if (j.q <= 1000) parts.push('Press: Min 1,000 Imp');
 
         var comps = [];

@@ -106,8 +106,8 @@
                                 <div class="pc-f pc-f-plates" id="pcPlateMethodWrap">
                                     <label for="pcPlateMethod" class="pc-label">Plates</label>
                                     <select id="pcPlateMethod" class="form-select form-select-sm">
-                                        <option value="work_and_turn" selected>Work &amp; Turn</option>
-                                        <option value="sheetwise">Sheetwise</option>
+                                        <option value="sheetwise" selected>2 Plates/Forma (Sheetwise)</option>
+                                        <option value="work_and_turn">1 Plate/Forma (Work &amp; Turn)</option>
                                     </select>
                                 </div>
 
@@ -124,7 +124,7 @@
                                         </span>
                                     </div>
                                     <select id="pcSheet" class="form-select form-select-sm">
-                                        @foreach (['23x36' => '23×36 (Demy / A4 / A5)', '20x30' => '20×30 (Crown)', '25x37' => '25×37 (Royal)', '25x36' => '25×36 (Royal/Custom)', '18x23' => '18×23 (Half Demy)', '27x38' => '27×38 (Large)', '31x43' => '31×43 (Jumbo)'] as $v => $label)
+                                        @foreach (['23x36' => '23×36 (Demy)', '20x30' => '20×30 (Crown)', '25x37' => '25×37 (Royal)', '25x36' => '25×36 (Royal/Custom)', '18x23' => '18×23 (Half Demy)', '27x38' => '27×38 (Large)', '31x43' => '31×43 (Jumbo)'] as $v => $label)
                                             <option value="{{ $v }}">{{ $label }}</option>
                                         @endforeach
                                     </select>
