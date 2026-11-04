@@ -378,33 +378,35 @@
                 </div>
             </div>
 
-            <div class="table-responsive rounded-3 border shadow-2xs">
-                <table class="table table-bordered align-middle mb-0" id="itemsTable" style="min-width: 1100px;">
+            <div class="table-responsive rounded-3 border shadow-2xs invoice-table-wrap">
+                <table class="table table-bordered align-middle mb-0 invoice-items-table" id="itemsTable">
                     <thead class="table-light">
-                        <tr class="small text-muted text-uppercase" style="font-size: 11.5px; letter-spacing: 0.4px;">
-                            <th style="min-width: 340px;" id="thTitleCol"><span id="thTitleLabel">Item / Book Title</span> <span class="text-danger">*</span></th>
-                            <th style="min-width: 200px;" id="thAuthorCol"><span id="thAuthorLabel">Author / Spec</span></th>
-                            <th style="min-width: 170px;" id="thTypeCol"><span id="thTypeLabel">Type / Edition</span></th>
-                            <th style="min-width: 85px;" class="text-center" id="thUnitCol"><span id="thUnitLabel">Unit</span></th>
-                            <th style="min-width: 90px;" class="text-center" id="thQtyCol"><span id="thQtyLabel">Qty</span> <span class="text-danger">*</span></th>
-                            <th style="min-width: 120px;" class="text-end" id="thRegPriceCol"><span id="thRegPriceLabel">Price (৳)</span></th>
-                            <th style="min-width: 95px;" class="text-center" id="thDiscCol">Disc (%)</th>
-                            <th style="min-width: 125px;" class="text-end" id="thUnitPriceCol"><span id="thUnitPriceLabel">Net Price (৳)</span> <span class="text-danger">*</span></th>
-                            <th style="min-width: 130px;" class="text-end" id="thTotalCol">Total (৳)</th>
-                            <th style="min-width: 45px; width: 45px;" class="text-center"></th>
+                        <tr class="small text-muted text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">
+                            <th style="width: 38px; min-width: 38px;" class="text-center py-2">#</th>
+                            <th style="min-width: 290px;" class="py-2" id="thTitleCol"><span id="thTitleLabel">Item / Book Title</span> <span class="text-danger">*</span></th>
+                            <th style="width: 170px; min-width: 150px;" class="py-2" id="thAuthorCol"><span id="thAuthorLabel">Author / Spec</span></th>
+                            <th style="width: 145px; min-width: 135px;" class="py-2" id="thTypeCol"><span id="thTypeLabel">Type / Edition</span></th>
+                            <th style="width: 75px; min-width: 70px;" class="text-center py-2" id="thUnitCol"><span id="thUnitLabel">Unit</span></th>
+                            <th style="width: 75px; min-width: 70px;" class="text-center py-2" id="thQtyCol"><span id="thQtyLabel">Qty</span> <span class="text-danger">*</span></th>
+                            <th style="width: 95px; min-width: 90px;" class="text-end py-2" id="thRegPriceCol"><span id="thRegPriceLabel">Price (৳)</span></th>
+                            <th style="width: 70px; min-width: 65px;" class="text-center py-2" id="thDiscCol">Disc %</th>
+                            <th style="width: 105px; min-width: 100px;" class="text-end py-2" id="thUnitPriceCol"><span id="thUnitPriceLabel">Net Price (৳)</span> <span class="text-danger">*</span></th>
+                            <th style="width: 110px; min-width: 105px;" class="text-end py-2" id="thTotalCol">Total (৳)</th>
+                            <th style="width: 68px; min-width: 68px;" class="text-center py-2">Action</th>
                         </tr>
                     </thead>
                     <tbody id="itemsBody">
                         <tr class="item-row" data-row="0">
-                            <td class="position-relative book-search-container" style="min-width: 340px;">
+                            <td class="text-center text-muted fw-bold item-serial-num font-monospace" style="width: 38px;">1</td>
+                            <td class="position-relative book-search-container" style="min-width: 290px;">
                                 <div class="input-group input-group-sm">
                                     <textarea name="items[0][title]" class="form-control item-title fw-bold" rows="2" 
                                               placeholder="Search book title, author, ISBN..." required 
                                               oninput="handleLiveBookSearch(this, 0)" 
                                               onfocus="handleLiveBookSearch(this, 0)" 
                                               onkeydown="handleBookSearchKeydown(event, 0)"
-                                              autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;"></textarea>
-                                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center" onclick="openQuickAddBookModal(0)" title="Add new book to Bookshop" style="min-height: 52px;">
+                                              autocomplete="off" style="font-size: 13px; min-height: 48px; line-height: 1.4; resize: vertical;"></textarea>
+                                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center" onclick="openQuickAddBookModal(0)" title="Add new book to Bookshop" style="min-height: 48px;">
                                         <i class="fa-solid fa-plus"></i>
                                     </button>
                                 </div>
@@ -457,20 +459,45 @@
                                        value="0" min="0" required oninput="calcRow(0, 'unit_price')">
                             </td>
                             <td class="text-end fw-bold text-dark item-subtotal font-monospace fs-6">৳0.00</td>
-                            <td class="text-center">
-                                <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
+                            <td class="text-center text-nowrap">
+                                <div class="d-inline-flex align-items-center gap-1">
+                                    <button type="button" class="btn btn-sm btn-light text-secondary border-0 p-1.5 rounded-2" onclick="duplicateRow(this)" title="Duplicate Row">
+                                        <i class="fa-regular fa-copy"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-light text-danger border-0 p-1.5 rounded-2" onclick="removeRow(this)" title="Remove">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
+                    <tfoot class="table-light border-top border-2">
+                        <tr>
+                            <td colspan="5" class="py-2.5 px-3">
+                                <div class="d-flex align-items-center justify-content-between gap-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="small fw-semibold text-muted text-uppercase">Total Items:</span>
+                                        <span id="tableItemCount" class="badge bg-white text-dark border px-2 py-1 fw-bold font-monospace">1</span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-semibold shadow-2xs" onclick="addItemRow()">
+                                        <i class="fa-solid fa-plus me-1"></i> Add Item
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="text-center py-2.5 px-2">
+                                <span class="small text-muted d-block" style="font-size: 10px; line-height: 1;">TOTAL QTY</span>
+                                <span id="tableTotalQty" class="fw-bold font-monospace text-dark fs-6">1</span>
+                            </td>
+                            <td colspan="3" class="text-end py-2.5 px-2">
+                                <span class="small text-muted text-uppercase fw-bold">Subtotal:</span>
+                            </td>
+                            <td class="text-end py-2.5 px-2">
+                                <span id="tableSubtotalDisplay" class="fw-bold font-monospace text-primary fs-6">৳0.00</span>
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
                 </table>
-            </div>
-
-            <div class="mt-2.5">
-                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold" onclick="addItemRow()">
-                    <i class="fa-solid fa-plus me-1"></i> Add More Items
-                </button>
             </div>
         </div>
     </div>
@@ -1250,6 +1277,20 @@
         }
     }
 
+    function updateRowSerials() {
+        const rows = document.querySelectorAll('#itemsBody .item-row');
+        rows.forEach((row, idx) => {
+            const serialEl = row.querySelector('.item-serial-num');
+            if (serialEl) {
+                serialEl.textContent = idx + 1;
+            }
+        });
+        const countEl = document.getElementById('tableItemCount');
+        if (countEl) {
+            countEl.textContent = rows.length;
+        }
+    }
+
     function addItemRow() {
         const tbody = document.getElementById('itemsBody');
         if (!tbody) return;
@@ -1283,19 +1324,21 @@
         }
 
         const i = rowCounter++;
+        const nextSerial = tbody.querySelectorAll('.item-row').length + 1;
         const tr = document.createElement('tr');
         tr.className = 'item-row';
         tr.setAttribute('data-row', i);
         tr.innerHTML = `
-            <td class="position-relative book-search-container" style="min-width: 340px;">
+            <td class="text-center text-muted fw-bold item-serial-num font-monospace" style="width: 38px;">${nextSerial}</td>
+            <td class="position-relative book-search-container" style="min-width: 290px;">
                 <div class="input-group input-group-sm">
                     <textarea name="items[${i}][title]" class="form-control item-title fw-bold" rows="2" 
                               placeholder="${defaultTitlePlaceholder}" required 
                               oninput="handleLiveBookSearch(this, ${i})" 
                               onfocus="handleLiveBookSearch(this, ${i})" 
                               onkeydown="handleBookSearchKeydown(event, ${i})" 
-                              autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;"></textarea>
-                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBook ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
+                              autocomplete="off" style="font-size: 13px; min-height: 48px; line-height: 1.4; resize: vertical;"></textarea>
+                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBook ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 48px;">
                         <i class="fa-solid fa-plus"></i>
                     </button>
                 </div>
@@ -1348,19 +1391,123 @@
                        value="0" min="0" required oninput="calcRow(${i}, 'unit_price')">
             </td>
             <td class="text-end fw-bold text-dark item-subtotal font-monospace fs-6">৳0.00</td>
-            <td class="text-center">
-                <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
+            <td class="text-center text-nowrap">
+                <div class="d-inline-flex align-items-center gap-1">
+                    <button type="button" class="btn btn-sm btn-light text-secondary border-0 p-1.5 rounded-2" onclick="duplicateRow(this)" title="Duplicate Row">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light text-danger border-0 p-1.5 rounded-2" onclick="removeRow(this)" title="Remove">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
             </td>
         `;
         tbody.appendChild(tr);
+        updateRowSerials();
         calcTotals();
 
         const newTitle = tr.querySelector('.item-title');
         if (newTitle) {
             newTitle.focus();
         }
+    }
+
+    function duplicateRow(btn) {
+        const row = btn.closest('.item-row');
+        if (!row) return;
+
+        const title = (row.querySelector('.item-title')?.value || '');
+        const bookId = (row.querySelector('.item-book-id')?.value || '');
+        const author = (row.querySelector('.item-author')?.value || '');
+        const itemType = (row.querySelector('.item-type-select')?.value || 'Book (Hardcover)');
+        const unit = (row.querySelector('.item-unit')?.value || 'Copy');
+        const qty = parseFloat(row.querySelector('.item-qty')?.value) || 1;
+        const regPrice = parseFloat(row.querySelector('.item-regular-price')?.value) || 0;
+        const disc = parseFloat(row.querySelector('.item-discount-percent')?.value) || 0;
+        const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
+        const isBook = typeof isBookTypeVal === 'function' ? isBookTypeVal(itemType) : true;
+
+        const i = rowCounter++;
+        const tr = document.createElement('tr');
+        tr.className = 'item-row';
+        tr.setAttribute('data-row', i);
+        tr.innerHTML = `
+            <td class="text-center text-muted fw-bold item-serial-num font-monospace" style="width: 38px;">#</td>
+            <td class="position-relative book-search-container" style="min-width: 290px;">
+                <div class="input-group input-group-sm">
+                    <textarea name="items[${i}][title]" class="form-control item-title fw-bold" rows="2" 
+                              placeholder="${isBook ? 'Search book title, author, ISBN...' : 'Item / Product description...'}" required 
+                              oninput="handleLiveBookSearch(this, ${i})" 
+                              onfocus="handleLiveBookSearch(this, ${i})" 
+                              onkeydown="handleBookSearchKeydown(event, ${i})" 
+                              autocomplete="off" style="font-size: 13px; min-height: 48px; line-height: 1.4; resize: vertical;">${escapeHtml(title)}</textarea>
+                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBook ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 48px;">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+                <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="${bookId}">
+                <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 420px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
+            </td>
+            <td>
+                <input type="text" name="items[${i}][author_name]" class="form-control item-author" 
+                       value="${escapeHtml(author)}" placeholder="${isBook ? 'Author / Spec' : 'Model / Specification / Notes'}" autocomplete="off">
+            </td>
+            <td>
+                <select name="items[${i}][item_type]" class="form-select item-type-select" onchange="onTypeChange(this, ${i})">
+                    <optgroup label="Books & Publications">
+                        <option value="Book (Hardcover)" ${itemType === 'Book (Hardcover)' ? 'selected' : ''}>Book (Hardcover)</option>
+                        <option value="Book (Paperback)" ${itemType === 'Book (Paperback)' ? 'selected' : ''}>Book (Paperback)</option>
+                        <option value="Book (Standard)" ${itemType === 'Book (Standard)' ? 'selected' : ''}>Book (Standard)</option>
+                    </optgroup>
+                    <optgroup label="Stationery & Supplies">
+                        <option value="Stationery" ${itemType === 'Stationery' ? 'selected' : ''}>Stationery & Materials</option>
+                    </optgroup>
+                    <optgroup label="Printing & Press">
+                        <option value="Printing & Binding" ${itemType === 'Printing & Binding' ? 'selected' : ''}>Printing & Binding</option>
+                        <option value="Paper / Raw Materials" ${itemType === 'Paper / Raw Materials' ? 'selected' : ''}>Paper / Raw Materials</option>
+                    </optgroup>
+                    <optgroup label="Products & Services">
+                        <option value="Product" ${itemType === 'Product' ? 'selected' : ''}>General Product</option>
+                        <option value="Service" ${itemType === 'Service' ? 'selected' : ''}>Service & Support</option>
+                        <option value="Other" ${itemType === 'Other' ? 'selected' : ''}>Other Items</option>
+                    </optgroup>
+                </select>
+            </td>
+            <td>
+                <input type="text" name="items[${i}][unit]" class="form-control item-unit text-center font-monospace" 
+                       value="${escapeHtml(unit)}" placeholder="Unit" autocomplete="off">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control item-qty text-center font-monospace fw-bold" 
+                       value="${qty}" min="0.01" required oninput="calcRow(${i}, 'qty')">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control item-regular-price text-end font-monospace" 
+                       value="${regPrice}" min="0" placeholder="0.00" oninput="calcRow(${i}, 'regular_price')">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control item-discount-percent text-center font-monospace fw-bold text-success" 
+                       value="${disc}" min="0" max="100" placeholder="0" oninput="calcRow(${i}, 'discount_percent')">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="items[${i}][price]" class="form-control item-price text-end font-monospace fw-bold text-primary" 
+                       value="${price}" min="0" required oninput="calcRow(${i}, 'unit_price')">
+            </td>
+            <td class="text-end fw-bold text-dark item-subtotal font-monospace fs-6">৳${(qty * price).toFixed(2)}</td>
+            <td class="text-center text-nowrap">
+                <div class="d-inline-flex align-items-center gap-1">
+                    <button type="button" class="btn btn-sm btn-light text-secondary border-0 p-1.5 rounded-2" onclick="duplicateRow(this)" title="Duplicate Row">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light text-danger border-0 p-1.5 rounded-2" onclick="removeRow(this)" title="Remove">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        row.after(tr);
+        updateRowSerials();
+        calcTotals();
     }
 
     function openQuickAddBookModal(rowIndex, prefilledTitle) {
@@ -1610,10 +1757,13 @@
 
     function calcTotals() {
         let subtotal = 0;
-        document.querySelectorAll('.item-row').forEach(row => {
+        let totalQty = 0;
+        const rows = document.querySelectorAll('#itemsBody .item-row');
+        rows.forEach(row => {
             const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
             const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
             subtotal += (qty * price);
+            totalQty += qty;
         });
 
         const discount = parseFloat(document.getElementById('discountInput')?.value) || 0;
@@ -1621,6 +1771,15 @@
         const previousDue = parseFloat(document.getElementById('previousDueInput')?.value) || 0;
         const grandTotal = Math.max(0, subtotal - discount + tax + previousDue);
 
+        // Update Dynamic Table Footer
+        const elTableItemCount = document.getElementById('tableItemCount');
+        if (elTableItemCount) elTableItemCount.textContent = rows.length;
+        const elTableTotalQty = document.getElementById('tableTotalQty');
+        if (elTableTotalQty) elTableTotalQty.textContent = (totalQty % 1 === 0) ? totalQty : totalQty.toFixed(2);
+        const elTableSubtotal = document.getElementById('tableSubtotalDisplay');
+        if (elTableSubtotal) elTableSubtotal.textContent = '৳' + subtotal.toFixed(2);
+
+        // Update Bottom Financial Summary
         const elSubtotal = document.getElementById('displaySubtotal');
         if (elSubtotal) elSubtotal.textContent = '৳' + subtotal.toFixed(2);
         const elDisc = document.getElementById('displayDiscount');
@@ -1936,6 +2095,7 @@
         if (phoneInput) {
             phoneInput.addEventListener('blur', checkCustomerPreviousDue);
         }
+        updateRowSerials();
         calcTotals();
     });
 
@@ -1959,7 +2119,7 @@
 
     function removeRow(btn) {
         const tbody = document.getElementById('itemsBody');
-        const row = btn.closest('tr');
+        const row = btn.closest('.item-row');
         const allRows = tbody.querySelectorAll('.item-row');
         
         if (allRows.length <= 1) {
@@ -1981,10 +2141,12 @@
                 if (priceInput) priceInput.value = '0';
                 const subtotal = row.querySelector('.item-subtotal');
                 if (subtotal) subtotal.textContent = '৳0.00';
+                if (titleInput) titleInput.focus();
             }
         } else {
             if (row) row.remove();
         }
+        updateRowSerials();
         calcTotals();
     }
 
@@ -2030,15 +2192,16 @@
             tr.className = 'item-row';
             tr.setAttribute('data-row', i);
             tr.innerHTML = `
-                <td class="position-relative book-search-container" style="min-width: 340px;">
+                <td class="text-center text-muted fw-bold item-serial-num font-monospace" style="width: 38px;">#</td>
+                <td class="position-relative book-search-container" style="min-width: 290px;">
                     <div class="input-group input-group-sm">
                         <textarea name="items[${i}][title]" class="form-control item-title fw-bold" rows="2" 
                                   placeholder="${isBookTypeVal(defType) ? 'Search book title, author, ISBN...' : 'Item / Product description...'}" required 
                                   oninput="handleLiveBookSearch(this, ${i})" 
                                   onfocus="handleLiveBookSearch(this, ${i})" 
                                   onkeydown="handleBookSearchKeydown(event, ${i})" 
-                                  autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;">${escapeHtml(title)}</textarea>
-                        <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBookTypeVal(defType) ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
+                                  autocomplete="off" style="font-size: 13px; min-height: 48px; line-height: 1.4; resize: vertical;">${escapeHtml(title)}</textarea>
+                        <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBookTypeVal(defType) ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 48px;">
                             <i class="fa-solid fa-plus"></i>
                         </button>
                     </div>
@@ -2091,14 +2254,22 @@
                            value="${defPrice}" min="0" required oninput="calcRow(${i}, 'unit_price')">
                 </td>
                 <td class="text-end fw-bold text-dark item-subtotal font-monospace fs-6">৳${lineTotal.toFixed(2)}</td>
-                <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
+                <td class="text-center text-nowrap">
+                    <div class="d-inline-flex align-items-center gap-1">
+                        <button type="button" class="btn btn-sm btn-light text-secondary border-0 p-1.5 rounded-2" onclick="duplicateRow(this)" title="Duplicate Row">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light text-danger border-0 p-1.5 rounded-2" onclick="removeRow(this)" title="Remove">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
         }
+        updateRowSerials();
+        calcTotals();
+    }
         calcTotals();
     }
     window.addPresetItem = addPresetItem;
@@ -2306,50 +2477,97 @@
 @include('admin.accounting.partials.print-cost-calculator')
 
 <style>
+    .invoice-table-wrap {
+        border-radius: 10px;
+        overflow-x: auto !important;
+        border: 1px solid #cbd5e1 !important;
+        background: #fff;
+    }
     #itemsTable {
-        min-width: 1420px;
+        width: 100%;
+        min-width: 1140px;
+        border-collapse: collapse;
+        margin-bottom: 0;
     }
     #itemsTable thead th {
         background-color: #f8fafc;
-        color: #334155;
+        color: #1e293b;
         font-weight: 700;
-        padding: 12px 10px;
-        border-bottom: 2px solid #e2e8f0;
+        font-size: 11px;
+        letter-spacing: 0.5px;
+        padding: 9px 8px;
+        border-bottom: 2px solid #cbd5e1;
+        border-right: 1px solid #e2e8f0;
         vertical-align: middle;
+        white-space: nowrap;
+    }
+    #itemsTable thead th:last-child {
+        border-right: none;
     }
     #itemsTable tbody td {
-        padding: 7px 8px;
+        padding: 6px 6px;
         vertical-align: middle;
         background-color: #fff;
+        border-bottom: 1px solid #e2e8f0;
+        border-right: 1px solid #e2e8f0;
+        transition: background-color 0.15s ease;
+    }
+    #itemsTable tbody td:last-child {
+        border-right: none;
     }
     #itemsTable tbody tr:hover td {
         background-color: #f8fafc;
     }
+    #itemsTable tfoot td {
+        background-color: #f8fafc;
+        padding: 8px 10px;
+        border-top: 2px solid #cbd5e1;
+        border-right: 1px solid #e2e8f0;
+        vertical-align: middle;
+    }
+    #itemsTable tfoot td:last-child {
+        border-right: none;
+    }
+    #itemsTable .item-serial-num {
+        font-size: 12px;
+        user-select: none;
+    }
     #itemsTable .form-control:not(textarea), 
     #itemsTable .form-select {
-        height: 38px;
-        font-size: 13.5px;
-        border-radius: 8px;
+        height: 36px;
+        font-size: 13px;
+        border-radius: 6px;
         border: 1px solid #cbd5e1;
-        padding: 6px 12px;
-        transition: all 0.2s ease;
+        padding: 5px 8px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        background-color: #ffffff;
     }
     #itemsTable textarea.form-control {
-        font-size: 13.5px;
-        border-radius: 8px;
+        font-size: 13px;
+        border-radius: 6px;
         border: 1px solid #cbd5e1;
-        padding: 6px 10px;
+        padding: 5px 8px;
         line-height: 1.35;
-        transition: all 0.2s ease;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        background-color: #ffffff;
     }
     #itemsTable .form-control:focus, 
     #itemsTable .form-select:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        border-color: #2563eb;
+        box-shadow: 0 0 0 2.5px rgba(37, 99, 235, 0.15);
         background-color: #ffffff;
     }
     #itemsTable .item-title {
         font-weight: 600;
+        color: #0f172a;
+    }
+    #itemsTable .item-author {
+        color: #475569;
+    }
+    #itemsTable .item-subtotal {
+        color: #0f172a;
+        font-weight: 700;
+        padding-right: 8px;
     }
     .table-responsive::-webkit-scrollbar {
         height: 8px;
@@ -2387,9 +2605,6 @@
         background-color: #2563eb !important;
         border-color: #2563eb !important;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3) !important;
-    }
-    .table-responsive {
-        overflow: visible !important;
     }
     .book-search-dropdown {
         box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16), 0 4px 10px rgba(0, 0, 0, 0.08) !important;
