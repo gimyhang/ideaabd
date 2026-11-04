@@ -552,15 +552,15 @@
                             </td>
                             <td>
                                 <input type="number" step="0.01" name="items[{{ $i }}][regular_price]" class="form-control item-regular-price text-end font-monospace" 
-                                       value="{{ $regPrice }}" min="0" oninput="calcRow({{ $i }}, 'regular_price')" style="height: 36px; font-size: 12.5px;">
+                                       value="{{ $regPrice > 0 ? $regPrice : '' }}" min="0" oninput="calcRow({{ $i }}, 'regular_price')" style="height: 36px; font-size: 12.5px;">
                             </td>
                             <td>
                                 <input type="number" step="0.01" name="items[{{ $i }}][discount_percent]" class="form-control item-discount-percent text-center font-monospace fw-bold text-success" 
-                                       value="{{ $discPct }}" min="0" max="100" oninput="calcRow({{ $i }}, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
+                                       value="{{ $discPct > 0 ? $discPct : '' }}" min="0" max="100" oninput="calcRow({{ $i }}, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
                             </td>
                             <td>
                                 <input type="number" step="0.01" name="items[{{ $i }}][price]" class="form-control item-price text-end font-monospace fw-bold text-primary" 
-                                       value="{{ $price }}" min="0" required oninput="calcRow({{ $i }}, 'unit_price')" style="height: 36px; font-size: 13px;">
+                                       value="{{ $price > 0 ? $price : '' }}" min="0" required oninput="calcRow({{ $i }}, 'unit_price')" style="height: 36px; font-size: 13px;">
                             </td>
                             <td class="text-end fw-bold text-dark item-subtotal font-monospace" style="font-size: 13.5px;">৳{{ number_format($lineTotal, 2) }}</td>
                             <td class="text-center text-nowrap">
@@ -576,28 +576,20 @@
                         </tr>
                     @endforeach
                 </tbody>
-                <tfoot class="border-top border-2">
+                <tfoot class="border-top-2 bg-light">
                     <tr>
-                        <td colspan="5" class="py-2 px-3">
-                            <div class="d-flex align-items-center justify-content-between gap-2">
-                                <div class="d-flex align-items-center gap-2">
-                                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-2xs" onclick="addItemRow()">
-                                        <i class="fa-solid fa-plus me-1"></i> Add Item Row
-                                    </button>
-                                    <span class="small fw-semibold text-muted text-uppercase ms-2" style="font-size: 11px;">Total Items:</span>
-                                    <span id="tableItemCount" class="badge bg-white text-dark border px-2 py-1 fw-bold font-monospace">{{ count($items) }}</span>
-                                </div>
-                            </div>
+                        <td colspan="5" class="py-2.5 px-3">
+                            <span class="small fw-semibold text-muted text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Total Items:</span>
+                            <span id="tableItemCount" class="badge bg-white text-dark border px-2 py-0.5 fw-bold font-monospace ms-1">{{ count($items) }}</span>
                         </td>
-                        <td class="text-center py-2 px-2">
-                            <span class="small text-muted d-block" style="font-size: 9.5px; line-height: 1;">TOTAL QTY</span>
-                            <span id="tableTotalQty" class="fw-bold font-monospace text-dark" style="font-size: 14px;">1</span>
+                        <td class="text-center py-2.5 px-1">
+                            <span id="tableTotalQty" class="fw-bold font-monospace text-dark d-inline-block" style="font-size: 13.5px;" title="Total Quantity">1</span>
                         </td>
-                        <td colspan="3" class="text-end py-2 px-2">
-                            <span class="small text-muted text-uppercase fw-bold" style="font-size: 11px;">Subtotal:</span>
+                        <td colspan="3" class="text-end py-2.5 px-2">
+                            <span class="small text-muted text-uppercase fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">Subtotal:</span>
                         </td>
-                        <td class="text-end py-2 px-2">
-                            <span id="tableSubtotalDisplay" class="fw-bold font-monospace text-primary" style="font-size: 14px;">৳0.00</span>
+                        <td class="text-end py-2.5 px-2">
+                            <span id="tableSubtotalDisplay" class="fw-bold font-monospace text-primary" style="font-size: 14px;">৳{{ number_format($invoice->subtotal, 2) }}</span>
                         </td>
                         <td></td>
                     </tr>
@@ -605,18 +597,27 @@
             </table>
         </div>
 
+        <div class="d-flex align-items-center justify-content-between mb-3 px-1">
+            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-bold shadow-2xs" onclick="addItemRow()">
+                <i class="fa-solid fa-plus me-1"></i> Add Item Row
+            </button>
+            <span class="small text-muted font-monospace" style="font-size: 11px;">
+                <i class="fa-solid fa-calculator me-1 text-secondary"></i>Live totals calculate automatically
+            </span>
+        </div>
+
         {{-- Terms & Conditions + Settlement Summary Split (Matching show.blade.php) --}}
         <div class="row g-3">
             {{-- Left: Terms & Conditions and Notes --}}
             <div class="col-12 col-md-6 col-lg-7">
-                <div class="bg-light rounded-3 border p-3 h-100 destination-box">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="bg-white rounded-3 border p-3 h-100 shadow-2xs">
+                    <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
                         <span class="fw-bold text-dark text-uppercase" style="font-size: 11.5px; letter-spacing: 0.3px;">
                             <i class="fa-solid fa-file-contract me-1.5 text-primary"></i>Terms, Conditions & Notes
                         </span>
-                        <div style="min-width: 200px;">
-                            <select class="form-select form-select-sm border-primary-subtle fw-semibold" id="termsPresetSelect" onchange="applyTermsPreset(this.value)" style="height: 30px; font-size: 11px;">
-                                <option value="">-- Apply Terms Template --</option>
+                        <div style="min-width: 170px;">
+                            <select class="form-select form-select-sm border-secondary-subtle fw-semibold" id="termsPresetSelect" onchange="applyTermsPreset(this.value)" style="height: 28px; font-size: 11px;">
+                                <option value="">Terms Templates</option>
                                 <option value="printing">🖨️ Printing & Press Terms</option>
                                 <option value="delivery">🚚 Delivery & Dispatch Terms</option>
                                 <option value="tender">🏛️ Institutional Tender Terms</option>
@@ -628,14 +629,17 @@
                     </div>
 
                     <div class="mb-2.5">
-                        <textarea name="terms_conditions" id="termsConditionsInput" rows="3" 
+                        <label class="form-label small fw-semibold text-muted mb-1" style="font-size: 11px;">
+                            Terms & Conditions
+                        </label>
+                        <textarea name="terms_conditions" id="termsConditionsInput" rows="2" 
                                   class="form-control form-control-sm rounded-2 font-monospace" 
                                   style="font-size: 11.5px; line-height: 1.45;">{{ old('terms_conditions', $invoice->terms_conditions) }}</textarea>
                     </div>
 
                     <div>
                         <label class="form-label small fw-semibold text-muted mb-1" style="font-size: 11px;">
-                            <i class="fa-solid fa-comment-dots me-1 text-warning"></i>Special Notes / Remarks (Prints on document)
+                            Special Notes / Remarks (Prints on document)
                         </label>
                         <textarea name="notes" rows="2" class="form-control form-control-sm rounded-2" 
                                   style="font-size: 11.5px; line-height: 1.4;">{{ old('notes', $invoice->notes) }}</textarea>
@@ -645,8 +649,8 @@
 
             {{-- Right: Financial Settlement Box matching Authentic Invoice Summary Table --}}
             <div class="col-12 col-md-6 col-lg-5">
-                <div class="bg-light rounded-3 border p-3 destination-box">
-                    <div class="fw-bold text-dark text-uppercase mb-2.5 d-flex align-items-center justify-content-between" style="font-size: 11.5px; letter-spacing: 0.3px;">
+                <div class="bg-white rounded-3 border p-3 h-100 shadow-2xs">
+                    <div class="fw-bold text-dark text-uppercase mb-2.5 pb-2 border-bottom d-flex align-items-center justify-content-between" style="font-size: 11.5px; letter-spacing: 0.3px;">
                         <span><i class="fa-solid fa-calculator me-1.5 text-primary"></i>Financial Summary</span>
                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill font-monospace" style="font-size: 10px;">Settlement</span>
                     </div>
@@ -1277,15 +1281,15 @@
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control form-control-sm item-regular-price text-end font-monospace" 
-                       value="0" min="0" oninput="calcRow(${i}, 'regular_price')" style="height: 36px; font-size: 12.5px;">
+                       value="" min="0" oninput="calcRow(${i}, 'regular_price')" style="height: 36px; font-size: 12.5px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control form-control-sm item-discount-percent text-center font-monospace fw-bold text-success" 
-                       value="0" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
+                       value="" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][price]" class="form-control form-control-sm item-price text-end font-monospace fw-bold text-primary" 
-                       value="0" min="0" required oninput="calcRow(${i}, 'unit_price')" style="height: 36px; font-size: 13px;">
+                       value="" min="0" required oninput="calcRow(${i}, 'unit_price')" style="height: 36px; font-size: 13px;">
             </td>
             <td class="text-end fw-bold text-dark item-subtotal font-monospace" style="font-size: 13.5px;">৳0.00</td>
             <td class="text-center text-nowrap">
