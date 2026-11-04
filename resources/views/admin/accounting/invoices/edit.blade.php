@@ -597,6 +597,24 @@
                     {{-- Previous Due Integration --}}
                     @php $hasPrevDue = ($invoice->previous_due ?? 0) > 0; @endphp
                     <div class="mb-3 p-2.5 rounded-3 bg-warning bg-opacity-10 border border-warning-subtle" id="previousDueCard">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" role="switch" id="togglePreviousDueCheck" 
+                                       onchange="togglePreviousDueInput(this.checked)" {{ $hasPrevDue ? 'checked' : '' }}>
+                                <label class="form-check-label small fw-bold text-dark" for="togglePreviousDueCheck">
+                                    Include Previous Due
+                                </label>
+                            </div>
+                            <span class="badge bg-warning text-dark border border-warning-subtle rounded-pill font-monospace" style="font-size: 10px;">Arrears</span>
+                        </div>
+                        <div id="previousDueInputWrap" style="{{ $hasPrevDue ? 'display: block;' : 'display: none;' }}">
+                            <div class="input-group input-group-sm mt-1.5">
+                                <span class="input-group-text bg-white fw-bold">৳</span>
+                                <input type="number" step="0.01" name="previous_due" id="previousDueInput" 
+                                       class="form-control font-monospace fw-bold text-dark" 
+                                       value="{{ old('previous_due', $invoice->previous_due ?? 0) }}" min="0" placeholder="0.00" oninput="calcTotals()">
+                            </div>
+                        </div>
                         <div id="customerDueLiveNotice" class="small mt-1 text-dark fw-semibold" style="display: none; font-size: 11px;"></div>
                     </div>
 
@@ -1669,7 +1687,7 @@
                     if (noticeEl) {
                         noticeEl.style.display = 'block';
                         const invoiceWord = (data.invoices_count || data.due_count || 1) + ' invoices';
-                        noticeEl.innerHTML = `<span class="text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i>Previous Outstanding Due: <strong>৳${data.total_due.toFixed(2)}</strong> (${invoiceWord})</span>`;
+                        noticeEl.innerHTML = `<span class="text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i>Previous Outstanding Due: <strong>৳${data.total_due.toFixed(2)}</strong> (${invoiceWord})</span> <button type="button" class="btn btn-xs btn-outline-danger ms-2 py-0 px-1.5 fw-bold" onclick="applyCustomerDue(${data.total_due})">Add to Invoice</button>`;
                     }
                 } else {
                     if (noticeEl) noticeEl.style.display = 'none';
@@ -2271,15 +2289,6 @@
 </script>
 
 @include('admin.accounting.partials.print-cost-calculator')
-                </div>
-            </div>
-
-            <div class="modal-footer bg-white py-2.5 px-4 border-top">
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-1.5" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <style>
     #itemsTable {

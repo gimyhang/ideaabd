@@ -348,8 +348,16 @@
                             <span id="liveReceiptAddress">{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
                             <span class="text-muted mx-2 {{ empty($settings['phone']) ? 'd-none' : '' }}" id="liveReceiptPhoneDivider">|</span>
                             <span class="d-inline-flex align-items-center {{ empty($settings['phone']) ? 'd-none' : '' }}" id="liveReceiptPhoneContainer">
-                                <i class="fa-solid fa-phone-alt text-secondary me-1.5" style="font-size: 10px;"></i>
+                                <i class="fa-solid fa-phone text-primary me-1.5" style="font-size: 10px;"></i>
                                 <span id="liveReceiptPhone">{{ $settings['phone'] ?? '' }}</span>
+                            </span>
+                            @php
+                                $recWa = $settings['whatsapp'] ?? ($settings['phone'] ?? '');
+                            @endphp
+                            <span class="text-muted mx-2 {{ empty($recWa) ? 'd-none' : '' }}" id="liveReceiptWaDivider">|</span>
+                            <span class="d-inline-flex align-items-center {{ empty($recWa) ? 'd-none' : '' }}" id="liveReceiptWaContainer">
+                                <i class="fa-brands fa-whatsapp text-success me-1.5" style="font-size: 12px;"></i>
+                                <span id="liveReceiptWa">{{ $recWa }}</span>
                             </span>
                             <span class="text-muted mx-2 {{ empty($settings['email']) ? 'd-none' : '' }}" id="liveReceiptEmailDivider">|</span>
                             <span class="d-inline-flex align-items-center {{ empty($settings['email']) ? 'd-none' : '' }}" id="liveReceiptEmailContainer">
@@ -703,7 +711,10 @@
         <div class="text-center text-muted mt-2 pt-1.5 border-top" id="liveReceiptFooterBox" style="font-size: 9.5px;">
             Thank you! This is an official computer-generated receipt from <span id="liveReceiptFooterBizName">{{ $settings['business_name'] ?? 'Idea Publication' }}</span>.
             <span class="ms-1.5 {{ empty($settings['phone']) ? 'd-none' : '' }}" id="liveReceiptFooterPhoneContainer">
-                <i class="fa-solid fa-phone-alt me-1"></i><span id="liveReceiptFooterPhone">{{ $settings['phone'] ?? '' }}</span>
+                <i class="fa-solid fa-phone me-1"></i><span id="liveReceiptFooterPhone">{{ $settings['phone'] ?? '' }}</span>
+            </span>
+            <span class="ms-1.5 {{ empty($recWa) ? 'd-none' : '' }}" id="liveReceiptFooterWaContainer">
+                <i class="fa-brands fa-whatsapp text-success me-1"></i><span id="liveReceiptFooterWa">{{ $recWa }}</span>
             </span>
         </div>
     </div>

@@ -560,6 +560,15 @@
     $recipientDesigSize = $settings['challan_recipient_desig_size'] ?? '11.5px';
     $recipientOrgSize = $settings['challan_recipient_org_size'] ?? '12px';
 
+    $bizPhone = $settings['phone'] ?? '01726976982';
+    $bizWhatsapp = $settings['whatsapp'] ?? $bizPhone;
+    $bizEmail = $settings['email'] ?? 'ideapbd@gmail.com';
+    $bizAddress = $settings['address'] ?? 'Central Road, Rangpur 5400';
+    $cleanBizWa = preg_replace('/[^0-9]/', '', $bizWhatsapp);
+    if (!str_starts_with($cleanBizWa, '88') && strlen($cleanBizWa) === 11) {
+        $cleanBizWa = '88' . $cleanBizWa;
+    }
+
     $invoiceUrl = $invoice->public_url;
     $qrCodeSize = $settings['qr_code_size'] ?? '60px';
     $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=4&data=" . urlencode($invoiceUrl);
@@ -647,26 +656,25 @@
                                 <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</div>
                                 <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</div>
                                 <div class="text-muted invoice-contact-info d-flex flex-wrap align-items-center gap-x-2 gap-y-1 mt-1" style="font-size: 9.5px; line-height: 1.35;">
-                                    <span class="d-inline-flex align-items-center">
-                                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger me-1.5 shadow-2xs" style="width: 17px; height: 17px; font-size: 8px; flex-shrink: 0;">
-                                            <i class="fa-solid fa-location-dot"></i>
-                                        </span>
-                                        <span class="text-dark">{{ $settings['address'] ?? 'Central Road, Rangpur 5400' }}</span>
+                                    <span class="d-inline-flex align-items-center text-dark">
+                                        <i class="fa-solid fa-location-dot text-danger me-1" style="font-size: 10px;"></i>
+                                        <span>{{ $bizAddress }}</span>
                                     </span>
-                                    <span class="text-muted">·</span>
-                                    <span class="d-inline-flex align-items-center">
-                                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary me-1.5 shadow-2xs" style="width: 17px; height: 17px; font-size: 8px; flex-shrink: 0;">
-                                            <i class="fa-solid fa-phone"></i>
-                                        </span>
-                                        <span class="text-dark">{{ $settings['phone'] ?? '01726976982' }}</span>
-                                    </span>
-                                    <span class="text-muted">·</span>
-                                    <span class="d-inline-flex align-items-center">
-                                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success-subtle text-success me-1.5 shadow-2xs" style="width: 17px; height: 17px; font-size: 8px; flex-shrink: 0;">
-                                            <i class="fa-solid fa-envelope"></i>
-                                        </span>
-                                        <span class="text-dark">{{ $settings['email'] ?? 'ideapbd@gmail.com' }}</span>
-                                    </span>
+                                    <span class="text-muted opacity-50">·</span>
+                                    <a href="tel:{{ $bizPhone }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Call Us">
+                                        <i class="fa-solid fa-phone text-primary me-1" style="font-size: 10px;"></i>
+                                        <span class="fw-semibold">{{ $bizPhone }}</span>
+                                    </a>
+                                    <span class="text-muted opacity-50">·</span>
+                                    <a href="https://wa.me/{{ $cleanBizWa }}" target="_blank" class="text-dark text-decoration-none d-inline-flex align-items-center" title="WhatsApp Us">
+                                        <i class="fa-brands fa-whatsapp text-success me-1" style="font-size: 11.5px;"></i>
+                                        <span class="fw-semibold">{{ $bizWhatsapp }}</span>
+                                    </a>
+                                    <span class="text-muted opacity-50">·</span>
+                                    <a href="mailto:{{ $bizEmail }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Email Us">
+                                        <i class="fa-solid fa-envelope text-secondary me-1" style="font-size: 10px;"></i>
+                                        <span>{{ $bizEmail }}</span>
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -777,10 +785,30 @@
                                     </tr>
                                 @endif
                                 @if($invoice->customer_phone)
+                                    @php
+                                        $cleanCustWa = preg_replace('/[^0-9]/', '', $invoice->customer_phone);
+                                        if (!str_starts_with($cleanCustWa, '88') && strlen($cleanCustWa) === 11) {
+                                            $cleanCustWa = '88' . $cleanCustWa;
+                                        }
+                                    @endphp
                                     <tr>
-                                        <td class="colon-label" style="width: 95px;">Phone</td>
+                                        <td class="colon-label" style="width: 95px;">Mobile / WhatsApp</td>
                                         <td class="colon-sep">:</td>
-                                        <td class="text-dark fw-bold font-monospace" style="font-size: {{ $recipientPhoneSize }};">{{ $invoice->customer_phone }}</td>
+                                        <td class="text-dark fw-bold font-monospace" style="font-size: {{ $recipientPhoneSize }};">
+                                            <i class="fa-solid fa-phone text-primary me-1" style="font-size: 10px;"></i>{{ $invoice->customer_phone }}
+                                            <a href="https://wa.me/{{ $cleanCustWa }}" target="_blank" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 ms-1.5 text-decoration-none d-print-none" title="Chat on WhatsApp">
+                                                <i class="fa-brands fa-whatsapp me-0.5"></i>WhatsApp
+                                            </a>
+                                        </td>
+                                    </tr>
+                                @endif
+                                @if(!empty($invoice->customer_email))
+                                    <tr>
+                                        <td class="colon-label" style="width: 95px;">Email</td>
+                                        <td class="colon-sep">:</td>
+                                        <td class="text-dark font-monospace" style="font-size: 11px;">
+                                            <i class="fa-solid fa-envelope text-secondary me-1" style="font-size: 10px;"></i><a href="mailto:{{ $invoice->customer_email }}" class="text-dark text-decoration-none">{{ $invoice->customer_email }}</a>
+                                        </td>
                                     </tr>
                                 @endif
                             </table>
@@ -1124,26 +1152,25 @@
                                     <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</div>
                                     <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</div>
                                     <div class="text-muted invoice-contact-info d-flex flex-wrap align-items-center gap-x-2 gap-y-1 mt-1" style="font-size: 9.5px; line-height: 1.35;">
-                                        <span class="d-inline-flex align-items-center">
-                                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger me-1.5 shadow-2xs" style="width: 17px; height: 17px; font-size: 8px; flex-shrink: 0;">
-                                                <i class="fa-solid fa-location-dot"></i>
-                                            </span>
-                                            <span class="text-dark">{{ $settings['address'] ?? 'Central Road, Rangpur 5400' }}</span>
+                                        <span class="d-inline-flex align-items-center text-dark">
+                                            <i class="fa-solid fa-location-dot text-danger me-1" style="font-size: 10px;"></i>
+                                            <span>{{ $bizAddress }}</span>
                                         </span>
-                                        <span class="text-muted">·</span>
-                                        <span class="d-inline-flex align-items-center">
-                                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary me-1.5 shadow-2xs" style="width: 17px; height: 17px; font-size: 8px; flex-shrink: 0;">
-                                                <i class="fa-solid fa-phone"></i>
-                                            </span>
-                                            <span class="text-dark">{{ $settings['phone'] ?? '01726976982' }}</span>
-                                        </span>
-                                        <span class="text-muted">·</span>
-                                        <span class="d-inline-flex align-items-center">
-                                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success-subtle text-success me-1.5 shadow-2xs" style="width: 17px; height: 17px; font-size: 8px; flex-shrink: 0;">
-                                                <i class="fa-solid fa-envelope"></i>
-                                            </span>
-                                            <span class="text-dark">{{ $settings['email'] ?? 'ideapbd@gmail.com' }}</span>
-                                        </span>
+                                        <span class="text-muted opacity-50">·</span>
+                                        <a href="tel:{{ $bizPhone }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Call Us">
+                                            <i class="fa-solid fa-phone text-primary me-1" style="font-size: 10px;"></i>
+                                            <span class="fw-semibold">{{ $bizPhone }}</span>
+                                        </a>
+                                        <span class="text-muted opacity-50">·</span>
+                                        <a href="https://wa.me/{{ $cleanBizWa }}" target="_blank" class="text-dark text-decoration-none d-inline-flex align-items-center" title="WhatsApp Us">
+                                            <i class="fa-brands fa-whatsapp text-success me-1" style="font-size: 11.5px;"></i>
+                                            <span class="fw-semibold">{{ $bizWhatsapp }}</span>
+                                        </a>
+                                        <span class="text-muted opacity-50">·</span>
+                                        <a href="mailto:{{ $bizEmail }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Email Us">
+                                            <i class="fa-solid fa-envelope text-secondary me-1" style="font-size: 10px;"></i>
+                                            <span>{{ $bizEmail }}</span>
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -1217,10 +1244,30 @@
                                         </tr>
                                     @endif
                                     @if($invoice->customer_phone)
+                                        @php
+                                            $cleanCustWa = preg_replace('/[^0-9]/', '', $invoice->customer_phone);
+                                            if (!str_starts_with($cleanCustWa, '88') && strlen($cleanCustWa) === 11) {
+                                                $cleanCustWa = '88' . $cleanCustWa;
+                                            }
+                                        @endphp
                                         <tr>
-                                            <td class="colon-label" style="width: 95px;">Mobile</td>
+                                            <td class="colon-label" style="width: 95px;">Mobile / WhatsApp</td>
                                             <td class="colon-sep">:</td>
-                                            <td class="text-dark fw-bold font-monospace target-recipient-phone" id="challanRecipientPhone" style="font-size: {{ $recipientPhoneSize }};">{{ $invoice->customer_phone }}</td>
+                                            <td class="text-dark fw-bold font-monospace target-recipient-phone" id="challanRecipientPhone" style="font-size: {{ $recipientPhoneSize }};">
+                                                <i class="fa-solid fa-phone text-primary me-1" style="font-size: 10px;"></i>{{ $invoice->customer_phone }}
+                                                <a href="https://wa.me/{{ $cleanCustWa }}" target="_blank" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 ms-1.5 text-decoration-none d-print-none" title="Chat on WhatsApp">
+                                                    <i class="fa-brands fa-whatsapp me-0.5"></i>WhatsApp
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endif
+                                    @if(!empty($invoice->customer_email))
+                                        <tr>
+                                            <td class="colon-label" style="width: 95px;">Email</td>
+                                            <td class="colon-sep">:</td>
+                                            <td class="text-dark font-monospace" style="font-size: 11px;">
+                                                <i class="fa-solid fa-envelope text-secondary me-1" style="font-size: 10px;"></i><a href="mailto:{{ $invoice->customer_email }}" class="text-dark text-decoration-none">{{ $invoice->customer_email }}</a>
+                                            </td>
                                         </tr>
                                     @endif
                                 </table>

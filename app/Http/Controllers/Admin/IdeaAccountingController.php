@@ -318,12 +318,14 @@ class IdeaAccountingController extends Controller
         );
 
         // 3. Live Deduplicated KPI Statistics (Consolidated single-pass SQL aggregations)
-        $invAgg = IdeaInvoice::selectRaw("
-            COUNT(*) as total_count,
-            COALESCE(SUM(CASE WHEN type IN ('invoice', 'challan') THEN grand_total ELSE 0 END), 0) as inv_total,
-            COALESCE(SUM(CASE WHEN type IN ('invoice', 'challan') THEN paid_amount ELSE 0 END), 0) as inv_paid,
-            COALESCE(SUM(CASE WHEN type IN ('invoice', 'challan') THEN due_amount ELSE 0 END), 0) as inv_due
-        ")->first();
+        $invAgg = IdeaInvoice::when($dateFrom, fn($q) => $q->whereDate('invoice_date', '>=', $dateFrom))
+            ->when($dateTo, fn($q) => $q->whereDate('invoice_date', '<=', $dateTo))
+            ->selectRaw("
+                COUNT(*) as total_count,
+                COALESCE(SUM(CASE WHEN type IN ('invoice', 'challan') THEN grand_total ELSE 0 END), 0) as inv_total,
+                COALESCE(SUM(CASE WHEN type IN ('invoice', 'challan') THEN paid_amount ELSE 0 END), 0) as inv_paid,
+                COALESCE(SUM(CASE WHEN type IN ('invoice', 'challan') THEN due_amount ELSE 0 END), 0) as inv_due
+            ")->first();
         $invoicesTotal = (float) ($invAgg->inv_total ?? 0);
         $invoicesPaid = (float) ($invAgg->inv_paid ?? 0);
         $invoicesDue = (float) ($invAgg->inv_due ?? 0);
@@ -336,14 +338,18 @@ class IdeaAccountingController extends Controller
         $unsyncedOrdersPaid = 0.0;
         $unsyncedOrdersDue = 0.0;
         if ($hasOrders) {
-            $ordAgg = Order::selectRaw("
-                COUNT(*) as all_count,
-                COALESCE(SUM(total_amount), 0) as all_amount
-            ")->first();
+            $ordAgg = Order::when($dateFrom, fn($q) => $q->whereDate('created_at', '>=', $dateFrom))
+                ->when($dateTo, fn($q) => $q->whereDate('created_at', '<=', $dateTo))
+                ->selectRaw("
+                    COUNT(*) as all_count,
+                    COALESCE(SUM(total_amount), 0) as all_amount
+                ")->first();
             $allOrdersCount = (int) ($ordAgg->all_count ?? 0);
             $allOrdersAmount = (float) ($ordAgg->all_amount ?? 0);
 
             $unsyncedAgg = Order::when(!empty($syncedOrderNumbers), fn ($q) => $q->whereNotIn('order_number', $syncedOrderNumbers))
+                ->when($dateFrom, fn($q) => $q->whereDate('created_at', '>=', $dateFrom))
+                ->when($dateTo, fn($q) => $q->whereDate('created_at', '<=', $dateTo))
                 ->selectRaw("
                     COALESCE(SUM(total_amount), 0) as unsynced_amount,
                     COALESCE(SUM(CASE WHEN payment_status = 'paid' THEN total_amount ELSE 0 END), 0) as unsynced_paid,
@@ -361,6 +367,8 @@ class IdeaAccountingController extends Controller
         $posPaid = 0.0;
         if ($hasPos) {
             $posAgg = PosSale::where('status', '!=', 'voided')
+                ->when($dateFrom, fn($q) => $q->whereDate('sale_date', '>=', $dateFrom))
+                ->when($dateTo, fn($q) => $q->whereDate('sale_date', '<=', $dateTo))
                 ->selectRaw('COUNT(*) as cnt, COALESCE(SUM(total), 0) as amt, COALESCE(SUM(paid_cash + paid_online), 0) as paid')
                 ->first();
             $posCount = (int) ($posAgg->cnt ?? 0);
@@ -375,7 +383,9 @@ class IdeaAccountingController extends Controller
         $billsPaid = 0.0;
         $billsDue = 0.0;
         if ($hasBills) {
-            $billAgg = Bill::selectRaw('COUNT(*) as cnt, COALESCE(SUM(total), 0) as amt, COALESCE(SUM(paid_amount), 0) as paid, COALESCE(SUM(due_amount), 0) as due')->first();
+            $billAgg = Bill::when($dateFrom, fn($q) => $q->whereDate('bill_date', '>=', $dateFrom))
+                ->when($dateTo, fn($q) => $q->whereDate('bill_date', '<=', $dateTo))
+                ->selectRaw('COUNT(*) as cnt, COALESCE(SUM(total), 0) as amt, COALESCE(SUM(paid_amount), 0) as paid, COALESCE(SUM(due_amount), 0) as due')->first();
             $billsCount = (int) ($billAgg->cnt ?? 0);
             $billsAmount = (float) ($billAgg->amt ?? 0);
             $billsPaid = (float) ($billAgg->paid ?? 0);
@@ -401,18 +411,24 @@ class IdeaAccountingController extends Controller
         $thisMonthExpense = 0.0;
 
         if ($hasEntries) {
-            $entAgg = IdeaAccountingEntry::selectRaw("
-                COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as inc_total,
-                COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as exp_total,
-                SUM(CASE WHEN type = 'income' THEN 1 ELSE 0 END) as inc_cnt,
-                SUM(CASE WHEN type = 'expense' THEN 1 ELSE 0 END) as exp_cnt,
-                COALESCE(SUM(CASE WHEN type = 'income' AND invoice_id IS NOT NULL THEN amount ELSE 0 END), 0) as inv_cash,
-                COALESCE(SUM(CASE WHEN type = 'income' AND invoice_id IS NULL AND (category IS NULL OR category != ?) THEN amount ELSE 0 END), 0) as direct_inc,
+            $entAgg = IdeaAccountingEntry::when($dateFrom, fn($q) => $q->whereDate('entry_date', '>=', $dateFrom))
+                ->when($dateTo, fn($q) => $q->whereDate('entry_date', '<=', $dateTo))
+                ->selectRaw("
+                    COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as inc_total,
+                    COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as exp_total,
+                    SUM(CASE WHEN type = 'income' THEN 1 ELSE 0 END) as inc_cnt,
+                    SUM(CASE WHEN type = 'expense' THEN 1 ELSE 0 END) as exp_cnt,
+                    COALESCE(SUM(CASE WHEN type = 'income' AND invoice_id IS NOT NULL THEN amount ELSE 0 END), 0) as inv_cash,
+                    COALESCE(SUM(CASE WHEN type = 'income' AND invoice_id IS NULL AND (category IS NULL OR category != ?) THEN amount ELSE 0 END), 0) as direct_inc
+                ", [self::SELLER_BILL_CATEGORY])->first();
+
+            // Daily & monthly benchmark figures
+            $benchAgg = IdeaAccountingEntry::selectRaw("
                 COALESCE(SUM(CASE WHEN type = 'income' AND DATE(entry_date) = ? THEN amount ELSE 0 END), 0) as today_inc,
                 COALESCE(SUM(CASE WHEN type = 'expense' AND DATE(entry_date) = ? THEN amount ELSE 0 END), 0) as today_exp,
                 COALESCE(SUM(CASE WHEN type = 'income' AND DATE(entry_date) BETWEEN ? AND ? THEN amount ELSE 0 END), 0) as month_inc,
                 COALESCE(SUM(CASE WHEN type = 'expense' AND DATE(entry_date) BETWEEN ? AND ? THEN amount ELSE 0 END), 0) as month_exp
-            ", [self::SELLER_BILL_CATEGORY, $todayStr, $todayStr, $monthStartStr, $monthEndStr, $monthStartStr, $monthEndStr])->first();
+            ", [$todayStr, $todayStr, $monthStartStr, $monthEndStr, $monthStartStr, $monthEndStr])->first();
 
             $incomeLedgerTotal = (float) ($entAgg->inc_total ?? 0);
             $expenseLedgerTotal = (float) ($entAgg->exp_total ?? 0);
@@ -420,10 +436,10 @@ class IdeaAccountingController extends Controller
             $expenseCount = (int) ($entAgg->exp_cnt ?? 0);
             $invoiceCashTotal = (float) ($entAgg->inv_cash ?? 0);
             $directIncomeTotal = (float) ($entAgg->direct_inc ?? 0);
-            $todayIncome = (float) ($entAgg->today_inc ?? 0);
-            $todayExpense = (float) ($entAgg->today_exp ?? 0);
-            $thisMonthIncome = (float) ($entAgg->month_inc ?? 0);
-            $thisMonthExpense = (float) ($entAgg->month_exp ?? 0);
+            $todayIncome = (float) ($benchAgg->today_inc ?? 0);
+            $todayExpense = (float) ($benchAgg->today_exp ?? 0);
+            $thisMonthIncome = (float) ($benchAgg->month_inc ?? 0);
+            $thisMonthExpense = (float) ($benchAgg->month_exp ?? 0);
         }
 
         $hasPurchases = \App\Support\SchemaCache::has('publisher_purchases');
@@ -2315,6 +2331,7 @@ class IdeaAccountingController extends Controller
             'valid_until'          => ($isProposal ? 'required' : 'nullable') . '|date|after_or_equal:invoice_date',
             'discount'             => 'nullable|numeric|min:0',
             'tax'                  => 'nullable|numeric|min:0',
+            'previous_due'         => 'nullable|numeric|min:0',
             'paid_amount'          => 'nullable|numeric|min:0',
             'payment_method'       => 'required|string|max:50',
             'notes'                => 'nullable|string|max:1000',
@@ -2350,6 +2367,7 @@ class IdeaAccountingController extends Controller
         $subtotal = round((float) $itemResult['subtotal'], 2);
         $discount = round((float) ($validated['discount'] ?? 0), 2);
         $tax = round((float) ($validated['tax'] ?? 0), 2);
+        $previousDue = round((float) ($validated['previous_due'] ?? 0), 2);
 
         if ($discount > $subtotal + 0.004) {
             throw \Illuminate\Validation\ValidationException::withMessages([
@@ -2358,11 +2376,12 @@ class IdeaAccountingController extends Controller
         }
 
         return [
-            'items'    => $itemResult['items'],
-            'subtotal' => $subtotal,
-            'discount' => $discount,
-            'tax'      => $tax,
-            'grand'    => round($subtotal - $discount + $tax, 2),
+            'items'        => $itemResult['items'],
+            'subtotal'     => $subtotal,
+            'discount'     => $discount,
+            'tax'          => $tax,
+            'previous_due' => $previousDue,
+            'grand'        => round(max(0, $subtotal - $discount + $tax + $previousDue), 2),
         ];
     }
 
@@ -2421,10 +2440,10 @@ class IdeaAccountingController extends Controller
                     'subtotal'             => $totals['subtotal'],
                     'discount'             => $totals['discount'],
                     'tax'                  => $totals['tax'],
-                    'previous_due'         => 0,
+                    'previous_due'         => $totals['previous_due'],
                     'grand_total'          => $totals['grand'],
                     'paid_amount'          => 0,
-                    'due_amount'           => $totals['grand'],
+                    'due_amount'           => round(max(0, $totals['grand'] - $paid), 2),
                     'payment_method'       => $validated['payment_method'],
                     'payment_status'       => 'unpaid',
                     'notes'                => $validated['notes'] ?? null,
@@ -2571,7 +2590,7 @@ class IdeaAccountingController extends Controller
                     'subtotal'             => $totals['subtotal'],
                     'discount'             => $totals['discount'],
                     'tax'                  => $totals['tax'],
-                    'previous_due'         => 0,
+                    'previous_due'         => $totals['previous_due'],
                     'grand_total'          => $totals['grand'],
                     'payment_method'       => $validated['payment_method'],
                     'notes'                => $validated['notes'] ?? null,
@@ -4046,9 +4065,10 @@ class IdeaAccountingController extends Controller
         $default = [
             'business_name'                  => \App\Support\SiteSetting::name(),
             'tagline'                        => \App\Support\SiteSetting::tagline(),
-            'address'                        => 'ঢাকা, বাংলাদেশ',
-            'phone'                          => '018XXXXXXXX',
-            'email'                          => 'info@ideaabd.com',
+            'address'                        => \App\Support\SiteSetting::contactAddress() ?: 'Central Road, Rangpur 5400',
+            'phone'                          => \App\Support\SiteSetting::helplinePhone() ?: '01726976982',
+            'whatsapp'                       => \App\Support\SiteSetting::whatsappNumber() ?: '01726976982',
+            'email'                          => \App\Support\SiteSetting::helplineEmail() ?: 'ideapbd@gmail.com',
             'logo'                           => '/images/logo.png',
             'challan_recipient_name_size'    => '13px',
             'challan_recipient_phone_size'   => '12px',
@@ -4116,7 +4136,7 @@ class IdeaAccountingController extends Controller
      */
     private static function withHeaderAliases(array $s): array
     {
-        foreach (['company_name' => 'business_name', 'company_tagline' => 'tagline', 'office_address' => 'address', 'office_phone' => 'phone', 'office_email' => 'email'] as $alias => $saved) {
+        foreach (['company_name' => 'business_name', 'company_tagline' => 'tagline', 'office_address' => 'address', 'office_phone' => 'phone', 'office_whatsapp' => 'whatsapp', 'office_email' => 'email'] as $alias => $saved) {
             // always follows the saved value, so an old copy of the alias kept in the database can never go stale
             $s[$alias] = $s[$saved] ?? ($s[$alias] ?? '');
         }

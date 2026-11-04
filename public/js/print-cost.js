@@ -1395,10 +1395,11 @@
             }
         } else if (t.id === 'pcFormaSize') {
             var formaSize = num(t.value) || 16;
-            if ($('pcFormasIn') && $('pcFormasIn').value !== '') {
+            if ($('pcPages') && $('pcPages').value !== '') {
+                var pVal = num($('pcPages').value);
+                if ($('pcFormasIn')) $('pcFormasIn').value = (pVal > 0 ? (pVal / formaSize) : '');
+            } else if ($('pcFormasIn') && $('pcFormasIn').value !== '') {
                 $('pcPages').value = Math.round(num($('pcFormasIn').value) * formaSize);
-            } else if ($('pcPages') && $('pcPages').value !== '') {
-                if ($('pcFormasIn')) $('pcFormasIn').value = (num($('pcPages').value) / formaSize);
             }
         }
 
@@ -1413,10 +1414,11 @@
         if (!rowEl) { 
             if (t.id === 'pcFormaSize') {
                 var formaSize = num(t.value) || 16;
-                if ($('pcFormasIn') && $('pcFormasIn').value !== '') {
+                if ($('pcPages') && $('pcPages').value !== '') {
+                    var pVal = num($('pcPages').value);
+                    if ($('pcFormasIn')) $('pcFormasIn').value = (pVal > 0 ? (pVal / formaSize) : '');
+                } else if ($('pcFormasIn') && $('pcFormasIn').value !== '') {
                     $('pcPages').value = Math.round(num($('pcFormasIn').value) * formaSize);
-                } else if ($('pcPages') && $('pcPages').value !== '') {
-                    if ($('pcFormasIn')) $('pcFormasIn').value = (num($('pcPages').value) / formaSize);
                 }
             }
             if (t.closest('.pc-job, .pc-summary')) { recalcAuto(); paint(); saveLast(); } 
@@ -1424,7 +1426,7 @@
         }
         var r = byId(rowEl.dataset.id);
         if (!r) return;
-        if (t.classList.contains('pc-chk')) { r.on = t.checked; paint(); return; }
+        if (t.classList.contains('pc-chk')) { r.on = t.checked; paint(); saveLast(); return; }
         if (t.classList.contains('pc-g')) {
             r.g = t.value;
             var names = NAMES[r.g] || ['Custom ' + r.g];

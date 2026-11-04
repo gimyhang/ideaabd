@@ -338,15 +338,15 @@
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
                     <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">TURNOVER</span>
-                    <h4 class="fw-bold text-primary mb-0 mt-1.5 font-monospace">৳{{ number_format($stats['total_turnover'], 2) }}</h4>
+                    <h4 class="fw-bold text-primary mb-0 mt-1.5 font-monospace" id="kpiTurnover">৳{{ number_format($stats['total_turnover'], 2) }}</h4>
                 </div>
                 <div class="acc-stat-icon bg-primary-subtle text-primary flex-shrink-0" style="border: 1px solid #bfdbfe;">
                     <i class="fa-solid fa-chart-line"></i>
                 </div>
             </div>
             <div class="d-flex align-items-center justify-content-between pt-2.5 mt-auto border-top small text-muted" style="font-size: 11px; border-top: 1px solid rgba(37, 99, 235, 0.12) !important;">
-                <span>Invoices: <strong class="text-dark">৳{{ number_format($stats['invoices_total']) }}</strong></span>
-                <span>Online: <strong class="text-dark">৳{{ number_format($stats['orders_total']) }}</strong></span>
+                <span>Invoices: <strong class="text-dark" id="kpiTurnoverInvoices">৳{{ number_format($stats['invoices_total']) }}</strong></span>
+                <span>Online: <strong class="text-dark" id="kpiTurnoverOnline">৳{{ number_format($stats['orders_total']) }}</strong></span>
             </div>
         </div>
     </div>
@@ -358,15 +358,15 @@
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
                     <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">COLLECTED</span>
-                    <h4 class="fw-bold text-success mb-0 mt-1.5 font-monospace">৳{{ number_format($stats['total_collected'], 2) }}</h4>
+                    <h4 class="fw-bold text-success mb-0 mt-1.5 font-monospace" id="kpiCollected">৳{{ number_format($stats['total_collected'], 2) }}</h4>
                 </div>
                 <div class="acc-stat-icon bg-success-subtle text-success flex-shrink-0" style="border: 1px solid #bbf7d0;">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
                 </div>
             </div>
             <div class="d-flex align-items-center justify-content-between pt-2.5 mt-auto border-top small text-muted" style="font-size: 11px; border-top: 1px solid rgba(22, 163, 74, 0.15) !important;">
-                <span>Today: <strong class="text-success">৳{{ number_format($stats['today_income']) }}</strong></span>
-                <span>Month: <strong class="text-dark">৳{{ number_format($stats['this_month_income']) }}</strong></span>
+                <span>Today: <strong class="text-success" id="kpiCollectedToday">৳{{ number_format($stats['today_income']) }}</strong></span>
+                <span>Month: <strong class="text-dark" id="kpiCollectedMonth">৳{{ number_format($stats['this_month_income']) }}</strong></span>
             </div>
         </div>
     </div>
@@ -378,15 +378,15 @@
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
                     <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">DUE</span>
-                    <h4 class="fw-bold text-warning mb-0 mt-1.5 font-monospace" style="color: #ea580c !important;">৳{{ number_format($stats['total_due'], 2) }}</h4>
+                    <h4 class="fw-bold text-warning mb-0 mt-1.5 font-monospace" id="kpiDue" style="color: #ea580c !important;">৳{{ number_format($stats['total_due'], 2) }}</h4>
                 </div>
                 <div class="acc-stat-icon bg-warning-subtle text-warning flex-shrink-0" style="border: 1px solid #fed7aa; color: #ea580c !important;">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                 </div>
             </div>
             <div class="d-flex align-items-center justify-content-between pt-2.5 mt-auto border-top small text-muted" style="font-size: 11px; border-top: 1px solid rgba(234, 88, 12, 0.15) !important;">
-                <span>Invoice: <strong class="text-dark">৳{{ number_format($stats['invoices_due']) }}</strong></span>
-                <span>Seller: <strong class="text-dark">৳{{ number_format($stats['bills_due']) }}</strong></span>
+                <span>Invoice: <strong class="text-dark" id="kpiDueInvoice">৳{{ number_format($stats['invoices_due']) }}</strong></span>
+                <span>Seller: <strong class="text-dark" id="kpiDueSeller">৳{{ number_format($stats['bills_due']) }}</strong></span>
             </div>
         </div>
     </div>
@@ -398,15 +398,15 @@
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
                     <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">EXPENSES</span>
-                    <h4 class="fw-bold text-danger mb-0 mt-1.5 font-monospace">৳{{ number_format($stats['total_expenses'], 2) }}</h4>
+                    <h4 class="fw-bold text-danger mb-0 mt-1.5 font-monospace" id="kpiExpenses">৳{{ number_format($stats['total_expenses'], 2) }}</h4>
                 </div>
                 <div class="acc-stat-icon bg-danger-subtle text-danger flex-shrink-0" style="border: 1px solid #fecdd3;">
                     <i class="fa-solid fa-cart-arrow-down"></i>
                 </div>
             </div>
             <div class="d-flex align-items-center justify-content-between pt-2.5 mt-auto border-top small text-muted" style="font-size: 11px; border-top: 1px solid rgba(225, 29, 72, 0.15) !important;">
-                <span>Today: <strong class="text-danger">৳{{ number_format($stats['today_expense']) }}</strong></span>
-                <span>Month: <strong class="text-dark">৳{{ number_format($stats['this_month_expense']) }}</strong></span>
+                <span>Today: <strong class="text-danger" id="kpiExpenseToday">৳{{ number_format($stats['today_expense']) }}</strong></span>
+                <span>Month: <strong class="text-dark" id="kpiExpenseMonth">৳{{ number_format($stats['this_month_expense']) }}</strong></span>
             </div>
         </div>
     </div>
@@ -418,15 +418,15 @@
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
                     <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">BALANCE</span>
-                    <h4 class="fw-bold {{ $stats['net_balance'] >= 0 ? 'text-info' : 'text-danger' }} mb-0 mt-1.5 font-monospace" style="{{ $stats['net_balance'] >= 0 ? 'color: #0891b2 !important;' : '' }}">৳{{ number_format($stats['net_balance'], 2) }}</h4>
+                    <h4 class="fw-bold {{ $stats['net_balance'] >= 0 ? 'text-info' : 'text-danger' }} mb-0 mt-1.5 font-monospace" id="kpiBalance" style="{{ $stats['net_balance'] >= 0 ? 'color: #0891b2 !important;' : '' }}">৳{{ number_format($stats['net_balance'], 2) }}</h4>
                 </div>
                 <div class="acc-stat-icon bg-info-subtle text-info flex-shrink-0" style="border: 1px solid #cffafe; color: #0891b2 !important;">
                     <i class="fa-solid fa-wallet"></i>
                 </div>
             </div>
             <div class="d-flex align-items-center justify-content-between pt-2.5 mt-auto border-top small text-muted" style="font-size: 11px; border-top: 1px solid rgba(8, 145, 178, 0.15) !important;">
-                <span>Month: <strong class="{{ $stats['this_month_net'] >= 0 ? 'text-success' : 'text-danger' }}">৳{{ number_format($stats['this_month_net']) }}</strong></span>
-                <span class="badge {{ $stats['net_balance'] >= 0 ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle' }} rounded-pill px-2 py-0.5" style="font-size: 10px;">
+                <span>Month: <strong class="{{ $stats['this_month_net'] >= 0 ? 'text-success' : 'text-danger' }}" id="kpiBalanceMonth">৳{{ number_format($stats['this_month_net']) }}</strong></span>
+                <span class="badge {{ $stats['net_balance'] >= 0 ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle' }} rounded-pill px-2 py-0.5" id="kpiBalanceBadge" style="font-size: 10px;">
                     {{ $stats['net_balance'] >= 0 ? 'Surplus' : 'Deficit' }}
                 </span>
             </div>
@@ -1058,19 +1058,77 @@ function triggerLiveSearch() {
     })
     .then(res => res.json())
     .then(data => {
-        if (data.success && data.html) {
-            const tbody = document.getElementById('accountingTableBody');
-            if (tbody) tbody.innerHTML = data.html;
+        if (data.success) {
+            if (data.html) {
+                const tbody = document.getElementById('accountingTableBody');
+                if (tbody) tbody.innerHTML = data.html;
+            }
 
             const footer = document.getElementById('tablePaginationFooter');
             if (footer && data.pagination) {
-                footer.querySelector('div:last-child').innerHTML = data.pagination;
+                const paginWrap = footer.querySelector('div:last-child');
+                if (paginWrap) paginWrap.innerHTML = data.pagination;
+            }
+
+            if (data.stats) {
+                updateKpiCards(data.stats);
             }
         }
     })
     .catch(err => {
         console.warn('Live search fallback to form submission:', err);
     });
+}
+
+function updateKpiCards(s) {
+    if (!s) return;
+    const fmt = (v) => '৳' + Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmtShort = (v) => '৳' + Math.round(Number(v || 0)).toLocaleString('en-US');
+
+    const elTurn = document.getElementById('kpiTurnover');
+    if (elTurn) elTurn.textContent = fmt(s.total_turnover);
+    const elTurnInv = document.getElementById('kpiTurnoverInvoices');
+    if (elTurnInv) elTurnInv.textContent = fmtShort(s.invoices_total);
+    const elTurnOnl = document.getElementById('kpiTurnoverOnline');
+    if (elTurnOnl) elTurnOnl.textContent = fmtShort(s.orders_total);
+
+    const elColl = document.getElementById('kpiCollected');
+    if (elColl) elColl.textContent = fmt(s.total_collected);
+    const elCollTod = document.getElementById('kpiCollectedToday');
+    if (elCollTod) elCollTod.textContent = fmtShort(s.today_income);
+    const elCollMon = document.getElementById('kpiCollectedMonth');
+    if (elCollMon) elCollMon.textContent = fmtShort(s.this_month_income);
+
+    const elDue = document.getElementById('kpiDue');
+    if (elDue) elDue.textContent = fmt(s.total_due);
+    const elDueInv = document.getElementById('kpiDueInvoice');
+    if (elDueInv) elDueInv.textContent = fmtShort(s.invoices_due);
+    const elDueSel = document.getElementById('kpiDueSeller');
+    if (elDueSel) elDueSel.textContent = fmtShort(s.bills_due);
+
+    const elExp = document.getElementById('kpiExpenses');
+    if (elExp) elExp.textContent = fmt(s.total_expenses);
+    const elExpTod = document.getElementById('kpiExpenseToday');
+    if (elExpTod) elExpTod.textContent = fmtShort(s.today_expense);
+    const elExpMon = document.getElementById('kpiExpenseMonth');
+    if (elExpMon) elExpMon.textContent = fmtShort(s.this_month_expense);
+
+    const elBal = document.getElementById('kpiBalance');
+    if (elBal) {
+        elBal.textContent = fmt(s.net_balance);
+        elBal.className = 'fw-bold mb-0 mt-1.5 font-monospace ' + (s.net_balance >= 0 ? 'text-info' : 'text-danger');
+        elBal.style.color = s.net_balance >= 0 ? '#0891b2 !important' : '';
+    }
+    const elBalMon = document.getElementById('kpiBalanceMonth');
+    if (elBalMon) {
+        elBalMon.textContent = fmtShort(s.this_month_net);
+        elBalMon.className = s.this_month_net >= 0 ? 'text-success' : 'text-danger';
+    }
+    const elBalBdg = document.getElementById('kpiBalanceBadge');
+    if (elBalBdg) {
+        elBalBdg.textContent = s.net_balance >= 0 ? 'Surplus' : 'Deficit';
+        elBalBdg.className = 'badge rounded-pill px-2 py-0.5 ' + (s.net_balance >= 0 ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle');
+    }
 }
 
 // --- 3. Category Chip Helpers ---
