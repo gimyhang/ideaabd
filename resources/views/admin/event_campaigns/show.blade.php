@@ -36,92 +36,45 @@
             border: 1px solid rgba(0, 0, 0, 0.08);
         }
 
-        /* Custom Styled Quick Edit & QR Code Buttons */
-        .btn.aec-btn-quick-edit, .aec-btn-quick-edit {
+        /* Modern, Clean & Simple Hero Action Buttons */
+        .aec-btn-hero {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: rgba(14, 165, 233, 0.2) !important;
-            border: 1.5px solid #38bdf8 !important;
-            color: #e0f2fe !important;
-            font-weight: 700;
+            gap: 6px;
+            font-weight: 600;
             font-size: 13px;
-            padding: 6px 16px;
-            border-radius: 30px;
+            padding: 6px 14px;
+            border-radius: 20px;
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             text-decoration: none;
             line-height: 1.4;
             white-space: nowrap;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff !important;
         }
-
-        .btn.aec-btn-quick-edit:hover, .btn.aec-btn-quick-edit:focus, .aec-btn-quick-edit:hover, .aec-btn-quick-edit:focus {
+        .aec-btn-hero:hover, .aec-btn-hero:focus {
+            background: rgba(255, 255, 255, 0.22) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            color: #ffffff !important;
+            transform: translateY(-1px);
+        }
+        .aec-btn-hero-primary {
             background: #0284c7 !important;
             border-color: #38bdf8 !important;
-            color: #ffffff !important;
-            box-shadow: 0 4px 16px rgba(2, 132, 199, 0.5);
-            transform: translateY(-2px);
         }
-
-        .btn.aec-btn-qr-code, .aec-btn-qr-code {
+        .aec-btn-hero-primary:hover {
+            background: #0369a1 !important;
+        }
+        .aec-action-group {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            background: rgba(16, 185, 129, 0.2) !important;
-            border: 1.5px solid #34d399 !important;
-            color: #d1fae5 !important;
-            font-weight: 700;
-            font-size: 13px;
-            padding: 6px 16px;
-            border-radius: 30px;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
-            cursor: pointer;
-            text-decoration: none;
-            line-height: 1.4;
-            white-space: nowrap;
-        }
-
-        .btn.aec-btn-qr-code:hover, .btn.aec-btn-qr-code:focus, .aec-btn-qr-code:hover, .aec-btn-qr-code:focus {
-            background: #10b981 !important;
-            border-color: #34d399 !important;
-            color: #ffffff !important;
-            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5);
-            transform: translateY(-2px);
-        }
-
-        .btn.aec-btn-card-design, .aec-btn-card-design {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(168, 85, 247, 0.2) !important;
-            border: 1.5px solid #c084fc !important;
-            color: #f3e8ff !important;
-            font-weight: 700;
-            font-size: 13px;
-            padding: 6px 16px;
-            border-radius: 30px;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 8px rgba(168, 85, 247, 0.25);
-            cursor: pointer;
-            text-decoration: none;
-            line-height: 1.4;
-            white-space: nowrap;
-        }
-
-        .btn.aec-btn-card-design:hover, .btn.aec-btn-card-design:focus, .aec-btn-card-design:hover, .aec-btn-card-design:focus {
-            background: #9333ea !important;
-            border-color: #c084fc !important;
-            color: #ffffff !important;
-            box-shadow: 0 4px 16px rgba(168, 85, 247, 0.5);
-            transform: translateY(-2px);
+            gap: 4px;
+            flex-wrap: nowrap;
         }
     </style>
 @endpush
@@ -220,10 +173,12 @@
                             <i class="fa-solid fa-arrow-up-right-from-square"></i>
                         </a>
                     </div>
-                    <button type="button" class="btn btn-sm aec-btn-quick-edit aec-btn-hover-lift d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#editTitleModal" title="Quick Edit Title & Slug">
+                    <button type="button" class="aec-btn-hero aec-btn-hover-lift" data-bs-toggle="modal" data-bs-target="#editTitleModal" title="Quick Edit Title & Slug">
+                        <i class="fa-solid fa-pen-to-square"></i>
                         <span>কুইক এডিট</span>
                     </button>
-                    <button type="button" class="btn btn-sm aec-btn-qr-code aec-btn-hover-lift d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#qrCodeModal" title="QR Code Generator">
+                    <button type="button" class="aec-btn-hero aec-btn-hover-lift" data-bs-toggle="modal" data-bs-target="#qrCodeModal" title="QR Code Generator">
+                        <i class="fa-solid fa-qrcode"></i>
                         <span>কিউ আর কোড</span>
                     </button>
                 </div>
@@ -233,20 +188,25 @@
             <div class="d-flex flex-wrap align-items-center gap-2">
                 @if($isLibrary)
                     <a href="{{ route('admin.libraries.index') }}" class="btn btn-outline-light rounded-pill px-3 py-2 small fw-bold aec-btn-hover-lift d-inline-flex align-items-center">
+                        <i class="fa-solid fa-book-bookmark me-1.5"></i>
                         <span>Library Dashboard</span>
                     </a>
                 @endif
                 <button type="button" class="btn btn-primary rounded-pill px-3 py-2 small fw-bold shadow-sm aec-btn-hover-lift d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#adminAddParticipantModal">
+                    <i class="fa-solid fa-user-plus me-1.5"></i>
                     <span>{{ $isLibrary ? 'নতুন পাঠাগার' : 'নতুন নিবন্ধন' }}</span>
                 </button>
                 <button type="button" class="btn btn-warning text-dark rounded-pill px-3 py-2 small fw-bold shadow-sm aec-btn-hover-lift d-inline-flex align-items-center" onclick="openBulkBroadcastSmsModal()" title="একবারে ইভেন্ট আপডেট মেসেজ পাঠান">
+                    <i class="fa-solid fa-paper-plane me-1.5"></i>
                     <span>ইভেন্ট আপডেট মেসেজ</span>
                 </button>
-                <button type="button" id="btnToggleCampaignStatus" data-url="{{ route('admin.event-campaigns.toggle-status', $campaign->id) }}" class="btn {{ $campaign->is_active ? 'btn-outline-warning border-warning' : 'btn-success' }} rounded-pill px-3 py-2 small fw-bold shadow-sm aec-btn-hover-lift d-inline-flex align-items-center" title="{{ $campaign->is_active ? 'Pause Registration' : 'Activate Form' }}">
+                <button type="button" id="btnToggleCampaignStatus" data-url="{{ route('admin.event-campaigns.toggle-status', $campaign->id) }}" class="btn {{ $campaign->is_active ? 'btn-outline-light' : 'btn-success' }} rounded-pill px-3 py-2 small fw-bold shadow-sm aec-btn-hover-lift d-inline-flex align-items-center" title="{{ $campaign->is_active ? 'Pause Registration' : 'Activate Form' }}">
+                    <i class="fa-solid {{ $campaign->is_active ? 'fa-pause' : 'fa-play' }} me-1.5"></i>
                     <span id="campaignStatusBtnText">{{ $campaign->is_active ? 'Pause Registration' : 'Activate Form' }}</span>
                 </button>
                 <div class="dropdown">
                     <button class="btn btn-success rounded-pill px-3 py-2 small fw-bold shadow-sm dropdown-toggle aec-btn-hover-lift d-inline-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-file-export me-1.5"></i>
                         <span>Export Data</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3" style="font-size: 13px;">
@@ -266,11 +226,13 @@
                     </ul>
                 </div>
                 @unless($isScholarship)
-                <button type="button" class="btn aec-btn-card-design aec-btn-hover-lift d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#cardDesignModal" title="কার্ড ডিজাইন স্টুডিও ও ফটো এডিটর">
+                <button type="button" class="aec-btn-hero aec-btn-hero-primary aec-btn-hover-lift d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#cardDesignModal" title="কার্ড ডিজাইন স্টুডিও ও ফটো এডিটর">
+                    <i class="fa-solid fa-wand-magic-sparkles text-warning"></i>
                     <span>কার্ড ডিজাইন</span>
                 </button>
                 @endunless
                 <a href="{{ route('admin.event-campaigns.edit', $campaign->id) }}" class="btn btn-outline-light rounded-pill px-3 py-2 small fw-bold aec-btn-hover-lift d-inline-flex align-items-center">
+                    <i class="fa-solid fa-sliders me-1.5"></i>
                     <span>All Settings</span>
                 </a>
             </div>
@@ -1025,7 +987,10 @@
                             <td class="col-participant {{ in_array('participant', $visibleCols) ? '' : 'd-none' }}">
                                 <div class="d-flex align-items-center gap-2.5">
                                     @if($authorPhoto || $photoSrc)
-                                        <img src="{{ $photoSrc ?: asset('storage/' . $authorPhoto) }}" alt="{{ $reg->name }}" class="aec-avatar" onerror="this.style.display='none'">
+                                        @php $resolvedImgUrl = $photoSrc ?: asset('storage/' . $authorPhoto); @endphp
+                                        <img src="{{ $resolvedImgUrl }}" alt="{{ $reg->name }}" class="aec-avatar" 
+                                             onclick="openParticipantLightbox('{{ $resolvedImgUrl }}', '{{ addslashes($reg->name) }}', '{{ $reg->registration_number }}')" 
+                                             style="cursor: pointer;" title="ক্লিক করে বড়ো জুম ছবি দেখুন" onerror="this.style.display='none'">
                                     @else
                                         <div class="aec-avatar-placeholder {{ $isLibrary ? 'bg-success-subtle text-success' : '' }}">
                                             @if($isLibrary)
@@ -1251,7 +1216,7 @@
                             @endforeach
 
                             {{-- Actions --}}
-                            <td class="pe-3 text-end col-actions {{ in_array('actions', $visibleCols) ? '' : 'd-none' }}" style="min-width: 170px;">
+                            <td class="pe-3 text-end col-actions {{ in_array('actions', $visibleCols) ? '' : 'd-none' }}" style="min-width: 220px;">
                                 <div class="d-inline-flex gap-1 align-items-center">
                                     @if($isScholarship)
                                         {{-- Toggle Scholarship Selection Button --}}
@@ -1315,35 +1280,38 @@
                                         </a>
                                     @endif
 
-                                    {{-- Print Form / Pass Button --}}
-                                    <a href="{{ route('admin.event-campaigns.registrations.print', $reg->id) }}" target="_blank" class="btn-action-icon btn-action-print" title="{{ $isScholarship ? 'Print' : 'আমন্ত্রণপত্র / কার্ড প্রিন্ট' }}">
-                                        <i class="fa-solid fa-print"></i>
-                                    </a>
+                                    {{-- Row Action Icon Group --}}
+                                    <div class="aec-action-group ms-1">
+                                        {{-- Details Modal Trigger --}}
+                                        <button type="button" class="btn-action-icon btn-action-preview" data-bs-toggle="modal" data-bs-target="#viewDetailsModal{{ $reg->id }}" title="{{ $isScholarship ? 'Preview' : 'পূর্ণ বিবরণ ও আবেদন ফরম' }}">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
 
-                                    {{-- Download PDF Button --}}
-                                    <a href="{{ route('admin.event-campaigns.registrations.pdf', $reg->id) }}" class="btn-action-icon btn-action-pdf" title="{{ $isScholarship ? 'PDF' : 'PDF ফরম ডাউনলোড' }}">
-                                        <i class="fa-solid fa-file-pdf"></i>
-                                    </a>
+                                        {{-- Edit Participant Modal Trigger --}}
+                                        <button type="button" class="btn-action-icon btn-action-edit" data-bs-toggle="modal" data-bs-target="#viewDetailsModal{{ $reg->id }}" onclick="setTimeout(function(){ var btn = document.getElementById('edit-tab-btn-{{ $reg->id }}'); if (btn) btn.click(); }, 80)" title="{{ $isScholarship ? 'Edit' : 'অংশগ্রহণকারী সম্পাদনা' }}">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
 
-                                    {{-- Details Modal Trigger --}}
-                                    <button type="button" class="btn-action-icon btn-action-preview" data-bs-toggle="modal" data-bs-target="#viewDetailsModal{{ $reg->id }}" title="{{ $isScholarship ? 'Preview' : 'পূর্ণ বিবরণ প্রিভিউ' }}">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
+                                        {{-- Print Form / Pass Button --}}
+                                        <a href="{{ route('admin.event-campaigns.registrations.print', $reg->id) }}" target="_blank" class="btn-action-icon btn-action-print" title="{{ $isScholarship ? 'Print' : 'আমন্ত্রণপত্র / কার্ড প্রিন্ট' }}">
+                                            <i class="fa-solid fa-print"></i>
+                                        </a>
 
-                                    {{-- Edit Participant Modal Trigger --}}
-                                    <button type="button" class="btn-action-icon btn-action-edit" data-bs-toggle="modal" data-bs-target="#viewDetailsModal{{ $reg->id }}" onclick="setTimeout(function(){ var btn = document.getElementById('edit-tab-btn-{{ $reg->id }}'); if (btn) btn.click(); }, 80)" title="{{ $isScholarship ? 'Edit' : 'অংশগ্রহণকারী সম্পাদনা' }}">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </button>
+                                        {{-- Download PDF Button --}}
+                                        <a href="{{ route('admin.event-campaigns.registrations.pdf', $reg->id) }}" class="btn-action-icon btn-action-pdf" title="{{ $isScholarship ? 'PDF' : 'PDF ফরম ডাউনলোড' }}">
+                                            <i class="fa-solid fa-file-pdf"></i>
+                                        </a>
 
-                                    {{-- Send SMS Trigger --}}
-                                    <button type="button" class="btn-action-icon btn-action-sms" data-bs-toggle="modal" data-bs-target="#smsModal{{ $reg->id }}" title="{{ $isScholarship ? 'SMS' : 'মেসেজ পাঠান (কার্ড ডাউনলোড লিংক / নোটিশ)' }}">
-                                        <i class="fa-solid fa-paper-plane"></i>
-                                    </button>
+                                        {{-- Send SMS Trigger --}}
+                                        <button type="button" class="btn-action-icon btn-action-sms" data-bs-toggle="modal" data-bs-target="#smsModal{{ $reg->id }}" title="{{ $isScholarship ? 'SMS' : 'মেসেজ পাঠান (কার্ড ডাউনলোড লিংক / নোটিশ)' }}">
+                                            <i class="fa-solid fa-paper-plane"></i>
+                                        </button>
 
-                                    {{-- Delete Participant Button --}}
-                                    <button type="button" class="btn-action-icon btn-action-delete btn-delete-reg" data-id="{{ $reg->id }}" data-name="{{ $reg->name }}" data-url="{{ route('admin.event-campaigns.registrations.destroy', $reg->id) }}" title="{{ $isScholarship ? 'Delete' : 'নিবন্ধন ডিলিট' }}">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
+                                        {{-- Delete Participant Button --}}
+                                        <button type="button" class="btn-action-icon btn-action-delete btn-delete-reg" data-id="{{ $reg->id }}" data-name="{{ $reg->name }}" data-url="{{ route('admin.event-campaigns.registrations.destroy', $reg->id) }}" title="{{ $isScholarship ? 'Delete' : 'নিবন্ধন ডিলিট' }}">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {{-- SMS Modal for Participant --}}
@@ -2123,215 +2091,9 @@
                                     </div>
                                 @endif
 
-                                {{-- MODAL 3: FULL EDIT PARTICIPANT MODAL --}}
+                                {{-- Scholarship Specific Edit Modal if applicable --}}
                                 @if($isScholarship)
                                     @include('admin.event_campaigns.partials.scholarship_edit', ['reg' => $reg])
-                                @else
-                                <div class="modal fade" id="editRegModal{{ $reg->id }}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered modal-lg text-start">
-                                        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
-                                            <form action="{{ route('admin.event-campaigns.registrations.update', $reg->id) }}" method="POST" enctype="multipart/form-data">
-                                                @csrf
-                                                @method('PATCH')
-                                                <div class="modal-header py-3 bg-light border-bottom">
-                                                    <div class="d-flex align-items-center gap-2">
-                                                        <div class="p-2 bg-primary-subtle text-primary rounded-circle" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
-                                                            <i class="fa-solid fa-user-pen"></i>
-                                                        </div>
-                                                        <div>
-                                                            <h6 class="modal-title fw-bold mb-0">অংশগ্রহণকারী সম্পাদনা (Edit Participant)</h6>
-                                                            <small class="text-muted font-monospace">Reg #: {{ $reg->registration_number }} | {{ $reg->name }}</small>
-                                                        </div>
-                                                    </div>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body p-4">
-                                                    <div class="row g-3">
-                                                        {{-- Photo Preview & Change --}}
-                                                        <div class="col-12 col-md-4">
-                                                            <div class="p-3 bg-light rounded-3 border text-center">
-                                                                <label class="form-label small fw-bold text-dark d-block mb-2">প্রোফাইল ছবি / Photo</label>
-                                                                <div class="mb-2 position-relative d-inline-block">
-                                                                    @if($authorPhoto)
-                                                                        <img src="{{ asset('storage/' . $authorPhoto) }}" alt="{{ $reg->name }}" id="editPhotoPreview{{ $reg->id }}" style="width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid #0284c7; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
-                                                                    @else
-                                                                        <div id="editPhotoPreview{{ $reg->id }}" class="aec-avatar-placeholder mx-auto" style="width: 90px; height: 90px; font-size: 32px; border-radius: 50%;">
-                                                                            {{ mb_substr($reg->name, 0, 1) }}
-                                                                        </div>
-                                                                    @endif
-                                                                </div>
-                                                                <input type="file" name="photo" id="editPhotoInput{{ $reg->id }}" class="d-none" accept="image/*" onchange="initParticipantPhotoAdjust(this, {{ $reg->id }}, 'editPhotoPreview{{ $reg->id }}')">
-                                                                <input type="hidden" name="cropped_photo_data" id="croppedPhotoData_editPhotoPreview{{ $reg->id }}" value="">
-                                                                
-                                                                <div class="d-grid gap-1.5 mt-2">
-                                                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill py-1 px-2 fw-semibold" style="font-size: 11.5px;" onclick="document.getElementById('editPhotoInput{{ $reg->id }}').click()">
-                                                                        <i class="fa-solid fa-camera me-1"></i> ছবি নির্বাচন করুন
-                                                                    </button>
-                                                                    <button type="button" class="btn btn-outline-dark btn-sm rounded-pill py-1 px-2 fw-semibold" style="font-size: 11.5px;" onclick="adjustPhotoFromPreview('editPhotoPreview{{ $reg->id }}', {{ $reg->id }})">
-                                                                        <i class="fa-solid fa-crop-simple me-1"></i> ছবি এডজাস্ট করুন
-                                                                    </button>
-                                                                </div>
-                                                                <small class="text-muted d-block mt-1.5" style="font-size: 10px;">নতুন ছবি দিলে আগের ছবি পরিবর্তিত হবে</small>
-                                                            </div>
-                                                        </div>
-
-                                                        {{-- Main Info --}}
-                                                        <div class="col-12 col-md-8">
-                                                            <div class="row g-2">
-                                                                <div class="col-12 col-sm-6">
-                                                                    <label class="form-label small fw-bold text-dark mb-1">পূর্ণ নাম <span class="text-danger">*</span></label>
-                                                                    <input type="text" name="name" class="form-control form-control-sm" value="{{ $reg->name }}" required>
-                                                                </div>
-                                                                <div class="col-12 col-sm-6">
-                                                                    <label class="form-label small fw-bold text-dark mb-1">মোবাইল নম্বর <span class="text-danger">*</span></label>
-                                                                    <input type="text" name="phone" class="form-control form-control-sm font-monospace" value="{{ $reg->phone }}" required>
-                                                                </div>
-                                                                <div class="col-12 col-sm-6">
-                                                                    <label class="form-label small fw-bold text-dark mb-1">ইমেইল</label>
-                                                                    <input type="email" name="email" class="form-control form-control-sm" value="{{ $reg->email }}">
-                                                                </div>
-                                                                @if($isWriter)
-                                                                    <div class="col-12 col-sm-6">
-                                                                        <label class="form-label small fw-bold text-dark mb-1">সাহিত্যিক ক্যাটাগরি</label>
-                                                                        @php
-                                                                            $curRegCat = $reg->form_data['author_category'] ?? ($reg->form_data['author_categories'][0] ?? 'লেখক');
-                                                                            $editCatsList = [
-                                                                                'লেখক', 'কবি', 'কথাসাহিত্যিক', 'গল্পকার', 'ছড়াকার', 'প্রাবন্ধিক',
-                                                                                'গবেষক', 'অনুবাদক', 'লিটিলম্যাগাজিন সম্পাদক', 'সম্পাদক', 'প্রকাশক',
-                                                                                'নাট্যকার', 'শিল্পী / সংস্কৃতিকর্মী', 'অন্যান্য / প্রতিনিধি'
-                                                                            ];
-                                                                        @endphp
-                                                                        <select name="author_category" class="form-select form-select-sm fw-semibold">
-                                                                            @foreach($editCatsList as $ecOpt)
-                                                                                <option value="{{ $ecOpt }}" {{ $curRegCat === $ecOpt ? 'selected' : '' }}>{{ $ecOpt }}</option>
-                                                                            @endforeach
-                                                                        </select>
-                                                                    </div>
-                                                                    <div class="col-12 col-sm-6">
-                                                                        <label class="form-label small fw-bold text-dark mb-1">পত্রিকা / লিটিলম্যাগ নাম</label>
-                                                                        <input type="text" name="magazine_name" class="form-control form-control-sm" value="{{ $reg->form_data['magazine_name'] ?? '' }}" placeholder="পত্রিকা নাম (লেখক হলে খালি রাখুন)">
-                                                                    </div>
-                                                                    <div class="col-12 col-sm-6">
-                                                                        <label class="form-label small fw-bold text-dark mb-1">কলমী নাম (Pen Name)</label>
-                                                                        <input type="text" name="pen_name" class="form-control form-control-sm" value="{{ $reg->form_data['pen_name'] ?? '' }}">
-                                                                    </div>
-                                                                    <div class="col-12 col-sm-6">
-                                                                        <label class="form-label small fw-bold text-dark mb-1">প্রকাশিত বই সংখ্যা</label>
-                                                                        <input type="number" name="published_book_count" class="form-control form-control-sm font-monospace" min="0" value="{{ $reg->form_data['published_book_count'] ?? '' }}">
-                                                                    </div>
-                                                                    <div class="col-12">
-                                                                        <label class="form-label small fw-bold text-dark mb-1">সাহিত্যিক শাখা (Genres)</label>
-                                                                        @php
-                                                                            $genresVal = is_array($reg->form_data['genres'] ?? null) ? implode(', ', $reg->form_data['genres']) : ($reg->form_data['genres'] ?? '');
-                                                                        @endphp
-                                                                        <input type="text" name="genres[]" class="form-control form-control-sm" value="{{ $genresVal }}" placeholder="যেমন: কবিতা, কথাসাহিত্য">
-                                                                    </div>
-                                                                @else
-                                                                    <div class="col-12 col-sm-6">
-                                                                        <label class="form-label small fw-bold text-dark mb-1">প্রতিষ্ঠান / সংস্থা</label>
-                                                                        <input type="text" name="institution_or_org" class="form-control form-control-sm" value="{{ $reg->institution_or_org }}">
-                                                                    </div>
-                                                                    <div class="col-12 col-sm-6">
-                                                                        <label class="form-label small fw-bold text-dark mb-1">পদবি / শ্রেণি</label>
-                                                                        <input type="text" name="designation_or_class" class="form-control form-control-sm" value="{{ $reg->designation_or_class }}">
-                                                                    </div>
-                                                                @endif
-                                                            </div>
-                                                        </div>
-
-                                                        @if($cItem && !empty($cItem['geo_conflict']))
-                                                            <div class="col-12">
-                                                                <div class="alert alert-danger py-2 px-3 small d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 rounded-3 border-danger">
-                                                                    <div>
-                                                                        <i class="fa-solid fa-triangle-exclamation text-danger me-1"></i>
-                                                                        <strong>বিভাগ ও জেলা অমিল:</strong> {{ $cItem['geo_conflict_details'] }}
-                                                                    </div>
-                                                                    @if(!empty($cItem['expected_div']))
-                                                                        <button type="button" class="btn btn-xs btn-outline-danger bg-white rounded-pill px-2.5 py-1 fw-bold" onclick="this.closest('form').querySelector('[name=perm_division]').value = '{{ $cItem['expected_div'] }}'; this.parentElement.style.display='none';">
-                                                                            <i class="fa-solid fa-wand-magic-sparkles me-1"></i> বিভাগ ঠিক করুন ({{ $cItem['expected_div'] }})
-                                                                        </button>
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endif
-
-                                                        {{-- Location & Address --}}
-                                                        <div class="col-12 col-sm-3">
-                                                            <label class="form-label small fw-bold text-dark mb-1">বিভাগ (Division)</label>
-                                                            <select name="perm_division" class="form-select form-select-sm fw-medium">
-                                                                <option value="">-- বিভাগ নির্বাচন --</option>
-                                                                @foreach(\App\Support\BangladeshGeo::DIVISIONS as $bdDivName => $dList)
-                                                                    <option value="{{ $bdDivName }}" {{ \App\Support\BangladeshGeo::normalizeDivision($reg->resolved_division) === $bdDivName ? 'selected' : '' }}>{{ $bdDivName }} বিভাগ</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-12 col-sm-3">
-                                                            <label class="form-label small fw-bold text-dark mb-1">জেলা (District)</label>
-                                                            <input type="text" name="district" class="form-control form-control-sm" value="{{ $reg->district ?: ($reg->form_data['permanent_district'] ?? '') }}" placeholder="যেমন: রংপুর">
-                                                        </div>
-                                                        <div class="col-12 col-sm-3">
-                                                            <label class="form-label small fw-bold text-dark mb-1">উপজেলা / থানা (Thana)</label>
-                                                            <input type="text" name="thana" class="form-control form-control-sm" value="{{ $reg->thana ?: ($reg->form_data['perm_upazila'] ?? '') }}" placeholder="যেমন: সদর">
-                                                        </div>
-                                                        <div class="col-12 col-sm-3">
-                                                            <label class="form-label small fw-bold text-dark mb-1">ঠিকানা / এলাকা (Address)</label>
-                                                            <input type="text" name="address" class="form-control form-control-sm" value="{{ $reg->address }}" placeholder="গ্রাম / রোড / মহল্লা">
-                                                        </div>
-
-                                                        {{-- Status, Payment & Admin Notes --}}
-                                                        <div class="col-12 col-sm-4">
-                                                            <label class="form-label small fw-bold text-dark mb-1">নিবন্ধন স্ট্যাটাস</label>
-                                                            <select name="status" class="form-select form-select-sm fw-bold">
-                                                                <option value="confirmed" {{ $reg->status === 'confirmed' ? 'selected' : '' }}>✓ Confirmed / Approved</option>
-                                                                <option value="selected" {{ $reg->status === 'selected' ? 'selected' : '' }}>★ Selected</option>
-                                                                <option value="attended" {{ $reg->status === 'attended' ? 'selected' : '' }}>🪪 Attended</option>
-                                                                <option value="pending" {{ $reg->status === 'pending' ? 'selected' : '' }}>⏳ Pending</option>
-                                                                <option value="rejected" {{ $reg->status === 'rejected' ? 'selected' : '' }}>✕ Rejected</option>
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-12 col-sm-4">
-                                                            <label class="form-label small fw-bold text-dark mb-1">পরিশোধিত ফি (Amount ৳)</label>
-                                                            <input type="number" step="1" min="0" name="amount_paid" class="form-control form-control-sm font-monospace" value="{{ $reg->amount_paid }}">
-                                                        </div>
-                                                        <div class="col-12 col-sm-4">
-                                                            <label class="form-label small fw-bold text-dark mb-1">পেমেন্ট স্ট্যাটাস</label>
-                                                            <select name="payment_status" class="form-select form-select-sm">
-                                                                <option value="verified" {{ $reg->payment_status === 'verified' ? 'selected' : '' }}>Verified Paid</option>
-                                                                <option value="pending" {{ $reg->payment_status === 'pending' ? 'selected' : '' }}>Pending</option>
-                                                                <option value="waived" {{ $reg->payment_status === 'waived' ? 'selected' : '' }}>Waived (মওকুফ)</option>
-                                                                <option value="refunded" {{ $reg->payment_status === 'refunded' ? 'selected' : '' }}>Refunded</option>
-                                                                <option value="free" {{ $reg->payment_status === 'free' ? 'selected' : '' }}>Free</option>
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-12 col-sm-6">
-                                                            <label class="form-label small fw-bold text-dark mb-1">ট্রানজেকশন আইডি (TrxID)</label>
-                                                            <input type="text" name="transaction_id" class="form-control form-control-sm font-monospace" value="{{ $reg->transaction_id }}" placeholder="Bkash/Nagad TrxID">
-                                                        </div>
-                                                        <div class="col-12 col-sm-6">
-                                                            <label class="form-label small fw-bold text-dark mb-1">পেমেন্ট মেথড</label>
-                                                            <input type="text" name="payment_method" class="form-control form-control-sm" value="{{ $reg->payment_method }}" placeholder="যেমন: bkash, nagad, cash">
-                                                        </div>
-                                                        <div class="col-12">
-                                                            <label class="form-label small fw-bold text-dark mb-1">এডমিন নোট / মন্তব্য</label>
-                                                            <textarea name="admin_notes" rows="2" class="form-control form-control-sm" placeholder="অভ্যন্তরীণ মন্তব্য...">{{ $reg->admin_notes }}</textarea>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer border-top py-2.5 bg-light d-flex justify-content-between">
-                                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 btn-delete-reg" data-id="{{ $reg->id }}" data-name="{{ $reg->name }}" data-url="{{ route('admin.event-campaigns.registrations.destroy', $reg->id) }}">
-                                                        <i class="fa-solid fa-trash me-1"></i> ডিলিট করুন
-                                                    </button>
-                                                    <div class="d-flex gap-2">
-                                                        <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
-                                                        <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm">
-                                                            <i class="fa-solid fa-floppy-disk me-1"></i> আপডেট সংরক্ষণ
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
                                 @endif
                             </td>
                         </tr>
@@ -4544,7 +4306,7 @@
 
                         <div class="col-12 col-sm-3">
                             <label class="form-label small fw-bold text-dark mb-1">বিভাগ (Division)</label>
-                            <select name="division" id="addPartDivision" class="form-select form-select-sm fw-medium">
+                            <select name="division" id="addPartDivision" class="form-select form-select-sm fw-medium" onchange="syncAddPartDistricts(this.value)">
                                 <option value="">-- বিভাগ নির্বাচন --</option>
                                 @foreach(\App\Support\BangladeshGeo::DIVISIONS as $bdDivName => $dList)
                                     <option value="{{ $bdDivName }}" {{ $bdDivName === 'রংপুর' ? 'selected' : '' }}>{{ $bdDivName }} বিভাগ</option>
@@ -4553,7 +4315,11 @@
                         </div>
                         <div class="col-12 col-sm-3">
                             <label class="form-label small fw-bold text-dark mb-1">জেলা (District)</label>
-                            <input type="text" name="district" id="addPartDistrict" class="form-control form-control-sm" placeholder="যেমন: রংপুর" value="রংপুর">
+                            <select name="district" id="addPartDistrict" class="form-select form-select-sm fw-medium">
+                                @foreach(\App\Support\BangladeshGeo::DIVISIONS['রংপুর'] as $dName)
+                                    <option value="{{ $dName }}" {{ $dName === 'রংপুর' ? 'selected' : '' }}>{{ $dName }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-12 col-sm-3">
                             <label class="form-label small fw-bold text-dark mb-1">উপজেলা / থানা (Thana)</label>
@@ -5012,6 +4778,26 @@
                 console.error(e);
                 alert('সার্ভার যোগাযোগে ত্রুটি হয়েছে।');
             }
+        };
+
+        // Auto-sync District Dropdown in Admin Add Participant Modal
+        window.syncAddPartDistricts = function(selectedDiv) {
+            const dst = document.getElementById('addPartDistrict');
+            if (!dst || !window.BD_DIVISIONS_MAP) return;
+            dst.innerHTML = '';
+            const list = window.BD_DIVISIONS_MAP[selectedDiv] || [];
+            if (!list.length) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = '-- জেলা নির্বাচন --';
+                dst.appendChild(opt);
+            }
+            list.forEach(function(d) {
+                const opt = document.createElement('option');
+                opt.value = d;
+                opt.textContent = d;
+                dst.appendChild(opt);
+            });
         };
 
         let currentCropperPreviewId = null;

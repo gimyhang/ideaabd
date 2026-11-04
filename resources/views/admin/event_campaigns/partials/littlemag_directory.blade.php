@@ -218,11 +218,11 @@
                                     @csrf
                                     <input type="hidden" name="status" value="{{ in_array($lm->status, ['confirmed', 'approved', 'selected']) ? 'pending' : 'confirmed' }}">
                                     @if(in_array($lm->status, ['confirmed', 'approved', 'selected']))
-                                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-2 py-0.5 text-nowrap shadow-xs" style="font-size: 10.5px;" title="Approved (ক্লিক করে পেন্ডিং করুন)">
+                                        <button type="button" onclick="handleQuickStatusAction(this.closest('form'), this); return false;" class="btn btn-sm btn-success rounded-pill px-2 py-0.5 text-nowrap shadow-xs quick-status-btn" style="font-size: 10.5px;" title="Approved (ক্লিক করে পেন্ডিং করুন)">
                                             <i class="fa-solid fa-circle-check"></i>
                                         </button>
                                     @else
-                                        <button type="submit" class="btn btn-sm btn-warning text-dark rounded-pill px-2 py-0.5 text-nowrap shadow-xs" style="font-size: 10.5px;" title="এপ্রুভ করুন (স্বাগত ও কার্ড ডাউনলোড এসএমএস যাবে)">
+                                        <button type="button" onclick="handleQuickStatusAction(this.closest('form'), this); return false;" class="btn btn-sm btn-warning text-dark rounded-pill px-2 py-0.5 text-nowrap shadow-xs quick-status-btn" style="font-size: 10.5px;" title="এপ্রুভ করুন (স্বাগত ও কার্ড ডাউনলোড এসএমএস যাবে)">
                                             <i class="fa-solid fa-check"></i> এপ্রুভ
                                         </button>
                                     @endif
@@ -233,11 +233,11 @@
                                     @csrf
                                     <input type="hidden" name="status" value="{{ $lm->status === 'rejected' ? 'pending' : 'rejected' }}">
                                     @if($lm->status === 'rejected')
-                                        <button type="submit" class="btn btn-sm btn-danger rounded-pill px-2 py-0.5 text-nowrap shadow-xs" style="font-size: 10.5px;" title="Rejected (ক্লিক করে পেন্ডিং করুন)">
+                                        <button type="button" onclick="handleQuickStatusAction(this.closest('form'), this); return false;" class="btn btn-sm btn-danger rounded-pill px-2 py-0.5 text-nowrap shadow-xs quick-status-btn" style="font-size: 10.5px;" title="Rejected (ক্লিক করে পেন্ডিং করুন)">
                                             <i class="fa-solid fa-circle-xmark"></i>
                                         </button>
                                     @else
-                                        <button type="submit" class="btn btn-sm btn-outline-danger bg-white rounded-pill px-2 py-0.5 text-nowrap shadow-xs" style="font-size: 10.5px;" title="আবেদন বাতিল করুন (নোটিশ এসএমএস যাবে)">
+                                        <button type="button" onclick="handleQuickStatusAction(this.closest('form'), this); return false;" class="btn btn-sm btn-outline-danger bg-white rounded-pill px-2 py-0.5 text-nowrap shadow-xs quick-status-btn" style="font-size: 10.5px;" title="আবেদন বাতিল করুন (নোটিশ এসএমএস যাবে)">
                                             <i class="fa-solid fa-xmark"></i> বাতিল
                                         </button>
                                     @endif
