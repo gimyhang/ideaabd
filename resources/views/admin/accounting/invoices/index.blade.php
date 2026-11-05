@@ -30,6 +30,7 @@
         'books'          => 'Books & Publications',
         'stationery'     => 'Stationery Materials',
         'printing_goods' => 'Printing & Press Works',
+        'pvc_banner'     => 'পিভিসি ও ব্যানার (PVC & Banner)',
         'other'          => 'Other Goods & Services',
         default          => 'All Categories'
     };
@@ -37,6 +38,7 @@
         'books'          => $stats['books_count'],
         'stationery'     => $stats['stationery_count'],
         'printing_goods' => $stats['printing_count'],
+        'pvc_banner'     => ($stats['pvc_banner_count'] ?? 0),
         'other'          => $stats['other_count'],
         default          => $stats['total_invoices']
     };
@@ -121,6 +123,12 @@
                     <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-between {{ $currentCategory === 'printing_goods' ? 'active bg-primary text-white' : '' }}" href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('sales_category', 'page'), ['sales_category' => 'printing_goods'])) }}">
                         <span><i class="fa-solid fa-print me-2 {{ $currentCategory === 'printing_goods' ? 'text-white' : 'text-warning' }}"></i>Printing & Press Works</span>
                         <span class="badge {{ $currentCategory === 'printing_goods' ? 'bg-white text-primary' : 'bg-light text-dark' }} rounded-pill">{{ $stats['printing_count'] }}</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-between {{ $currentCategory === 'pvc_banner' ? 'active bg-primary text-white' : '' }}" href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('sales_category', 'page'), ['sales_category' => 'pvc_banner'])) }}">
+                        <span><i class="fa-solid fa-flag me-2 {{ $currentCategory === 'pvc_banner' ? 'text-white' : 'text-danger' }}"></i>পিভিসি ও ব্যানার (PVC & Banner)</span>
+                        <span class="badge {{ $currentCategory === 'pvc_banner' ? 'bg-white text-primary' : 'bg-light text-dark' }} rounded-pill">{{ $stats['pvc_banner_count'] ?? 0 }}</span>
                     </a>
                 </li>
                 <li>
@@ -415,6 +423,7 @@
                     <option value="books" @selected($salesCategory === 'books')>Books & Publications</option>
                     <option value="stationery" @selected($salesCategory === 'stationery')>Stationery Materials</option>
                     <option value="printing_goods" @selected($salesCategory === 'printing_goods')>Printing & Press Works</option>
+                    <option value="pvc_banner" @selected($salesCategory === 'pvc_banner')>🚩 PVC & Banner Printing</option>
                     <option value="other" @selected($salesCategory === 'other')>Other Goods & Services</option>
                 </select>
             </div>

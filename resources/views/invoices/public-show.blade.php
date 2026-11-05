@@ -901,6 +901,8 @@
                                         Delivered Stationery Items / Description
                                     @elseif($invoice->sales_category === 'printing_goods')
                                         Delivered Printing Goods / Press Work
+                                    @elseif($invoice->sales_category === 'pvc_banner')
+                                        বর্ণনা / কাজের বিবরণ (Job Description)
                                     @elseif($invoice->sales_category === 'other')
                                         Delivered Products / Goods Description
                                     @else
@@ -908,7 +910,9 @@
                                     @endif
                                 </th>
                                 <th class="py-1 px-1" style="width: 105px;">
-                                    @if($invoice->sales_category === 'stationery' || $invoice->sales_category === 'printing_goods')
+                                    @if($invoice->sales_category === 'pvc_banner')
+                                        সাইজ / মাপ (Dimensions)
+                                    @elseif($invoice->sales_category === 'stationery' || $invoice->sales_category === 'printing_goods')
                                         Spec / Size
                                     @elseif($invoice->sales_category === 'other')
                                         Specification
@@ -916,9 +920,17 @@
                                         Author / Spec
                                     @endif
                                 </th>
-                                <th class="text-end py-1 px-1" style="width: 50px;">Qty</th>
+                                <th class="text-end py-1 px-1" style="width: 50px;">
+                                    @if($invoice->sales_category === 'pvc_banner')
+                                        স্কয়ারফিট (Sft)
+                                    @else
+                                        Qty
+                                    @endif
+                                </th>
                                 <th class="text-end py-1 px-1" style="width: 70px;">
-                                    @if($invoice->sales_category === 'stationery')
+                                    @if($invoice->sales_category === 'pvc_banner')
+                                        দর (৳)
+                                    @elseif($invoice->sales_category === 'stationery')
                                         MRP (৳)
                                     @elseif($invoice->sales_category === 'printing_goods')
                                         Base Rate
@@ -927,8 +939,20 @@
                                     @endif
                                 </th>
                                 <th class="text-end py-1 px-1" style="width: 55px;">Disc %</th>
-                                <th class="text-end py-1 px-1" style="width: 80px;">Net Price</th>
-                                <th class="text-end py-1 pe-1.5" style="width: 85px;">Total (৳)</th>
+                                <th class="text-end py-1 px-1" style="width: 80px;">
+                                    @if($invoice->sales_category === 'pvc_banner')
+                                        টাকা / রেট (৳)
+                                    @else
+                                        Net Price
+                                    @endif
+                                </th>
+                                <th class="text-end py-1 pe-1.5" style="width: 85px;">
+                                    @if($invoice->sales_category === 'pvc_banner')
+                                        মোট টাকা (৳)
+                                    @else
+                                        Total (৳)
+                                    @endif
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1354,6 +1378,8 @@
                                             Delivered Stationery Items / Description
                                         @elseif($invoice->sales_category === 'printing_goods')
                                             Delivered Printing Goods / Press Work
+                                        @elseif($invoice->sales_category === 'pvc_banner')
+                                            সরবরাহকৃত ব্যানার ও পিভিসি বিবরণ (Job Description)
                                         @elseif($invoice->sales_category === 'other')
                                             Delivered Products / Goods Description
                                         @else
@@ -1361,7 +1387,9 @@
                                         @endif
                                     </th>
                                     <th class="py-1 px-1" style="width: 110px;">
-                                        @if($invoice->sales_category === 'stationery' || $invoice->sales_category === 'printing_goods')
+                                        @if($invoice->sales_category === 'pvc_banner')
+                                            সাইজ / মাপ (Dimensions)
+                                        @elseif($invoice->sales_category === 'stationery' || $invoice->sales_category === 'printing_goods')
                                             Spec / Size
                                         @elseif($invoice->sales_category === 'other')
                                             Specification
@@ -1371,7 +1399,13 @@
                                     </th>
                                     <th class="text-center py-1 px-1" style="width: 55px;">Type</th>
                                     <th class="text-center py-1 px-1" style="width: 45px;">Unit</th>
-                                    <th class="text-end py-1 px-1" style="width: 50px;">Qty</th>
+                                    <th class="text-end py-1 px-1" style="width: 65px;">
+                                        @if($invoice->sales_category === 'pvc_banner')
+                                            স্কয়ারফিট (Sft)
+                                        @else
+                                            Qty
+                                        @endif
+                                    </th>
                                     <th class="text-center py-1 px-1" style="width: 70px;">Condition</th>
                                     <th class="py-1 px-1.5" style="width: 75px;">Remarks</th>
                                 </tr>
@@ -1384,7 +1418,7 @@
                                             ? $matchedBooks[$item['book_id']]
                                             : ($isItemBook && isset($matchedBooksByTitle[$item['title']]) ? $matchedBooksByTitle[$item['title']] : null);
                                         $authorName = $item['author'] ?? $item['author_name'] ?? ($matchedBook->author_name ?? ($matchedBook->author->name ?? null)) ?? '—';
-                                        $unitName = $item['unit'] ?? ($isItemBook ? 'Copy' : 'Pcs');
+                                        $unitName = $item['unit'] ?? ($invoice->sales_category === 'pvc_banner' ? 'Sqft' : ($isItemBook ? 'Copy' : 'Pcs'));
                                     @endphp
                                     <tr>
                                         <td class="text-center py-0.5 px-1 text-muted">{{ $idx + 1 }}</td>

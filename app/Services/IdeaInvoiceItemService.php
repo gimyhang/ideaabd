@@ -16,6 +16,8 @@ class IdeaInvoiceItemService
     public const TYPE_STATIONERY     = 'Stationery';
     public const TYPE_PRINTING       = 'Printing & Binding';
     public const TYPE_PAPER          = 'Paper / Raw Materials';
+    public const TYPE_PVC_BANNER     = 'PVC / Banner';
+    public const TYPE_VINYL_STICKER  = 'Vinyl Sticker';
     public const TYPE_PRODUCT        = 'Product';
     public const TYPE_SERVICE        = 'Service';
     public const TYPE_OTHER          = 'Other';
@@ -57,6 +59,10 @@ class IdeaInvoiceItemService
             'Printing & Press' => [
                 self::TYPE_PRINTING       => ['name' => 'Printing & Binding',     'unit' => 'Copy', 'is_book' => false, 'icon' => 'fa-print'],
                 self::TYPE_PAPER          => ['name' => 'Paper & Materials',      'unit' => 'Ream', 'is_book' => false, 'icon' => 'fa-box-archive'],
+            ],
+            'PVC & Banner Printing' => [
+                self::TYPE_PVC_BANNER     => ['name' => 'PVC / Banner Print',    'unit' => 'Sqft', 'is_book' => false, 'icon' => 'fa-flag'],
+                self::TYPE_VINYL_STICKER  => ['name' => 'Vinyl Sticker Print',   'unit' => 'Sqft', 'is_book' => false, 'icon' => 'fa-tag'],
             ],
             'Products & Services' => [
                 self::TYPE_PRODUCT        => ['name' => 'General Product',        'unit' => 'Pcs',  'is_book' => false, 'icon' => 'fa-tag'],
@@ -121,6 +127,7 @@ class IdeaInvoiceItemService
             return match ($salesCategory) {
                 'stationery'     => self::TYPE_STATIONERY,
                 'printing_goods' => self::TYPE_PRINTING,
+                'pvc_banner'     => self::TYPE_PVC_BANNER,
                 default          => self::TYPE_OTHER,
             };
         }
@@ -134,10 +141,17 @@ class IdeaInvoiceItemService
     public static function getDefaultUnit(?string $itemType, string $salesCategory = 'books'): string
     {
         if (empty($itemType)) {
-            return $salesCategory === 'books' ? 'Copy' : 'Pcs';
+            return match($salesCategory) {
+                'books'      => 'Copy',
+                'pvc_banner' => 'Sqft',
+                default      => 'Pcs',
+            };
         }
 
         $lower = mb_strtolower(trim($itemType));
+        if ($salesCategory === 'pvc_banner' || str_contains($lower, 'banner') || str_contains($lower, 'pvc') || str_contains($lower, 'sqft') || str_contains($lower, 'vinyl')) {
+            return 'Sqft';
+        }
         if (str_contains($lower, 'paper') || str_contains($lower, 'ream')) {
             return 'Ream';
         }
@@ -198,6 +212,27 @@ class IdeaInvoiceItemService
                     ['title' => 'Folded Product Brochure (3-Fold)', 'spec' => '170 GSM Glossy Art Paper, Full Color', 'type' => self::TYPE_PRINTING, 'unit' => 'Copy', 'price' => 28, 'reg' => 38],
                     ['title' => 'Desk Calendar Printing', 'spec' => '12 Sheets Matt Laminated, Hard Stand Board', 'type' => self::TYPE_PRINTING, 'unit' => 'Pcs', 'price' => 135, 'reg' => 165],
                     ['title' => 'Digital PVC Banner / Festoon', 'spec' => 'Heavy Duty Digital PVC Flex (Per Sqft)', 'type' => self::TYPE_SERVICE, 'unit' => 'Sqft', 'price' => 28, 'reg' => 38],
+                ],
+            ],
+            'pvc_banner' => [
+                'ডিজিটাল পিভিসি ও ব্যানার (PVC & Flex Banner)' => [
+                    ['title' => 'ডিজিটাল পিভিসি ব্যানার প্রিন্ট (Digital PVC Banner)', 'spec' => 'সাধারণ ফ্লেক্স (Heavy PVC Flex), ফিনিশিং সহ', 'type' => self::TYPE_PVC_BANNER, 'unit' => 'Sqft', 'price' => 25, 'reg' => 30],
+                    ['title' => 'স্টার পিভিসি ব্যানার প্রিন্ট (Star PVC Banner)', 'spec' => 'উন্নত মানের উজ্জ্বল কালার স্টার ব্যানার (Star PVC)', 'type' => self::TYPE_PVC_BANNER, 'unit' => 'Sqft', 'price' => 35, 'reg' => 45],
+                    ['title' => 'ডিজিটাল ফেস্টুন প্রিন্ট (Digital Festoon)', 'spec' => 'উজ্জ্বল প্রিন্ট, কাঠের ফ্রেম/লাঠি সহ ফেস্টুন', 'type' => self::TYPE_PVC_BANNER, 'unit' => 'Sqft', 'price' => 30, 'reg' => 40],
+                    ['title' => 'ব্যাকলিট সাইনবোর্ড প্রিন্ট (Backlit Flex)', 'spec' => 'লাইট বক্স ও সাইনবোর্ডের ব্যাকলিট ফ্লেক্স প্রিন্ট', 'type' => self::TYPE_PVC_BANNER, 'unit' => 'Sqft', 'price' => 65, 'reg' => 80],
+                    ['title' => 'ব্ল্যাকআউট পিভিসি ব্যানার (Blackout Flex)', 'spec' => 'আলো প্রতিরোধক ডাবল সাইড পিভিসি ব্যানার', 'type' => self::TYPE_PVC_BANNER, 'unit' => 'Sqft', 'price' => 45, 'reg' => 55],
+                ],
+                'ভিনাইল ও গ্লাস স্টিকার (Vinyl Sticker & Pasting)' => [
+                    ['title' => 'আউটডোর ভিনাইল স্টিকার (Outdoor Vinyl Sticker)', 'spec' => 'ওয়াটারপ্রুফ কালার প্রিন্ট + গ্লসি/ম্যাট ল্যামিনেশন', 'type' => self::TYPE_VINYL_STICKER, 'unit' => 'Sqft', 'price' => 45, 'reg' => 55],
+                    ['title' => 'রিফ্লেক্টিভ স্টিকার প্রিন্ট (Reflective Vinyl)', 'spec' => 'আলোতে জ্বলজ্বলে রেডিয়ম/রিফ্লেক্টিভ প্রিন্ট', 'type' => self::TYPE_VINYL_STICKER, 'unit' => 'Sqft', 'price' => 110, 'reg' => 135],
+                    ['title' => 'ফ্রস্টেড গ্লাস স্টিকার ও ডিজাইন কাটিং', 'spec' => 'অফিস গ্লাস পার্টিশন ফ্রস্টেড স্টিকার ও পেস্টিং', 'type' => self::TYPE_VINYL_STICKER, 'unit' => 'Sqft', 'price' => 85, 'reg' => 105],
+                    ['title' => 'ওয়ান-ওয়ে ভিশন স্টিকার (One-Way Vision)', 'spec' => 'গ্লাস ডোর ও উইন্ডোর বাইরে থেকে ভিজিবল স্টিকার', 'type' => self::TYPE_VINYL_STICKER, 'unit' => 'Sqft', 'price' => 75, 'reg' => 95],
+                ],
+                'স্ট্যান্ড ব্যানার ও ডিসপ্লে বোর্ড (Stands & Boards)' => [
+                    ['title' => 'এক্স-ব্যানার ও ফাইবার স্ট্যান্ড সেট (২×৫ ফুট)', 'spec' => '২×৫ ফুট হাই কোয়ালিটি ব্যানার + ফাইবার এক্স-স্ট্যান্ড', 'type' => self::TYPE_PVC_BANNER, 'unit' => 'Set', 'price' => 850, 'reg' => 1100],
+                    ['title' => 'এক্স-ব্যানার ও ফাইবার স্ট্যান্ড সেট (২.৫×৬ ফুট)', 'spec' => '২.৫×৬ ফুট ব্যানার + মজবুত ফাইবার এক্স-স্ট্যান্ড', 'type' => self::TYPE_PVC_BANNER, 'unit' => 'Set', 'price' => 1050, 'reg' => 1350],
+                    ['title' => 'রোল-আপ ব্যানার ও অ্যালুমিনিয়াম স্ট্যান্ড (২.৫×৬ ফুট)', 'spec' => 'অ্যালুমিনিয়াম পুল-আপ স্ট্যান্ড ও ব্যাগ সহ', 'type' => self::TYPE_PVC_BANNER, 'unit' => 'Set', 'price' => 2400, 'reg' => 2800],
+                    ['title' => 'পিভিসি ফোম বোর্ড প্রিন্ট ও পেস্টিং (৫ মিমি)', 'spec' => '৫ মিমি পিভিসি বোর্ডে ভিনাইল স্টিকার পেস্টিং', 'type' => self::TYPE_PVC_BANNER, 'unit' => 'Sqft', 'price' => 120, 'reg' => 150],
                 ],
             ],
         ];

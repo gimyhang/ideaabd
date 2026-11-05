@@ -287,6 +287,7 @@
                                     <option value="books" @selected(($salesCategory ?? 'books') === 'books')>📚 Books & Publication</option>
                                     <option value="stationery" @selected(($salesCategory ?? 'books') === 'stationery')>✏️ Stationery Sales</option>
                                     <option value="printing_goods" @selected(($salesCategory ?? 'books') === 'printing_goods')>🖨️ Printing & Press</option>
+                                    <option value="pvc_banner" @selected(($salesCategory ?? 'books') === 'pvc_banner')>🚩 পিভিসি / ব্যানার প্রিন্টিং (PVC & Banner)</option>
                                     <option value="other" @selected(($salesCategory ?? 'books') === 'other')>📦 Other Sales</option>
                                 </select>
                             </div>
@@ -423,6 +424,52 @@
             </div>
         </div>
 
+        {{-- Dropdown Quick Presets for PVC / Banner Printing --}}
+        <div id="pvcBannerPresetsWrap" class="mb-2 p-2 px-3 bg-light rounded-3 border border-danger-subtle" style="display: none;">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="small fw-bold text-dark text-nowrap" style="font-size: 11.5px;">
+                    <i class="fa-solid fa-flag text-danger me-1"></i> পিভিসি ও ব্যানার প্রিসেট:
+                </span>
+                <div class="flex-grow-1" style="min-width: 250px;">
+                    <select class="form-select form-select-sm border-danger fw-semibold" id="pvcBannerPresetSelect" onchange="onPvcBannerPresetSelected(this)" style="height: 32px;">
+                        <option value="">-- পিভিসি / ব্যানার আইটেম সিলেক্ট করুন (1-Click Add) --</option>
+                        <optgroup label="🚩 ডিজিটাল পিভিসি ও ফ্লেক্স ব্যানার (PVC Flex Banner)">
+                            <option value='{"title":"ডিজিটাল পিভিসি ব্যানার প্রিন্ট (Digital PVC Banner)","spec":"সাধারণ ফ্লেক্স (Heavy PVC Flex), ফিনিশিং সহ","type":"PVC / Banner","unit":"Sqft","price":25,"reg":30}'>🚩 ডিজিটাল পিভিসি ব্যানার প্রিন্ট (৳২৫/sft)</option>
+                            <option value='{"title":"স্টার পিভিসি ব্যানার প্রিন্ট (Star PVC Banner)","spec":"উন্নত মানের উজ্জ্বল কালার স্টার ব্যানার (Star PVC)","type":"PVC / Banner","unit":"Sqft","price":35,"reg":45}'>⭐ স্টার পিভিসি ব্যানার প্রিন্ট (৳৩৫/sft)</option>
+                            <option value='{"title":"ডিজিটাল ফেস্টুন প্রিন্ট (Digital Festoon)","spec":"উজ্জ্বল প্রিন্ট, কাঠের ফ্রেম/লাঠি সহ ফেস্টুন","type":"PVC / Banner","unit":"Sqft","price":30,"reg":40}'>🎋 ডিজিটাল ফেস্টুন প্রিন্ট (৳৩০/sft)</option>
+                            <option value='{"title":"ব্যাকলিট সাইনবোর্ড প্রিন্ট (Backlit Flex)","spec":"লাইট বক্স ও সাইনবোর্ডের ব্যাকলিট ফ্লেক্স প্রিন্ট","type":"PVC / Banner","unit":"Sqft","price":65,"reg":80}'>💡 ব্যাকলিট সাইনবোর্ড প্রিন্ট (৳৬৫/sft)</option>
+                            <option value='{"title":"ব্ল্যাকআউট পিভিসি ব্যানার (Blackout Flex)","spec":"আলো প্রতিরোধক ডাবল সাইড পিভিসি ব্যানার","type":"PVC / Banner","unit":"Sqft","price":45,"reg":55}'>⬛ ব্ল্যাকআউট পিভিসি ব্যানার (৳৪৫/sft)</option>
+                        </optgroup>
+                        <optgroup label="🏷️ ভিনাইল ও গ্লাস স্টিকার (Vinyl Sticker & Pasting)">
+                            <option value='{"title":"আউটডোর ভিনাইল স্টিকার (Outdoor Vinyl Sticker)","spec":"ওয়াটারপ্রুফ কালার প্রিন্ট + গ্লসি/ম্যাট ল্যামিনেশন","type":"Vinyl Sticker","unit":"Sqft","price":45,"reg":55}'>🏷️ আউটডোর ভিনাইল স্টিকার (৳৪৫/sft)</option>
+                            <option value='{"title":"রিফ্লেক্টিভ স্টিকার প্রিন্ট (Reflective Vinyl)","spec":"আলোতে জ্বলজ্বলে রেডিয়ম/রিফ্লেক্টিভ প্রিন্ট","type":"Vinyl Sticker","unit":"Sqft","price":110,"reg":135}'>✨ রিফ্লেক্টিভ স্টিকার প্রিন্ট (৳১১০/sft)</option>
+                            <option value='{"title":"ফ্রস্টেড গ্লাস স্টিকার ও ডিজাইন কাটিং","spec":"অফিস গ্লাস পার্টিশন ফ্রস্টেড স্টিকার ও পেস্টিং","type":"Vinyl Sticker","unit":"Sqft","price":85,"reg":105}'>🪟 ফ্রস্টেড গ্লাস স্টিকার ও কাটিং (৳৮৫/sft)</option>
+                            <option value='{"title":"ওয়ান-ওয়ে ভিশন স্টিকার (One-Way Vision)","spec":"গ্লাস ডোর ও উইন্ডোর বাইরে থেকে ভিজিবল স্টিকার","type":"Vinyl Sticker","unit":"Sqft","price":75,"reg":95}'>👁️ ওয়ান-ওয়ে ভিশন স্টিকার (৳৭৫/sft)</option>
+                            <option value='{"title":"স্বচ্ছ ক্লিয়ার স্টিকার প্রিন্ট (Transparent Vinyl)","spec":"স্বচ্ছ ক্লিয়ার ভিনাইল প্রিন্ট ও কাটিং","type":"Vinyl Sticker","unit":"Sqft","price":60,"reg":75}'>🔍 স্বচ্ছ ক্লিয়ার স্টিকার প্রিন্ট (৳৬০/sft)</option>
+                        </optgroup>
+                        <optgroup label="📐 স্ট্যান্ড ব্যানার ও ডিসপ্লে বোর্ড (Stands & Boards)">
+                            <option value='{"title":"এক্স-ব্যানার ও ফাইবার স্ট্যান্ড সেট (২×৫ ফুট)","spec":"২×৫ ফুট হাই কোয়ালিটি ব্যানার + ফাইবার এক্স-স্ট্যান্ড","type":"X-Banner / Stand","unit":"Set","price":850,"reg":1100}'>📐 এক্স-ব্যানার ও স্ট্যান্ড (২×৫ ফুট) (৳৮৫০/Set)</option>
+                            <option value='{"title":"এক্স-ব্যানার ও ফাইবার স্ট্যান্ড সেট (২.৫×৬ ফুট)","spec":"২.৫×৬ ফুট ব্যানার + মজবুত ফাইবার এক্স-স্ট্যান্ড","type":"X-Banner / Stand","unit":"Set","price":1050,"reg":1350}'>📐 এক্স-ব্যানার ও স্ট্যান্ড (২.৫×৬ ফুট) (৳১০৫০/Set)</option>
+                            <option value='{"title":"রোল-আপ ব্যানার ও অ্যালুমিনিয়াম স্ট্যান্ড (২.৫×৬ ফুট)","spec":"অ্যালুমিনিয়াম পুল-আপ স্ট্যান্ড ও ব্যাগ সহ","type":"X-Banner / Stand","unit":"Set","price":2400,"reg":2800}'>🎞️ রোল-আপ ব্যানার ও স্ট্যান্ড (২.৫×৬') (৳২৪০০/Set)</option>
+                            <option value='{"title":"পিভিসি ফোম বোর্ড প্রিন্ট ও পেস্টিং (৫ মিমি)","spec":"৫ মিমি পিভিসি বোর্ডে ভিনাইল স্টিকার পেস্টিং","type":"PVC / Banner","unit":"Sqft","price":120,"reg":150}'>📋 পিভিসি ফোম বোর্ড প্রিন্ট ও পেস্টিং (৳১২০/sft)</option>
+                        </optgroup>
+                    </select>
+                </div>
+                {{-- Quick Banner Size to Sqft Calculator Helper --}}
+                <div class="d-inline-flex align-items-center gap-1.5 bg-white border border-danger-subtle rounded-2 px-2 py-1 shadow-2xs">
+                    <span class="small text-muted fw-semibold" style="font-size: 11px;"><i class="fa-solid fa-calculator text-danger me-1"></i>মাপ ক্যালকুলেটর:</span>
+                    <input type="number" step="0.1" id="quickBannerW" placeholder="প্রস্থ (ফুট)" class="form-control form-control-sm text-center p-1" style="width: 75px; height: 26px; font-size: 11px;" title="দৈর্ঘ্য / প্রস্থ (ফুট)">
+                    <span class="text-muted small">×</span>
+                    <input type="number" step="0.1" id="quickBannerH" placeholder="উচ্চতা (ফুট)" class="form-control form-control-sm text-center p-1" style="width: 75px; height: 26px; font-size: 11px;" title="উচ্চতা / মাপ (ফুট)">
+                    <span class="text-muted small">=</span>
+                    <span id="quickBannerSqftResult" class="badge bg-danger-subtle text-danger font-monospace fw-bold px-1.5 py-1" style="font-size: 11px;">0 Sft</span>
+                    <button type="button" class="btn btn-xs btn-outline-danger py-0.5 px-2 rounded-1 fw-bold" onclick="applyQuickBannerSqft()" title="সর্বশেষ রো-তে এই স্কয়ারফিট ও সাইজ যোগ করুন" style="font-size: 10.5px;">
+                        <i class="fa-solid fa-arrow-down me-0.5"></i>রো-তে বসান
+                    </button>
+                </div>
+            </div>
+        </div>
+
         {{-- Schedule of Items & Rates Table (Authentic Invoice Table Layout) --}}
         <div class="d-flex align-items-center justify-content-between mb-2">
             <span class="fw-bold text-dark text-uppercase" style="font-size: 11.5px; letter-spacing: 0.3px;" id="itemsSectionTitle">
@@ -487,6 +534,11 @@
                                 <optgroup label="Printing & Press">
                                     <option value="Printing & Binding">Printing & Binding</option>
                                     <option value="Paper / Raw Materials">Paper / Raw Materials</option>
+                                </optgroup>
+                                <optgroup label="PVC / Banner Printing">
+                                    <option value="PVC / Banner">PVC / Banner</option>
+                                    <option value="Vinyl Sticker">Vinyl Sticker</option>
+                                    <option value="X-Banner / Stand">X-Banner / Stand</option>
                                 </optgroup>
                                 <optgroup label="Products & Services">
                                     <option value="Product">General Product</option>
@@ -571,6 +623,7 @@
                             <select class="form-select form-select-sm border-secondary-subtle fw-semibold shadow-xs" id="termsPresetSelect" onchange="applyTermsPreset(this.value)" style="min-height: 32px; height: 32px; font-size: 11.5px; line-height: 1.4; padding: 4px 28px 4px 10px; cursor: pointer;">
                                 <option value="">📋 Select Terms Template...</option>
                                 <option value="printing">🖨️ Printing & Press Terms</option>
+                                <option value="pvc_banner">🚩 PVC / Banner Printing Terms</option>
                                 <option value="delivery">🚚 Delivery & Dispatch Terms</option>
                                 <option value="tender">🏛️ Institutional Tender Terms</option>
                                 <option value="books">📚 Book Sales Supply Terms</option>
@@ -1354,7 +1407,11 @@
         let defaultUnit = 'Copy';
         let isBook = true;
 
-        if (currentSalesCat === 'stationery') {
+        if (currentSalesCat === 'pvc_banner') {
+            defaultItemType = 'PVC / Banner';
+            defaultUnit = 'Sqft';
+            isBook = false;
+        } else if (currentSalesCat === 'stationery') {
             defaultItemType = 'Stationery';
             defaultUnit = 'Pcs';
             isBook = false;
@@ -1407,6 +1464,11 @@
                     <optgroup label="Printing & Press">
                         <option value="Printing & Binding" ${defaultItemType === 'Printing & Binding' ? 'selected' : ''}>Printing & Binding</option>
                         <option value="Paper / Raw Materials" ${defaultItemType === 'Paper / Raw Materials' ? 'selected' : ''}>Paper / Raw Materials</option>
+                    </optgroup>
+                    <optgroup label="PVC / Banner Printing">
+                        <option value="PVC / Banner" ${defaultItemType === 'PVC / Banner' ? 'selected' : ''}>PVC / Banner Print</option>
+                        <option value="Vinyl Sticker" ${defaultItemType === 'Vinyl Sticker' ? 'selected' : ''}>Vinyl Sticker</option>
+                        <option value="X-Banner / Stand" ${defaultItemType === 'X-Banner / Stand' ? 'selected' : ''}>X-Banner / Stand</option>
                     </optgroup>
                     <optgroup label="Products & Services">
                         <option value="Product" ${defaultItemType === 'Product' ? 'selected' : ''}>General Product</option>
@@ -2362,67 +2424,155 @@
         }
     }
 
+    function onPvcBannerPresetSelected(selectEl) {
+        if (!selectEl || !selectEl.value) return;
+        try {
+            const item = JSON.parse(selectEl.value);
+            addPresetItem(item.title, item.spec, item.type, item.unit, item.price, item.reg, 1);
+            selectEl.value = '';
+        } catch (e) {
+            console.error('Error adding PVC banner preset', e);
+        }
+    }
+
+    function updateQuickBannerCalc() {
+        const w = parseFloat(document.getElementById('quickBannerW')?.value) || 0;
+        const h = parseFloat(document.getElementById('quickBannerH')?.value) || 0;
+        const sft = (w * h).toFixed(2);
+        const resEl = document.getElementById('quickBannerSqftResult');
+        if (resEl) {
+            resEl.textContent = `${parseFloat(sft)} Sft`;
+        }
+    }
+
+    function applyQuickBannerSqft() {
+        const w = parseFloat(document.getElementById('quickBannerW')?.value) || 0;
+        const h = parseFloat(document.getElementById('quickBannerH')?.value) || 0;
+        if (w <= 0 || h <= 0) {
+            alert('অনুগ্রহ করে সঠিক দৈর্ঘ্য ও প্রস্থ লিখুন (যেমন: 10 এবং 3)');
+            return;
+        }
+        const sft = Math.round((w * h) * 100) / 100;
+        const rows = document.querySelectorAll('#itemsBody .item-row');
+        let targetRow = rows.length ? rows[rows.length - 1] : null;
+        if (!targetRow) {
+            addItemRow();
+            const freshRows = document.querySelectorAll('#itemsBody .item-row');
+            targetRow = freshRows[freshRows.length - 1];
+        }
+        const rowIdx = targetRow.getAttribute('data-row');
+        const authorInput = targetRow.querySelector('.item-author');
+        const unitInput = targetRow.querySelector('.item-unit');
+        const qtyInput = targetRow.querySelector('.item-qty');
+
+        if (authorInput && !authorInput.value) {
+            authorInput.value = `${w}' × ${h}'`;
+        }
+        if (unitInput) {
+            unitInput.value = 'Sqft';
+        }
+        if (qtyInput) {
+            qtyInput.value = sft;
+            calcRow(rowIdx, 'qty');
+        }
+    }
+
     function toggleSalesCategory(cat) {
         const stnWrap = document.getElementById('stationeryPresetsWrap');
         const prtWrap = document.getElementById('printingPresetsWrap');
+        const pvcWrap = document.getElementById('pvcBannerPresetsWrap');
         const itemsSecTitle = document.getElementById('itemsSectionTitle');
         const addBtn = document.getElementById('btnAddItemBtn');
 
         const thTitle = document.getElementById('thTitleLabel');
         const thAuthor = document.getElementById('thAuthorLabel');
+        const thType = document.getElementById('thTypeLabel');
         const thUnit = document.getElementById('thUnitLabel');
+        const thQty = document.getElementById('thQtyLabel');
         const thReg = document.getElementById('thRegPriceLabel');
         const thNet = document.getElementById('thUnitPriceLabel');
+        const thTotal = document.getElementById('thTotalCol');
 
         const catSelect = document.getElementById('salesCategorySelect');
         if (catSelect && catSelect.value !== cat) {
             catSelect.value = cat;
         }
 
-        if (cat === 'stationery') {
+        if (cat === 'pvc_banner') {
+            if (stnWrap) stnWrap.style.display = 'none';
+            if (prtWrap) prtWrap.style.display = 'none';
+            if (pvcWrap) pvcWrap.style.display = 'block';
+            if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-flag me-2 text-danger"></i>পিভিসি ও ব্যানার প্রিন্টিং মেমো (PVC & Banner Schedule)';
+            if (addBtn) addBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Add Banner Row';
+
+            if (thTitle) thTitle.textContent = 'বর্ণনা / কাজের বিবরণ';
+            if (thAuthor) thAuthor.textContent = 'সাইজ / মাপ';
+            if (thType) thType.textContent = 'মিডিয়া ধরন';
+            if (thUnit) thUnit.textContent = 'একক';
+            if (thQty) thQty.textContent = 'স্কয়ারফিট (Sft)';
+            if (thReg) thReg.textContent = 'দর (৳)';
+            if (thNet) thNet.textContent = 'টাকা / রেট (৳)';
+            if (thTotal) thTotal.textContent = 'মোট টাকা (৳)';
+        } else if (cat === 'stationery') {
             if (stnWrap) stnWrap.style.display = 'block';
             if (prtWrap) prtWrap.style.display = 'none';
+            if (pvcWrap) pvcWrap.style.display = 'none';
             if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-pen-ruler me-2 text-info"></i>Stationery Items & Rates';
             if (addBtn) addBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Add Item';
 
             if (thTitle) thTitle.textContent = 'Item / Product Title';
             if (thAuthor) thAuthor.textContent = 'Model / Spec';
+            if (thType) thType.textContent = 'Type / Edition';
             if (thUnit) thUnit.textContent = 'Unit';
+            if (thQty) thQty.textContent = 'Qty';
             if (thReg) thReg.textContent = 'Price (৳)';
             if (thNet) thNet.textContent = 'Net Price (৳)';
+            if (thTotal) thTotal.textContent = 'Total (৳)';
         } else if (cat === 'printing_goods') {
             if (stnWrap) stnWrap.style.display = 'none';
             if (prtWrap) prtWrap.style.display = 'block';
+            if (pvcWrap) pvcWrap.style.display = 'none';
             if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-print me-2 text-warning"></i>Printing & Press Services';
             if (addBtn) addBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Add Item';
 
             if (thTitle) thTitle.textContent = 'Job Title / Description';
             if (thAuthor) thAuthor.textContent = 'Size / Spec';
+            if (thType) thType.textContent = 'Type / Edition';
             if (thUnit) thUnit.textContent = 'Unit';
+            if (thQty) thQty.textContent = 'Qty';
             if (thReg) thReg.textContent = 'Price (৳)';
             if (thNet) thNet.textContent = 'Net Price (৳)';
+            if (thTotal) thTotal.textContent = 'Total (৳)';
         } else if (cat === 'other') {
             if (stnWrap) stnWrap.style.display = 'none';
             if (prtWrap) prtWrap.style.display = 'none';
+            if (pvcWrap) pvcWrap.style.display = 'none';
             if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-cart-plus me-2 text-secondary"></i>Other Items & Services';
             if (addBtn) addBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Add Item';
 
             if (thTitle) thTitle.textContent = 'Item Description';
             if (thAuthor) thAuthor.textContent = 'Spec / Notes';
+            if (thType) thType.textContent = 'Type / Edition';
             if (thUnit) thUnit.textContent = 'Unit';
+            if (thQty) thQty.textContent = 'Qty';
             if (thReg) thReg.textContent = 'Price (৳)';
             if (thNet) thNet.textContent = 'Net Price (৳)';
+            if (thTotal) thTotal.textContent = 'Total (৳)';
         } else { // books
             if (stnWrap) stnWrap.style.display = 'none';
             if (prtWrap) prtWrap.style.display = 'none';
+            if (pvcWrap) pvcWrap.style.display = 'none';
             if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-list-check me-2 text-success"></i>Items & Schedule of Rates';
             if (addBtn) addBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Add Item';
 
             if (thTitle) thTitle.textContent = 'Item / Book Title';
             if (thAuthor) thAuthor.textContent = 'Author / Spec';
+            if (thType) thType.textContent = 'Type / Edition';
             if (thUnit) thUnit.textContent = 'Unit';
+            if (thQty) thQty.textContent = 'Qty';
             if (thReg) thReg.textContent = 'Price (৳)';
             if (thNet) thNet.textContent = 'Net Price (৳)';
+            if (thTotal) thTotal.textContent = 'Total (৳)';
         }
     }
 
@@ -2448,6 +2598,8 @@
         let presetText = '';
         if (type === 'printing') {
             presetText = `1. All printing, lamination, and binding will be produced in accordance with approved specifications.\n2. Mass offset printing will commence after formal client approval of proof and color dummy.\n3. Goods will be ready for dispatch within 7-10 working days following work order and 50% advance.\n4. Quoted rates include all plate charges, paper, printing, lamination, and binding costs.\n5. Remaining 50% balance is payable upon delivery or presentation of signed challan.`;
+        } else if (type === 'pvc_banner') {
+            presetText = `1. All banner printing is produced with high-resolution outdoor eco-solvent/solvent inks.\n2. Design proof and typography must be formally verified and approved by the client.\n3. Standard finishing includes reinforced brass eyelets (rings) and folded hem edges.\n4. Standard turnaround time is 24–48 hours following design confirmation and advance payment.\n5. Transport carriage, iron framing, and site pasting/fitting charges apply as agreed.`;
         } else if (type === 'delivery') {
             presetText = `1. Finished goods will be dispatched to client's address or via designated courier service.\n2. Freight, carriage, and handling charges apply as per agreed quotation terms.\n3. Goods are considered accepted upon verification and signing of the delivery challan.\n4. Any manufacturing discrepancy or damaged copies must be notified in writing within 48 hours of receipt.`;
         } else if (type === 'tender') {
@@ -2473,6 +2625,9 @@
         calcTotals();
         const activeSalesCat = document.getElementById('salesCategorySelect')?.value || 'books';
         toggleSalesCategory(activeSalesCat);
+
+        document.getElementById('quickBannerW')?.addEventListener('input', updateQuickBannerCalc);
+        document.getElementById('quickBannerH')?.addEventListener('input', updateQuickBannerCalc);
 
         const numberInput = document.getElementById('invoiceNoInput');
         const numberError = document.getElementById('invoiceNumberError');

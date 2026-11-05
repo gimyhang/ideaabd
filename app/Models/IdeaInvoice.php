@@ -52,6 +52,7 @@ class IdeaInvoice extends Model
         return match($this->sales_category) {
             'stationery'     => 'স্টেশনারী বিক্রয় (Stationery)',
             'printing_goods' => 'প্রিন্টিং ও সেবা (Printing Goods & Services)',
+            'pvc_banner'     => 'পিভিসি ও ব্যানার প্রিন্টিং (PVC & Banner)',
             'other'          => 'অন্যান্য ও বিবিধ (Other Sales)',
             default          => 'বই বিক্রয় (Books)',
         };
@@ -62,6 +63,7 @@ class IdeaInvoice extends Model
         return match($this->sales_category) {
             'stationery'     => ['bg' => 'bg-info-subtle text-info border-info-subtle', 'label' => 'স্টেশনারী'],
             'printing_goods' => ['bg' => 'bg-warning-subtle text-warning-emphasis border-warning-subtle', 'label' => 'প্রিন্টিং গুডস'],
+            'pvc_banner'     => ['bg' => 'bg-danger-subtle text-danger border-danger-subtle', 'label' => 'পিভিসি/ব্যানার'],
             'other'          => ['bg' => 'bg-secondary-subtle text-secondary border-secondary-subtle', 'label' => 'অন্যান্য'],
             default          => ['bg' => 'bg-primary-subtle text-primary border-primary-subtle', 'label' => 'বই বিক্রয়'],
         };
@@ -272,6 +274,7 @@ class IdeaInvoice extends Model
         return match ($category) {
             'stationery'     => 'IDEA-STN-',
             'printing_goods' => 'IDEA-PRT-',
+            'pvc_banner'     => 'IDEA-PVC-',
             'other'          => 'IDEA-OTH-',
             default          => match ($type) {
                 'challan'   => 'IDEA-CHL-',
@@ -346,6 +349,7 @@ class IdeaInvoice extends Model
         return match ($this->sales_category) {
             'stationery'     => 'স্টেশনারী বিক্রয় (Stationery Sales)',
             'printing_goods' => 'মুদ্রণ ও প্রকাশনা সেবা (Printing & Publication)',
+            'pvc_banner'     => 'পিভিসি ও ব্যানার প্রিন্টিং (PVC & Banner)',
             'other'          => 'অন্যান্য আয় (Other Income)',
             default          => $this->type === 'challan'
                 ? 'পাইকারি বিক্রয় ও চালান (Wholesale Sales)'

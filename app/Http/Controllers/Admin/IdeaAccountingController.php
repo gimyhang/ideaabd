@@ -1045,6 +1045,7 @@ class IdeaAccountingController extends Controller
             'sales_category'          => $item->sales_category ?: 'books',
             'category_label'          => match($item->sales_category) {
                 'printing_goods' => 'Printing',
+                'pvc_banner'     => 'PVC & Banner',
                 'stationery'     => 'Stationery',
                 'books'          => 'Books',
                 default          => (ucfirst((string)($item->sales_category ?: 'General'))),
@@ -1959,7 +1960,7 @@ class IdeaAccountingController extends Controller
         }
 
         $salesCategory = $request->query('sales_category', 'books');
-        if (!in_array($salesCategory, ['books', 'stationery', 'printing_goods', 'other'])) {
+        if (!in_array($salesCategory, ['books', 'stationery', 'printing_goods', 'pvc_banner', 'other'])) {
             $salesCategory = 'books';
         }
 
@@ -1976,7 +1977,7 @@ class IdeaAccountingController extends Controller
 
         $validated = $request->validate([
             'type'           => 'required|in:invoice,challan,quotation,tender',
-            'sales_category' => 'nullable|in:books,stationery,printing_goods,other',
+            'sales_category' => 'nullable|in:books,stationery,printing_goods,pvc_banner,other',
         ]);
 
         $salesCategory = $validated['sales_category'] ?? 'books';
@@ -2331,7 +2332,7 @@ class IdeaAccountingController extends Controller
 
         return $request->validate([
             'type'             => 'required|in:invoice,challan,quotation,tender',
-            'sales_category'   => 'nullable|in:books,stationery,printing_goods,other',
+            'sales_category'   => 'nullable|in:books,stationery,printing_goods,pvc_banner,other',
             'invoice_no'       => 'required|string|max:50|unique:idea_invoices,invoice_no' . ($existing ? ',' . $existing->id : ''),
             'subject'          => ($isProposal ? 'required' : 'nullable') . '|string|max:255',
             'reference_no'     => 'nullable|string|max:100',
@@ -2408,7 +2409,7 @@ class IdeaAccountingController extends Controller
         if ($request->boolean('auto_number')) {
             $numberInputs = $request->validate([
                 'type' => 'required|in:invoice,challan,quotation,tender',
-                'sales_category' => 'nullable|in:books,stationery,printing_goods,other',
+                'sales_category' => 'nullable|in:books,stationery,printing_goods,pvc_banner,other',
             ]);
             $request->merge([
                 'invoice_no' => IdeaInvoice::reserveNextNumber(

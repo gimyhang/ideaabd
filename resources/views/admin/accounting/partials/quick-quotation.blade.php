@@ -57,6 +57,7 @@
                             <option value="books">Books</option>
                             <option value="stationery">Stationery</option>
                             <option value="printing_goods">Printing</option>
+                            <option value="pvc_banner">PVC / Banner</option>
                             <option value="other">Other</option>
                         </select>
                     </div>
