@@ -737,14 +737,27 @@
                         </tr>
 
                         {{-- Paid & Due (Hidden for Quotation / Tender) --}}
+                        @php $paymentsCount = $invoice->payments()->count(); @endphp
                         <tbody id="paymentFieldsSection">
+                            @if($paymentsCount > 1)
+                                <tr>
+                                    <td colspan="2" class="py-1">
+                                        <div class="alert alert-info py-1.5 px-2 rounded-2 small mb-1 border-0" style="font-size: 11px;">
+                                            <i class="fa-solid fa-circle-info me-1 text-primary"></i> 
+                                            এই বিলে <strong>{{ $paymentsCount }}টি কিস্তি জমা</strong> রেকর্ড রয়েছে (মোট ৳{{ number_format($invoice->paid_amount, 2) }})। কিস্তিগুলো ইনভয়েস শো পেইজের পেমেন্ট ট্র্যাকার থেকে পরিচালনা করা যাবে।
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endif
                             <tr>
                                 <td class="text-muted fw-semibold py-1">
                                     <div class="d-flex align-items-center gap-1.5">
                                         <span>Amount Paid:</span>
-                                        <button type="button" class="btn btn-link btn-xs p-0 text-decoration-none fw-bold small" onclick="fillFullPaid()">
-                                            Full
-                                        </button>
+                                        @if($paymentsCount <= 1)
+                                            <button type="button" class="btn btn-link btn-xs p-0 text-decoration-none fw-bold small" onclick="fillFullPaid()">
+                                                Full
+                                            </button>
+                                        @endif
                                     </div>
                                 </td>
                                 <td class="text-end py-1">
@@ -752,7 +765,8 @@
                                         <span class="input-group-text p-1 bg-white text-success fw-bold" style="font-size: 10px;">৳</span>
                                         <input type="number" step="0.01" name="paid_amount" id="paidInput" 
                                                class="form-control form-control-sm font-monospace text-end fw-bold text-success p-1" 
-                                               value="{{ old('paid_amount', $invoice->paid_amount ?? 0) }}" min="0" oninput="calcTotals()" style="height: 28px; font-size: 12px;">
+                                               value="{{ old('paid_amount', $invoice->paid_amount ?? 0) }}" min="0" oninput="calcTotals()" style="height: 28px; font-size: 12px;"
+                                               {{ $paymentsCount > 1 ? 'readonly' : '' }}>
                                     </div>
                                 </td>
                             </tr>
@@ -2173,10 +2187,16 @@
         if (elSubtotal) elSubtotal.textContent = '৳' + subtotal.toFixed(2);
         const elDisc = document.getElementById('displayDiscount');
         if (elDisc) elDisc.textContent = '-৳' + discount.toFixed(2);
-        const elPrevDue = document.getElementById('displayPreviousDue');
         const elPrevDueRow = document.getElementById('displayPreviousDueRow');
-        if (elPrevDue) elPrevDue.textContent = '+৳' + previousDue.toFixed(2);
-        if (elPrevDueRow) elPrevDueRow.style.setProperty('display', previousDue > 0 ? 'flex' : 'none', 'important');
+        const elPrevDue = document.getElementById('displayPreviousDue');
+        if (elPrevDueRow && elPrevDue) {
+            if (previousDue > 0) {
+                elPrevDueRow.style.removeProperty('display');
+                elPrevDue.textContent = '+৳' + previousDue.toFixed(2);
+            } else {
+                elPrevDueRow.style.setProperty('display', 'none', 'important');
+            }
+        }
         const elTax = document.getElementById('displayTax');
         if (elTax) elTax.textContent = '+৳' + tax.toFixed(2);
         const elGrand = document.getElementById('displayGrandTotal');

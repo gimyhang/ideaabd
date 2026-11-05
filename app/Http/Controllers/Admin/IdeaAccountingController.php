@@ -2558,7 +2558,9 @@ class IdeaAccountingController extends Controller
         $salesCategory = $validated['sales_category'] ?? $invoice->sales_category ?? 'books';
         $totals = $this->documentTotals($validated, $salesCategory);
 
-        $collected = round((float) $invoice->payments()->sum('amount'), 2);
+        $payments = $invoice->payments()->get();
+        $paymentsCount = $payments->count();
+        $collected = round((float) $payments->sum('amount'), 2);
         $acceptsPayments = in_array($validated['type'], ['invoice', 'challan'], true);
 
         if (!$acceptsPayments && $collected > 0) {
@@ -2567,22 +2569,10 @@ class IdeaAccountingController extends Controller
             ]);
         }
 
-        if ($collected > $totals['grand'] + 0.004) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'discount' => 'জমা হওয়া ৳' . number_format($collected, 2) . ' নতুন মোট বিলের (৳' . number_format($totals['grand'], 2) . ') চেয়ে বেশি।',
-            ]);
-        }
-
-        // Advance only counts when nothing has been collected through payment records yet.
-        $advance = ($acceptsPayments && $collected <= 0) ? round((float) ($validated['paid_amount'] ?? 0), 2) : 0.0;
-        if ($advance > $totals['grand'] + 0.004) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'paid_amount' => 'জমার পরিমাণ মোট বিলের (৳' . number_format($totals['grand'], 2) . ') চেয়ে বেশি হতে পারে না।',
-            ]);
-        }
+        $inputPaid = $acceptsPayments ? round((float) ($validated['paid_amount'] ?? 0), 2) : 0.0;
 
         try {
-            return DB::transaction(function () use ($validated, $invoice, $salesCategory, $totals, $advance) {
+            return DB::transaction(function () use ($validated, $invoice, $salesCategory, $totals, $acceptsPayments, $payments, $paymentsCount, $inputPaid, $collected) {
                 $invoice->update([
                     'invoice_no'           => $validated['invoice_no'],
                     'type'                 => $validated['type'],
@@ -2612,13 +2602,32 @@ class IdeaAccountingController extends Controller
                     'terms_conditions'     => $validated['terms_conditions'] ?? null,
                 ]);
 
-                if ($advance > 0) {
-                    IdeaInvoicePayment::record($invoice, [
-                        'payment_date'   => $invoice->invoice_date,
-                        'amount'         => $advance,
-                        'payment_method' => $validated['payment_method'],
-                        'note'           => 'অগ্রিম জমা (Advance Payment)',
-                    ], IdeaInvoicePayment::actorId());
+                // Synchronize single initial advance payment if modified from edit form
+                if ($acceptsPayments) {
+                    if ($paymentsCount === 1) {
+                        $singlePayment = $payments->first();
+                        if ($inputPaid > 0 && abs((float)$singlePayment->amount - $inputPaid) > 0.001) {
+                            $singlePayment->update([
+                                'amount'         => $inputPaid,
+                                'net_amount'     => $inputPaid,
+                                'payment_method' => $validated['payment_method'],
+                            ]);
+                            IdeaAccountingEntry::where('voucher_no', $singlePayment->payment_no)->update([
+                                'amount'         => $inputPaid,
+                                'payment_method' => $validated['payment_method'],
+                            ]);
+                        } elseif ($inputPaid <= 0) {
+                            IdeaAccountingEntry::where('voucher_no', $singlePayment->payment_no)->delete();
+                            $singlePayment->delete();
+                        }
+                    } elseif ($paymentsCount === 0 && $inputPaid > 0) {
+                        IdeaInvoicePayment::record($invoice, [
+                            'payment_date'   => $invoice->invoice_date,
+                            'amount'         => $inputPaid,
+                            'payment_method' => $validated['payment_method'],
+                            'note'           => 'অগ্রিম জমা (Advance Payment)',
+                        ], IdeaInvoicePayment::actorId());
+                    }
                 }
 
                 // Payments already carry their own income entries; only keep labels in step.
@@ -2730,6 +2739,15 @@ class IdeaAccountingController extends Controller
 
         if ($deductions > $amount + 0.004) {
             return back()->withInput()->with('error', 'কর্তনের মোট পরিমাণ জমার পরিমাণের চেয়ে বেশি হতে পারে না।');
+        }
+
+        // Settle across all overdue invoices if FIFO scope is chosen
+        if ($request->input('payment_scope_selector') === 'all') {
+            $request->merge([
+                'customer_name'  => $invoice->customer_name,
+                'customer_phone' => $invoice->customer_phone,
+            ]);
+            return $this->storeCustomerLedgerPayment($request);
         }
 
         try {
