@@ -340,6 +340,17 @@
             width: 100%;
         }
 
+        .author-photo-wrapper {
+            margin-bottom: {{ $photoNameGap }}px;
+            transform: translate({{ $photoOffsetX }}px, {{ $photoOffsetY }}px) scale({{ $photoScale / 100 }});
+            position: relative;
+            z-index: 4;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .author-photo-frame {
             width: {{ $photoSize }}px;
             height: {{ $photoSize }}px;
@@ -355,19 +366,16 @@
                 box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
             @endif
             filter: brightness({{ $photoBrightness }}%) contrast({{ $photoContrast }}%) grayscale({{ $photoGrayscale }}%) sepia({{ $photoSepia }}%);
-            background: #f8fafc;
-            overflow: hidden;
-            margin-bottom: {{ $photoNameGap }}px;
-            transform: translate({{ $photoOffsetX }}px, {{ $photoOffsetY }}px) scale({{ $photoScale / 100 }});
+            background-color: #f8fafc;
+            background-position: center center;
+            background-size: cover;
+            background-repeat: no-repeat;
             position: relative;
-            z-index: 4;
             flex-shrink: 0;
-        }
-        .author-photo-frame img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
         }
         .author-photo-frame .photo-placeholder {
             width: 100%;
@@ -378,6 +386,7 @@
             background: #f1f5f9;
             color: #94a3b8;
             font-size: 32px;
+            border-radius: inherit;
         }
 
         /* Clean Direct Author Typography */
@@ -580,16 +589,22 @@
             <div class="card-middle-section">
                 {{-- Circular Author Portrait --}}
                 @if($showPhoto)
-                    <div class="author-photo-frame">
-                        @if(!empty($photoDataUri))
-                            <img src="{{ $photoDataUri }}" alt="{{ $registration->name }}">
-                        @elseif(!empty($photoPath))
-                            <img src="{{ asset('storage/' . $photoPath) }}" alt="{{ $registration->name }}" crossorigin="anonymous">
-                        @else
-                            <div class="photo-placeholder">
-                                <i class="fa-solid fa-user-pen"></i>
-                            </div>
-                        @endif
+                    @php
+                        $photoBgUrl = null;
+                        if (!empty($photoDataUri)) {
+                            $photoBgUrl = $photoDataUri;
+                        } elseif (!empty($photoPath)) {
+                            $photoBgUrl = asset('storage/' . $photoPath);
+                        }
+                    @endphp
+                    <div class="author-photo-wrapper">
+                        <div class="author-photo-frame" @if($photoBgUrl) style="background-image: url('{{ $photoBgUrl }}');" @endif>
+                            @if(!$photoBgUrl)
+                                <div class="photo-placeholder">
+                                    <i class="fa-solid fa-user-pen"></i>
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 @endif
 
@@ -689,6 +704,7 @@
                     allowTaint: false,
                     logging: false,
                     backgroundColor: null,
+                    scrollX: 0,
                     scrollY: 0
                 });
             }).then(canvas => {

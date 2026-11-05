@@ -1493,7 +1493,11 @@ document.addEventListener('DOMContentLoaded', function () {
         let curPhotoScale = parseInt(photoScaleSlider?.value || 100);
 
         function updatePhotoTransform() {
-            if (photoFrame) {
+            const wrapper = document.getElementById('livePhotoWrapper');
+            if (wrapper) {
+                wrapper.style.transform = `translate(${curPhotoOffsetX}px, ${curPhotoOffsetY}px) scale(${curPhotoScale / 100})`;
+                if (photoFrame) photoFrame.style.transform = 'none';
+            } else if (photoFrame) {
                 photoFrame.style.transform = `translate(${curPhotoOffsetX}px, ${curPhotoOffsetY}px) scale(${curPhotoScale / 100})`;
             }
             if (photoOffsetXBadge) photoOffsetXBadge.textContent = curPhotoOffsetX + ' px';
@@ -1575,16 +1579,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Sample Portrait Preview Switch
         const toggleSamplePortrait = document.getElementById('toggleSamplePortrait');
-        const liveAuthorPhotoImg = document.getElementById('liveCardAuthorPhotoImg');
         const liveAuthorPhotoPlaceholder = document.getElementById('liveCardAuthorPhotoPlaceholder');
 
-        if (toggleSamplePortrait && liveAuthorPhotoImg && liveAuthorPhotoPlaceholder) {
+        if (toggleSamplePortrait && photoFrame && liveAuthorPhotoPlaceholder) {
+            const defaultPhotoBg = photoFrame.style.backgroundImage || `url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 160 160\'><rect width=\'160\' height=\'160\' fill=\'%23e2e8f0\'/><circle cx=\'80\' cy=\'62\' r=\'30\' fill=\'%2394a3b8\'/><path d=\'M80 102 C50 102 24 125 20 160 L140 160 C136 125 110 102 80 102 Z\' fill=\'%2364748b\'/></svg>")`;
             toggleSamplePortrait.addEventListener('change', function () {
                 if (this.checked) {
-                    liveAuthorPhotoImg.style.display = 'block';
+                    photoFrame.style.backgroundImage = defaultPhotoBg;
                     liveAuthorPhotoPlaceholder.style.display = 'none';
                 } else {
-                    liveAuthorPhotoImg.style.display = 'none';
+                    photoFrame.style.backgroundImage = 'none';
                     liveAuthorPhotoPlaceholder.style.display = 'flex';
                 }
             });
@@ -2032,8 +2036,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (photoNameGapBadgeSize) photoNameGapBadgeSize.textContent = val + ' px';
             if (photoNameGapSlider && photoNameGapSlider.value != val) photoNameGapSlider.value = val;
             if (photoNameGapSliderSize && photoNameGapSliderSize.value != val) photoNameGapSliderSize.value = val;
-            if (photoFrame) {
-                photoFrame.style.marginBottom = val + 'px';
+            const target = document.getElementById('livePhotoWrapper') || photoFrame;
+            if (target) {
+                target.style.marginBottom = val + 'px';
             }
         }
 
@@ -2618,7 +2623,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             useCORS: true,
                             allowTaint: false,
                             backgroundColor: null,
-                            logging: false
+                            logging: false,
+                            scrollX: 0,
+                            scrollY: 0
                         });
                     }).then(canvas => {
                         const link = document.createElement('a');
