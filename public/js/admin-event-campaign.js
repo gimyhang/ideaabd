@@ -1756,6 +1756,82 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
+        // E.0.2.2 Quote Position Offset & Size Engine (আমন্ত্রণ বার্তা / উক্তি অবস্থান ও আকার)
+        const quoteOffsetXSlider = document.getElementById('quoteOffsetXSlider');
+        const quoteOffsetYSlider = document.getElementById('quoteOffsetYSlider');
+        const quoteOffsetXBadge  = document.getElementById('quoteOffsetXBadge');
+        const quoteOffsetYBadge  = document.getElementById('quoteOffsetYBadge');
+        const quoteSizeSlider    = document.getElementById('quoteSizeSlider');
+        const quoteSizeBadge     = document.getElementById('quoteSizeBadge');
+        const btnResetQuotePos   = document.getElementById('btnResetQuotePos');
+        const btnQuoteNudgeUp    = document.getElementById('btnQuoteNudgeUp');
+        const btnQuoteNudgeDown  = document.getElementById('btnQuoteNudgeDown');
+        const liveMessageSection = document.getElementById('liveMessageSection');
+        const liveQuoteText      = document.getElementById('liveQuoteText');
+
+        let curQuoteOffsetX = parseInt(quoteOffsetXSlider?.value || 0, 10);
+        let curQuoteOffsetY = parseInt(quoteOffsetYSlider?.value || 0, 10);
+
+        function updateQuoteTransform() {
+            if (liveMessageSection) {
+                liveMessageSection.style.transform = `translate(${curQuoteOffsetX}px, ${curQuoteOffsetY}px)`;
+            }
+            if (quoteOffsetXBadge) quoteOffsetXBadge.textContent = curQuoteOffsetX + ' px';
+            if (quoteOffsetYBadge) quoteOffsetYBadge.textContent = curQuoteOffsetY + ' px';
+            if (quoteOffsetXSlider) quoteOffsetXSlider.value = curQuoteOffsetX;
+            if (quoteOffsetYSlider) quoteOffsetYSlider.value = curQuoteOffsetY;
+        }
+
+        if (quoteOffsetXSlider) {
+            quoteOffsetXSlider.addEventListener('input', function () {
+                curQuoteOffsetX = parseInt(this.value, 10) || 0;
+                updateQuoteTransform();
+            });
+        }
+
+        if (quoteOffsetYSlider) {
+            quoteOffsetYSlider.addEventListener('input', function () {
+                curQuoteOffsetY = parseInt(this.value, 10) || 0;
+                updateQuoteTransform();
+            });
+        }
+
+        if (quoteSizeSlider) {
+            quoteSizeSlider.addEventListener('input', function () {
+                const s = parseInt(this.value, 10) || 11;
+                if (liveQuoteText) liveQuoteText.style.fontSize = s + 'px';
+                if (quoteSizeBadge) quoteSizeBadge.textContent = s + ' px';
+            });
+        }
+
+        if (btnResetQuotePos) {
+            btnResetQuotePos.addEventListener('click', function () {
+                curQuoteOffsetX = 0;
+                curQuoteOffsetY = 0;
+                updateQuoteTransform();
+            });
+        }
+
+        if (btnQuoteNudgeUp) {
+            btnQuoteNudgeUp.addEventListener('click', function () {
+                curQuoteOffsetY -= 5;
+                if (quoteOffsetYSlider) {
+                    curQuoteOffsetY = Math.max(parseInt(quoteOffsetYSlider.min, 10) || -250, curQuoteOffsetY);
+                }
+                updateQuoteTransform();
+            });
+        }
+
+        if (btnQuoteNudgeDown) {
+            btnQuoteNudgeDown.addEventListener('click', function () {
+                curQuoteOffsetY += 5;
+                if (quoteOffsetYSlider) {
+                    curQuoteOffsetY = Math.min(parseInt(quoteOffsetYSlider.max, 10) || 250, curQuoteOffsetY);
+                }
+                updateQuoteTransform();
+            });
+        }
+
         // E.0.3 White Background Shade & Separation Controls (সাদা ব্যাকগ্রাউন্ড শেড আলাদা করা)
         const toggleShowPlateBg = document.getElementById('toggleShowPlateBg');
         const plateBgControlsWrapper = document.getElementById('plateBgControlsWrapper');
@@ -2138,6 +2214,17 @@ document.addEventListener('DOMContentLoaded', function () {
             );
         }
 
+        if (liveMessageSection) {
+            makeCardElementDraggable(liveMessageSection,
+                () => ({ x: curQuoteOffsetX, y: curQuoteOffsetY }),
+                (newX, newY) => {
+                    curQuoteOffsetX = Math.max(-200, Math.min(200, Math.round(newX)));
+                    curQuoteOffsetY = Math.max(-250, Math.min(250, Math.round(newY)));
+                    updateQuoteTransform();
+                }
+            );
+        }
+
         // E.4 Direct Click-to-Edit & Floating Quick-Action Toolbar on Card Nodes
         let currentSelectedNode = null;
         let activeToolbar = null;
@@ -2149,7 +2236,7 @@ document.addEventListener('DOMContentLoaded', function () {
             'event-logo': { sliderId: 'eventLogoSizeSlider', toggleId: 'toggleShowEventLogo', step: 4, name: 'ইভেন্ট লোগো' },
             'badge': { toggleId: 'toggleShowBadge', name: 'আমন্ত্রণ ব্যাজ' },
             'header': { toggleId: 'toggleShowHeader', name: 'শিরোনাম' },
-            'quote': { toggleId: 'toggleShowQuote', name: 'উক্তি' },
+            'quote': { sliderId: 'quoteSizeSlider', toggleId: 'toggleShowQuote', step: 1, name: 'উক্তি' },
             'artwork': { toggleId: 'toggleShowArtwork', name: 'বই আর্টওয়ার্ক' },
             'qr': { sliderId: 'qrCodeSizeSlider', toggleId: 'toggleShowQrCode', step: 4, name: 'ভেরিফাই QR কোড' },
             'organizers': { toggleId: 'toggleShowOrganizers', name: 'ভেরিফাই QR কোড' }
@@ -2640,6 +2727,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (liveCustomLogoImg) liveCustomLogoImg.style.display = 'none';
                 if (liveDefaultLogoRing) liveDefaultLogoRing.style.display = '';
                 if (removeLogoCheck) removeLogoCheck.checked = false;
+
+                // Reset positions & sizes for elements
+                if (btnResetPhotoPos) btnResetPhotoPos.click();
+                if (btnResetNamePos) btnResetNamePos.click();
+                if (btnResetQrPos) btnResetQrPos.click();
+                if (btnResetQuotePos) btnResetQuotePos.click();
+                if (quoteSizeSlider) {
+                    quoteSizeSlider.value = 11;
+                    quoteSizeSlider.dispatchEvent(new Event('input'));
+                }
 
                 // Reset custom objects
                 customObjects = [];

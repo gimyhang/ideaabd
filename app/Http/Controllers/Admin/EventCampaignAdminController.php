@@ -1847,6 +1847,9 @@ class EventCampaignAdminController extends Controller
             // 7. Quotation & Artwork (Artwork removed for clean photocard)
             $cardDesign['show_quote']        = $request->has('show_quote');
             $cardDesign['quote_text']        = $request->input('quote_text', "সাহিত্য উৎসব ও লিটিলম্যাগমেলায়\nআপনার উপস্থিতি ও অংশগ্রহণ\nআমাদের সম্মানিত করবে ।");
+            $cardDesign['quote_font_size']   = intval($request->input('quote_font_size', $cardDesign['quote_font_size'] ?? 11));
+            $cardDesign['quote_offset_x']    = intval($request->input('quote_offset_x', $cardDesign['quote_offset_x'] ?? 0));
+            $cardDesign['quote_offset_y']    = intval($request->input('quote_offset_y', $cardDesign['quote_offset_y'] ?? 0));
             $cardDesign['show_artwork']      = false;
             
             // 8. Verification QR Code & Attendance Settings (স্বাক্ষর বাদ হয়ে অটোমেটিক ভেরিফাই কিউ আর কোড)

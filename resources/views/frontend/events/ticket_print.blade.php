@@ -89,6 +89,9 @@
     $titleText       = $cardDesign['title_text'] ?? 'রংপুর সাহিত্য উৎসব';
     $subtitleText    = $cardDesign['subtitle_text'] ?? 'ও ৩য় লিটিলম্যাগ মেলা';
     $quoteText       = $cardDesign['quote_text'] ?? "সাহিত্য উৎসব ও লিটিলম্যাগমেলায়\nআপনার উপস্থিতি ও অংশগ্রহণ\nআমাদের সম্মানিত করবে ।";
+    $quoteOffsetX    = intval($cardDesign['quote_offset_x'] ?? 0);
+    $quoteOffsetY    = intval($cardDesign['quote_offset_y'] ?? 0);
+    $quoteSize       = intval($cardDesign['quote_font_size'] ?? 11);
 
     // 5. Verification QR Code & Attendance Settings (BaconQrCode Base64 SVG Data URI — 100% Offline & Zero-CORS)
     $showQrCode     = $cardDesign['show_qr_code'] ?? ($cardDesign['show_organizers'] ?? true);
@@ -424,10 +427,11 @@
             justify-content: center;
             text-align: center;
             padding: 6px 10px 4px 10px;
+            transform: translate({{ $quoteOffsetX }}px, {{ $quoteOffsetY }}px);
         }
         .invitation-quote-text {
             color: {{ $quoteColor }};
-            font-size: 11px;
+            font-size: {{ $quoteSize }}px;
             font-weight: 700;
             line-height: 1.45;
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);

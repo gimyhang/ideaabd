@@ -2632,6 +2632,9 @@
     $cNameSpacing        = intval($cCardDesign['name_spacing'] ?? 2);
     $cNameOffsetX        = intval($cCardDesign['name_offset_x'] ?? 0);
     $cNameOffsetY        = intval($cCardDesign['name_offset_y'] ?? 0);
+    $cQuoteOffsetX       = intval($cCardDesign['quote_offset_x'] ?? 0);
+    $cQuoteOffsetY       = intval($cCardDesign['quote_offset_y'] ?? 0);
+    $cQuoteSize          = intval($cCardDesign['quote_font_size'] ?? 11);
     $cQrOffsetX          = intval($cCardDesign['qr_offset_x'] ?? 0);
     $cQrOffsetY          = intval($cCardDesign['qr_offset_y'] ?? 0);
     $cPlatePadding       = intval($cCardDesign['plate_padding'] ?? 14);
@@ -3381,7 +3384,7 @@
                                             </div>
                                         </div>
                                         <div id="quoteInputsWrapper" style="{{ $cShowQuote ? '' : 'display: none;' }}">
-                                            <div class="mb-2">
+                                            <div class="mb-3">
                                                 <div class="d-flex align-items-center justify-content-between mb-1">
                                                     <label class="form-label small fw-bold text-dark mb-0">উক্তির লেখা</label>
                                                     <div class="d-flex align-items-center gap-1">
@@ -3390,6 +3393,62 @@
                                                     </div>
                                                 </div>
                                                 <textarea name="quote_text" id="liveInputQuote" rows="3" class="form-control form-control-sm" placeholder="শুভেচ্ছা বার্তা">{!! $cQuote !!}</textarea>
+                                            </div>
+
+                                            {{-- Quote Font Size Slider --}}
+                                            <div class="mb-3">
+                                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                                    <label class="form-label small fw-bold text-dark mb-0" style="font-size: 11.5px;">
+                                                        <i class="fa-solid fa-text-height text-primary me-1"></i> উক্তির লেখার সাইজ
+                                                    </label>
+                                                    <span class="badge bg-secondary-subtle text-secondary" id="quoteSizeBadge" style="font-size: 10px;">{{ $cQuoteSize }} px</span>
+                                                </div>
+                                                <input type="range" class="custom-range-slider" id="quoteSizeSlider" name="quote_font_size" min="8" max="24" step="1" value="{{ $cQuoteSize }}">
+                                                <div class="d-flex justify-content-between text-muted mt-1" style="font-size: 9.5px;">
+                                                    <span class="cursor-pointer" onclick="document.getElementById('quoteSizeSlider').value=9;document.getElementById('quoteSizeSlider').dispatchEvent(new Event('input'));">৯ px (ছোট)</span>
+                                                    <span class="cursor-pointer" onclick="document.getElementById('quoteSizeSlider').value=11;document.getElementById('quoteSizeSlider').dispatchEvent(new Event('input'));">১১ px (স্বাভাবিক)</span>
+                                                    <span class="cursor-pointer" onclick="document.getElementById('quoteSizeSlider').value=14;document.getElementById('quoteSizeSlider').dispatchEvent(new Event('input'));">১৪ px (মাঝারি)</span>
+                                                    <span class="cursor-pointer" onclick="document.getElementById('quoteSizeSlider').value=18;document.getElementById('quoteSizeSlider').dispatchEvent(new Event('input'));">১৮ px (বড়)</span>
+                                                </div>
+                                            </div>
+
+                                            {{-- Quote Position Offset (আপ-ডাউন ও ডানে-বামে অবস্থান) --}}
+                                            <div class="p-2.5 bg-light rounded-2 border">
+                                                <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1 border-bottom">
+                                                    <div>
+                                                        <label class="form-label small fw-bold text-dark mb-0" style="font-size: 11.5px;">
+                                                            <i class="fa-solid fa-arrows-up-down-left-right text-success me-1"></i> উক্তির অবস্থান (Position)
+                                                        </label>
+                                                        <small class="text-muted d-block" style="font-size: 10px;">সরাসরি কার্ডের লেখায় ধরে টেনেও যেকোনো স্থানে বসানো যাবে</small>
+                                                    </div>
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1.5 rounded" id="btnQuoteNudgeUp" title="৫ px উপরে তুলুন" style="font-size: 10px;">
+                                                            <i class="fa-solid fa-arrow-up"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1.5 rounded" id="btnQuoteNudgeDown" title="৫ px নিচে নামান" style="font-size: 10px;">
+                                                            <i class="fa-solid fa-arrow-down"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 rounded-pill" id="btnResetQuotePos" style="font-size: 10px;">
+                                                            <i class="fa-solid fa-rotate-left me-1"></i> রিসেট
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="row g-2">
+                                                    <div class="col-6">
+                                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                                            <span class="small fw-bold text-muted" style="font-size: 10.5px;">উপরে ↕ নিচে (Y)</span>
+                                                            <span class="badge bg-secondary-subtle text-secondary" id="quoteOffsetYBadge" style="font-size: 10px;">{{ $cQuoteOffsetY }} px</span>
+                                                        </div>
+                                                        <input type="range" class="custom-range-slider" id="quoteOffsetYSlider" name="quote_offset_y" min="-250" max="250" step="1" value="{{ $cQuoteOffsetY }}">
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                                            <span class="small fw-bold text-muted" style="font-size: 10.5px;">ডানে ↔ বামে (X)</span>
+                                                            <span class="badge bg-secondary-subtle text-secondary" id="quoteOffsetXBadge" style="font-size: 10px;">{{ $cQuoteOffsetX }} px</span>
+                                                        </div>
+                                                        <input type="range" class="custom-range-slider" id="quoteOffsetXSlider" name="quote_offset_x" min="-200" max="200" step="1" value="{{ $cQuoteOffsetX }}">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -3571,8 +3630,8 @@
                                         </div>
 
                                         {{-- 3. MESSAGE SECTION (Artwork Removed) --}}
-                                        <div class="card-message-section" id="liveMessageSection" style="{{ $cShowQuote ? '' : 'display: none;' }}; justify-content: center; text-align: center; padding: 6px 10px 4px 10px;">
-                                            <div class="invitation-quote-text card-interactive-node live-editable-text" id="liveQuoteText" data-node="quote" data-tab="tab-text-pane" contenteditable="true" data-bind="liveInputQuote" title="ক্লিক করে সরাসরি এডিট করুন" style="white-space: pre-line; color: {{ $cQuoteColor }}; font-size: 11px; line-height: 1.45; text-align: center; width: 100%;">{!! nl2br(e($cQuote)) !!}</div>
+                                        <div class="card-message-section card-interactive-node" id="liveMessageSection" data-node="quote" data-tab="tab-text-pane" style="{{ $cShowQuote ? '' : 'display: none;' }}; justify-content: center; text-align: center; padding: 6px 10px 4px 10px; transform: translate({{ $cQuoteOffsetX }}px, {{ $cQuoteOffsetY }}px); cursor: grab; user-select: none; touch-action: none; transition: transform 0.05s ease-out;">
+                                            <div class="invitation-quote-text live-editable-text" id="liveQuoteText" contenteditable="true" data-bind="liveInputQuote" title="ক্লিক করে সরাসরি এডিট করুন" style="white-space: pre-line; color: {{ $cQuoteColor }}; font-size: {{ $cQuoteSize }}px; line-height: 1.45; text-align: center; width: 100%;">{!! nl2br(e($cQuote)) !!}</div>
                                         </div>
 
                                         {{-- 4. DYNAMIC VERIFICATION QR CODE SECTION (স্বাক্ষর বাদ হয়ে অটোমেটিক ভেরিফাই কিউ আর কোড) --}}
