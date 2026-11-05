@@ -2389,22 +2389,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (slider) slider.addEventListener('input', updatePhotoFilters);
         });
 
-        // Sample Face Photo Preview Toggle
-        const toggleSamplePhoto = document.getElementById('toggleSamplePhotoPreview');
-        const cardPhotoImg = document.getElementById('liveCardAuthorPhotoImg');
-        const cardPhotoPlaceholder = document.getElementById('liveCardAuthorPhotoPlaceholder');
-        if (toggleSamplePhoto && cardPhotoImg && cardPhotoPlaceholder) {
-            toggleSamplePhoto.addEventListener('change', function () {
-                if (this.checked) {
-                    cardPhotoImg.style.display = 'block';
-                    cardPhotoPlaceholder.style.display = 'none';
-                } else {
-                    cardPhotoImg.style.display = 'none';
-                    cardPhotoPlaceholder.style.display = 'flex';
-                }
-            });
-        }
-
         // Quick Photo Filter Presets
         document.querySelectorAll('.btn-preset-filter').forEach(btn => {
             btn.addEventListener('click', function () {

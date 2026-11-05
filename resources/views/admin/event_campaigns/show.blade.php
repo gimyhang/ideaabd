@@ -2706,12 +2706,20 @@
     $cShowPlateBg   = false;
     $cShowArtwork   = false;
 
+    // Dynamic Demo Participant from Campaign Registrations (or elegant fallback)
+    $cFirstReg      = $campaign->registrations->first();
+    $cDemoRegNo     = $cFirstReg ? $cFirstReg->registration_number : 'RSU-2026-001';
+    $cDemoName      = $cFirstReg ? $cFirstReg->name : 'লেখক / অতিথির নাম';
+    $cDemoDesig     = $cFirstReg ? ($cFirstReg->designation_or_class ?: 'কবি, কথাসাহিত্যিক ও প্রাবন্ধিক') : 'কবি, কথাসাহিত্যিক ও প্রাবন্ধিক';
+    $cDemoLoc       = $cFirstReg ? ($cFirstReg->district ?: 'রংপুর') : 'রংপুর';
+    $cDemoPhotoUrl  = ($cFirstReg && $cFirstReg->photo) ? asset('storage/' . $cFirstReg->photo) : null;
+
     // Verification QR Code & Attendance Settings (BaconQrCode Base64 SVG Data URI — 100% Offline & Zero-CORS)
     $cShowQrCode    = $cCardDesign['show_qr_code'] ?? ($cCardDesign['show_organizers'] ?? true);
     $cQrSize        = intval($cCardDesign['qr_code_size'] ?? 72);
     $cQrCaption     = $cCardDesign['qr_caption_text'] ?? 'উপস্থিতি যাচাই ও নিশ্চিতকরণ QR কোড';
     $cQrSub         = $cCardDesign['qr_subtext'] ?? 'ক্লিক বা স্ক্যান করলেই অনুষ্ঠানে উপস্থিতি নিশ্চিত হবে';
-    $cDemoVerifyUrl = route('event.attendance.verify', 'RSU-2026-001');
+    $cDemoVerifyUrl = route('event.attendance.verify', $cDemoRegNo);
     $cDemoQrApiUrl  = \App\Services\BarcodeService::generateQrCodeDataUri($cDemoVerifyUrl, $cQrSize);
 @endphp
 <div class="modal fade" id="cardDesignModal" tabindex="-1" aria-hidden="true">
@@ -3544,7 +3552,7 @@
                                         <div class="card-middle-section" id="liveMiddleSection" style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                             <div class="author-photo-frame card-interactive-node" id="livePhotoFrame" data-node="photo" data-tab="tab-photo-pane" 
                                                  style="width: {{ $cPhotoSize }}px; height: {{ $cPhotoSize }}px; border-radius: {{ $cPhotoBorderRadius }}; border: {{ $cPhotoBorderWidth }}px solid {{ $cPhotoBorderColor }}; filter: brightness({{ $cPhotoBrightness }}%) contrast({{ $cPhotoContrast }}%) grayscale({{ $cPhotoGrayscale }}%) sepia({{ $cPhotoSepia }}%); @if($cPhotoShadow === 'glow') box-shadow: 0 0 16px rgba(250, 204, 21, 0.6); @elseif($cPhotoShadow === 'deep') box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45); @elseif($cPhotoShadow === 'none') box-shadow: none; @else box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); @endif margin-bottom: {{ $cPhotoNameGap }}px; transform: translate({{ $cPhotoOffsetX }}px, {{ $cPhotoOffsetY }}px) scale({{ $cPhotoScale / 100 }}); transition: transform 0.05s ease-out; overflow: hidden; cursor: grab; user-select: none; touch-action: none; {{ $cShowPhoto ? '' : 'display: none !important;' }}">
-                                                <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'><rect width='160' height='160' fill='%23e2e8f0'/><circle cx='80' cy='62' r='30' fill='%2394a3b8'/><path d='M80 102 C50 102 24 125 20 160 L140 160 C136 125 110 102 80 102 Z' fill='%2364748b'/></svg>"
+                                                <img src="{{ $cDemoPhotoUrl ?: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'><rect width='160' height='160' fill='%23e2e8f0'/><circle cx='80' cy='62' r='30' fill='%2394a3b8'/><path d='M80 102 C50 102 24 125 20 160 L140 160 C136 125 110 102 80 102 Z' fill='%2364748b'/></svg>" }}"
                                                      alt="Sample Portrait"
                                                      id="liveCardAuthorPhotoImg"
                                                      style="width: 100%; height: 100%; object-fit: cover; display: block;">
@@ -3553,9 +3561,9 @@
                                                 </div>
                                             </div>
                                             <div class="author-text-container card-interactive-node" id="liveNamePlate" data-node="nameplate" data-tab="tab-text-pane" style="text-align: center; width: 100%; padding: 0 10px; transform: translate({{ $cNameOffsetX }}px, {{ $cNameOffsetY }}px); cursor: grab; user-select: none; touch-action: none; transition: transform 0.05s ease-out;">
-                                                <div class="author-name live-editable-text" id="liveAuthorName" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cNameSize }}px; font-weight: 800; line-height: {{ $cNameLineHeight }}; margin-bottom: {{ $cNameSpacing }}px; color: {{ $cNameColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">লেখক / অতিথির নাম</div>
-                                                <div class="author-designation live-editable-text" id="liveAuthorDesignation" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cDesigSize }}px; font-weight: 600; color: {{ $cDesigColor }}; line-height: 1.25; margin-bottom: 2px; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">কবি, কথাসাহিত্যিক ও প্রাবন্ধিক</div>
-                                                <div class="author-location live-editable-text" id="liveAuthorLocation" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cLocSize }}px; font-weight: 500; color: {{ $cLocColor }}; opacity: 0.95; line-height: 1.2; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">রংপুর</div>
+                                                <div class="author-name live-editable-text" id="liveAuthorName" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cNameSize }}px; font-weight: 800; line-height: {{ $cNameLineHeight }}; margin-bottom: {{ $cNameSpacing }}px; color: {{ $cNameColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">{{ $cDemoName }}</div>
+                                                <div class="author-designation live-editable-text" id="liveAuthorDesignation" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cDesigSize }}px; font-weight: 600; color: {{ $cDesigColor }}; line-height: 1.25; margin-bottom: 2px; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">{{ $cDemoDesig }}</div>
+                                                <div class="author-location live-editable-text" id="liveAuthorLocation" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cLocSize }}px; font-weight: 500; color: {{ $cLocColor }}; opacity: 0.95; line-height: 1.2; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">{{ $cDemoLoc }}</div>
                                             </div>
                                         </div>
 
@@ -3581,7 +3589,7 @@
                                                         <i class="fa-solid fa-arrow-pointer" style="font-size: 6.5px; color: #facc15; margin-right: 2px;"></i> {{ $cQrSub }}
                                                     </div>
                                                     <div class="qr-url-text" style="color: #fef08a; font-size: 7.5px; font-family: monospace; font-weight: 700; margin-top: 1.5px; opacity: 0.95; letter-spacing: 0.2px;">
-                                                        {{ url('/v/RSU-2026-001') }}
+                                                        {{ url('/v/' . $cDemoRegNo) }}
                                                     </div>
                                                 </div>
                                             </a>
