@@ -1793,9 +1793,10 @@ class EventCampaignAdminController extends Controller
             $cardDesign['bg_overlay_color']  = $request->input('bg_overlay_color', $cardDesign['bg_overlay_color'] ?? '#000000');
             $cardDesign['bg_blur']           = intval($request->input('bg_blur', $cardDesign['bg_blur'] ?? 0));
             
-            // 3. Header Texts & Logo Sizing
-            $cardDesign['show_header']       = false; // উৎসবের ৩-স্তরের মূল শিরোনাম ডিলিট করা হয়েছে
-            $cardDesign['show_logo']         = $request->has('show_logo');
+            // 3. Header Texts & Logo Sizing (Logos disabled for clean photocard)
+            $cardDesign['show_header']       = false;
+            $cardDesign['show_logo']         = false;
+            $cardDesign['show_event_logo']   = false;
             $cardDesign['logo_size']         = intval($request->input('logo_size', $cardDesign['logo_size'] ?? 58));
             $cardDesign['logo_offset_x']     = intval($request->input('logo_offset_x', $cardDesign['logo_offset_x'] ?? 0));
             $cardDesign['logo_offset_y']     = intval($request->input('logo_offset_y', $cardDesign['logo_offset_y'] ?? 0));
@@ -1823,28 +1824,28 @@ class EventCampaignAdminController extends Controller
             $cardDesign['photo_sepia']         = intval($request->input('photo_sepia', $cardDesign['photo_sepia'] ?? 0));
             $cardDesign['photo_name_gap']      = intval($request->input('photo_name_gap', $cardDesign['photo_name_gap'] ?? 10));
             
-            // 6. Name Plate, Typography & Background Shade (নাম, পদবি ও জেলা সাইজ এবং সাদা শেড আলাদা করা)
-            $cardDesign['show_name_plate']       = $request->has('show_name_plate');
+            // 6. Name Plate & Typography (Artificial box / shade removed, pure clean text)
+            $cardDesign['show_name_plate']       = false;
+            $cardDesign['show_plate_bg']         = false;
             $cardDesign['name_font_size']        = intval($request->input('name_font_size', 16));
             $cardDesign['designation_font_size'] = intval($request->input('designation_font_size', $cardDesign['designation_font_size'] ?? 10));
             $cardDesign['location_font_size']    = intval($request->input('location_font_size', $cardDesign['location_font_size'] ?? 9));
             $cardDesign['name_line_height']      = floatval($request->input('name_line_height', $cardDesign['name_line_height'] ?? 1.25));
             $cardDesign['name_spacing']          = intval($request->input('name_spacing', $cardDesign['name_spacing'] ?? 2));
-            $cardDesign['plate_padding']         = intval($request->input('plate_padding', $cardDesign['plate_padding'] ?? 14));
+            $cardDesign['plate_padding']         = 0;
 
             // Nameplate Background Shade & Separation Controls
-            $cardDesign['show_plate_bg']         = $request->has('show_plate_bg');
-            $cardDesign['plate_bg_opacity']      = intval($request->input('plate_bg_opacity', $cardDesign['plate_bg_opacity'] ?? 100));
-            $cardDesign['plate_border_width']    = intval($request->input('plate_border_width', $cardDesign['plate_border_width'] ?? 1));
-            $cardDesign['plate_border_color']    = $request->input('plate_border_color', $cardDesign['plate_border_color'] ?? '#d8be92');
-            $cardDesign['plate_border_radius']   = intval($request->input('plate_border_radius', $cardDesign['plate_border_radius'] ?? 12));
+            $cardDesign['plate_bg_opacity']      = 0;
+            $cardDesign['plate_border_width']    = 0;
+            $cardDesign['plate_border_color']    = 'transparent';
+            $cardDesign['plate_border_radius']   = 0;
             $cardDesign['designation_color']     = $request->input('designation_color', $cardDesign['designation_color'] ?? ($cardDesign['meta_color'] ?? '#334155'));
             $cardDesign['location_color']        = $request->input('location_color', $cardDesign['location_color'] ?? ($cardDesign['meta_color'] ?? '#475569'));
             
-            // 7. Quotation & Artwork
+            // 7. Quotation & Artwork (Artwork removed for clean photocard)
             $cardDesign['show_quote']        = $request->has('show_quote');
             $cardDesign['quote_text']        = $request->input('quote_text', "সাহিত্য উৎসব ও লিটিলম্যাগমেলায়\nআপনার উপস্থিতি ও অংশগ্রহণ\nআমাদের সম্মানিত করবে ।");
-            $cardDesign['show_artwork']      = $request->has('show_artwork');
+            $cardDesign['show_artwork']      = false;
             
             // 8. Verification QR Code & Attendance Settings (স্বাক্ষর বাদ হয়ে অটোমেটিক ভেরিফাই কিউ আর কোড)
             $cardDesign['show_qr_code']      = $request->has('show_qr_code') || $request->has('show_organizers');

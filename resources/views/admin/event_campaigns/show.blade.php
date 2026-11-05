@@ -2695,13 +2695,20 @@
     $cOrg3Phone = $cCardDesign['org_3_phone'] ?? '01820-547307';
     $cCustomObjects = $cCardDesign['custom_objects'] ?? [];
 
-    // Verification QR Code & Attendance Settings (স্বাক্ষর বাদ হয়ে অটোমেটিক ভেরিফাই কিউ আর কোড)
+    // Elements explicitly removed as requested for a clean photocard:
+    $cShowLogo      = false;
+    $cShowEventLogo = false;
+    $cShowNamePlate = false;
+    $cShowPlateBg   = false;
+    $cShowArtwork   = false;
+
+    // Verification QR Code & Attendance Settings (BaconQrCode Base64 SVG Data URI — 100% Offline & Zero-CORS)
     $cShowQrCode    = $cCardDesign['show_qr_code'] ?? ($cCardDesign['show_organizers'] ?? true);
-    $cQrSize        = intval($cCardDesign['qr_code_size'] ?? 78);
+    $cQrSize        = intval($cCardDesign['qr_code_size'] ?? 72);
     $cQrCaption     = $cCardDesign['qr_caption_text'] ?? 'উপস্থিতি যাচাই ও নিশ্চিতকরণ QR কোড';
     $cQrSub         = $cCardDesign['qr_subtext'] ?? 'ক্লিক বা স্ক্যান করলেই অনুষ্ঠানে উপস্থিতি নিশ্চিত হবে';
     $cDemoVerifyUrl = route('event.attendance.verify', 'RSU-2026-001');
-    $cDemoQrApiUrl  = 'https://api.qrserver.com/v1/create-qr-code/?size=' . ($cQrSize * 2) . 'x' . ($cQrSize * 2) . '&data=' . urlencode($cDemoVerifyUrl);
+    $cDemoQrApiUrl  = \App\Services\BarcodeService::generateQrCodeDataUri($cDemoVerifyUrl, $cQrSize);
 @endphp
 <div class="modal fade" id="cardDesignModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl text-start">
@@ -2740,11 +2747,6 @@
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="tab-photo-btn" data-bs-toggle="pill" data-bs-target="#tab-photo-pane" type="button" role="tab">
                                         <i class="fa-solid fa-image-portrait me-1"></i> ফটো এডিটর
-                                    </button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="tab-logo-btn" data-bs-toggle="pill" data-bs-target="#tab-logo-pane" type="button" role="tab">
-                                        <i class="fa-solid fa-certificate me-1"></i> লোগো
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
@@ -3150,264 +3152,9 @@
                                     </div>
                                 </div>
 
-                                {{-- 2. LOGO TAB (প্রতিষ্ঠান লোগো ও ইভেন্ট লোগো) --}}
-                                <div class="tab-pane fade" id="tab-logo-pane" role="tabpanel">
-                                    {{-- Section A: Primary Organization Logo --}}
-                                    <div class="p-3 bg-light rounded-3 border mb-3">
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <label class="form-label small fw-bold text-dark mb-0">
-                                                <i class="fa-solid fa-certificate text-primary me-1"></i> ১. প্রতিষ্ঠান / আয়োজক লোগো (বামে)
-                                            </label>
-                                            <span class="badge bg-primary-subtle text-primary" style="font-size: 10.5px;">
-                                                <i class="fa-solid fa-compress me-1"></i> বর্ডারমুক্ত স্বচ্ছ
-                                            </span>
-                                        </div>
-
-                                        {{-- Active Custom Logo Notice --}}
-                                        @if($cLogoImg)
-                                            <div class="mb-2 p-2 border rounded-3 bg-white d-flex align-items-center justify-content-between" id="activeLogoNoticeBox">
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <img src="{{ asset('storage/' . $cLogoImg) }}" alt="Card Logo" style="height: 40px; width: 40px; object-fit: contain; background: transparent;" id="activeLogoThumb">
-                                                    <div>
-                                                        <div class="fw-bold text-dark small" style="font-size: 12px;">প্রতিষ্ঠান লোগো সক্রিয়</div>
-                                                        <span class="badge bg-success-subtle text-success" style="font-size: 9.5px;">সংরক্ষিত লোগো</span>
-                                                    </div>
-                                                </div>
-                                                <div class="form-check form-switch m-0">
-                                                    <input class="form-check-input" type="checkbox" name="remove_logo_image" id="removeLogoCheck" value="1">
-                                                    <label class="form-check-label text-danger small fw-bold" for="removeLogoCheck" style="font-size: 11px;">লোগো বাদ</label>
-                                                </div>
-                                            </div>
-                                        @endif
-
-                                        {{-- Upload Custom Logo Dropzone --}}
-                                        <div class="mb-2">
-                                            <div class="custom-dropzone-box py-2.5" id="logoDropzoneBox">
-                                                <i class="fa-solid fa-cloud-arrow-up fa-lg text-muted mb-1"></i>
-                                                <div class="fw-bold small text-dark" id="logoDropzoneText" style="font-size: 12px;">প্রতিষ্ঠান লোগো ইমেজ নির্বাচন বা ড্রপ করুন</div>
-                                                <small class="text-muted d-block" style="font-size: 10px;">স্বচ্ছ PNG বা JPG লোগো (বর্ডার ছাড়া ফিট)</small>
-                                                <div id="logoOptimizeBadge" class="mt-1" style="display: none;"></div>
-                                                <input type="file" name="card_logo_image" id="liveInputLogoImage" accept="image/*">
-                                            </div>
-                                        </div>
-
-                                        {{-- Logo Visibility & Size --}}
-                                        <div class="row g-2 mb-2.5">
-                                            <div class="col-6">
-                                                <div class="toggle-card-item p-2 mb-0 h-100">
-                                                    <div class="toggle-card-info">
-                                                        <div class="toggle-card-icon bg-primary-subtle text-primary" style="width: 28px; height: 28px; font-size: 12px;">
-                                                            <i class="fa-solid fa-eye"></i>
-                                                        </div>
-                                                        <div>
-                                                            <div class="toggle-card-title small fw-bold" style="font-size: 11.5px;">লোগো ১ প্রদর্শন</div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-check form-switch m-0">
-                                                        <input class="form-check-input live-toggle-input" type="checkbox" id="toggleShowLogoSecondary" value="1" {{ $cShowLogo ? 'checked' : '' }} data-target="liveLogoWrap" style="width: 2.2em; height: 1.1em;">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-6">
-                                                <div class="range-slider-box p-2 mb-0 h-100">
-                                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                                        <label class="form-label small fw-bold text-dark mb-0" style="font-size: 11px;">লোগো সাইজ</label>
-                                                        <div class="d-flex align-items-center gap-1">
-                                                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1" id="btnLogoSizeDec" title="ছোট করুন" style="font-size: 9px;"><i class="fa-solid fa-minus"></i></button>
-                                                            <span class="slider-val-badge py-0.5 px-1.5" id="logoSizeBadge" style="font-size: 10px;">{{ $cLogoSize }} px</span>
-                                                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1" id="btnLogoSizeInc" title="বড় করুন" style="font-size: 9px;"><i class="fa-solid fa-plus"></i></button>
-                                                        </div>
-                                                    </div>
-                                                    <input type="range" class="custom-range-slider" id="logoSizeSlider" name="logo_size" min="20" max="140" step="2" value="{{ $cLogoSize }}">
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {{-- Organization Logo Arrow / Nudge Position Controls (ডান-বাম-উপর-নিচ পজিশন) --}}
-                                        <div class="p-2.5 bg-white rounded-3 border">
-                                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                                <label class="form-label small fw-bold text-dark mb-0" style="font-size: 11.5px;">
-                                                    <i class="fa-solid fa-arrows-up-down-left-right text-primary me-1"></i> এ্যারো দিয়ে পজিশন অ্যাডজাস্ট (ডান / বাম / উপর / নিচ)
-                                                </label>
-                                                <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 rounded-pill" id="btnResetLogoPos" style="font-size: 10px;">
-                                                    <i class="fa-solid fa-rotate-left me-1"></i> রিসেট
-                                                </button>
-                                            </div>
-
-                                            <div class="row g-2 align-items-center">
-                                                {{-- D-Pad Navigation Buttons --}}
-                                                <div class="col-12 col-md-5 d-flex justify-content-center">
-                                                    <div class="d-flex flex-column align-items-center gap-1 p-1 bg-light rounded-3 border shadow-sm">
-                                                        <button type="button" class="btn btn-sm btn-light border shadow-xs px-2.5 py-1 text-primary fw-bold" id="btnNudgeLogoUp" title="উপরে সরান (Up)">
-                                                            <i class="fa-solid fa-arrow-up"></i>
-                                                        </button>
-                                                        <div class="d-flex align-items-center gap-1">
-                                                            <button type="button" class="btn btn-sm btn-light border shadow-xs px-2.5 py-1 text-primary fw-bold" id="btnNudgeLogoLeft" title="বামে সরান (Left)">
-                                                                <i class="fa-solid fa-arrow-left"></i>
-                                                            </button>
-                                                            <button type="button" class="btn btn-sm btn-primary px-2 py-1 text-white fw-bold shadow-xs" id="btnNudgeLogoCenter" title="সেন্টার করুন">
-                                                                <i class="fa-solid fa-bullseye"></i>
-                                                            </button>
-                                                            <button type="button" class="btn btn-sm btn-light border shadow-xs px-2.5 py-1 text-primary fw-bold" id="btnNudgeLogoRight" title="ডানে সরান (Right)">
-                                                                <i class="fa-solid fa-arrow-right"></i>
-                                                            </button>
-                                                        </div>
-                                                        <button type="button" class="btn btn-sm btn-light border shadow-xs px-2.5 py-1 text-primary fw-bold" id="btnNudgeLogoDown" title="নিচে সরান (Down)">
-                                                            <i class="fa-solid fa-arrow-down"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {{-- Fine Sliders for Offset X & Offset Y --}}
-                                                <div class="col-12 col-md-7">
-                                                    <div class="mb-2">
-                                                        <div class="d-flex align-items-center justify-content-between mb-1">
-                                                            <span class="small fw-bold text-muted" style="font-size: 10.5px;">ডান ↔ বাম পজিশন (X Offset)</span>
-                                                            <span class="badge bg-secondary-subtle text-secondary" id="logoOffsetXBadge" style="font-size: 10px;">{{ $cLogoOffsetX }} px</span>
-                                                        </div>
-                                                        <input type="range" class="custom-range-slider" id="logoOffsetXSlider" name="logo_offset_x" min="-120" max="120" step="1" value="{{ $cLogoOffsetX }}">
-                                                    </div>
-                                                    <div>
-                                                        <div class="d-flex align-items-center justify-content-between mb-1">
-                                                            <span class="small fw-bold text-muted" style="font-size: 10.5px;">উপর ↕ নিচ পজিশন (Y Offset)</span>
-                                                            <span class="badge bg-secondary-subtle text-secondary" id="logoOffsetYBadge" style="font-size: 10px;">{{ $cLogoOffsetY }} px</span>
-                                                        </div>
-                                                        <input type="range" class="custom-range-slider" id="logoOffsetYSlider" name="logo_offset_y" min="-80" max="80" step="1" value="{{ $cLogoOffsetY }}">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {{-- Section B: Event Specific Logo (রংপুর সাহিত্য উৎসব / ইভেন্ট হেডার লোগো) --}}
-                                    <div class="p-3 bg-light rounded-3 border">
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <label class="form-label small fw-bold text-dark mb-0">
-                                                <i class="fa-solid fa-flag-checkered text-danger me-1"></i> ২. ইভেন্ট লোগো (রংপুর সাহিত্য উৎসব / হেডার লোগো)
-                                            </label>
-                                            <span class="badge bg-danger-subtle text-danger" style="font-size: 10.5px;">
-                                                <i class="fa-solid fa-star me-1"></i> হেডার ইভেন্ট লোগো
-                                            </span>
-                                        </div>
-
-                                        {{-- Active Event Logo Notice --}}
-                                        @if($cEventLogoImg)
-                                            <div class="mb-2 p-2 border rounded-3 bg-white d-flex align-items-center justify-content-between" id="activeEventLogoNoticeBox">
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <img src="{{ asset('storage/' . $cEventLogoImg) }}" alt="Event Logo" style="height: 40px; max-width: 80px; object-fit: contain; background: transparent;" id="activeEventLogoThumb">
-                                                    <div>
-                                                        <div class="fw-bold text-dark small" style="font-size: 12px;">ইভেন্ট লোগো সক্রিয়</div>
-                                                        <span class="badge bg-success-subtle text-success" style="font-size: 9.5px;">হেডারে প্রদর্শিত</span>
-                                                    </div>
-                                                </div>
-                                                <div class="form-check form-switch m-0">
-                                                    <input class="form-check-input" type="checkbox" name="remove_event_logo_image" id="removeEventLogoCheck" value="1">
-                                                    <label class="form-check-label text-danger small fw-bold" for="removeEventLogoCheck" style="font-size: 11px;">ইভেন্ট লোগো বাদ</label>
-                                                </div>
-                                            </div>
-                                        @endif
-
-                                        {{-- Upload Event Logo Dropzone --}}
-                                        <div class="mb-2">
-                                            <div class="custom-dropzone-box py-2.5" id="eventLogoDropzoneBox">
-                                                <i class="fa-solid fa-cloud-arrow-up fa-lg text-danger mb-1"></i>
-                                                <div class="fw-bold small text-dark" id="eventLogoDropzoneText" style="font-size: 12px;">ইভেন্ট লোগো (রংপুর সাহিত্য উৎসব) আপলোড করুন</div>
-                                                <small class="text-muted d-block" style="font-size: 10px;">স্বচ্ছ PNG, SVG বা JPG লোগো (হেডারে প্রদর্শিত হবে)</small>
-                                                <div id="eventLogoOptimizeBadge" class="mt-1" style="display: none;"></div>
-                                                <input type="file" name="card_event_logo_image" id="liveInputEventLogoImage" accept="image/*">
-                                            </div>
-                                        </div>
-
-                                        {{-- Event Logo Visibility & Size --}}
-                                        <div class="row g-2 mb-2.5">
-                                            <div class="col-6">
-                                                <div class="toggle-card-item p-2 mb-0 h-100">
-                                                    <div class="toggle-card-info">
-                                                        <div class="toggle-card-icon bg-danger-subtle text-danger" style="width: 28px; height: 28px; font-size: 12px;">
-                                                            <i class="fa-solid fa-eye"></i>
-                                                        </div>
-                                                        <div>
-                                                            <div class="toggle-card-title small fw-bold" style="font-size: 11.5px;">ইভেন্ট লোগো প্রদর্শন</div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-check form-switch m-0">
-                                                        <input class="form-check-input live-toggle-input" type="checkbox" id="toggleShowEventLogoSecondary" value="1" {{ $cShowEventLogo ? 'checked' : '' }} data-target="liveEventLogoWrap" style="width: 2.2em; height: 1.1em;">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-6">
-                                                <div class="range-slider-box p-2 mb-0 h-100">
-                                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                                        <label class="form-label small fw-bold text-dark mb-0" style="font-size: 11px;">ইভেন্ট লোগো সাইজ</label>
-                                                        <div class="d-flex align-items-center gap-1">
-                                                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1" id="btnEventLogoSizeDec" title="ছোট করুন" style="font-size: 9px;"><i class="fa-solid fa-minus"></i></button>
-                                                            <span class="slider-val-badge py-0.5 px-1.5 bg-danger text-white" id="eventLogoSizeBadge" style="font-size: 10px;">{{ $cEventLogoSize }} px</span>
-                                                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1" id="btnEventLogoSizeInc" title="বড় করুন" style="font-size: 9px;"><i class="fa-solid fa-plus"></i></button>
-                                                        </div>
-                                                    </div>
-                                                    <input type="range" class="custom-range-slider" id="eventLogoSizeSlider" name="event_logo_size" min="20" max="240" step="2" value="{{ $cEventLogoSize }}">
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {{-- Event Logo Arrow / Nudge Position Controls (ডান-বাম-উপর-নিচ পজিশন) --}}
-                                        <div class="p-2.5 bg-white rounded-3 border">
-                                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                                <label class="form-label small fw-bold text-dark mb-0" style="font-size: 11.5px;">
-                                                    <i class="fa-solid fa-arrows-up-down-left-right text-primary me-1"></i> এ্যারো দিয়ে পজিশন অ্যাডজাস্ট (ডান / বাম / উপর / নিচ)
-                                                </label>
-                                                <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 rounded-pill" id="btnResetEventLogoPos" style="font-size: 10px;">
-                                                    <i class="fa-solid fa-rotate-left me-1"></i> রিসেট
-                                                </button>
-                                            </div>
-
-                                            <div class="row g-2 align-items-center">
-                                                {{-- D-Pad Navigation Buttons --}}
-                                                <div class="col-12 col-md-5 d-flex justify-content-center">
-                                                    <div class="d-flex flex-column align-items-center gap-1 p-1 bg-light rounded-3 border shadow-sm">
-                                                        <button type="button" class="btn btn-sm btn-light border shadow-xs px-2.5 py-1 text-primary fw-bold" id="btnNudgeEventLogoUp" title="উপরে সরান (Up)">
-                                                            <i class="fa-solid fa-arrow-up"></i>
-                                                        </button>
-                                                        <div class="d-flex align-items-center gap-1">
-                                                            <button type="button" class="btn btn-sm btn-light border shadow-xs px-2.5 py-1 text-primary fw-bold" id="btnNudgeEventLogoLeft" title="বামে সরান (Left)">
-                                                                <i class="fa-solid fa-arrow-left"></i>
-                                                            </button>
-                                                            <button type="button" class="btn btn-sm btn-primary px-2 py-1 text-white fw-bold shadow-xs" id="btnNudgeEventLogoCenter" title="সেন্টার করুন">
-                                                                <i class="fa-solid fa-bullseye"></i>
-                                                            </button>
-                                                            <button type="button" class="btn btn-sm btn-light border shadow-xs px-2.5 py-1 text-primary fw-bold" id="btnNudgeEventLogoRight" title="ডানে সরান (Right)">
-                                                                <i class="fa-solid fa-arrow-right"></i>
-                                                            </button>
-                                                        </div>
-                                                        <button type="button" class="btn btn-sm btn-light border shadow-xs px-2.5 py-1 text-primary fw-bold" id="btnNudgeEventLogoDown" title="নিচে সরান (Down)">
-                                                            <i class="fa-solid fa-arrow-down"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {{-- Fine Sliders for Offset X & Offset Y --}}
-                                                <div class="col-12 col-md-7">
-                                                    <div class="mb-2">
-                                                        <div class="d-flex align-items-center justify-content-between mb-1">
-                                                            <span class="small fw-bold text-muted" style="font-size: 10.5px;">ডান ↔ বাম পজিশন (X Offset)</span>
-                                                            <span class="badge bg-secondary-subtle text-secondary" id="eventLogoOffsetXBadge" style="font-size: 10px;">{{ $cEventLogoOffsetX }} px</span>
-                                                        </div>
-                                                        <input type="range" class="custom-range-slider" id="eventLogoOffsetXSlider" name="event_logo_offset_x" min="-150" max="150" step="1" value="{{ $cEventLogoOffsetX }}">
-                                                    </div>
-                                                    <div>
-                                                        <div class="d-flex align-items-center justify-content-between mb-1">
-                                                            <span class="small fw-bold text-muted" style="font-size: 10.5px;">উপর ↕ নিচ পজিশন (Y Offset)</span>
-                                                            <span class="badge bg-secondary-subtle text-secondary" id="eventLogoOffsetYBadge" style="font-size: 10px;">{{ $cEventLogoOffsetY }} px</span>
-                                                        </div>
-                                                        <input type="range" class="custom-range-slider" id="eventLogoOffsetYSlider" name="event_logo_offset_y" min="-80" max="80" step="1" value="{{ $cEventLogoOffsetY }}">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                {{-- Organization Logo removed --}}
+                                <input type="hidden" name="show_logo" value="0">
+                                <input type="hidden" name="show_event_logo" value="0">
 
                                 {{-- 2.5 OBJECTS & STICKERS TAB (নতুন অবজেক্ট ও স্টিকার) --}}
                                 <div class="tab-pane fade" id="tab-objects-pane" role="tabpanel">
@@ -3543,53 +3290,16 @@
 
                                     <div class="d-flex flex-column gap-2">
                                         
-                                        {{-- 1. Organization Logo Toggle --}}
-                                        <div class="toggle-card-item py-2 px-2.5">
-                                            <div class="toggle-card-info">
-                                                <div class="toggle-card-icon bg-info-subtle text-info" style="width: 32px; height: 32px; font-size: 13px;">
-                                                    <i class="fa-solid fa-feather-pointed"></i>
-                                                </div>
-                                                <div>
-                                                    <div class="toggle-card-title small fw-bold">প্রতিষ্ঠান লোগো</div>
-                                                    <small class="text-muted" style="font-size: 10.5px;">বাম পাশের মূল লোগো (ফিরেদেখা)</small>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <button type="button" class="btn btn-xs btn-light border py-0 px-1.5 text-muted rounded-pill" onclick="document.getElementById('tab-logo-btn').click()" title="লোগো সেটিংস দেখুন" style="font-size: 10px;">
-                                                    <i class="fa-solid fa-sliders"></i>
-                                                </button>
-                                                <div class="form-check form-switch m-0">
-                                                    <input class="form-check-input live-toggle-input" type="checkbox" name="show_logo" id="toggleShowLogo" value="1" {{ $cShowLogo ? 'checked' : '' }} data-target="liveLogoWrap" style="width: 2.3em; height: 1.2em;">
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {{-- 2. Event Logo Toggle --}}
-                                        <div class="toggle-card-item py-2 px-2.5">
-                                            <div class="toggle-card-info">
-                                                <div class="toggle-card-icon bg-danger-subtle text-danger" style="width: 32px; height: 32px; font-size: 13px;">
-                                                    <i class="fa-solid fa-award"></i>
-                                                </div>
-                                                <div>
-                                                    <div class="toggle-card-title small fw-bold">ইভেন্ট লোগো</div>
-                                                    <small class="text-muted" style="font-size: 10.5px;">হেডারের উৎসব ও মেলার বিশেষ লোগো</small>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <button type="button" class="btn btn-xs btn-light border py-0 px-1.5 text-muted rounded-pill" onclick="document.getElementById('tab-logo-btn').click()" title="ইভেন্ট লোগো সেটিংস দেখুন" style="font-size: 10px;">
-                                                    <i class="fa-solid fa-sliders"></i>
-                                                </button>
-                                                <div class="form-check form-switch m-0">
-                                                    <input class="form-check-input live-toggle-input" type="checkbox" name="show_event_logo" id="toggleShowEventLogo" value="1" {{ $cShowEventLogo ? 'checked' : '' }} data-target="liveEventLogoWrap" style="width: 2.3em; height: 1.2em;">
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {{-- Header Text & Badge Permanently Removed as Requested --}}
+                                        {{-- Removed features sent as 0 --}}
+                                        <input type="hidden" name="show_logo" id="toggleShowLogo" value="0">
+                                        <input type="hidden" name="show_event_logo" id="toggleShowEventLogo" value="0">
                                         <input type="hidden" name="show_header" id="toggleShowHeader" value="0">
                                         <input type="hidden" name="show_badge" id="toggleShowBadge" value="0">
+                                        <input type="hidden" name="show_name_plate" id="toggleShowNamePlate" value="0">
+                                        <input type="hidden" name="show_plate_bg" id="toggleShowPlateBg" value="0">
+                                        <input type="hidden" name="show_artwork" id="toggleShowArtwork" value="0">
 
-                                        {{-- 5. Author Photo Toggle --}}
+                                        {{-- 1. Author Photo Toggle --}}
                                         <div class="toggle-card-item py-2 px-2.5">
                                             <div class="toggle-card-info">
                                                 <div class="toggle-card-icon bg-info-subtle text-info" style="width: 32px; height: 32px; font-size: 13px;">
@@ -3610,28 +3320,7 @@
                                             </div>
                                         </div>
 
-                                        {{-- 6. Author Nameplate Box Toggle --}}
-                                        <div class="toggle-card-item py-2 px-2.5">
-                                            <div class="toggle-card-info">
-                                                <div class="toggle-card-icon bg-success-subtle text-success" style="width: 32px; height: 32px; font-size: 13px;">
-                                                    <i class="fa-solid fa-id-card"></i>
-                                                </div>
-                                                <div>
-                                                    <div class="toggle-card-title small fw-bold">নামের শেড / নেমপ্লেট</div>
-                                                    <small class="text-muted" style="font-size: 10.5px;">নাম, পদবি ও জেলা সম্বলিত আলাদা বক্স</small>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <button type="button" class="btn btn-xs btn-light border py-0 px-1.5 text-muted rounded-pill" onclick="document.getElementById('tab-size-btn').click()" title="সাইজ ও প্যাডিং এডিট" style="font-size: 10px;">
-                                                    <i class="fa-solid fa-sliders"></i>
-                                                </button>
-                                                <div class="form-check form-switch m-0">
-                                                    <input class="form-check-input live-toggle-input" type="checkbox" name="show_name_plate" id="toggleShowNamePlate" value="1" {{ $cShowNamePlate ? 'checked' : '' }} data-target="liveNamePlate" style="width: 2.3em; height: 1.2em;">
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {{-- 7. Quote Toggle --}}
+                                        {{-- 2. Quote Toggle --}}
                                         <div class="toggle-card-item py-2 px-2.5">
                                             <div class="toggle-card-info">
                                                 <div class="toggle-card-icon bg-danger-subtle text-danger" style="width: 32px; height: 32px; font-size: 13px;">
@@ -3652,23 +3341,7 @@
                                             </div>
                                         </div>
 
-                                        {{-- 8. Artwork Toggle --}}
-                                        <div class="toggle-card-item py-2 px-2.5">
-                                            <div class="toggle-card-info">
-                                                <div class="toggle-card-icon bg-primary-subtle text-primary" style="width: 32px; height: 32px; font-size: 13px;">
-                                                    <i class="fa-solid fa-book-open"></i>
-                                                </div>
-                                                <div>
-                                                    <div class="toggle-card-title small fw-bold">বই আর্টওয়ার্ক</div>
-                                                    <small class="text-muted" style="font-size: 10.5px;">উন্মুক্ত বই ও হাতের ভেক্টর চিত্র</small>
-                                                </div>
-                                            </div>
-                                            <div class="form-check form-switch m-0">
-                                                <input class="form-check-input live-toggle-input" type="checkbox" name="show_artwork" id="toggleShowArtwork" value="1" {{ $cShowArtwork ? 'checked' : '' }} data-target="liveArtworkWrap" style="width: 2.3em; height: 1.2em;">
-                                            </div>
-                                        </div>
-
-                                        {{-- 9. Verification QR Code & Attendance Toggle --}}
+                                        {{-- 3. Verification QR Code & Attendance Toggle --}}
                                         <div class="toggle-card-item py-2 px-2.5">
                                             <div class="toggle-card-info">
                                                 <div class="toggle-card-icon bg-success-subtle text-success" style="width: 32px; height: 32px; font-size: 13px;">
@@ -3798,94 +3471,16 @@
                                         </div>
                                     </div>
 
-                                    {{-- 4. White Background Box Separation & Styling Panel (সাদা ব্যাকগ্রাউন্ড লেখা থেকে আলাদা করার ফিচার) --}}
-                                    <div class="p-3 bg-white rounded-3 border shadow-xs mb-3">
-                                        <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
-                                            <div>
-                                                <div class="fw-bold small text-dark">
-                                                    <i class="fa-solid fa-square-full text-warning me-1"></i> সাদা শেড / বক্স
-                                                </div>
-                                                <small class="text-muted" style="font-size: 10.5px;">সাদা বক্স আলাদা অথবা বন্ধ করুন</small>
-                                            </div>
-                                            <div class="form-check form-switch m-0">
-                                                <input class="form-check-input live-toggle-input" type="checkbox" name="show_plate_bg" id="toggleShowPlateBg" value="1" {{ $cShowPlateBg ? 'checked' : '' }} data-target="liveNamePlateBg" style="width: 2.4em; height: 1.25em;">
-                                            </div>
-                                        </div>
+                                    {{-- Hidden inputs for permanently removed nameplate box/shades --}}
+                                    <input type="hidden" name="show_plate_bg" value="0">
+                                    <input type="hidden" name="plate_padding" value="0">
+                                    <input type="hidden" name="plate_bg_color" value="#ffffff">
+                                    <input type="hidden" name="plate_bg_opacity" value="0">
+                                    <input type="hidden" name="plate_border_width" value="0">
+                                    <input type="hidden" name="plate_border_color" value="transparent">
+                                    <input type="hidden" name="plate_border_radius" value="0">
 
-                                        {{-- Quick Style Presets --}}
-                                        <div class="mb-3">
-                                            <label class="form-label small fw-bold text-dark mb-1" style="font-size: 11px;">প্রিসেট শেড</label>
-                                            <div class="row g-1.5">
-                                                <div class="col-6 col-md-3">
-                                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 py-1 rounded-3 btn-preset-plate-style" data-bg="#ffffff" data-opacity="100" data-border="1" data-border-color="#d8be92" data-radius="12" style="font-size: 10.5px;">
-                                                        সাদা শেড
-                                                    </button>
-                                                </div>
-                                                <div class="col-6 col-md-3">
-                                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 py-1 rounded-3 btn-preset-plate-style" data-bg="#ecd8b4" data-opacity="100" data-border="1" data-border-color="#d8be92" data-radius="12" style="font-size: 10.5px;">
-                                                        ক্রিম শেড
-                                                    </button>
-                                                </div>
-                                                <div class="col-6 col-md-3">
-                                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 py-1 rounded-3 btn-preset-plate-style" data-bg="transparent" data-opacity="0" data-border="0" data-radius="0" style="font-size: 10.5px;">
-                                                        স্বচ্ছ (বক্স ছাড়া)
-                                                    </button>
-                                                </div>
-                                                <div class="col-6 col-md-3">
-                                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 py-1 rounded-3 btn-preset-plate-style" data-bg="#ffffff" data-opacity="25" data-border="1" data-border-color="rgba(255,255,255,0.4)" data-radius="14" style="font-size: 10.5px;">
-                                                        গ্লাস শেড
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div id="plateBgControlsWrapper" style="{{ $cShowPlateBg ? '' : 'display: none;' }}">
-                                            {{-- Background Color & Opacity --}}
-                                            <div class="row g-2 mb-2.5">
-                                                <div class="col-md-6">
-                                                    <label class="form-label small fw-bold text-dark mb-1" style="font-size: 11px;">শেড কালার</label>
-                                                    <div class="d-flex align-items-center gap-1.5">
-                                                        <input type="color" name="plate_bg_color" id="liveInputPlateBgColor" class="form-control form-control-color" value="{{ $cPlateBg }}" style="width: 40px; height: 32px;">
-                                                        <input type="text" id="liveInputPlateBgColorText" class="form-control form-control-sm font-monospace" value="{{ $cPlateBg }}" style="font-size: 11px;">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                                        <label class="form-label small fw-bold text-dark mb-0" style="font-size: 11px;">স্বচ্ছতা</label>
-                                                        <span class="badge bg-secondary-subtle text-secondary" id="plateBgOpacityBadge" style="font-size: 10px;">{{ $cPlateBgOpacity }}%</span>
-                                                    </div>
-                                                    <input type="range" class="custom-range-slider" id="plateBgOpacitySlider" name="plate_bg_opacity" min="0" max="100" step="5" value="{{ $cPlateBgOpacity }}">
-                                                </div>
-                                            </div>
-
-                                            {{-- Border Width, Color & Radius --}}
-                                            <div class="row g-2">
-                                                <div class="col-md-4">
-                                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                                        <label class="form-label small fw-bold text-dark mb-0" style="font-size: 11px;">বর্ডার পুরুত্ব</label>
-                                                        <span class="badge bg-secondary-subtle text-secondary" id="plateBorderWidthBadge" style="font-size: 10px;">{{ $cPlateBorderWidth }} px</span>
-                                                    </div>
-                                                    <input type="range" class="custom-range-slider" id="plateBorderWidthSlider" name="plate_border_width" min="0" max="5" step="0.5" value="{{ $cPlateBorderWidth }}">
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <label class="form-label small fw-bold text-dark mb-1" style="font-size: 11px;">বর্ডার কালার</label>
-                                                    <div class="d-flex align-items-center gap-1">
-                                                        <input type="color" name="plate_border_color" id="liveInputPlateBorderColor" class="form-control form-control-color" value="{{ $cPlateBorderColor }}" style="width: 36px; height: 32px;">
-                                                        <input type="text" id="liveInputPlateBorderColorText" class="form-control form-control-sm font-monospace" value="{{ $cPlateBorderColor }}" style="font-size: 10px;">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                                        <label class="form-label small fw-bold text-dark mb-0" style="font-size: 11px;">কোণ রাউন্ড</label>
-                                                        <span class="badge bg-secondary-subtle text-secondary" id="plateBorderRadiusBadge" style="font-size: 10px;">{{ $cPlateBorderRadius }} px</span>
-                                                    </div>
-                                                    <input type="range" class="custom-range-slider" id="plateBorderRadiusSlider" name="plate_border_radius" min="0" max="24" step="1" value="{{ $cPlateBorderRadius }}">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {{-- 5. Name Line Height & Spacing Sliders --}}
+                                    {{-- 4. Name Line Height & Spacing Sliders --}}
                                     <div class="range-slider-box mb-3">
                                         <div class="row g-3">
                                             <div class="col-md-6">
@@ -3906,26 +3501,15 @@
                                         </div>
                                     </div>
 
-                                    {{-- 6. Plate Padding Slider Box --}}
-                                    <div class="range-slider-box mb-3">
-                                        <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                            <label class="form-label fw-bold text-dark small mb-0">
-                                                <i class="fa-solid fa-arrows-up-down text-warning me-1"></i> বক্স প্যাডিং
-                                            </label>
-                                            <span class="slider-val-badge" id="platePaddingBadge">{{ $cPlatePadding }} px</span>
-                                        </div>
-                                        <input type="range" class="custom-range-slider" id="platePaddingSlider" name="plate_padding" min="4" max="28" step="1" value="{{ $cPlatePadding }}">
-                                    </div>
-
-                                    {{-- 7. Photo & Nameplate Gap Slider in Size Tab (ছবি ও নামের শেডের ব্যবধান) --}}
+                                    {{-- 5. Photo & Name Gap Slider (ছবি ও নামের ব্যবধান) --}}
                                     <div class="range-slider-box mb-3 p-2.5 bg-white rounded-3 border">
                                         <div class="d-flex align-items-center justify-content-between mb-1.5">
                                             <label class="form-label fw-bold text-dark small mb-0">
-                                                <i class="fa-solid fa-arrows-split-up-and-left text-danger me-1"></i> শেড ব্যবধান
+                                                <i class="fa-solid fa-arrows-split-up-and-left text-primary me-1"></i> ছবি ও নামের ব্যবধান
                                             </label>
-                                            <span class="slider-val-badge bg-danger text-white py-0.5 px-2" id="photoNameGapBadgeSize">{{ $cPhotoNameGap }} px</span>
+                                            <span class="slider-val-badge bg-primary text-white py-0.5 px-2" id="photoNameGapBadgeSize">{{ $cPhotoNameGap }} px</span>
                                         </div>
-                                        <input type="range" class="custom-range-slider mb-1" id="photoNameGapSliderSize" min="0" max="40" step="1" value="{{ $cPhotoNameGap }}">
+                                        <input type="range" class="custom-range-slider mb-1" id="photoNameGapSliderSize" name="photo_name_gap" min="0" max="40" step="1" value="{{ $cPhotoNameGap }}">
                                         <div class="d-flex justify-content-between text-muted" style="font-size: 10px;">
                                             <span>০ px (কাছে)</span>
                                             <span>১০ px (স্বাভাবিক)</span>
@@ -4115,45 +3699,31 @@
                                         {{-- Background Overlay Tint --}}
                                         <div id="liveBgOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: {{ $cBgOverlayColor }}; opacity: {{ $cBgOverlayOpacity > 0 ? ($cBgOverlayOpacity / 100) : 0 }}; @if($cBgBlur > 0) backdrop-filter: blur({{ $cBgBlur }}px); -webkit-backdrop-filter: blur({{ $cBgBlur }}px); @endif pointer-events: none; border-radius: 12px; z-index: 1;"></div>
 
-                                        {{-- 1. TOP HEADER SECTION (Left Org Logo, Center Event Logo & Title, Right Badge / Spacer) --}}
-                                        <div class="card-top-section" id="liveTopSection" style="min-height: 90px; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-                                            
-                                            {{-- Left: Organization Logo Container --}}
-                                            <div class="header-left-col" style="min-width: {{ $cLogoSize }}px; display: flex; align-items: center; justify-content: flex-start; position: relative;">
-                                                <div class="phiredekha-logo card-interactive-node" id="liveLogoWrap" data-node="logo" data-tab="tab-logo-pane" style="width: {{ $cLogoSize }}px; height: {{ $cLogoSize }}px; border: none; background: transparent; box-shadow: none; transform: translate({{ $cLogoOffsetX }}px, {{ $cLogoOffsetY }}px); transition: transform 0.1s ease-out; {{ $cShowLogo ? '' : 'display: none !important;' }}">
-                                                    <img src="{{ $cLogoImg ? asset('storage/' . $cLogoImg) : '' }}" alt="Logo" class="custom-card-logo-img" id="liveCustomLogoImg" style="{{ $cLogoImg ? '' : 'display: none;' }} width: 100%; height: 100%; object-fit: contain;">
-                                                    <div class="logo-inner-ring" id="liveDefaultLogoRing" style="{{ $cLogoImg ? 'display: none;' : '' }}">
-                                                        <div class="logo-brand">ফিরেদেখা</div>
-                                                        <i class="fa-solid fa-feather-pointed logo-icon"></i>
-                                                        <div class="logo-est">প্রতিষ্ঠা: ২০১৬</div>
-                                                    </div>
-                                                </div>
+                                        {{-- 1. TOP HEADER SECTION (Clean Typography, No Logos) --}}
+                                        <div class="card-top-section card-interactive-node" id="liveHeadingsWrap" data-node="header" data-tab="tab-text-pane" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 2; padding: 6px 8px 4px 8px;">
+                                            <div class="festival-anniversary live-editable-text" id="liveAnnivText" contenteditable="true" data-bind="liveInputAnniversary" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: 11px; font-weight: 700; color: {{ $cAnnivColor }}; margin-bottom: 2px; text-shadow: 0 1px 3px rgba(0,0,0,0.5); letter-spacing: 0.3px;">
+                                                {{ $cAnniv }}
                                             </div>
-
-                                            {{-- Center: Event Logo --}}
-                                            <div class="festival-text-wrap card-interactive-node" id="liveHeadingsWrap" data-node="header" data-tab="tab-text-pane" style="flex-grow: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
-                                                <div class="event-header-logo-wrap card-interactive-node" id="liveEventLogoWrap" data-node="event-logo" data-tab="tab-logo-pane" style="{{ ($cShowEventLogo && $cEventLogoImg) ? 'display: flex;' : 'display: none;' }} justify-content: center; align-items: center; transform: translate({{ $cEventLogoOffsetX }}px, {{ $cEventLogoOffsetY }}px); transition: transform 0.1s ease-out;">
-                                                    <img src="{{ $cEventLogoImg ? asset('storage/' . $cEventLogoImg) : '' }}" alt="Event Logo" id="liveCustomEventLogoImg" style="max-height: {{ $cEventLogoSize }}px; max-width: 100%; object-fit: contain;">
-                                                </div>
+                                            <div class="festival-main-title live-editable-text" id="liveTitleText" contenteditable="true" data-bind="liveInputTitle" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: 18px; font-weight: 800; color: {{ $cTitleColor }}; line-height: 1.25; text-shadow: 0 2px 4px rgba(0,0,0,0.6);">
+                                                {{ $cTitle }}
                                             </div>
-
-                                            {{-- Right: Symmetrical Spacer --}}
-                                            <div class="header-right-col" style="min-width: {{ $cLogoSize }}px; display: flex; align-items: center; justify-content: flex-end;"></div>
+                                            <div class="festival-subtitle live-editable-text" id="liveSubText" contenteditable="true" data-bind="liveInputSubtitle" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: 12px; font-weight: 600; color: {{ $cSubtitleColor }}; margin-top: 1px; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">
+                                                {{ $cSub }}
+                                            </div>
                                         </div>
 
-                                        {{-- 2. MIDDLE SECTION: PHOTO & NAME PLATE --}}
-                                        <div class="card-middle-section" id="liveMiddleSection" style="{{ ($cShowPhoto || $cShowNamePlate) ? '' : 'display: none;' }}">
+                                        {{-- 2. MIDDLE SECTION: PHOTO & CLEAN TYPOGRAPHY (No Box / Shade) --}}
+                                        <div class="card-middle-section" id="liveMiddleSection" style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                             <div class="author-photo-frame card-interactive-node" id="livePhotoFrame" data-node="photo" data-tab="tab-photo-pane" 
                                                  style="width: {{ $cPhotoSize }}px; height: {{ $cPhotoSize }}px; border-radius: {{ $cPhotoBorderRadius }}; border: {{ $cPhotoBorderWidth }}px solid {{ $cPhotoBorderColor }}; filter: brightness({{ $cPhotoBrightness }}%) contrast({{ $cPhotoContrast }}%) grayscale({{ $cPhotoGrayscale }}%) sepia({{ $cPhotoSepia }}%); @if($cPhotoShadow === 'glow') box-shadow: 0 0 16px rgba(250, 204, 21, 0.6); @elseif($cPhotoShadow === 'deep') box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45); @elseif($cPhotoShadow === 'none') box-shadow: none; @else box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); @endif margin-bottom: {{ $cPhotoNameGap }}px; transform: translate({{ $cPhotoOffsetX }}px, {{ $cPhotoOffsetY }}px) scale({{ $cPhotoScale / 100 }}); transition: transform 0.1s ease-out; overflow: hidden; {{ $cShowPhoto ? '' : 'display: none !important;' }}">
-                                                <img loading="lazy" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80" alt="Sample Portrait" id="liveCardAuthorPhotoImg" style="width: 100%; height: 100%; object-fit: cover; display: none;">
-                                                <div class="photo-placeholder" id="liveCardAuthorPhotoPlaceholder">
+                                                <div class="photo-placeholder" id="liveCardAuthorPhotoPlaceholder" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.18); color: #ffffff; font-size: 32px;">
                                                     <i class="fa-solid fa-user-pen"></i>
                                                 </div>
                                             </div>
-                                            <div class="author-name-plate card-interactive-node" id="liveNamePlate" data-node="nameplate" data-tab="tab-size-pane" style="background: {{ $cEffectivePlateBg }}; border-radius: {{ $cPlateBorderRadius }}px; box-shadow: {{ $cEffectivePlateShadow }}; border: {{ $cEffectivePlateBorder }}; padding: {{ $cPlatePadding }}px 10px; transition: all 0.2s ease; {{ $cShowNamePlate ? '' : 'display: none !important;' }}">
-                                                <div class="author-name live-editable-text" id="liveAuthorName" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cNameSize }}px; line-height: {{ $cNameLineHeight }}; margin-bottom: {{ $cNameSpacing }}px; color: {{ $cNameColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif; {{ !$cShowPlateBg ? 'text-shadow: 0 1px 3px rgba(0,0,0,0.5);' : '' }}">লেখক / অতিথির নাম</div>
-                                                <div class="author-designation live-editable-text" id="liveAuthorDesignation" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cDesigSize }}px; color: {{ $cDesigColor }}; line-height: 1.25; margin-bottom: 2px; {{ !$cShowPlateBg ? 'text-shadow: 0 1px 2px rgba(0,0,0,0.4);' : '' }}">কবি, কথাসাহিত্যিক ও প্রাবন্ধিক</div>
-                                                <div class="author-location live-editable-text" id="liveAuthorLocation" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cLocSize }}px; color: {{ $cLocColor }}; opacity: 0.9; line-height: 1.2; {{ !$cShowPlateBg ? 'text-shadow: 0 1px 2px rgba(0,0,0,0.4);' : '' }}">রংপুর</div>
+                                            <div class="author-text-container card-interactive-node" id="liveNamePlate" data-node="nameplate" data-tab="tab-size-pane" style="text-align: center; width: 100%; padding: 0 10px; transition: all 0.2s ease;">
+                                                <div class="author-name live-editable-text" id="liveAuthorName" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cNameSize }}px; font-weight: 800; line-height: {{ $cNameLineHeight }}; margin-bottom: {{ $cNameSpacing }}px; color: {{ $cNameColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">লেখক / অতিথির নাম</div>
+                                                <div class="author-designation live-editable-text" id="liveAuthorDesignation" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cDesigSize }}px; font-weight: 600; color: {{ $cDesigColor }}; line-height: 1.25; margin-bottom: 2px; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">কবি, কথাসাহিত্যিক ও প্রাবন্ধিক</div>
+                                                <div class="author-location live-editable-text" id="liveAuthorLocation" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cLocSize }}px; font-weight: 500; color: {{ $cLocColor }}; opacity: 0.95; line-height: 1.2; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">রংপুর</div>
                                             </div>
                                         </div>
 

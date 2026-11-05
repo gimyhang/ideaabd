@@ -279,6 +279,29 @@ class BarcodeService
     }
 
     /**
+     * Generate a self-contained Base64 SVG Data URI for QR code (perfect for html2canvas & zero-CORS).
+     */
+    public static function generateQrCodeDataUri(string $data, int $size = 120): string
+    {
+        try {
+            if (class_exists(\BaconQrCode\Writer::class)) {
+                $renderer = new \BaconQrCode\Renderer\ImageRenderer(
+                    new \BaconQrCode\Renderer\RendererStyle\RendererStyle(max(60, $size), 1),
+                    new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
+                );
+                $writer = new \BaconQrCode\Writer($renderer);
+                $svg = $writer->writeString($data);
+                $svg = preg_replace('/<\?xml[^\>]*\?>/i', '', $svg);
+                return 'data:image/svg+xml;base64,' . base64_encode(trim($svg));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("BaconQrCode data URI generation failed: " . $e->getMessage());
+        }
+
+        return 'https://api.qrserver.com/v1/create-qr-code/?size=' . ($size * 2) . 'x' . ($size * 2) . '&data=' . urlencode($data);
+    }
+
+    /**
      * Generate an inline Data URI / SVG for a real mobile-scannable QR Code.
      */
     public static function generateQrCodeSvg(string $data, int $size = 120): string

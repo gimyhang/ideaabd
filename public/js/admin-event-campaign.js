@@ -2338,11 +2338,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 downloadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> ডাউনলোড হচ্ছে...';
 
                 if (typeof html2canvas !== 'undefined') {
-                    html2canvas(adminLiveCard, {
-                        scale: 3,
-                        useCORS: true,
-                        allowTaint: true,
-                        backgroundColor: null
+                    const readyPromise = document.fonts ? document.fonts.ready : Promise.resolve();
+                    readyPromise.then(() => {
+                        return html2canvas(adminLiveCard, {
+                            scale: 3,
+                            useCORS: true,
+                            allowTaint: false,
+                            backgroundColor: null,
+                            logging: false
+                        });
                     }).then(canvas => {
                         const link = document.createElement('a');
                         link.download = 'invitation-card-design.png';
@@ -2355,7 +2359,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         console.error('Download error:', err);
                         downloadBtn.disabled = false;
                         downloadBtn.innerHTML = origText;
-                        window.showToast('ডাউনলোড সম্পন্ন করা যায়নি', true);
+                        window.showToast('ডাউনলোড সম্পন্ন করা যায়নি: ' + (err.message || 'Error'), true);
                     });
                 } else {
                     window.showToast('ডাউনলোড লাইব্রেরি লোড হচ্ছে, অনুগ্রহ করে আবার চেষ্টা করুন।', true);

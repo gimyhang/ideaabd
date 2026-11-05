@@ -8,27 +8,46 @@
     
     // 1. Background Settings
     $bgImage        = $cardDesign['bg_image'] ?? null;
-    $logoImage      = $cardDesign['logo_image'] ?? null;
-    $eventLogoImage = $cardDesign['event_logo_image'] ?? null;
     $bgColor        = $cardDesign['bg_color'] ?? '#c98c21';
     
-    // 2. Element Visibility Toggles (বাদ দেওয়ার / প্রদর্শন করার সেটিংস)
-    $showHeader     = false; // উৎসবের ৩-স্তরের মূল শিরোনাম ডিলিট করা হয়েছে
-    $showLogo       = !empty($cardDesign['show_logo']);
-    $showEventLogo    = !empty($cardDesign['show_event_logo']);
-    $eventLogoSize    = intval($cardDesign['event_logo_size'] ?? 64);
-    $eventLogoOffsetX = intval($cardDesign['event_logo_offset_x'] ?? 0);
-    $eventLogoOffsetY = intval($cardDesign['event_logo_offset_y'] ?? 0);
-    $showBadge      = false; // আমন্ত্রণ ব্যাজ ও কার্ড নম্বর ডিলিট করা হয়েছে
-    $showPhoto      = $cardDesign['show_photo'] ?? true;
-    $showNamePlate  = $cardDesign['show_name_plate'] ?? true;
-    $showQuote      = $cardDesign['show_quote'] ?? true;
-    $showArtwork    = $cardDesign['show_artwork'] ?? true;
-    $showOrganizers = $cardDesign['show_organizers'] ?? true;
-    $headerHeight   = intval($cardDesign['header_height'] ?? 90);
+    // Convert local storage assets to base64 Data URIs to completely avoid CORS canvas tainting
+    $bgDataUri = null;
+    if (!empty($bgImage)) {
+        try {
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($bgImage)) {
+                $m = \Illuminate\Support\Facades\Storage::disk('public')->mimeType($bgImage) ?: 'image/jpeg';
+                $c = \Illuminate\Support\Facades\Storage::disk('public')->get($bgImage);
+                $bgDataUri = 'data:' . $m . ';base64,' . base64_encode($c);
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    // Photo path resolution & base64 conversion
+    $photoPath = $formData['student_photo'] ?? ($formData['author_photo'] ?? null);
+    $photoDataUri = null;
+    if (!empty($photoPath)) {
+        try {
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($photoPath)) {
+                $m = \Illuminate\Support\Facades\Storage::disk('public')->mimeType($photoPath) ?: 'image/jpeg';
+                $c = \Illuminate\Support\Facades\Storage::disk('public')->get($photoPath);
+                $photoDataUri = 'data:' . $m . ';base64,' . base64_encode($c);
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    // 2. Element Visibility Toggles (লোগো, নেমপ্লেট শেড ও বই আর্টওয়ার্ক বাদ)
+    $showHeader       = false;
+    $showLogo         = false; // প্রতিষ্ঠান লোগো বাদ
+    $showEventLogo    = false; // ইভেন্ট লোগো বাদ
+    $showBadge        = false;
+    $showPhoto        = $cardDesign['show_photo'] ?? true;
+    $showNamePlate    = false; // নামের শেড / নেমপ্লেট বক্স বাদ (সরাসরি কার্ডে ক্লিন টাইপোগ্রাফি)
+    $showQuote        = $cardDesign['show_quote'] ?? true;
+    $showArtwork      = false; // বই আর্টওয়ার্ক বাদ
+    $headerHeight     = intval($cardDesign['header_height'] ?? 75);
 
     // 3. Sizing & Typography Controls (ছোট বড়ো করার সেটিংস)
-    $photoSize          = intval($cardDesign['photo_size'] ?? 82);
+    $photoSize          = intval($cardDesign['photo_size'] ?? 86);
     $photoOffsetX       = intval($cardDesign['photo_offset_x'] ?? 0);
     $photoOffsetY       = intval($cardDesign['photo_offset_y'] ?? 0);
     $photoScale         = intval($cardDesign['photo_scale'] ?? 100);
@@ -40,54 +59,25 @@
     $photoContrast      = intval($cardDesign['photo_contrast'] ?? 100);
     $photoGrayscale     = intval($cardDesign['photo_grayscale'] ?? 0);
     $photoSepia         = intval($cardDesign['photo_sepia'] ?? 0);
-    $photoNameGap       = intval($cardDesign['photo_name_gap'] ?? 10);
+    $photoNameGap       = intval($cardDesign['photo_name_gap'] ?? 6);
 
-    $nameFontSize       = intval($cardDesign['name_font_size'] ?? 16);
-    $designationFontSize = intval($cardDesign['designation_font_size'] ?? 10);
-    $locationFontSize    = intval($cardDesign['location_font_size'] ?? 9);
+    $nameFontSize       = intval($cardDesign['name_font_size'] ?? 18);
+    $designationFontSize = intval($cardDesign['designation_font_size'] ?? 11);
+    $locationFontSize    = intval($cardDesign['location_font_size'] ?? 10);
     $nameLineHeight     = floatval($cardDesign['name_line_height'] ?? 1.25);
     $nameSpacing        = intval($cardDesign['name_spacing'] ?? 2);
-    $platePadding       = intval($cardDesign['plate_padding'] ?? 14);
-    $showPlateBg        = isset($cardDesign['show_plate_bg']) ? !empty($cardDesign['show_plate_bg']) : true;
-    $plateBgOpacity     = intval($cardDesign['plate_bg_opacity'] ?? 100);
-    $plateBorderWidth   = intval($cardDesign['plate_border_width'] ?? 1);
-    $plateBorderColor   = $cardDesign['plate_border_color'] ?? '#d8be92';
-    $plateBorderRadius  = intval($cardDesign['plate_border_radius'] ?? 14);
-    $designationColor   = $cardDesign['designation_color'] ?? ($cardDesign['meta_color'] ?? '#334155');
-    $locationColor      = $cardDesign['location_color'] ?? ($cardDesign['meta_color'] ?? '#475569');
+    $designationColor   = $cardDesign['designation_color'] ?? ($cardDesign['meta_color'] ?? '#f1f5f9');
+    $locationColor      = $cardDesign['location_color'] ?? ($cardDesign['meta_color'] ?? '#e2e8f0');
 
-    // Calculate RGBA for plate background
-    $plateAlpha = ($plateBgOpacity / 100);
-    $hexClean = ltrim($cardDesign['plate_bg_color'] ?? '#ecd8b4', '#');
-    if (strlen($hexClean) === 3) {
-        $pRed = hexdec(substr($hexClean, 0, 1) . substr($hexClean, 0, 1));
-        $pGreen = hexdec(substr($hexClean, 1, 1) . substr($hexClean, 1, 1));
-        $pBlue = hexdec(substr($hexClean, 2, 1) . substr($hexClean, 2, 1));
-    } elseif (strlen($hexClean) >= 6) {
-        $pRed = hexdec(substr($hexClean, 0, 2));
-        $pGreen = hexdec(substr($hexClean, 2, 2));
-        $pBlue = hexdec(substr($hexClean, 4, 2));
-    } else {
-        $pRed = 236; $pGreen = 216; $pBlue = 180;
-    }
-    $effectivePlateBg = $showPlateBg ? "rgba({$pRed}, {$pGreen}, {$pBlue}, {$plateAlpha})" : 'transparent';
-    $effectivePlateBorder = ($showPlateBg && $plateBorderWidth > 0) ? "{$plateBorderWidth}px solid {$plateBorderColor}" : 'none';
-    $effectivePlateShadow = $showPlateBg ? '0 4px 14px rgba(0, 0, 0, 0.12)' : 'none';
-
-    $logoSize           = intval($cardDesign['logo_size'] ?? 58);
-    $logoOffsetX        = intval($cardDesign['logo_offset_x'] ?? 0);
-    $logoOffsetY        = intval($cardDesign['logo_offset_y'] ?? 0);
-    $plateBgColor       = $cardDesign['plate_bg_color'] ?? '#ecd8b4';
     $fontFamily         = $cardDesign['font_family'] ?? 'Hind Siliguri';
 
     // 3.1 Detailed Text Colors & Background Effects
-    $annivColor         = $cardDesign['anniv_color'] ?? '#ffffff';
+    $annivColor         = $cardDesign['anniv_color'] ?? '#fef08a';
     $titleColor         = $cardDesign['title_color'] ?? '#ffffff';
-    $subtitleColor      = $cardDesign['subtitle_color'] ?? '#ffffff';
-    $nameColor          = $cardDesign['name_color'] ?? '#0f172a';
-    $metaColor          = $cardDesign['meta_color'] ?? '#334155';
+    $subtitleColor      = $cardDesign['subtitle_color'] ?? '#fde047';
+    $nameColor          = $cardDesign['name_color'] ?? '#ffffff';
+    $metaColor          = $cardDesign['meta_color'] ?? '#f8fafc';
     $quoteColor         = $cardDesign['quote_color'] ?? '#ffffff';
-    $orgColor           = $cardDesign['org_color'] ?? '#ffffff';
     $bgOverlayOpacity   = intval($cardDesign['bg_overlay_opacity'] ?? 0);
     $bgOverlayColor     = $cardDesign['bg_overlay_color'] ?? '#000000';
     $bgBlur             = intval($cardDesign['bg_blur'] ?? 0);
@@ -96,32 +86,15 @@
     $anniversaryText = $cardDesign['anniversary_text'] ?? '২০ অক্টোবর ১৩তম প্রতিষ্ঠাবার্ষিকী উপলক্ষে';
     $titleText       = $cardDesign['title_text'] ?? 'রংপুর সাহিত্য উৎসব';
     $subtitleText    = $cardDesign['subtitle_text'] ?? 'ও ৩য় লিটিলম্যাগ মেলা';
-    $badgeText       = $cardDesign['badge_text'] ?? 'আমন্ত্রণ কার্ড';
     $quoteText       = $cardDesign['quote_text'] ?? "সাহিত্য উৎসব ও লিটিলম্যাগমেলায়\nআপনার উপস্থিতি ও অংশগ্রহণ\nআমাদের সম্মানিত করবে ।";
 
-    // 5. Organizers 3 Columns
-    $org1Name  = $cardDesign['org_1_name'] ?? 'সাকিল মাসুদ';
-    $org1Role  = $cardDesign['org_1_role'] ?? "সদস্যসচিব, প্রতিষ্ঠাবার্ষিকী আয়োজক কমিটি ২০২৬\nও সাধারণ সম্পাদক, ফিরেদেখা";
-    $org1Phone = $cardDesign['org_1_phone'] ?? '০১৭২৬৯৭৬৯৮২';
-
-    $org2Name  = $cardDesign['org_2_name'] ?? 'বাবুল সরকার';
-    $org2Role  = $cardDesign['org_2_role'] ?? "আহ্বায়ক, প্রতিষ্ঠাবার্ষিকী আয়োজক কমিটি ২০২৬\nও সাহিত্য সম্পাদক, ফিরেদেখা";
-    $org2Phone = $cardDesign['org_2_phone'] ?? '01763170342';
-
-    $org3Name  = $cardDesign['org_3_name'] ?? 'তাপস মাহমুদ';
-    $org3Role  = $cardDesign['org_3_role'] ?? "সভাপতি,\nফিরেদেখা";
-    $org3Phone = $cardDesign['org_3_phone'] ?? '01820-547307';
-
-    // 5. Verification QR Code & Attendance Settings (স্বাক্ষর বাদ হয়ে অটোমেটিক ভেরিফাই কিউ আর কোড)
+    // 5. Verification QR Code & Attendance Settings (BaconQrCode Base64 SVG Data URI — 100% Offline & Zero-CORS)
     $showQrCode     = $cardDesign['show_qr_code'] ?? ($cardDesign['show_organizers'] ?? true);
-    $qrCodeSize     = intval($cardDesign['qr_code_size'] ?? 78);
+    $qrCodeSize     = intval($cardDesign['qr_code_size'] ?? 72);
     $qrCaptionText  = $cardDesign['qr_caption_text'] ?? 'উপস্থিতি যাচাই ও নিশ্চিতকরণ QR কোড';
     $qrSubtext      = $cardDesign['qr_subtext'] ?? 'ক্লিক বা স্ক্যান করলেই অনুষ্ঠানে উপস্থিতি নিশ্চিত হবে';
     $verifyUrl      = route('event.attendance.verify', $registration->registration_number);
-    $qrApiUrl       = 'https://api.qrserver.com/v1/create-qr-code/?size=' . ($qrCodeSize * 2) . 'x' . ($qrCodeSize * 2) . '&data=' . urlencode($verifyUrl);
-
-    // Photo path resolution
-    $photoPath = $formData['student_photo'] ?? ($formData['author_photo'] ?? null);
+    $qrApiUrl       = \App\Services\BarcodeService::generateQrCodeDataUri($verifyUrl, $qrCodeSize);
 
     // Extract dynamic Card Number
     $regNumber = $registration->registration_number;
@@ -284,9 +257,10 @@
             overflow: hidden;
             border-radius: 12px;
             box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
-            @if($bgImage)
-                background: url('{{ $isPdf ? public_path("storage/" . $bgImage) : asset("storage/" . $bgImage) }}') no-repeat center center;
-                background-size: cover;
+            @if(!empty($bgDataUri))
+                background: url('{{ $bgDataUri }}') no-repeat center center / cover;
+            @elseif($bgImage)
+                background: url('{{ $isPdf ? public_path("storage/" . $bgImage) : asset("storage/" . $bgImage) }}') no-repeat center center / cover;
             @else
                 background: {{ $bgColor }} linear-gradient(145deg, #c4871e 0%, #db9e2a 45%, #b57a15 100%);
             @endif
@@ -294,7 +268,8 @@
             flex-direction: column;
             justify-content: space-between;
             padding: 14px 14px 10px 14px;
-            border: 2px solid #8d5c0b;
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            font-family: '{{ $fontFamily }}', 'Hind Siliguri', 'Noto Serif Bengali', serif;
         }
 
         /* Subtle textured background paper effect */
@@ -306,149 +281,58 @@
             pointer-events: none;
         }
 
-        /* TOP HEADER SECTION */
+        /* 1. TOP HEADER SECTION (Clean Typography) */
         .card-top-section {
             position: relative;
             z-index: 2;
             display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 6px;
-        }
-
-        /* Top Left Emblem / Organization Logo */
-        .phiredekha-logo {
-            width: {{ $logoSize }}px;
-            height: {{ $logoSize }}px;
-            border-radius: 50%;
-            background: transparent;
-            border: none;
-            box-shadow: none;
-            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
             text-align: center;
-            padding: 0;
-            position: relative;
-            overflow: hidden;
-        }
-        .phiredekha-logo .custom-logo-img {
             width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-        }
-        .phiredekha-logo .logo-inner-ring {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 1px dashed #7f1d1d;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: #fef2f2;
-        }
-        .phiredekha-logo .logo-brand {
-            font-size: 8.5px;
-            font-weight: 800;
-            color: #7f1d1d;
-            line-height: 1;
-            margin-bottom: 2px;
-        }
-        .phiredekha-logo .logo-icon {
-            font-size: 15px;
-            color: #991b1b;
-            line-height: 1;
-        }
-        .phiredekha-logo .logo-est {
-            font-size: 6px;
-            color: #7f1d1d;
-            font-weight: 700;
-            line-height: 1;
-            margin-top: 1px;
-        }
-
-        /* Top Center Festival Typography */
-        .festival-text-wrap {
-            flex-grow: 1;
-            text-align: center;
-            padding: 0 4px;
+            padding: 2px 4px;
         }
         .festival-anniversary {
             color: {{ $annivColor }};
             font-size: 8.5px;
             font-weight: 700;
-            letter-spacing: 0.2px;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-            margin-bottom: 1px;
+            letter-spacing: 0.3px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+            margin-bottom: 2px;
         }
         .festival-main-title {
             color: {{ $titleColor }};
             font-family: '{{ $fontFamily }}', 'Noto Serif Bengali', 'Hind Siliguri', serif;
             font-size: 16px;
             font-weight: 900;
-            line-height: 1.15;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
             letter-spacing: -0.2px;
         }
         .festival-subtitle {
             color: {{ $subtitleColor }};
             font-family: '{{ $fontFamily }}', 'Noto Serif Bengali', 'Hind Siliguri', serif;
-            font-size: 13.5px;
+            font-size: 12.5px;
             font-weight: 800;
-            line-height: 1.15;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+            margin-top: 1px;
         }
 
-        /* Top Right Vertical Badge & Card No */
-        .card-badge-wrap {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            flex-shrink: 0;
-        }
-        .vertical-invite-ribbon {
-            color: #facc15;
-            font-family: '{{ $fontFamily }}', 'Noto Serif Bengali', 'Hind Siliguri', serif;
-            font-size: 15px;
-            font-weight: 900;
-            letter-spacing: 2px;
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.75), 0 0 2px #000;
-            white-space: nowrap;
-            line-height: 1;
-            padding: 0 4px;
-        }
-        .card-number-pill {
-            background: #ecd8b4;
-            border: 1px solid #c9a76d;
-            color: #0f172a;
-            font-size: 10px;
-            font-weight: 800;
-            padding: 3px 10px;
-            border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-            margin-top: 8px;
-            white-space: nowrap;
-        }
-
-        /* ==========================================================================
-           MIDDLE SECTION: PHOTO & AUTHOR PLATE
-           ========================================================================== */
+        /* 2. MIDDLE SECTION: PHOTO & CLEAN TYPOGRAPHY (No Box / Shade) */
         .card-middle-section {
             position: relative;
             z-index: 2;
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 2px 0 2px 0;
+            justify-content: center;
+            text-align: center;
+            margin: 4px 0;
+            width: 100%;
         }
 
-        /* Circular/Custom Author Photo (10px upwards from nameplate) */
         .author-photo-frame {
             width: {{ $photoSize }}px;
             height: {{ $photoSize }}px;
@@ -466,10 +350,11 @@
             filter: brightness({{ $photoBrightness }}%) contrast({{ $photoContrast }}%) grayscale({{ $photoGrayscale }}%) sepia({{ $photoSepia }}%);
             background: #f8fafc;
             overflow: hidden;
-            margin-bottom: {{ $photoNameGap }}px; /* Cleanly separated from name plate shade */
+            margin-bottom: {{ $photoNameGap }}px;
             transform: translate({{ $photoOffsetX }}px, {{ $photoOffsetY }}px) scale({{ $photoScale / 100 }});
             position: relative;
             z-index: 4;
+            flex-shrink: 0;
         }
         .author-photo-frame img {
             width: 100%;
@@ -488,49 +373,39 @@
             font-size: 32px;
         }
 
-        /* Author Name Plate & Separated Text Styling */
-        .author-name-plate {
-            width: 92%;
-            background: {{ $effectivePlateBg }};
-            border-radius: {{ $plateBorderRadius }}px;
-            box-shadow: {{ $effectivePlateShadow }};
-            padding: {{ $platePadding }}px 12px;
+        /* Clean Direct Author Typography */
+        .author-text-container {
+            width: 100%;
             text-align: center;
-            border: {{ $effectivePlateBorder }};
             position: relative;
             z-index: 3;
-            transition: all 0.2s ease;
+            padding: 0 6px;
         }
-        .author-name-plate .author-name {
+        .author-text-container .author-name {
             font-family: '{{ $fontFamily }}', 'Noto Serif Bengali', 'Hind Siliguri', serif;
             font-size: {{ $nameFontSize }}px;
             font-weight: 800;
             color: {{ $nameColor }};
             line-height: {{ $nameLineHeight }};
             margin-bottom: {{ $nameSpacing }}px;
-            @if(!$showPlateBg)
-                text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
-            @endif
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.65), 0 0 2px rgba(0, 0, 0, 0.8);
+            letter-spacing: 0.2px;
         }
-        .author-name-plate .author-designation {
+        .author-text-container .author-designation {
             font-size: {{ $designationFontSize }}px;
             font-weight: 700;
             color: {{ $designationColor }};
             line-height: 1.25;
             margin-bottom: 2px;
-            @if(!$showPlateBg)
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-            @endif
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
         }
-        .author-name-plate .author-location {
+        .author-text-container .author-location {
             font-size: {{ $locationFontSize }}px;
             font-weight: 600;
             color: {{ $locationColor }};
-            opacity: 0.9;
+            opacity: 0.95;
             line-height: 1.2;
-            @if(!$showPlateBg)
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-            @endif
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
         }
 
         /* ==========================================================================
@@ -676,60 +551,51 @@
                 <div style="position: absolute; inset: 0; background: {{ $bgOverlayColor }}; opacity: {{ $bgOverlayOpacity / 100 }}; @if($bgBlur > 0) backdrop-filter: blur({{ $bgBlur }}px); -webkit-backdrop-filter: blur({{ $bgBlur }}px); @endif pointer-events: none; border-radius: 12px; z-index: 1;"></div>
             @endif
 
-            {{-- 1. TOP HEADER ROW (Left Org Logo, Center Event Logo & Title, Right Badge / Spacer) --}}
-            <div class="card-top-section" style="min-height: {{ $headerHeight }}px; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-                
-                {{-- Left: Organization Logo --}}
-                <div class="header-left-col" style="min-width: {{ $logoSize }}px; display: flex; align-items: center; justify-content: flex-start; position: relative;">
-                    @if($showLogo && !empty($logoImage))
-                        <div class="phiredekha-logo" style="width: {{ $logoSize }}px; height: {{ $logoSize }}px; transform: translate({{ $logoOffsetX }}px, {{ $logoOffsetY }}px);">
-                            <img src="{{ asset('storage/' . $logoImage) }}" alt="Logo" class="custom-logo-img" crossorigin="anonymous">
-                        </div>
-                    @endif
-                </div>
-
-                {{-- Center: Event Logo --}}
-                <div class="festival-text-wrap" style="flex-grow: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
-                    @if($showEventLogo && !empty($eventLogoImage))
-                        <div class="event-header-logo-wrap" style="display: flex; justify-content: center; align-items: center; transform: translate({{ $eventLogoOffsetX }}px, {{ $eventLogoOffsetY }}px);">
-                            <img src="{{ asset('storage/' . $eventLogoImage) }}" alt="Event Logo" style="max-height: {{ $eventLogoSize }}px; max-width: 100%; object-fit: contain;" crossorigin="anonymous">
-                        </div>
-                    @endif
-                </div>
-
-                {{-- Right: Symmetrical Spacer --}}
-                <div class="header-right-col" style="min-width: {{ $logoSize }}px; display: flex; align-items: center; justify-content: flex-end;"></div>
-
+            {{-- 1. TOP HEADER SECTION (Clean Typography) --}}
+            <div class="card-top-section">
+                @if(!empty($anniversaryText))
+                    <div class="festival-anniversary">{{ $anniversaryText }}</div>
+                @endif
+                @if(!empty($titleText))
+                    <div class="festival-main-title">{{ $titleText }}</div>
+                @endif
+                @if(!empty($subtitleText))
+                    <div class="festival-subtitle">{{ $subtitleText }}</div>
+                @endif
             </div>
 
-            {{-- 2. CENTER SECTION: AUTHOR PHOTO & CREAM PLATE (Toggleable) --}}
-            @if($showPhoto || $showNamePlate)
-                <div class="card-middle-section">
-                    {{-- Circular Author Portrait (10px upwards) --}}
-                    @if($showPhoto)
-                        <div class="author-photo-frame">
-                            @if(!empty($photoPath))
-                                <img src="{{ asset('storage/' . $photoPath) }}" alt="Photo" crossorigin="anonymous">
-                            @else
-                                <div class="photo-placeholder">
-                                    <i class="fa-solid fa-user-pen"></i>
-                                </div>
-                            @endif
-                        </div>
-                    @endif
+            {{-- 2. CENTER SECTION: AUTHOR PHOTO & CLEAN TYPOGRAPHY (No Box / Shade) --}}
+            <div class="card-middle-section">
+                {{-- Circular Author Portrait --}}
+                @if($showPhoto)
+                    <div class="author-photo-frame">
+                        @if(!empty($photoDataUri))
+                            <img src="{{ $photoDataUri }}" alt="{{ $registration->name }}">
+                        @elseif(!empty($photoPath))
+                            <img src="{{ asset('storage/' . $photoPath) }}" alt="{{ $registration->name }}" crossorigin="anonymous">
+                        @else
+                            <div class="photo-placeholder">
+                                <i class="fa-solid fa-user-pen"></i>
+                            </div>
+                        @endif
+                    </div>
+                @endif
 
-                    {{-- Author Info Plate --}}
-                    @if($showNamePlate)
-                        <div class="author-name-plate">
-                            <div class="author-name">{{ $registration->name }}</div>
-                            <div class="author-designation">{{ $designation }}</div>
-                            <div class="author-location">{{ $location }}</div>
+                {{-- Author Info (Clean, Directly on Card, Without Box/Plate) --}}
+                <div class="author-text-container">
+                    <div class="author-name">{{ $registration->name }}</div>
+                    @if(!empty($designation))
+                        <div class="author-designation">{{ $designation }}</div>
+                    @endif
+                    @if(!empty($location))
+                        <div class="author-location">
+                            <i class="fa-solid fa-location-dot" style="font-size: 8.5px; opacity: 0.85; margin-right: 2px;"></i>{{ $location }}
                         </div>
                     @endif
                 </div>
-            @endif
+            </div>
 
-            {{-- 3. INVITATION MESSAGE SECTION (Artwork Removed) --}}
+            {{-- 3. INVITATION MESSAGE SECTION --}}
             @if($showQuote)
                 <div class="card-message-section">
                     <div class="invitation-quote-text">
@@ -738,12 +604,12 @@
                 </div>
             @endif
 
-            {{-- 4. BOTTOM DYNAMIC VERIFICATION QR CODE SECTION (স্বাক্ষর বাদ হয়ে অটোমেটিক ভেরিফাই কিউ আর কোড ইউআরএলসহ) --}}
+            {{-- 4. BOTTOM DYNAMIC VERIFICATION QR CODE SECTION --}}
             @if($showQrCode)
                 <div class="card-verify-qr-section">
                     <a href="{{ $verifyUrl }}" target="_blank" class="verify-qr-anchor" title="ক্লিক করলেই অনুষ্ঠানে উপস্থিতি নিশ্চিত হবে">
                         <div class="qr-code-box" style="width: {{ $qrCodeSize }}px; height: {{ $qrCodeSize }}px;">
-                            <img src="{{ $qrApiUrl }}" alt="Verify QR Code" style="width: 100%; height: 100%; object-fit: contain; display: block;" crossorigin="anonymous">
+                            <img src="{{ $qrApiUrl }}" alt="Verify QR Code" style="width: 100%; height: 100%; object-fit: contain; display: block;">
                         </div>
                         <div class="qr-info-box">
                             <div class="qr-verify-badge">
@@ -808,7 +674,7 @@
                 return html2canvas(element, {
                     scale: 3,
                     useCORS: true,
-                    allowTaint: true,
+                    allowTaint: false,
                     logging: false,
                     backgroundColor: null,
                     scrollY: 0
@@ -855,7 +721,7 @@
                 html2canvas:  { 
                     scale: 3, 
                     useCORS: true, 
-                    allowTaint: true, 
+                    allowTaint: false, 
                     logging: false,
                     letterRendering: true,
                     scrollY: 0
