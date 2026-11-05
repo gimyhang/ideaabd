@@ -1423,7 +1423,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 const targetId = this.getAttribute('data-target');
                 const targetEl = document.getElementById(targetId);
                 if (targetEl) {
-                    targetEl.style.display = this.checked ? '' : 'none';
+                    targetEl.style.display = this.checked ? (targetId === 'liveHeadingsWrap' ? 'flex' : '') : 'none';
+                }
+
+                if (this.id === 'toggleShowHeader') {
+                    const headerInputs = document.getElementById('headerInputsWrapper');
+                    if (headerInputs) headerInputs.style.display = this.checked ? '' : 'none';
+                }
+                if (this.id === 'toggleShowQuote') {
+                    const quoteInputs = document.getElementById('quoteInputsWrapper');
+                    if (quoteInputs) quoteInputs.style.display = this.checked ? '' : 'none';
                 }
 
                 // Manage parent section containers
@@ -2269,9 +2278,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        bindColorPicker('liveInputAnnivColor', null, '#liveAnnivText');
         bindColorPicker('liveInputTitleColor', 'liveInputTitleColorText', '#liveTitleText');
+        bindColorPicker('liveInputSubColor', null, '#liveSubText');
         bindColorPicker('liveInputSubtitleColor', 'liveInputSubtitleColorText', '#liveSubtitleText');
         bindColorPicker('liveInputNameColor', 'liveInputNameColorText', '#liveAuthorName');
+        bindColorPicker('liveInputDesigColor', 'liveInputDesigColorText', '#liveAuthorDesignation');
+        bindColorPicker('liveInputLocColor', 'liveInputLocColorText', '#liveAuthorLocation');
         bindColorPicker('liveInputMetaColor', 'liveInputMetaColorText', '#liveAuthorDesignation, #liveAuthorLocation');
         bindColorPicker('liveInputQuoteColor', 'liveInputQuoteColorText', '#liveQuoteText');
         bindColorPicker('liveInputOrgColor', 'liveInputOrgColorText', '#liveOrganizersSection, #liveOrganizersSection .org-name, #liveOrganizersSection .org-phone');
@@ -2306,8 +2319,10 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        bindFormText('liveInputAnniversary', 'liveAnnivText');
         bindFormText('liveInputAnniversary', 'liveAnniversaryText');
         bindFormText('liveInputTitle', 'liveTitleText');
+        bindFormText('liveInputSubtitle', 'liveSubText');
         bindFormText('liveInputSubtitle', 'liveSubtitleText');
         bindFormText('liveInputBadge', 'liveRibbonText');
         bindFormText('liveInputQuote', 'liveQuoteText', true);

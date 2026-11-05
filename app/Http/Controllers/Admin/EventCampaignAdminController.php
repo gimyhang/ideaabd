@@ -1793,8 +1793,8 @@ class EventCampaignAdminController extends Controller
             $cardDesign['bg_overlay_color']  = $request->input('bg_overlay_color', $cardDesign['bg_overlay_color'] ?? '#000000');
             $cardDesign['bg_blur']           = intval($request->input('bg_blur', $cardDesign['bg_blur'] ?? 0));
             
-            // 3. Header Texts & Logo Sizing (Logos disabled for clean photocard)
-            $cardDesign['show_header']       = false;
+            // 3. Header Texts & Logo Sizing (Header toggle is dynamic)
+            $cardDesign['show_header']       = $request->has('show_header');
             $cardDesign['show_logo']         = false;
             $cardDesign['show_event_logo']   = false;
             $cardDesign['logo_size']         = intval($request->input('logo_size', $cardDesign['logo_size'] ?? 58));

@@ -36,7 +36,7 @@
     }
 
     // 2. Element Visibility Toggles (লোগো, নেমপ্লেট শেড ও বই আর্টওয়ার্ক বাদ)
-    $showHeader       = false;
+    $showHeader       = !empty($cardDesign['show_header']);
     $showLogo         = false; // প্রতিষ্ঠান লোগো বাদ
     $showEventLogo    = false; // ইভেন্ট লোগো বাদ
     $showBadge        = false;
@@ -551,7 +551,8 @@
                 <div style="position: absolute; inset: 0; background: {{ $bgOverlayColor }}; opacity: {{ $bgOverlayOpacity / 100 }}; @if($bgBlur > 0) backdrop-filter: blur({{ $bgBlur }}px); -webkit-backdrop-filter: blur({{ $bgBlur }}px); @endif pointer-events: none; border-radius: 12px; z-index: 1;"></div>
             @endif
 
-            {{-- 1. TOP HEADER SECTION (Clean Typography) --}}
+            {{-- 1. TOP HEADER SECTION (Clean Typography, Dynamic) --}}
+            @if($showHeader && (!empty($anniversaryText) || !empty($titleText) || !empty($subtitleText)))
             <div class="card-top-section">
                 @if(!empty($anniversaryText))
                     <div class="festival-anniversary">{{ $anniversaryText }}</div>
@@ -563,6 +564,7 @@
                     <div class="festival-subtitle">{{ $subtitleText }}</div>
                 @endif
             </div>
+            @endif
 
             {{-- 2. CENTER SECTION: AUTHOR PHOTO & CLEAN TYPOGRAPHY (No Box / Shade) --}}
             <div class="card-middle-section">
