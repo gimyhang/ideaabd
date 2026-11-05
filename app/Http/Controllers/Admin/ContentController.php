@@ -653,7 +653,7 @@ class ContentController extends Controller
             $rules['sold_percent'] = ['nullable', 'numeric', 'min:0', 'max:100'];
             $rules['hardcover_sold_percent'] = ['nullable', 'numeric', 'min:0', 'max:100'];
             $rules['hardcover_discount_price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
-            $rules['description'] = ['nullable', 'string', 'max:50000'];
+            $rules['description'] = ['nullable', 'string', 'max:250000'];
 
             // Require at least one price (List Price / MRP)
             if (!$request->filled('price') && !$request->filled('hardcover_price')) {
@@ -695,9 +695,10 @@ class ContentController extends Controller
         if ($request->filled('description')) {
             $descClean = trim(strip_tags((string) $request->input('description')));
             $words = preg_split('/\s+/u', $descClean, -1, PREG_SPLIT_NO_EMPTY);
-            if (count($words) > 400) {
+            $descLimit = (($spec['key'] ?? null) === 'books') ? 5000 : 5000;
+            if (count($words) > $descLimit) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
-                    'description' => 'বিস্তারিত ফ্ল্যাপ ও বিবরণ সর্বোচ্চ ৪০০ শব্দের মধ্যে হতে হবে। বর্তমানে ' . count($words) . ' টি শব্দ রয়েছে।',
+                    'description' => "বিস্তারিত ফ্ল্যাপ ও বিবরণ সর্বোচ্চ {$descLimit} শব্দের মধ্যে হতে হবে। বর্তমানে " . count($words) . ' টি শব্দ রয়েছে।',
                 ]);
             }
         }

@@ -2630,6 +2630,10 @@
     $cLocSize            = intval($cCardDesign['location_font_size'] ?? 9);
     $cNameLineHeight     = floatval($cCardDesign['name_line_height'] ?? 1.25);
     $cNameSpacing        = intval($cCardDesign['name_spacing'] ?? 2);
+    $cNameOffsetX        = intval($cCardDesign['name_offset_x'] ?? 0);
+    $cNameOffsetY        = intval($cCardDesign['name_offset_y'] ?? 0);
+    $cQrOffsetX          = intval($cCardDesign['qr_offset_x'] ?? 0);
+    $cQrOffsetY          = intval($cCardDesign['qr_offset_y'] ?? 0);
     $cPlatePadding       = intval($cCardDesign['plate_padding'] ?? 14);
     $cShowPlateBg        = isset($cCardDesign['show_plate_bg']) ? !empty($cCardDesign['show_plate_bg']) : true;
     $cPlateBg            = $cCardDesign['plate_bg_color'] ?? '#ecd8b4';

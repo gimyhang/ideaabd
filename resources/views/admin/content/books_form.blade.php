@@ -1553,15 +1553,25 @@ body.dark-mode .adm-mobile-sticky-bar {
             </div>
             @error('summary')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
 
-            {{-- Optional Detailed Description --}}
+            {{-- Optional Detailed Description (Up to 5,000 words) --}}
             <div class="mt-3 pt-2.5 border-top">
-                <div class="d-flex align-items-center justify-content-between mb-1">
+                <div class="d-flex align-items-center justify-content-between mb-1.5">
                     <label for="f-description" class="a4-field-label mb-0">
-                        <span>Description</span>
+                        <span>Description / বিস্তারিত বিবরণ ও ফ্ল্যাপ</span>
                     </label>
+                    <div class="word-counter-badge safe" id="descWordBadge">
+                        Words: <span id="descWordCount">0</span> / 5000
+                    </div>
                 </div>
-                <textarea id="f-description" name="description" rows="5"
-                          class="form-control form-control-sm @error('description') is-invalid @enderror">{{ $val('description') }}</textarea>
+                <textarea id="f-description" name="description" rows="6"
+                          class="form-control form-control-sm @error('description') is-invalid @enderror"
+                          oninput="updateGenericWordCount(this, 5000, 'descWordCount', 'descWordBadge', 'descProgressBar', 'descWarning')">{{ $val('description') }}</textarea>
+                <div class="word-counter-progress mt-1.5">
+                    <div class="word-counter-progress__bar" id="descProgressBar"></div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                    <div id="descWarning" class="text-danger small fw-bold d-none"></div>
+                </div>
                 @error('description')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
         </div>
@@ -3794,6 +3804,11 @@ body.dark-mode .adm-mobile-sticky-bar {
         const summaryTextarea = document.getElementById('f-summary');
         if (summaryTextarea) {
             updateGenericWordCount(summaryTextarea, 1000, 'summaryWordCount', 'summaryWordBadge', 'summaryProgressBar', 'summaryWarning');
+        }
+
+        const descTextarea = document.getElementById('f-description');
+        if (descTextarea) {
+            updateGenericWordCount(descTextarea, 5000, 'descWordCount', 'descWordBadge', 'descProgressBar', 'descWarning');
         }
 
         const ideaInput = document.getElementById('f-idea_serial_no');
