@@ -1720,7 +1720,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const nameOffsetXBadge = document.getElementById('nameOffsetXBadge');
         const nameOffsetYBadge = document.getElementById('nameOffsetYBadge');
         const btnResetNamePos = document.getElementById('btnResetNamePos');
-        const liveNamePlate = document.getElementById('liveNamePlate');
 
         let curNameOffsetX = parseInt(nameOffsetXSlider?.value || 0);
         let curNameOffsetY = parseInt(nameOffsetYSlider?.value || 0);
@@ -2653,13 +2652,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // H. AJAX Async Form Submission for Studio
         const cardCustomizerForm = document.getElementById('cardDesignCustomizerForm');
-        const saveBtn = document.getElementById('btnSaveCardCustomizer');
+        const saveBtns = document.querySelectorAll('#btnSaveCardCustomizer, #btnSaveCardCustomizerHeader');
 
-        if (cardCustomizerForm && saveBtn) {
+        if (cardCustomizerForm) {
             cardCustomizerForm.addEventListener('submit', async function (e) {
                 e.preventDefault();
-                saveBtn.disabled = true;
-                saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> সংরক্ষণ হচ্ছে...';
+                saveBtns.forEach(btn => {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> সংরক্ষণ হচ্ছে...';
+                });
 
                 try {
                     const formData = new FormData(cardCustomizerForm);
@@ -2670,8 +2671,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         body: formData
                     });
 
-                    saveBtn.disabled = false;
-                    saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> সংরক্ষণ';
+                    saveBtns.forEach(btn => {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> সংরক্ষণ';
+                    });
 
                     if (res.ok) {
                         const data = await res.json();
@@ -2706,8 +2709,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         window.showToast('সংরক্ষণ ব্যর্থ হয়েছে (স্ট্যাটাস: ' + res.status + ')', true);
                     }
                 } catch (err) {
-                    saveBtn.disabled = false;
-                    saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> সংরক্ষণ';
+                    saveBtns.forEach(btn => {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> সংরক্ষণ';
+                    });
                     console.error('Card customizer save error:', err);
                     window.showToast('সংরক্ষণ ব্যর্থ হয়েছে। অনুগ্রহ করে ইন্টারনেট সংযোগ চেক করে আবার চেষ্টা করুন।', true);
                 }

@@ -5,7 +5,7 @@
 
 @push('styles')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
-    <link rel="stylesheet" href="{{ asset('css/admin-event-campaign.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin-event-campaign.css') }}?v={{ file_exists(public_path('css/admin-event-campaign.css')) ? filemtime(public_path('css/admin-event-campaign.css')) : time() }}">
     <style>
         .cropper-view-box, .cropper-face {
             border-radius: 50%;
@@ -2723,20 +2723,23 @@
     $cDemoQrApiUrl  = \App\Services\BarcodeService::generateQrCodeDataUri($cDemoVerifyUrl, $cQrSize);
 @endphp
 <div class="modal fade" id="cardDesignModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl text-start">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl text-start">
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <form action="{{ route('admin.event-campaigns.card-design', $campaign->id) }}" method="POST" enctype="multipart/form-data" id="cardDesignCustomizerForm" data-upload-object-url="{{ route('admin.event-campaigns.upload-object', $campaign->id) }}">
                 @csrf
                 <input type="hidden" name="custom_objects_json" id="customObjectsJsonInput" value="{{ json_encode($cCustomObjects) }}">
-                <div class="modal-header border-bottom py-3 bg-light d-flex align-items-center justify-content-between">
+                <div class="modal-header border-bottom py-2.5 px-3 px-lg-4 bg-light d-flex align-items-center justify-content-between">
                     <div>
-                        <h5 class="modal-title fw-bold d-flex align-items-center gap-2 text-dark mb-0">
+                        <h5 class="modal-title fw-bold d-flex align-items-center gap-2 text-dark mb-0 fs-6">
                             <i class="fa-solid fa-wand-magic-sparkles text-primary"></i> কার্ড ডিজাইন স্টুডিও ও ফটো এডিটর
                         </h5>
-                        <small class="text-muted">আন্তর্জাতিক মানের ডাইনামিক লাইভ কাস্টমাইজার</small>
+                        <small class="text-muted" style="font-size: 11px;">আন্তর্জাতিক মানের ডাইনামিক লাইভ কাস্টমাইজার</small>
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold" id="btnResetCardDefaults" title="ডিফল্ট ডিজাইনে ফিরিয়ে আনুন">
+                        <button type="submit" form="cardDesignCustomizerForm" class="btn btn-primary rounded-pill btn-sm px-3.5 py-1.5 fw-bold shadow-sm" id="btnSaveCardCustomizerHeader">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> সংরক্ষণ
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 fw-bold" id="btnResetCardDefaults" title="ডিফল্ট ডিজাইনে ফিরিয়ে আনুন">
                             <i class="fa-solid fa-rotate-left me-1"></i> রিসেট
                         </button>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -2744,10 +2747,10 @@
                 </div>
                 
                 <div class="modal-body p-3 p-lg-4">
-                    <div class="row g-4">
+                    <div class="row g-4 align-items-start">
                         
                         {{-- LEFT COLUMN: CUSTOMIZER TABS & CONTROLS (col-lg-7) --}}
-                        <div class="col-lg-7">
+                        <div class="col-lg-7" style="max-height: calc(85vh - 120px); overflow-y: auto; padding-right: 12px;">
                             
                             {{-- Nav Tabs for Customizer (4 Clean & Modern Tabs) --}}
                             <ul class="nav nav-pills studio-nav-pills nav-fill mb-3 p-1.5 bg-light rounded-3 border" id="cardCustomizerTabs" role="tablist">
@@ -3943,7 +3946,7 @@
 @push('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="{{ asset('js/admin-event-campaign.js') }}"></script>
+    <script src="{{ asset('js/admin-event-campaign.js') }}?v={{ file_exists(public_path('js/admin-event-campaign.js')) ? filemtime(public_path('js/admin-event-campaign.js')) : time() }}"></script>
 
 
     <script>
