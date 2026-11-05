@@ -563,13 +563,13 @@
             {{-- Left: Terms & Conditions and Notes --}}
             <div class="col-12 col-md-6 col-lg-7">
                 <div class="bg-white rounded-3 border p-3 h-100 shadow-2xs">
-                    <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2.5 pb-2 border-bottom">
                         <span class="fw-bold text-dark text-uppercase" style="font-size: 11.5px; letter-spacing: 0.3px;">
                             <i class="fa-solid fa-file-contract me-1.5 text-primary"></i>Terms, Conditions & Notes
                         </span>
-                        <div style="min-width: 170px;">
-                            <select class="form-select form-select-sm border-secondary-subtle fw-semibold" id="termsPresetSelect" onchange="applyTermsPreset(this.value)" style="height: 28px; font-size: 11px;">
-                                <option value="">Terms Templates</option>
+                        <div class="flex-grow-1 flex-sm-grow-0" style="min-width: 250px; max-width: 100%;">
+                            <select class="form-select form-select-sm border-secondary-subtle fw-semibold shadow-xs" id="termsPresetSelect" onchange="applyTermsPreset(this.value)" style="min-height: 32px; height: 32px; font-size: 11.5px; line-height: 1.4; padding: 4px 28px 4px 10px; cursor: pointer;">
+                                <option value="">📋 Select Terms Template...</option>
                                 <option value="printing">🖨️ Printing & Press Terms</option>
                                 <option value="delivery">🚚 Delivery & Dispatch Terms</option>
                                 <option value="tender">🏛️ Institutional Tender Terms</option>
@@ -584,7 +584,7 @@
                         <label class="form-label small fw-semibold text-muted mb-1" style="font-size: 11px;">
                             Terms & Conditions
                         </label>
-                        <textarea name="terms_conditions" id="termsConditionsInput" rows="2" 
+                        <textarea name="terms_conditions" id="termsConditionsInput" rows="3" 
                                   class="form-control form-control-sm rounded-2 font-monospace" 
                                   style="font-size: 11.5px; line-height: 1.45;">{{ old('terms_conditions', $currentType === 'quotation' ? ($invoiceSettings['quotation_default_terms'] ?? '') : ($invoiceSettings['terms_and_conditions'] ?? '')) }}</textarea>
                     </div>
