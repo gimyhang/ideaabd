@@ -883,7 +883,7 @@
         if (!query || query.trim() === '') return escapeHtml(text);
         const escaped = escapeHtml(text);
         const qEscaped = escapeHtml(query.trim());
-        const regex = new RegExp(`(${qEscaped.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        const regex = new RegExp('(' + qEscaped.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
         return escaped.replace(regex, '<mark class="bg-warning-subtle text-dark fw-bold px-0.5 rounded">$1</mark>');
     }
 
@@ -1183,9 +1183,13 @@
             if (typeSelect) {
                 typeSelect.value = 'Book (Hardcover)';
             }
-            if (regPriceInput) regPriceInput.value = (editionData.regularPrice || book.regular_price || 0).toFixed(2);
-            if (discPctInput) discPctInput.value = editionData.discountPercent || book.discount_pct || 0;
-            if (priceInput) priceInput.value = (editionData.sellingPrice || book.selling_price || 0).toFixed(2);
+            const finalReg = editionData.regularPrice || book.regular_price || 0;
+            const finalDisc = editionData.discountPercent || book.discount_pct || 0;
+            const finalPrice = editionData.sellingPrice || book.selling_price || finalReg;
+
+            if (regPriceInput) regPriceInput.value = finalReg > 0 ? finalReg.toFixed(2) : (finalPrice > 0 ? finalPrice.toFixed(2) : '');
+            if (discPctInput) discPctInput.value = finalDisc > 0 ? finalDisc : '';
+            if (priceInput) priceInput.value = finalPrice > 0 ? finalPrice.toFixed(2) : '';
         }
 
         calcRow(index, 'book_select');
@@ -1399,15 +1403,15 @@
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control form-control-sm item-regular-price text-end font-monospace" 
-                       value="${regPrice}" min="0" oninput="calcRow(${i}, 'regular_price')" style="height: 36px; font-size: 12.5px;">
+                       value="${regPrice > 0 ? regPrice.toFixed(2) : ''}" min="0" oninput="calcRow(${i}, 'regular_price')" style="height: 36px; font-size: 12.5px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control form-control-sm item-discount-percent text-center font-monospace fw-bold text-success" 
-                       value="${disc}" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
+                       value="${disc > 0 ? disc : ''}" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][price]" class="form-control form-control-sm item-price text-end font-monospace fw-bold text-primary" 
-                       value="${price}" min="0" required oninput="calcRow(${i}, 'unit_price')" style="height: 36px; font-size: 13px;">
+                       value="${price > 0 ? price.toFixed(2) : ''}" min="0" oninput="calcRow(${i}, 'unit_price')" style="height: 36px; font-size: 13px;">
             </td>
             <td class="text-end fw-bold text-dark item-subtotal font-monospace" style="font-size: 13.5px;">৳${(qty * price).toFixed(2)}</td>
             <td class="text-center text-nowrap">
@@ -1675,19 +1679,6 @@
         }
     }
 
-    function setValidityDays(days) {
-        const validDateInput = document.querySelector('input[name="valid_until"]');
-        if (validDateInput) {
-            const now = new Date();
-            now.setDate(now.getDate() + parseInt(days));
-            const yyyy = now.getFullYear();
-            const mm = String(now.getMonth() + 1).padStart(2, '0');
-            const dd = String(now.getDate()).padStart(2, '0');
-            validDateInput.value = `${yyyy}-${mm}-${dd}`;
-            validDateInput.focus();
-        }
-    }
-
     function onTitleInput(input, index) {
         handleLiveBookSearch(input, index);
     }
@@ -1779,25 +1770,48 @@
         const subtotalCell = row.querySelector('.item-subtotal');
 
         const qty = parseFloat(qtyInput?.value) || 0;
-        const regPrice = parseFloat(regPriceInput?.value) || 0;
+        let regPrice = parseFloat(regPriceInput?.value) || 0;
         let discPct = parseFloat(discPctInput?.value) || 0;
         let unitPrice = parseFloat(priceInput?.value) || 0;
 
-        if (source === 'regular_price' || source === 'discount_percent') {
+        if (source === 'regular_price') {
             if (regPrice > 0) {
                 if (discPct > 0 && discPct <= 100) {
                     unitPrice = Math.round(regPrice * (1 - (discPct / 100)) * 100) / 100;
+                    if (priceInput) priceInput.value = unitPrice > 0 ? unitPrice.toFixed(2) : '';
+                } else if (unitPrice > 0 && unitPrice < regPrice) {
+                    discPct = Math.round(((regPrice - unitPrice) / regPrice) * 100);
+                    if (discPctInput) discPctInput.value = discPct > 0 ? discPct : '';
+                } else {
+                    unitPrice = regPrice;
+                    if (priceInput) priceInput.value = unitPrice > 0 ? unitPrice.toFixed(2) : '';
+                }
+            }
+        } else if (source === 'discount_percent') {
+            if (regPrice > 0) {
+                if (discPct > 0 && discPct <= 100) {
+                    unitPrice = Math.round(regPrice * (1 - (discPct / 100)) * 100) / 100;
+                    if (priceInput) priceInput.value = unitPrice > 0 ? unitPrice.toFixed(2) : '';
                 } else if (discPct === 0) {
                     unitPrice = regPrice;
+                    if (priceInput) priceInput.value = unitPrice > 0 ? unitPrice.toFixed(2) : '';
                 }
-                if (priceInput) priceInput.value = unitPrice;
+            } else if (unitPrice > 0 && discPct > 0 && discPct < 100) {
+                regPrice = Math.round((unitPrice / (1 - (discPct / 100))) * 100) / 100;
+                if (regPriceInput) regPriceInput.value = regPrice > 0 ? regPrice.toFixed(2) : '';
             }
         } else if (source === 'unit_price') {
             if (regPrice > 0 && unitPrice > 0 && unitPrice < regPrice) {
                 discPct = Math.round(((regPrice - unitPrice) / regPrice) * 100);
-                if (discPctInput) discPctInput.value = discPct;
+                if (discPctInput) discPctInput.value = discPct > 0 ? discPct : '';
             } else if (unitPrice >= regPrice && regPrice > 0) {
-                if (discPctInput) discPctInput.value = 0;
+                if (discPctInput) discPctInput.value = '';
+                regPrice = unitPrice;
+                if (regPriceInput) regPriceInput.value = regPrice > 0 ? regPrice.toFixed(2) : '';
+            } else if (regPrice === 0 && unitPrice > 0) {
+                regPrice = unitPrice;
+                if (regPriceInput) regPriceInput.value = regPrice.toFixed(2);
+                if (discPctInput) discPctInput.value = '';
             }
         }
 
@@ -2208,11 +2222,11 @@
                 const qtyInput = row.querySelector('.item-qty');
                 if (qtyInput) qtyInput.value = '1';
                 const regInput = row.querySelector('.item-regular-price');
-                if (regInput) regInput.value = '0';
+                if (regInput) regInput.value = '';
                 const discInput = row.querySelector('.item-discount-percent');
-                if (discInput) discInput.value = '0';
+                if (discInput) discInput.value = '';
                 const priceInput = row.querySelector('.item-price');
-                if (priceInput) priceInput.value = '0';
+                if (priceInput) priceInput.value = '';
                 const subtotal = row.querySelector('.item-subtotal');
                 if (subtotal) subtotal.textContent = '৳0.00';
                 if (titleInput) titleInput.focus();
@@ -2342,8 +2356,6 @@
             tbody.appendChild(tr);
         }
         updateRowSerials();
-        calcTotals();
-    }
         calcTotals();
     }
     window.addPresetItem = addPresetItem;
@@ -2490,8 +2502,16 @@
                 let validCount = 0;
                 rows.forEach(row => {
                     const title = (row.querySelector('.item-title')?.value || '').trim();
+                    const priceInput = row.querySelector('.item-price');
+                    const qtyInput = row.querySelector('.item-qty');
                     if (title) {
                         validCount++;
+                        if (priceInput && (!priceInput.value || parseFloat(priceInput.value) < 0)) {
+                            priceInput.value = '0';
+                        }
+                        if (qtyInput && (!qtyInput.value || parseFloat(qtyInput.value) <= 0)) {
+                            qtyInput.value = '1';
+                        }
                     } else if (rows.length > 1) {
                         row.remove();
                     }

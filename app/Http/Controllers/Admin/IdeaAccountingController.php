@@ -2305,6 +2305,21 @@ class IdeaAccountingController extends Controller
             $filteredItems = array_values(array_filter($request->items, function ($item) {
                 return is_array($item) && !empty(trim((string)($item['title'] ?? '')));
             }));
+            foreach ($filteredItems as &$item) {
+                if (!isset($item['price']) || $item['price'] === '' || $item['price'] === null) {
+                    $item['price'] = 0;
+                }
+                if (!isset($item['regular_price']) || $item['regular_price'] === '' || $item['regular_price'] === null) {
+                    $item['regular_price'] = $item['price'];
+                }
+                if (!isset($item['discount_percent']) || $item['discount_percent'] === '' || $item['discount_percent'] === null) {
+                    $item['discount_percent'] = 0;
+                }
+                if (!isset($item['quantity']) || $item['quantity'] === '' || $item['quantity'] === null || (float)$item['quantity'] <= 0) {
+                    $item['quantity'] = 1;
+                }
+            }
+            unset($item);
             $request->merge(['items' => $filteredItems]);
         }
 
@@ -2345,7 +2360,7 @@ class IdeaAccountingController extends Controller
             'items.*.quantity'         => 'required|numeric|min:0.01',
             'items.*.regular_price'    => 'nullable|numeric|min:0',
             'items.*.discount_percent' => 'nullable|numeric|min:0|max:100',
-            'items.*.price'            => 'required|numeric|min:0',
+            'items.*.price'            => 'nullable|numeric|min:0',
         ], [
             'customer_name.required' => 'গ্রাহক বা প্রতিনিধির নাম লিখুন।',
             'items.required'         => 'কমপক্ষে একটি আইটেম বা বিবরণ যোগ করুন।',
