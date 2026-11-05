@@ -291,14 +291,26 @@ class SmsService
                     'messages' => json_encode($chunk, JSON_UNESCAPED_UNICODE),
                 ];
 
-                $response = Http::timeout(15)->asForm()->post($url, $payload);
-                $json     = $response->json();
-                $body     = $response->body();
-                $lastResponse = $json ?: $body;
+                try {
+                    $response = Http::connectTimeout(5)->timeout(25)->asForm()->post($url, $payload);
+                    $json     = $response->json();
+                    $body     = $response->body();
+                    $lastResponse = $json ?: $body;
+                    $statusCode   = $response->status();
+                } catch (\Illuminate\Http\Client\ConnectionException $connEx) {
+                    $rawCurl = self::executeCurl($url, $payload);
+                    if ($rawCurl === '') {
+                        throw $connEx;
+                    }
+                    $json = json_decode($rawCurl, true);
+                    $body = $rawCurl;
+                    $lastResponse = $json ?: $body;
+                    $statusCode   = 200;
+                }
 
-                $outcome['success']       = self::isSuccessfulResponse($response->status(), $json, $body);
-                $outcome['response_code'] = $json['response_code'] ?? null;
-                $outcome['message']       = $json['success_message'] ?? ($json['error_message'] ?? self::getResponseCodeMessage($outcome['response_code'], $body));
+                $outcome['success']       = self::isSuccessfulResponse($statusCode, is_array($json) ? $json : null, (string) $body);
+                $outcome['response_code'] = is_array($json) ? ($json['response_code'] ?? null) : null;
+                $outcome['message']       = is_array($json) ? ($json['success_message'] ?? ($json['error_message'] ?? self::getResponseCodeMessage($outcome['response_code'], (string) $body))) : self::getResponseCodeMessage(null, (string) $body);
 
                 if ($outcome['success']) {
                     $totalSent += count($chunk);

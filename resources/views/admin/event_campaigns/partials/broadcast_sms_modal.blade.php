@@ -369,7 +369,14 @@
                 body: formData
             });
 
-            const data = await response.json();
+            let data;
+            const textResp = await response.text();
+            try {
+                data = JSON.parse(textResp);
+            } catch (jsonErr) {
+                console.error('Non-JSON response:', textResp);
+                throw new Error('সার্ভার থেকে সঠিক ফরম্যাটে উত্তর আসেনি (HTTP ' + response.status + ')');
+            }
 
             if (data.success) {
                 const modalEl = document.getElementById('broadcastSmsModal');

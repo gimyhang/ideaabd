@@ -3015,6 +3015,9 @@ class EventCampaignAdminController extends Controller
      */
     public function broadcastSms(Request $request, EventCampaign $campaign)
     {
+        @set_time_limit(300);
+        @ini_set('max_execution_time', '300');
+
         $validated = $request->validate([
             'message'               => 'required|string|max:1000',
             'target_group'          => 'required|string|in:all,confirmed,pending,selected,filtered,custom_ids',
@@ -3083,7 +3086,7 @@ class EventCampaignAdminController extends Controller
         $eventDate = $campaign->form_settings['form_date'] ?? ($campaign->starts_at ? $campaign->starts_at->format('d M Y') : '২০ অক্টোবর ২০২৬');
         $eventTitle = $campaign->title;
 
-        $sentCount = 0;
+        $messages = [];
         $failedCount = 0;
         $seenPhones = [];
         $avoidDup = $request->boolean('avoid_duplicate_phone', true);
@@ -3124,22 +3127,71 @@ class EventCampaignAdminController extends Controller
                 $eventDate,
             ], $rawMessage);
 
-            try {
-                $res = \App\Services\SmsService::send($normPhone, $msg);
-                if (!empty($res['success'])) {
-                    $sentCount++;
-                } else {
-                    $failedCount++;
+            $messages[] = [
+                'to'      => $normPhone,
+                'message' => $msg,
+            ];
+        }
+
+        if (empty($messages)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'নির্বাচিত তালিকায় কোনো বৈধ মোবাইল নম্বর পাওয়া যায়নি।',
+            ], 422);
+        }
+
+        $sentCount = 0;
+        $hasDynamicTags = str_contains($rawMessage, '{name}')
+            || str_contains($rawMessage, '{reg_no}')
+            || str_contains($rawMessage, '{card_url}');
+
+        if ($hasDynamicTags) {
+            // Many-to-Many Bulk API (sent in fast batches of 100 per gateway request)
+            $res = \App\Services\SmsService::sendManyToMany($messages, [
+                'source'   => 'admin',
+                'purpose'  => 'campaign',
+                'campaign' => 'Event Campaign: ' . $campaign->title,
+            ]);
+
+            $sentCount = intval($res['total_sent'] ?? 0);
+            $failedCount += (count($messages) - $sentCount);
+
+            // If Many API returned 0 (e.g. gateway Many API issue), fallback to quick sequential dispatch
+            if ($sentCount === 0 && count($messages) > 0) {
+                foreach ($messages as $item) {
+                    try {
+                        $singleRes = \App\Services\SmsService::send($item['to'], $item['message'], [
+                            'source'   => 'admin',
+                            'purpose'  => 'campaign',
+                            'campaign' => 'Event Campaign: ' . $campaign->title,
+                        ]);
+                        if (!empty($singleRes['success'])) {
+                            $sentCount++;
+                            $failedCount = max(0, $failedCount - 1);
+                        }
+                    } catch (\Throwable $e) {
+                        // continue
+                    }
                 }
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning("Broadcast SMS error for {$r->id} ({$normPhone}): " . $e->getMessage());
-                $failedCount++;
             }
+        } else {
+            // Identical message for all: One-to-Many API (100 numbers per comma-separated request)
+            $phones = array_column($messages, 'to');
+            $res = \App\Services\SmsService::sendOneToMany($phones, $rawMessage, [
+                'source'   => 'admin',
+                'purpose'  => 'campaign',
+                'campaign' => 'Event Campaign: ' . $campaign->title,
+            ]);
+
+            $sentCount = intval($res['sent'] ?? 0);
+            $failedCount += intval($res['failed'] ?? (count($phones) - $sentCount));
         }
 
         return response()->json([
-            'success'      => true,
-            'message'      => "{$sentCount} জন অংশগ্রহণকারীকে সফলভাবে ইভেন্ট আপডেট বার্তা পাঠানো হয়েছে!" . ($failedCount > 0 ? " ({$failedCount}টি নম্বর ব্যর্থ/অনুপলব্ধ)" : ''),
+            'success'      => $sentCount > 0,
+            'message'      => $sentCount > 0
+                ? "{$sentCount} জন অংশগ্রহণকারীকে সফলভাবে ইভেন্ট আপডেট বার্তা পাঠানো হয়েছে!" . ($failedCount > 0 ? " ({$failedCount}টি নম্বর বাদ/ব্যর্থ)" : '')
+                : "বার্তা প্রেরণে ব্যর্থ হয়েছে।" . ($failedCount > 0 ? " ({$failedCount}টি নম্বর বাদ/ব্যর্থ)" : ''),
             'sent_count'   => $sentCount,
             'failed_count' => $failedCount,
             'total_target' => $registrations->count(),
