@@ -1828,6 +1828,8 @@ class EventCampaignAdminController extends Controller
             $cardDesign['show_name_plate']       = false;
             $cardDesign['show_plate_bg']         = false;
             $cardDesign['name_font_size']        = intval($request->input('name_font_size', 16));
+            $cardDesign['name_offset_x']        = intval($request->input('name_offset_x', $cardDesign['name_offset_x'] ?? 0));
+            $cardDesign['name_offset_y']        = intval($request->input('name_offset_y', $cardDesign['name_offset_y'] ?? 0));
             $cardDesign['designation_font_size'] = intval($request->input('designation_font_size', $cardDesign['designation_font_size'] ?? 10));
             $cardDesign['location_font_size']    = intval($request->input('location_font_size', $cardDesign['location_font_size'] ?? 9));
             $cardDesign['name_line_height']      = floatval($request->input('name_line_height', $cardDesign['name_line_height'] ?? 1.25));
@@ -1851,6 +1853,8 @@ class EventCampaignAdminController extends Controller
             $cardDesign['show_qr_code']      = $request->has('show_qr_code') || $request->has('show_organizers');
             $cardDesign['show_organizers']   = $cardDesign['show_qr_code'];
             $cardDesign['qr_code_size']      = intval($request->input('qr_code_size', $cardDesign['qr_code_size'] ?? 78));
+            $cardDesign['qr_offset_x']        = intval($request->input('qr_offset_x', $cardDesign['qr_offset_x'] ?? 0));
+            $cardDesign['qr_offset_y']        = intval($request->input('qr_offset_y', $cardDesign['qr_offset_y'] ?? 0));
             $cardDesign['qr_caption_text']   = $request->input('qr_caption_text', $cardDesign['qr_caption_text'] ?? 'উপস্থিতি যাচাই ও নিশ্চিতকরণ QR কোড');
             $cardDesign['qr_subtext']        = $request->input('qr_subtext', $cardDesign['qr_subtext'] ?? 'ক্লিক বা স্ক্যান করলেই অনুষ্ঠানে উপস্থিতি নিশ্চিত হবে');
             

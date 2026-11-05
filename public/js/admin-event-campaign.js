@@ -1504,7 +1504,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (photoScaleSlider) photoScaleSlider.value = curPhotoScale;
         }
 
-        // Photo Arrow Pad / D-Pad Nudge Buttons
+        // Photo Arrow Pad / D-Pad Nudge Buttons (Expanded ranges)
         const btnNudgePhotoUp = document.getElementById('btnNudgePhotoUp');
         const btnNudgePhotoDown = document.getElementById('btnNudgePhotoDown');
         const btnNudgePhotoLeft = document.getElementById('btnNudgePhotoLeft');
@@ -1513,25 +1513,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (btnNudgePhotoUp) {
             btnNudgePhotoUp.addEventListener('click', function () {
-                curPhotoOffsetY = Math.max(-60, curPhotoOffsetY - 2);
+                curPhotoOffsetY = Math.max(-250, curPhotoOffsetY - 4);
                 updatePhotoTransform();
             });
         }
         if (btnNudgePhotoDown) {
             btnNudgePhotoDown.addEventListener('click', function () {
-                curPhotoOffsetY = Math.min(60, curPhotoOffsetY + 2);
+                curPhotoOffsetY = Math.min(300, curPhotoOffsetY + 4);
                 updatePhotoTransform();
             });
         }
         if (btnNudgePhotoLeft) {
             btnNudgePhotoLeft.addEventListener('click', function () {
-                curPhotoOffsetX = Math.max(-80, curPhotoOffsetX - 2);
+                curPhotoOffsetX = Math.max(-200, curPhotoOffsetX - 4);
                 updatePhotoTransform();
             });
         }
         if (btnNudgePhotoRight) {
             btnNudgePhotoRight.addEventListener('click', function () {
-                curPhotoOffsetX = Math.min(80, curPhotoOffsetX + 2);
+                curPhotoOffsetX = Math.min(200, curPhotoOffsetX + 4);
                 updatePhotoTransform();
             });
         }
@@ -1570,6 +1570,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 curPhotoOffsetY = 0;
                 curPhotoScale = 100;
                 updatePhotoTransform();
+            });
+        }
+
+        // Sample Portrait Preview Switch
+        const toggleSamplePortrait = document.getElementById('toggleSamplePortrait');
+        const liveAuthorPhotoImg = document.getElementById('liveCardAuthorPhotoImg');
+        const liveAuthorPhotoPlaceholder = document.getElementById('liveCardAuthorPhotoPlaceholder');
+
+        if (toggleSamplePortrait && liveAuthorPhotoImg && liveAuthorPhotoPlaceholder) {
+            toggleSamplePortrait.addEventListener('change', function () {
+                if (this.checked) {
+                    liveAuthorPhotoImg.style.display = 'block';
+                    liveAuthorPhotoPlaceholder.style.display = 'none';
+                } else {
+                    liveAuthorPhotoImg.style.display = 'none';
+                    liveAuthorPhotoPlaceholder.style.display = 'flex';
+                }
             });
         }
 
@@ -1696,6 +1713,49 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         });
+
+        // E.0.2.1 Name Position Offset Engine (নাম ও তথ্যের অবস্থান)
+        const nameOffsetXSlider = document.getElementById('nameOffsetXSlider');
+        const nameOffsetYSlider = document.getElementById('nameOffsetYSlider');
+        const nameOffsetXBadge = document.getElementById('nameOffsetXBadge');
+        const nameOffsetYBadge = document.getElementById('nameOffsetYBadge');
+        const btnResetNamePos = document.getElementById('btnResetNamePos');
+        const liveNamePlate = document.getElementById('liveNamePlate');
+
+        let curNameOffsetX = parseInt(nameOffsetXSlider?.value || 0);
+        let curNameOffsetY = parseInt(nameOffsetYSlider?.value || 0);
+
+        function updateNameTransform() {
+            if (liveNamePlate) {
+                liveNamePlate.style.transform = `translate(${curNameOffsetX}px, ${curNameOffsetY}px)`;
+            }
+            if (nameOffsetXBadge) nameOffsetXBadge.textContent = curNameOffsetX + ' px';
+            if (nameOffsetYBadge) nameOffsetYBadge.textContent = curNameOffsetY + ' px';
+            if (nameOffsetXSlider) nameOffsetXSlider.value = curNameOffsetX;
+            if (nameOffsetYSlider) nameOffsetYSlider.value = curNameOffsetY;
+        }
+
+        if (nameOffsetXSlider) {
+            nameOffsetXSlider.addEventListener('input', function () {
+                curNameOffsetX = parseInt(this.value, 10);
+                updateNameTransform();
+            });
+        }
+
+        if (nameOffsetYSlider) {
+            nameOffsetYSlider.addEventListener('input', function () {
+                curNameOffsetY = parseInt(this.value, 10);
+                updateNameTransform();
+            });
+        }
+
+        if (btnResetNamePos) {
+            btnResetNamePos.addEventListener('click', function () {
+                curNameOffsetX = 0;
+                curNameOffsetY = 0;
+                updateNameTransform();
+            });
+        }
 
         // E.0.3 White Background Shade & Separation Controls (সাদা ব্যাকগ্রাউন্ড শেড আলাদা করা)
         const toggleShowPlateBg = document.getElementById('toggleShowPlateBg');
@@ -1950,6 +2010,134 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         });
+
+        // E.3.2 QR Code Position Offset Engine (কিউআর কোডের অবস্থান)
+        const qrOffsetXSlider = document.getElementById('qrOffsetXSlider');
+        const qrOffsetYSlider = document.getElementById('qrOffsetYSlider');
+        const qrOffsetXBadge = document.getElementById('qrOffsetXBadge');
+        const qrOffsetYBadge = document.getElementById('qrOffsetYBadge');
+        const btnResetQrPos = document.getElementById('btnResetQrPos');
+        const liveQrSection = document.getElementById('liveQrSection');
+
+        let curQrOffsetX = parseInt(qrOffsetXSlider?.value || 0);
+        let curQrOffsetY = parseInt(qrOffsetYSlider?.value || 0);
+
+        function updateQrTransform() {
+            if (liveQrSection) {
+                liveQrSection.style.transform = `translate(${curQrOffsetX}px, ${curQrOffsetY}px)`;
+            }
+            if (qrOffsetXBadge) qrOffsetXBadge.textContent = curQrOffsetX + ' px';
+            if (qrOffsetYBadge) qrOffsetYBadge.textContent = curQrOffsetY + ' px';
+            if (qrOffsetXSlider) qrOffsetXSlider.value = curQrOffsetX;
+            if (qrOffsetYSlider) qrOffsetYSlider.value = curQrOffsetY;
+        }
+
+        if (qrOffsetXSlider) {
+            qrOffsetXSlider.addEventListener('input', function () {
+                curQrOffsetX = parseInt(this.value, 10);
+                updateQrTransform();
+            });
+        }
+
+        if (qrOffsetYSlider) {
+            qrOffsetYSlider.addEventListener('input', function () {
+                curQrOffsetY = parseInt(this.value, 10);
+                updateQrTransform();
+            });
+        }
+
+        if (btnResetQrPos) {
+            btnResetQrPos.addEventListener('click', function () {
+                curQrOffsetX = 0;
+                curQrOffsetY = 0;
+                updateQrTransform();
+            });
+        }
+
+        // E.3.3 Direct Interactive Drag-and-Drop on Live Card Elements (ফ্রি ড্র্যাগ অ্যান্ড ড্রপ)
+        function makeCardElementDraggable(element, getOffsetFn, setOffsetFn) {
+            if (!element) return;
+            let isDragging = false;
+            let startPointerX = 0;
+            let startPointerY = 0;
+            let initialOffsetX = 0;
+            let initialOffsetY = 0;
+            let hasMoved = false;
+
+            element.addEventListener('pointerdown', function (e) {
+                if (e.target.isContentEditable && document.activeElement === e.target) {
+                    return;
+                }
+                if (e.button !== 0) return;
+
+                isDragging = true;
+                hasMoved = false;
+                startPointerX = e.clientX;
+                startPointerY = e.clientY;
+                const offsets = getOffsetFn();
+                initialOffsetX = offsets.x;
+                initialOffsetY = offsets.y;
+
+                element.style.cursor = 'grabbing';
+                try { element.setPointerCapture(e.pointerId); } catch (err) {}
+            });
+
+            element.addEventListener('pointermove', function (e) {
+                if (!isDragging) return;
+                const dx = e.clientX - startPointerX;
+                const dy = e.clientY - startPointerY;
+                if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+                    hasMoved = true;
+                }
+                if (hasMoved) {
+                    e.preventDefault();
+                    setOffsetFn(initialOffsetX + dx, initialOffsetY + dy);
+                }
+            });
+
+            const finishDrag = function (e) {
+                if (!isDragging) return;
+                isDragging = false;
+                element.style.cursor = 'grab';
+                try { element.releasePointerCapture(e.pointerId); } catch (err) {}
+            };
+
+            element.addEventListener('pointerup', finishDrag);
+            element.addEventListener('pointercancel', finishDrag);
+        }
+
+        if (photoFrame) {
+            makeCardElementDraggable(photoFrame,
+                () => ({ x: curPhotoOffsetX, y: curPhotoOffsetY }),
+                (newX, newY) => {
+                    curPhotoOffsetX = Math.max(-200, Math.min(200, Math.round(newX)));
+                    curPhotoOffsetY = Math.max(-250, Math.min(300, Math.round(newY)));
+                    updatePhotoTransform();
+                }
+            );
+        }
+
+        if (liveNamePlate) {
+            makeCardElementDraggable(liveNamePlate,
+                () => ({ x: curNameOffsetX, y: curNameOffsetY }),
+                (newX, newY) => {
+                    curNameOffsetX = Math.max(-200, Math.min(200, Math.round(newX)));
+                    curNameOffsetY = Math.max(-250, Math.min(250, Math.round(newY)));
+                    updateNameTransform();
+                }
+            );
+        }
+
+        if (liveQrSection) {
+            makeCardElementDraggable(liveQrSection,
+                () => ({ x: curQrOffsetX, y: curQrOffsetY }),
+                (newX, newY) => {
+                    curQrOffsetX = Math.max(-180, Math.min(180, Math.round(newX)));
+                    curQrOffsetY = Math.max(-200, Math.min(200, Math.round(newY)));
+                    updateQrTransform();
+                }
+            );
+        }
 
         // E.4 Direct Click-to-Edit & Floating Quick-Action Toolbar on Card Nodes
         let currentSelectedNode = null;

@@ -3070,6 +3070,17 @@
                                         </div>
                                     </div>
 
+                                    {{-- Sample Portrait Preview Toggle --}}
+                                    <div class="p-3 bg-white rounded-3 border mb-3 d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <label class="form-label small fw-bold text-dark mb-0">নমুনা পোর্ট্রেট প্রিভিউ</label>
+                                            <small class="text-muted d-block" style="font-size: 10.5px;">বাস্তব মুখের ছবিতে ফ্রেম ও প্লেস পরীক্ষা করুন</small>
+                                        </div>
+                                        <div class="form-check form-switch m-0">
+                                            <input class="form-check-input" type="checkbox" id="toggleSamplePortrait" checked style="width: 2.4em; height: 1.25em;">
+                                        </div>
+                                    </div>
+
                                     {{-- Photo Studio Filters (Brightness, Contrast, Grayscale, Sepia) --}}
                                     <div class="range-slider-box p-3 bg-light rounded-3 border">
                                         <div class="d-flex align-items-center justify-content-between mb-2">
@@ -3267,6 +3278,37 @@
                                                 <div class="col-3"><button type="button" class="btn btn-outline-secondary btn-sm w-100 py-0.5 rounded-2 btn-preset-loc" data-size="13" style="font-size: 10px;">১৩ px</button></div>
                                             </div>
                                         </div>
+
+                                        {{-- Name & Text Position Offset Controls --}}
+                                        <div class="p-2.5 bg-light rounded-3 border mt-3">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <div>
+                                                    <label class="form-label small fw-bold text-dark mb-0" style="font-size: 11.5px;">
+                                                        <i class="fa-solid fa-arrows-up-down-left-right text-primary me-1"></i> নাম ও তথ্যের অবস্থান (Position)
+                                                    </label>
+                                                    <small class="text-muted d-block" style="font-size: 10px;">কার্ডের লেখার ওপর সরাসরি মাউস দিয়ে টেনেও যেকোনো স্থানে বসানো যাবে</small>
+                                                </div>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 rounded-pill" id="btnResetNamePos" style="font-size: 10px;">
+                                                    <i class="fa-solid fa-rotate-left me-1"></i> রিসেট
+                                                </button>
+                                            </div>
+                                            <div class="row g-2">
+                                                <div class="col-6">
+                                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                                        <span class="small fw-bold text-muted" style="font-size: 10.5px;">ডানে ↔ বামে (X)</span>
+                                                        <span class="badge bg-secondary-subtle text-secondary" id="nameOffsetXBadge" style="font-size: 10px;">{{ $cNameOffsetX }} px</span>
+                                                    </div>
+                                                    <input type="range" class="custom-range-slider" id="nameOffsetXSlider" name="name_offset_x" min="-200" max="200" step="1" value="{{ $cNameOffsetX }}">
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                                        <span class="small fw-bold text-muted" style="font-size: 10.5px;">উপরে ↕ নিচে (Y)</span>
+                                                        <span class="badge bg-secondary-subtle text-secondary" id="nameOffsetYBadge" style="font-size: 10px;">{{ $cNameOffsetY }} px</span>
+                                                    </div>
+                                                    <input type="range" class="custom-range-slider" id="nameOffsetYSlider" name="name_offset_y" min="-250" max="250" step="1" value="{{ $cNameOffsetY }}">
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     {{-- 3. Spacing & Gaps --}}
@@ -3394,6 +3436,37 @@
                                         </div>
                                     </div>
 
+                                    {{-- QR Code Position Offset Controls --}}
+                                    <div class="range-slider-box p-3 bg-white rounded-3 border mb-3">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <div>
+                                                <label class="form-label small fw-bold text-dark mb-0">
+                                                    <i class="fa-solid fa-arrows-up-down-left-right text-success me-1"></i> কিউআর কোডের অবস্থান (Position)
+                                                </label>
+                                                <small class="text-muted d-block" style="font-size: 10px;">কার্ডের QR কোড সরাসরি মাউস দিয়ে ড্র্যাগ করে সরানো যাবে</small>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 rounded-pill" id="btnResetQrPos" style="font-size: 10px;">
+                                                <i class="fa-solid fa-rotate-left me-1"></i> রিসেট
+                                            </button>
+                                        </div>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                                    <span class="small fw-bold text-muted" style="font-size: 10.5px;">ডানে ↔ বামে (X)</span>
+                                                    <span class="badge bg-secondary-subtle text-secondary" id="qrOffsetXBadge" style="font-size: 10px;">{{ $cQrOffsetX }} px</span>
+                                                </div>
+                                                <input type="range" class="custom-range-slider" id="qrOffsetXSlider" name="qr_offset_x" min="-180" max="180" step="1" value="{{ $cQrOffsetX }}">
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                                    <span class="small fw-bold text-muted" style="font-size: 10.5px;">উপরে ↕ নিচে (Y)</span>
+                                                    <span class="badge bg-secondary-subtle text-secondary" id="qrOffsetYBadge" style="font-size: 10px;">{{ $cQrOffsetY }} px</span>
+                                                </div>
+                                                <input type="range" class="custom-range-slider" id="qrOffsetYSlider" name="qr_offset_y" min="-200" max="200" step="1" value="{{ $cQrOffsetY }}">
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     {{-- QR Captions & Text Settings --}}
                                     <div class="p-3 bg-white rounded-3 border mb-3">
                                         <div class="fw-bold small text-dark mb-2.5">
@@ -3466,16 +3539,16 @@
                                         {{-- 2. MIDDLE SECTION: PHOTO & CLEAN TYPOGRAPHY (No Box / Shade) --}}
                                         <div class="card-middle-section" id="liveMiddleSection" style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                             <div class="author-photo-frame card-interactive-node" id="livePhotoFrame" data-node="photo" data-tab="tab-photo-pane" 
-                                                 style="width: {{ $cPhotoSize }}px; height: {{ $cPhotoSize }}px; border-radius: {{ $cPhotoBorderRadius }}; border: {{ $cPhotoBorderWidth }}px solid {{ $cPhotoBorderColor }}; filter: brightness({{ $cPhotoBrightness }}%) contrast({{ $cPhotoContrast }}%) grayscale({{ $cPhotoGrayscale }}%) sepia({{ $cPhotoSepia }}%); @if($cPhotoShadow === 'glow') box-shadow: 0 0 16px rgba(250, 204, 21, 0.6); @elseif($cPhotoShadow === 'deep') box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45); @elseif($cPhotoShadow === 'none') box-shadow: none; @else box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); @endif margin-bottom: {{ $cPhotoNameGap }}px; transform: translate({{ $cPhotoOffsetX }}px, {{ $cPhotoOffsetY }}px) scale({{ $cPhotoScale / 100 }}); transition: transform 0.1s ease-out; overflow: hidden; {{ $cShowPhoto ? '' : 'display: none !important;' }}">
+                                                 style="width: {{ $cPhotoSize }}px; height: {{ $cPhotoSize }}px; border-radius: {{ $cPhotoBorderRadius }}; border: {{ $cPhotoBorderWidth }}px solid {{ $cPhotoBorderColor }}; filter: brightness({{ $cPhotoBrightness }}%) contrast({{ $cPhotoContrast }}%) grayscale({{ $cPhotoGrayscale }}%) sepia({{ $cPhotoSepia }}%); @if($cPhotoShadow === 'glow') box-shadow: 0 0 16px rgba(250, 204, 21, 0.6); @elseif($cPhotoShadow === 'deep') box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45); @elseif($cPhotoShadow === 'none') box-shadow: none; @else box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); @endif margin-bottom: {{ $cPhotoNameGap }}px; transform: translate({{ $cPhotoOffsetX }}px, {{ $cPhotoOffsetY }}px) scale({{ $cPhotoScale / 100 }}); transition: transform 0.05s ease-out; overflow: hidden; cursor: grab; user-select: none; touch-action: none; {{ $cShowPhoto ? '' : 'display: none !important;' }}">
                                                 <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'><rect width='160' height='160' fill='%23e2e8f0'/><circle cx='80' cy='62' r='30' fill='%2394a3b8'/><path d='M80 102 C50 102 24 125 20 160 L140 160 C136 125 110 102 80 102 Z' fill='%2364748b'/></svg>"
                                                      alt="Sample Portrait"
                                                      id="liveCardAuthorPhotoImg"
-                                                     style="width: 100%; height: 100%; object-fit: cover; display: none;">
-                                                <div class="photo-placeholder" id="liveCardAuthorPhotoPlaceholder" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.18); color: #ffffff; font-size: 32px;">
+                                                     style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                                                <div class="photo-placeholder" id="liveCardAuthorPhotoPlaceholder" style="width: 100%; height: 100%; display: none; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.18); color: #ffffff; font-size: 32px;">
                                                     <i class="fa-solid fa-user-pen"></i>
                                                 </div>
                                             </div>
-                                            <div class="author-text-container card-interactive-node" id="liveNamePlate" data-node="nameplate" data-tab="tab-text-pane" style="text-align: center; width: 100%; padding: 0 10px; transition: all 0.2s ease;">
+                                            <div class="author-text-container card-interactive-node" id="liveNamePlate" data-node="nameplate" data-tab="tab-text-pane" style="text-align: center; width: 100%; padding: 0 10px; transform: translate({{ $cNameOffsetX }}px, {{ $cNameOffsetY }}px); cursor: grab; user-select: none; touch-action: none; transition: transform 0.05s ease-out;">
                                                 <div class="author-name live-editable-text" id="liveAuthorName" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cNameSize }}px; font-weight: 800; line-height: {{ $cNameLineHeight }}; margin-bottom: {{ $cNameSpacing }}px; color: {{ $cNameColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">লেখক / অতিথির নাম</div>
                                                 <div class="author-designation live-editable-text" id="liveAuthorDesignation" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cDesigSize }}px; font-weight: 600; color: {{ $cDesigColor }}; line-height: 1.25; margin-bottom: 2px; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">কবি, কথাসাহিত্যিক ও প্রাবন্ধিক</div>
                                                 <div class="author-location live-editable-text" id="liveAuthorLocation" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cLocSize }}px; font-weight: 500; color: {{ $cLocColor }}; opacity: 0.95; line-height: 1.2; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">রংপুর</div>
@@ -3488,7 +3561,7 @@
                                         </div>
 
                                         {{-- 4. DYNAMIC VERIFICATION QR CODE SECTION (স্বাক্ষর বাদ হয়ে অটোমেটিক ভেরিফাই কিউ আর কোড) --}}
-                                        <div class="card-verify-qr-section card-interactive-node" id="liveQrSection" data-node="qr" data-tab="tab-qr-pane" style="position: relative; z-index: 2; border-top: 1.5px solid rgba(255, 255, 255, 0.45); padding-top: 5px; margin-top: 4px; display: {{ $cShowQrCode ? 'flex' : 'none !important' }}; align-items: center; justify-content: center; text-align: center;">
+                                        <div class="card-verify-qr-section card-interactive-node" id="liveQrSection" data-node="qr" data-tab="tab-qr-pane" style="position: relative; z-index: 2; border-top: 1.5px solid rgba(255, 255, 255, 0.45); padding-top: 5px; margin-top: 4px; display: {{ $cShowQrCode ? 'flex' : 'none !important' }}; align-items: center; justify-content: center; text-align: center; transform: translate({{ $cQrOffsetX }}px, {{ $cQrOffsetY }}px); cursor: grab; user-select: none; touch-action: none; transition: transform 0.05s ease-out;">
                                             <a href="{{ $cDemoVerifyUrl }}" target="_blank" class="verify-qr-anchor" title="ক্লিক করলেই লাইভ ভেরিফিকেশন ও উপস্থিতি নিশ্চিত হবে" style="text-decoration: none; display: inline-flex; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 5px 12px 5px 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.35); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28); transition: all 0.2s ease; max-width: 96%;">
                                                 <div class="qr-code-box" id="liveQrCodeBox" style="width: {{ $cQrSize }}px; height: {{ $cQrSize }}px; background: #ffffff; padding: 4px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                                     <img loading="lazy" src="{{ $cDemoQrApiUrl }}" alt="Verify QR Code" id="liveQrCodeImg" style="width: 100%; height: 100%; object-fit: contain; display: block;" crossorigin="anonymous">

@@ -66,6 +66,8 @@
     $locationFontSize    = intval($cardDesign['location_font_size'] ?? 10);
     $nameLineHeight     = floatval($cardDesign['name_line_height'] ?? 1.25);
     $nameSpacing        = intval($cardDesign['name_spacing'] ?? 2);
+    $nameOffsetX        = intval($cardDesign['name_offset_x'] ?? 0);
+    $nameOffsetY        = intval($cardDesign['name_offset_y'] ?? 0);
     $designationColor   = $cardDesign['designation_color'] ?? ($cardDesign['meta_color'] ?? '#f1f5f9');
     $locationColor      = $cardDesign['location_color'] ?? ($cardDesign['meta_color'] ?? '#e2e8f0');
 
@@ -91,6 +93,8 @@
     // 5. Verification QR Code & Attendance Settings (BaconQrCode Base64 SVG Data URI — 100% Offline & Zero-CORS)
     $showQrCode     = $cardDesign['show_qr_code'] ?? ($cardDesign['show_organizers'] ?? true);
     $qrCodeSize     = intval($cardDesign['qr_code_size'] ?? 72);
+    $qrOffsetX      = intval($cardDesign['qr_offset_x'] ?? 0);
+    $qrOffsetY      = intval($cardDesign['qr_offset_y'] ?? 0);
     $qrCaptionText  = $cardDesign['qr_caption_text'] ?? 'উপস্থিতি যাচাই ও নিশ্চিতকরণ QR কোড';
     $qrSubtext      = $cardDesign['qr_subtext'] ?? 'ক্লিক বা স্ক্যান করলেই অনুষ্ঠানে উপস্থিতি নিশ্চিত হবে';
     $verifyUrl      = route('event.attendance.verify', $registration->registration_number);
@@ -380,6 +384,7 @@
             position: relative;
             z-index: 3;
             padding: 0 6px;
+            transform: translate({{ $nameOffsetX }}px, {{ $nameOffsetY }}px);
         }
         .author-text-container .author-name {
             font-family: '{{ $fontFamily }}', 'Noto Serif Bengali', 'Hind Siliguri', serif;
@@ -442,6 +447,7 @@
             align-items: center;
             justify-content: center;
             text-align: center;
+            transform: translate({{ $qrOffsetX }}px, {{ $qrOffsetY }}px);
         }
         .verify-qr-anchor {
             text-decoration: none;
