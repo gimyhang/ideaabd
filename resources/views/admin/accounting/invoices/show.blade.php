@@ -285,23 +285,20 @@
                                         <span>{{ $bizAddress }}</span>
                                     </span>
                                 @endif
-                                @if(!empty($bizPhone))
+                                @php
+                                    $bizUnifiedContact = !empty($bizPhone) ? $bizPhone : $bizWhatsapp;
+                                @endphp
+                                @if(!empty($bizUnifiedContact))
                                     @if(!empty($bizAddress))<span class="text-muted opacity-50">·</span>@endif
-                                    <a href="tel:{{ $bizPhone }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Mobile Call">
-                                        <i class="fa-solid fa-phone text-primary me-1" style="font-size: 10px;"></i>
-                                        <span class="fw-semibold">{{ $bizPhone }}</span>
-                                    </a>
-                                @endif
-                                @if(!empty($bizWhatsapp))
-                                    <span class="text-muted opacity-50">·</span>
-                                    <a href="https://wa.me/{{ $cleanBizWa }}" target="_blank" class="text-dark text-decoration-none d-inline-flex align-items-center" title="WhatsApp Message">
-                                        <i class="fa-brands fa-whatsapp text-success me-1" style="font-size: 11.5px;"></i>
-                                        <span class="fw-semibold">{{ $bizWhatsapp }}</span>
+                                    <a href="https://wa.me/{{ $cleanBizWa }}" target="_blank" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Call & WhatsApp: {{ $bizUnifiedContact }}">
+                                        <i class="fa-brands fa-whatsapp text-success me-1" style="font-size: 11px;"></i>
+                                        <i class="fa-solid fa-phone text-primary me-1" style="font-size: 9px;"></i>
+                                        <span class="fw-semibold">{{ $bizUnifiedContact }}</span>
                                     </a>
                                 @endif
                                 @if(!empty($bizEmail))
                                     <span class="text-muted opacity-50">·</span>
-                                    <a href="mailto:{{ $bizEmail }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Official Email">
+                                    <a href="mailto:{{ $bizEmail }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Official Email: {{ $bizEmail }}">
                                         <i class="fa-solid fa-envelope text-secondary me-1" style="font-size: 10px;"></i>
                                         <span>{{ $bizEmail }}</span>
                                     </a>
@@ -804,23 +801,20 @@
                                             <span>{{ $bizAddress }}</span>
                                         </span>
                                     @endif
-                                    @if(!empty($bizPhone))
+                                    @php
+                                        $bizUnifiedContact = !empty($bizPhone) ? $bizPhone : $bizWhatsapp;
+                                    @endphp
+                                    @if(!empty($bizUnifiedContact))
                                         @if(!empty($bizAddress))<span class="text-muted opacity-50">·</span>@endif
-                                        <a href="tel:{{ $bizPhone }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Call Us">
-                                            <i class="fa-solid fa-phone text-primary me-1" style="font-size: 10px;"></i>
-                                            <span class="fw-semibold">{{ $bizPhone }}</span>
-                                        </a>
-                                    @endif
-                                    @if(!empty($bizWhatsapp))
-                                        <span class="text-muted opacity-50">·</span>
-                                        <a href="https://wa.me/{{ $cleanBizWa }}" target="_blank" class="text-dark text-decoration-none d-inline-flex align-items-center" title="WhatsApp Us">
-                                            <i class="fa-brands fa-whatsapp text-success me-1" style="font-size: 11.5px;"></i>
-                                            <span class="fw-semibold">{{ $bizWhatsapp }}</span>
+                                        <a href="https://wa.me/{{ $cleanBizWa }}" target="_blank" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Call & WhatsApp: {{ $bizUnifiedContact }}">
+                                            <i class="fa-brands fa-whatsapp text-success me-1" style="font-size: 11px;"></i>
+                                            <i class="fa-solid fa-phone text-primary me-1" style="font-size: 9px;"></i>
+                                            <span class="fw-semibold">{{ $bizUnifiedContact }}</span>
                                         </a>
                                     @endif
                                     @if(!empty($bizEmail))
                                         <span class="text-muted opacity-50">·</span>
-                                        <a href="mailto:{{ $bizEmail }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Email Us">
+                                        <a href="mailto:{{ $bizEmail }}" class="text-dark text-decoration-none d-inline-flex align-items-center" title="Official Email: {{ $bizEmail }}">
                                             <i class="fa-solid fa-envelope text-secondary me-1" style="font-size: 10px;"></i>
                                             <span>{{ $bizEmail }}</span>
                                         </a>
@@ -3420,7 +3414,7 @@ function resetCrop() {
 
 /* Universal Typography: Kalpurush applied everywhere */
 .invoice-page-card,
-.invoice-page-card *,
+.invoice-page-card *:not(i):not([class*="fa-"]),
 .invoice-table,
 .invoice-table th,
 .invoice-table td,
@@ -3433,6 +3427,35 @@ function resetCrop() {
 .invoice-note-box,
 .invoice-total-words-box {
     font-family: 'Kalpurush', 'Hind Siliguri', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Ensure FontAwesome icons always render crisp and properly */
+.invoice-page-card i,
+.invoice-page-card [class*="fa-"],
+.invoice-page-card .fa,
+.invoice-page-card .fa-solid,
+.invoice-page-card .fa-regular,
+.invoice-page-card .fa-brands,
+.invoice-page-card .fas,
+.invoice-page-card .far,
+.invoice-page-card .fab {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", "FontAwesome" !important;
+    font-style: normal;
+    display: inline-block;
+}
+.invoice-page-card .fa-brands,
+.invoice-page-card .fab {
+    font-family: "Font Awesome 6 Brands" !important;
+}
+.invoice-page-card .fa-solid,
+.invoice-page-card .fas {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+.invoice-page-card .fa-regular,
+.invoice-page-card .far {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
 }
 
 /* Invoice Page Base Card */
@@ -3712,7 +3735,7 @@ function resetCrop() {
 
     body,
     .invoice-page-card,
-    .invoice-page-card *,
+    .invoice-page-card *:not(i):not([class*="fa-"]),
     .invoice-table,
     .invoice-table th,
     .invoice-table td,
@@ -3725,6 +3748,34 @@ function resetCrop() {
     .invoice-note-box,
     .invoice-total-words-box {
         font-family: 'Kalpurush', 'Hind Siliguri', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    .invoice-page-card i,
+    .invoice-page-card [class*="fa-"],
+    .invoice-page-card .fa,
+    .invoice-page-card .fa-solid,
+    .invoice-page-card .fa-regular,
+    .invoice-page-card .fa-brands,
+    .invoice-page-card .fas,
+    .invoice-page-card .far,
+    .invoice-page-card .fab {
+        font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", "FontAwesome" !important;
+        font-style: normal;
+        display: inline-block;
+    }
+    .invoice-page-card .fa-brands,
+    .invoice-page-card .fab {
+        font-family: "Font Awesome 6 Brands" !important;
+    }
+    .invoice-page-card .fa-solid,
+    .invoice-page-card .fas {
+        font-family: "Font Awesome 6 Free" !important;
+        font-weight: 900 !important;
+    }
+    .invoice-page-card .fa-regular,
+    .invoice-page-card .far {
+        font-family: "Font Awesome 6 Free" !important;
+        font-weight: 400 !important;
     }
 
     /* Suppress ALL Admin Layout Chrome */

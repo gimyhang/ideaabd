@@ -345,25 +345,25 @@
                         <h5 class="fw-bold mb-0 text-dark" id="liveReceiptBizName" style="font-size: 18px; letter-spacing: -0.2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</h5>
                         <div class="text-muted small {{ empty($settings['tagline']) ? 'd-none' : '' }}" id="liveReceiptTagline" style="font-size: 11px; margin-top: 1px;">{{ $settings['tagline'] ?? '' }}</div>
                         <div class="text-secondary small mt-1 d-flex align-items-center flex-wrap" style="font-size: 11px; line-height: 1.4;">
-                            <span id="liveReceiptAddress">{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
-                            <span class="text-muted mx-2 {{ empty($settings['phone']) ? 'd-none' : '' }}" id="liveReceiptPhoneDivider">|</span>
-                            <span class="d-inline-flex align-items-center {{ empty($settings['phone']) ? 'd-none' : '' }}" id="liveReceiptPhoneContainer">
-                                <i class="fa-solid fa-phone text-primary me-1.5" style="font-size: 10px;"></i>
-                                <span id="liveReceiptPhone">{{ $settings['phone'] ?? '' }}</span>
-                            </span>
+                            <span id="liveReceiptAddress">{{ $settings['address'] ?? 'Central Road, Rangpur 5400' }}</span>
                             @php
-                                $recWa = $settings['whatsapp'] ?? ($settings['phone'] ?? '');
+                                $recPhone = !empty($settings['phone']) ? $settings['phone'] : ($settings['whatsapp'] ?? '');
                             @endphp
-                            <span class="text-muted mx-2 {{ empty($recWa) ? 'd-none' : '' }}" id="liveReceiptWaDivider">|</span>
-                            <span class="d-inline-flex align-items-center {{ empty($recWa) ? 'd-none' : '' }}" id="liveReceiptWaContainer">
-                                <i class="fa-brands fa-whatsapp text-success me-1.5" style="font-size: 12px;"></i>
-                                <span id="liveReceiptWa">{{ $recWa }}</span>
-                            </span>
-                            <span class="text-muted mx-2 {{ empty($settings['email']) ? 'd-none' : '' }}" id="liveReceiptEmailDivider">|</span>
-                            <span class="d-inline-flex align-items-center {{ empty($settings['email']) ? 'd-none' : '' }}" id="liveReceiptEmailContainer">
-                                <i class="fa-solid fa-envelope text-secondary me-1.5" style="font-size: 10.5px;"></i>
-                                <span id="liveReceiptEmail">{{ $settings['email'] ?? '' }}</span>
-                            </span>
+                            @if(!empty($recPhone))
+                                <span class="text-muted mx-2" id="liveReceiptPhoneDivider">|</span>
+                                <span class="d-inline-flex align-items-center" id="liveReceiptPhoneContainer">
+                                    <i class="fa-brands fa-whatsapp text-success me-1" style="font-size: 11.5px;"></i>
+                                    <i class="fa-solid fa-phone text-primary me-1" style="font-size: 9.5px;"></i>
+                                    <span id="liveReceiptPhone" class="fw-semibold">{{ $recPhone }}</span>
+                                </span>
+                            @endif
+                            @if(!empty($settings['email']))
+                                <span class="text-muted mx-2" id="liveReceiptEmailDivider">|</span>
+                                <span class="d-inline-flex align-items-center" id="liveReceiptEmailContainer">
+                                    <i class="fa-solid fa-envelope text-secondary me-1.5" style="font-size: 10.5px;"></i>
+                                    <span id="liveReceiptEmail">{{ $settings['email'] }}</span>
+                                </span>
+                            @endif
                         </div>
                     </div>
                 </div>

@@ -77,13 +77,22 @@
                                     <i class="fa-solid fa-location-dot text-danger me-1"></i>{{ $bizAddress }}
                                 </span>
                             @endif
-                            @if(!empty($bizPhone))
-                                <span class="text-muted opacity-50">·</span>
-                                <span class="text-dark"><i class="fa-solid fa-phone text-primary me-1"></i>{{ $bizPhone }}</span>
+                            @php
+                                $bizUnifiedContact = !empty($bizPhone) ? $bizPhone : $bizWhatsapp;
+                            @endphp
+                            @if(!empty($bizUnifiedContact))
+                                @if(!empty($bizAddress))<span class="text-muted opacity-50">·</span>@endif
+                                <span class="text-dark d-inline-flex align-items-center">
+                                    <i class="fa-brands fa-whatsapp text-success me-1"></i>
+                                    <i class="fa-solid fa-phone text-primary me-1" style="font-size: 10px;"></i>
+                                    {{ $bizUnifiedContact }}
+                                </span>
                             @endif
-                            @if(!empty($bizWhatsapp))
+                            @if(!empty($bizEmail))
                                 <span class="text-muted opacity-50">·</span>
-                                <span class="text-dark"><i class="fa-brands fa-whatsapp text-success me-1"></i>{{ $bizWhatsapp }}</span>
+                                <span class="text-dark d-inline-flex align-items-center">
+                                    <i class="fa-solid fa-envelope text-secondary me-1"></i>{{ $bizEmail }}
+                                </span>
                             @endif
                         </div>
                     </div>
