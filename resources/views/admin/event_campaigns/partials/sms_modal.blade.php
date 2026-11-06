@@ -4,8 +4,20 @@
     $modalId = "smsModal{$modalPrefix}{$item->id}";
     $cleanPhone = preg_replace('/[^0-9]/', '', $item->phone);
     $cardUrl = url('/card/' . $item->registration_number);
-    $welcomeApproveSms = "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলায় আপনাকে স্বাগত। Download your card: {$cardUrl} — আইডিয়া প্রকাশন";
-    $cancellationSms = "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলা ২০২৬-এ আপনার নিবন্ধনটি বাতিল করা হয়েছে। অনুসন্ধানে: 01726976982 — আইডিয়া প্রকাশন";
+    $campaign = $item->campaign ?? ($campaign ?? null);
+    $campTitle = $campaign?->title ?? 'রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলা';
+
+    if (method_exists($item, 'isLibrary') && $item->isLibrary()) {
+        $welcomeApproveSms = "আইডিয়া প্রকাশন — আপনার পাঠাগারের নিবন্ধন (#{$item->registration_number}) অনুমোদিত হয়েছে। স্লিপ ডাউনলোড: {$cardUrl}";
+        $cancellationSms = "আইডিয়া প্রকাশন — দুঃখিত, আপনার পাঠাগারের নিবন্ধন (#{$item->registration_number}) অনুমোদন করা সম্ভব হয়নি। অনুসন্ধানে: 01726976982";
+    } elseif (method_exists($item, 'isScholarship') && $item->isScholarship()) {
+        $scholarshipUrl = method_exists($item, 'scholarshipUrl') ? $item->scholarshipUrl('print') : $cardUrl;
+        $welcomeApproveSms = "আইডিয়া প্রকাশন — '{$campTitle}'-এ আপনার আবেদন (#{$item->registration_number}) অনুমোদিত হয়েছে। ফরম: {$scholarshipUrl}";
+        $cancellationSms = "আইডিয়া প্রকাশন — '{$campTitle}'-এ আপনার আবেদন (#{$item->registration_number}) গৃহীত হয়নি। অনুসন্ধানে: 01726976982";
+    } else {
+        $welcomeApproveSms = "{$campTitle}-এ আপনাকে স্বাগত। Download your card: {$cardUrl} — আইডিয়া প্রকাশন";
+        $cancellationSms = "{$campTitle}-এ আপনার নিবন্ধনটি বাতিল করা হয়েছে। অনুসন্ধানে: 01726976982 — আইডিয়া প্রকাশন";
+    }
 @endphp
 
 <div class="modal fade sms-participant-modal" id="{{ $modalId }}" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">

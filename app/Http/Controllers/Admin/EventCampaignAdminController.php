@@ -1444,21 +1444,28 @@ class EventCampaignAdminController extends Controller
     }
 
     /** SMS gateways can take many seconds per message; send after the admin already has the page back. */
-    protected function smsLater(string $phone, string $text): void
+    protected function smsLater(string $phone, string $text, ?EventRegistration $registration = null): void
     {
-        \App\Services\SmsService::sendAsync($phone, $text);
+        $cleanPhone = \App\Support\PhoneNormalizer::toE164($phone) ?: $phone;
+        $campaignTitle = $registration?->campaign?->title ?? 'Event';
+        \App\Services\SmsService::sendAsync($cleanPhone, $text, [
+            'source'   => 'admin',
+            'purpose'  => 'campaign',
+            'campaign' => 'Event Action: ' . $campaignTitle,
+        ]);
     }
     /** Approval SMS worded for the registration's own campaign (library, scholarship or event). */
     protected function approvalSmsText(EventRegistration $registration): string
     {
         $registration->loadMissing('campaign');
         $no = $registration->registration_number;
+        $campaignTitle = $registration->campaign?->title ?: 'বৃত্তি কার্যক্রম';
 
         if ($registration->isLibrary()) {
             return "আইডিয়া প্রকাশন — আপনার পাঠাগারের নিবন্ধন (#{$no}) অনুমোদিত হয়েছে। স্লিপ ডাউনলোড: " . url('/card/' . $no);
         }
         if ($registration->isScholarship()) {
-            return "আইডিয়া প্রকাশন — '{$registration->campaign->title}'-এ আপনার আবেদন (#{$no}) অনুমোদিত হয়েছে। ফরম: " . $registration->scholarshipUrl('print');
+            return "আইডিয়া প্রকাশন — '{$campaignTitle}'-এ আপনার আবেদন (#{$no}) অনুমোদিত হয়েছে। ফরম: " . $registration->scholarshipUrl('print');
         }
 
         return "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলায় আপনাকে স্বাগত। Download your card: " . url('/card/' . $no) . " — আইডিয়া প্রকাশন";
@@ -1469,12 +1476,13 @@ class EventCampaignAdminController extends Controller
     {
         $registration->loadMissing('campaign');
         $no = $registration->registration_number;
+        $campaignTitle = $registration->campaign?->title ?: 'কার্যক্রম';
 
         if ($registration->isLibrary()) {
             return "আইডিয়া প্রকাশন — দুঃখিত, আপনার পাঠাগারের নিবন্ধন (#{$no}) অনুমোদন করা সম্ভব হয়নি। অনুসন্ধানে: 01726976982";
         }
         if ($registration->isScholarship()) {
-            return "আইডিয়া প্রকাশন — '{$registration->campaign->title}'-এ আপনার আবেদন (#{$no}) গৃহীত হয়নি। অনুসন্ধানে: 01726976982";
+            return "আইডিয়া প্রকাশন — '{$campaignTitle}'-এ আপনার আবেদন (#{$no}) গৃহীত হয়নি। অনুসন্ধানে: 01726976982";
         }
 
         return "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলা ২০২৬-এ আপনার নিবন্ধনটি বাতিল করা হয়েছে। অনুসন্ধানে: 01726976982 — আইডিয়া প্রকাশন";
@@ -1504,7 +1512,7 @@ class EventCampaignAdminController extends Controller
         if ($newStatus === 'confirmed' || $newStatus === 'selected') {
             // SMS on approval
             try {
-                $this->smsLater($registration->phone, $this->approvalSmsText($registration));
+                $this->smsLater($registration->phone, $this->approvalSmsText($registration), $registration);
             } catch (\Throwable $e) {
                 Log::warning("Approval SMS error: " . $e->getMessage());
             }
@@ -1530,7 +1538,7 @@ class EventCampaignAdminController extends Controller
         if ($newStatus === 'rejected') {
             // SMS on rejection / cancellation
             try {
-                $this->smsLater($registration->phone, $this->rejectionSmsText($registration));
+                $this->smsLater($registration->phone, $this->rejectionSmsText($registration), $registration);
             } catch (\Throwable $e) {
                 Log::warning("Rejection SMS error: " . $e->getMessage());
             }
@@ -2944,31 +2952,87 @@ class EventCampaignAdminController extends Controller
             'message' => 'required|string|max:1000',
         ]);
 
-        $phone = $registration->phone;
-        if (empty($phone)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'অংশগ্রহণকারীর কোনো মোবাইল নম্বর পাওয়া যায়নি।',
-            ], 422);
+        $registration->loadMissing('campaign');
+        $rawPhone = trim((string) $registration->phone);
+        if (empty($rawPhone)) {
+            $msg = 'অংশগ্রহণকারীর কোনো মোবাইল নম্বর পাওয়া যায়নি।';
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return back()->with('error', $msg);
         }
 
+        $phone = \App\Support\PhoneNormalizer::toE164($rawPhone) ?: preg_replace('/[^\d]/', '', $rawPhone);
+        if (empty($phone) || strlen($phone) < 10) {
+            $msg = "নম্বরটি সঠিক নয়: {$rawPhone}";
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return back()->with('error', $msg);
+        }
+
+        // Replace dynamic template placeholders
+        $campaign = $registration->campaign;
+        $cardUrl = url('/card/' . $registration->registration_number);
+        $venue = $campaign?->form_settings['form_venue'] ?? 'রংপুর';
+        $eventDate = $campaign?->form_settings['form_date'] ?? ($campaign?->starts_at ? $campaign->starts_at->format('d M Y') : '২০২৬');
+        $eventTitle = $campaign?->title ?? 'রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলা';
+
+        $finalMessage = str_replace([
+            '{name}',
+            '{reg_no}',
+            '{card_url}',
+            '{event_title}',
+            '{venue}',
+            '{date}',
+        ], [
+            $registration->name,
+            $registration->registration_number,
+            $cardUrl,
+            $eventTitle,
+            $venue,
+            $eventDate,
+        ], $validated['message']);
+
         try {
-            $res = \App\Services\SmsService::send($phone, $validated['message']);
+            $res = \App\Services\SmsService::send($phone, $finalMessage, [
+                'source'   => 'admin',
+                'purpose'  => 'campaign',
+                'campaign' => 'Event Registration: ' . ($registration->registration_number ?? $registration->id),
+            ]);
+
             if (!empty($res['success'])) {
+                $successMsg = "এসএমএস সফলভাবে {$phone} নম্বরে পাঠানো হয়েছে।";
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => $successMsg,
+                    ]);
+                }
+                return back()->with('success', $successMsg);
+            }
+
+            $failMsg = !empty($res['message']) ? $res['message'] : 'এসএমএস গেটওয়ে রেসপন্স ব্যর্থ হয়েছে।';
+            if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
-                    'success' => true,
-                    'message' => "এসএমএস সফলভাবে {$phone} নম্বরে পাঠানো হয়েছে।",
+                    'success' => false,
+                    'message' => $failMsg,
                 ]);
             }
-            return response()->json([
-                'success' => false,
-                'message' => 'এসএমএস গেটওয়ে রেসপন্স: ' . ($res['message'] ?? 'ব্যর্থ'),
-            ], 500);
+            return back()->with('error', $failMsg);
         } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'এসএমএস পাঠানোতে সমস্যা: ' . $e->getMessage(),
-            ], 500);
+            \Illuminate\Support\Facades\Log::error('Event registration sendCustomSms error: ' . $e->getMessage(), [
+                'registration_id' => $registration->id,
+                'phone'           => $phone,
+            ]);
+            $errorMsg = 'এসএমএস পাঠানোতে সমস্যা: ' . $e->getMessage();
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMsg,
+                ]);
+            }
+            return back()->with('error', $errorMsg);
         }
     }
 

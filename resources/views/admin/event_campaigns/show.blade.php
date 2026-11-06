@@ -5071,25 +5071,51 @@
                         'Accept': 'application/json'
                     }
                 })
-                .then(res => res.json())
+                .then(async res => {
+                    let data;
+                    try {
+                        data = await res.json();
+                    } catch (e) {
+                        data = { success: false, message: 'সার্ভার থেকে অপ্রত্যাশিত প্রতিক্রিয়া এসেছে।' };
+                    }
+                    return data;
+                })
                 .then(data => {
                     if (submitBtn) {
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = origHtml;
                     }
-                    if (data.success) {
+                    if (data && data.success) {
                         const modalEl = form.closest('.modal');
                         if (modalEl && typeof bootstrap !== 'undefined') {
                             const mInstance = bootstrap.Modal.getInstance(modalEl);
                             if (mInstance) mInstance.hide();
                         }
-                        if (window.showToast) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'সফল!',
+                                text: data.message || 'এসএমএস সফলভাবে প্রেরিত হয়েছে!',
+                                timer: 2500,
+                                showConfirmButton: false
+                            });
+                        } else if (window.showToast) {
                             window.showToast('<i class="fa-solid fa-circle-check text-success me-1"></i> ' + (data.message || 'এসএমএস সফলভাবে প্রেরিত হয়েছে!'));
                         } else {
                             alert(data.message || 'এসএমএস সফলভাবে প্রেরিত হয়েছে!');
                         }
                     } else {
-                        alert(data.message || 'এসএমএস প্রেরণ ব্যর্থ হয়েছে।');
+                        const errMsg = (data && data.message) ? data.message : 'এসএমএস প্রেরণ ব্যর্থ হয়েছে।';
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'ব্যর্থ হয়েছে',
+                                text: errMsg,
+                                confirmButtonColor: '#059669'
+                            });
+                        } else {
+                            alert(errMsg);
+                        }
                     }
                 })
                 .catch(err => {
@@ -5098,7 +5124,16 @@
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = origHtml;
                     }
-                    alert('সার্ভার সংযোগে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'সংযোগ সমস্যা',
+                            text: 'সার্ভার সংযোগে সমস্যা হয়েছে। অনুগ্রহ করে ইন্টারনেট বা গেটওয়ে স্ট্যাটাস চেক করুন।',
+                            confirmButtonColor: '#059669'
+                        });
+                    } else {
+                        alert('সার্ভার সংযোগে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+                    }
                 });
             });
 
