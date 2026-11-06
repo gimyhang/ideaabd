@@ -77,4 +77,37 @@
             clearLeftovers();
         }
     });
+
+    // Guard against third-party Offerwalls / intrusive screen-locking overlays (e.g. Google Offerwall / Rewarded modal)
+    function clearIntrusiveOfferwalls() {
+        var offerwalls = document.querySelectorAll('.fc-dialog-container, .fc-dialog, .fc-rewarded-dialog, .google-rewarded-video, [aria-label*="Offerwall" i]');
+        if (offerwalls.length > 0) {
+            offerwalls.forEach(function (el) { el.remove(); });
+        }
+        if (document.body.classList.contains('fc-dialog-open') || document.body.classList.contains('fc-rewarded-open')) {
+            document.body.classList.remove('fc-dialog-open', 'fc-rewarded-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('position');
+        }
+        if (document.documentElement.classList.contains('fc-dialog-open') || document.documentElement.classList.contains('fc-rewarded-open')) {
+            document.documentElement.classList.remove('fc-dialog-open', 'fc-rewarded-open');
+            document.documentElement.style.removeProperty('overflow');
+            document.documentElement.style.removeProperty('position');
+        }
+    }
+
+    if (window.MutationObserver) {
+        var observer = new MutationObserver(function (mutations) {
+            for (var i = 0; i < mutations.length; i++) {
+                if (document.querySelector('.fc-dialog-container, .fc-dialog, [aria-label*="Offerwall" i]')) {
+                    clearIntrusiveOfferwalls();
+                    break;
+                }
+            }
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+            observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
+        });
+    }
+    setInterval(clearIntrusiveOfferwalls, 1500);
 })();

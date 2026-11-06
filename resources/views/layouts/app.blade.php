@@ -270,8 +270,17 @@
         <link rel="icon" href="{{ asset('favicon.ico') }}">
     @endif
 
-    <!-- Google AdSense Official Script -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4534355865737776" crossorigin="anonymous"></script>
+    <!-- Google AdSense Official Script (Auto-Ads / Offerwalls disabled by default to prevent screen blocking) -->
+    @if(config('services.google_adsense.enabled', true))
+        @php
+            $adsenseClientId = config('services.google_adsense.client_id', 'ca-pub-4534355865737776');
+            $enableAutoAds = config('services.google_adsense.auto_ads', false);
+            $adsenseSrc = $enableAutoAds 
+                ? 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' . e($adsenseClientId)
+                : 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+        @endphp
+        <script async src="{{ $adsenseSrc }}" crossorigin="anonymous"></script>
+    @endif
     
     <!-- Fonts: Kalpurush, Nikosh, Hind Siliguri, Noto Sans Bengali & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

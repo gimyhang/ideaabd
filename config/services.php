@@ -81,4 +81,17 @@ return [
         'threshold'  => (int) env('LOGIN_FAILED_ATTEMPTS_FOR_CAPTCHA', 3),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Google AdSense Configuration
+    |--------------------------------------------------------------------------
+    | auto_ads: Set to false to disable intrusive full-screen Offerwalls / 
+    | Rewarded popups ('আরও কন্টেন্ট আনলক করুন') while keeping manual ad units.
+    */
+    'google_adsense' => [
+        'enabled'   => env('GOOGLE_ADSENSE_ENABLED', true),
+        'client_id' => env('GOOGLE_ADSENSE_CLIENT_ID', 'ca-pub-4534355865737776'),
+        'auto_ads'  => env('GOOGLE_ADSENSE_AUTO_ADS', false),
+    ],
+
 ];

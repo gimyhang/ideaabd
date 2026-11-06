@@ -1504,3 +1504,37 @@ body.offcanvas-open-lock { overflow: hidden; }
 }
 .md-menu .site-m-link.bg-primary::after { content: ''; position: absolute; right: 9px; top: 9px; width: 7px; height: 7px; border-radius: 50%; background: #fde047; box-shadow: 0 0 0 3px rgba(253, 224, 71, .3); }
 body.dark-mode .md-menu .site-m-link { background: #111827 !important; color: #f1f5f9 !important; border-color: #334155; }
+
+/* ==========================================================================
+   Defensive Guard: Suppress Intrusive Offerwalls & Content-Locking Modals
+   Prevents full-screen locks ('আরও কন্টেন্ট আনলক করুন' / offerwall modals)
+   ========================================================================== */
+.fc-dialog-container,
+.fc-dialog,
+.fc-rewarded-dialog,
+.fc-ab-root,
+.google-rewarded-video,
+div[id*="google-rewarded"],
+iframe[aria-label*="Offerwall" i],
+iframe[title*="Offerwall" i],
+.google-anno-offerwall,
+div[class*="rewarded-ad-overlay"] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    z-index: -99999 !important;
+}
+
+body.fc-dialog-open,
+body.fc-rewarded-open,
+html.fc-dialog-open,
+html.fc-rewarded-open {
+    overflow: auto !important;
+    position: static !important;
+    pointer-events: auto !important;
+}
