@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Author\Models\Author;
+use Modules\SEO\Traits\HasSeo;
 
 class ResearchPaper extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasSeo;
 
     protected $fillable = [
         'title',

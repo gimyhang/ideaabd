@@ -39,6 +39,7 @@ class SeoScanCommand extends Command
                 ['Publishers (প্রকাশকবৃন্দ)', $summary['publishers']],
                 ['E-books (ই-বুক)', $summary['ebooks']],
                 ['Webzines (ওয়েবজিন)', $summary['webzines']],
+                ['Research Papers (গবেষণাপত্র)', $summary['research'] ?? 0],
                 ['Static Pages (পেজ)', $summary['pages']],
                 ['Total Items (সর্বমোট)', $summary['total']],
             ]

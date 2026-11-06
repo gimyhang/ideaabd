@@ -326,6 +326,42 @@ class AutoSeoScannerService
                 ];
                 break;
 
+            case 'ResearchPaper':
+                $title = trim($model->title ?? '');
+                $authorName = $model->author?->name ?? ($model->author_name ?: 'আইডিয়া গবেষক');
+                $metaTitle = $title . ' — ' . $authorName . ' | আইডিয়া গবেষণা';
+                $abstract = $model->abstract ?: $model->content ?: $title;
+                $metaDescription = $this->cleanExcerpt($abstract, 155);
+
+                $keywordsList = [$title, $authorName, 'গবেষণাপত্র', 'রিসার্চ পেপার', 'সাহিত্য গবেষণা', 'আইডিয়া প্রকাশন'];
+                $metaKeywords = array_filter(array_unique($keywordsList));
+
+                $canonicalUrl = \Illuminate\Support\Facades\Route::has('research.show') ? route('research.show', $model->slug ?? $model->id) : url('/research/' . ($model->slug ?? $model->id));
+                $ogImage = SiteSetting::blogOgBannerUrl() ?: asset('images/og-banner.jpg');
+                $ogType = 'article';
+                $schemaType = 'ScholarlyArticle';
+                $contentText = ($model->abstract ?? '') . ' ' . ($model->content ?? '');
+
+                $schemaJson = [
+                    '@context'    => 'https://schema.org',
+                    '@type'       => 'ScholarlyArticle',
+                    'headline'    => $title,
+                    'name'        => $title,
+                    'description' => $metaDescription,
+                    'url'         => $canonicalUrl,
+                    'author'      => [
+                        '@type' => 'Person',
+                        'name'  => $authorName,
+                    ],
+                    'publisher'   => [
+                        '@type' => 'Organization',
+                        'name'  => $siteName,
+                        'url'   => url('/'),
+                    ],
+                    'inLanguage'  => 'bn',
+                ];
+                break;
+
             default:
                 $title = trim($model->title ?? $model->name ?? $className);
                 $metaTitle = $title . ' | ' . $siteName;
@@ -485,6 +521,7 @@ class AutoSeoScannerService
             'publishers'  => 0,
             'ebooks'      => 0,
             'webzines'    => 0,
+            'research'    => 0,
             'pages'       => 0,
             'total'       => 0,
         ];
@@ -543,7 +580,16 @@ class AutoSeoScannerService
             }
         }
 
-        // 7. Core Static Pages
+        // 7. Research Papers
+        if (class_exists(\Modules\Research\Models\ResearchPaper::class)) {
+            $papers = \Modules\Research\Models\ResearchPaper::where('is_published', true)->get();
+            foreach ($papers as $rp) {
+                $this->scanAndSave($rp);
+                $summary['research']++;
+            }
+        }
+
+        // 8. Core Static Pages
         $staticPages = ['/', '/books', '/ebooks', '/authors', '/publishers', '/blog', '/webzines', '/research', '/about', '/contact', '/terms'];
         foreach ($staticPages as $path) {
             $this->scanAndSavePath($path);
