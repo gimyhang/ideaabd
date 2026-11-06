@@ -37,6 +37,8 @@
 {!! json_encode($researchSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_HEX_TAG | JSON_HEX_AMP) !!}
 </script>
 @endsection
+
+@section('content')
 <div class="container py-4 mb-5">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">

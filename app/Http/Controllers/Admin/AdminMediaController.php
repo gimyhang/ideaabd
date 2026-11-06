@@ -1365,7 +1365,7 @@ class AdminMediaController extends Controller
     public function destroy(Request $request): RedirectResponse|JsonResponse
     {
         $path = $request->input('path');
-        if (!$path || !File::exists($path) || !$this->isSafePath($path)) {
+        if (!$path || !File::isFile($path) || !$this->isSafePath($path)) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Media file not found or unauthorized path.'], 404);
             }
@@ -1386,17 +1386,17 @@ class AdminMediaController extends Controller
     }
 
     /**
-     * Security check: ensure path is within public or storage.
+     * Security check: ensure path is strictly within public or storage directories.
      */
     private function isSafePath(string $path): bool
     {
-        $publicDir = strtolower(str_replace('\\', '/', realpath(public_path()) ?: public_path()));
-        $storageDir = strtolower(str_replace('\\', '/', realpath(storage_path()) ?: storage_path()));
+        $publicDir = rtrim(strtolower(str_replace('\\', '/', realpath(public_path()) ?: public_path())), '/') . '/';
+        $storageDir = rtrim(strtolower(str_replace('\\', '/', realpath(storage_path()) ?: storage_path())), '/') . '/';
         $realPath = realpath($path);
 
         if (!$realPath) {
             $parentDir = realpath(dirname($path)) ?: dirname($path);
-            $normParent = strtolower(str_replace('\\', '/', $parentDir));
+            $normParent = rtrim(strtolower(str_replace('\\', '/', $parentDir)), '/') . '/';
             return str_starts_with($normParent, $publicDir) || str_starts_with($normParent, $storageDir);
         }
 
