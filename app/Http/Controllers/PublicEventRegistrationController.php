@@ -75,7 +75,7 @@ class PublicEventRegistrationController extends Controller
         'previous_subject', 'subject_choice', 'scholarship_degree', 'admission_fee', 'monthly_fee', 'hostel_cost',
         'father_name', 'mother_name', 'father_income', 'mother_income', 'guardian_income', 'father_phone', 'mother_phone',
         'guardian_name', 'guardian_phone', 'gender', 'religion', 'nationality', 'birth_date', 'marital_status',
-        'annual_income', 'guardian_income', 'tuition_fee', 'other_scholarship', 'other_scholarship_details', 'prev_scholarships',
+        'annual_income', 'tuition_fee', 'other_scholarship', 'other_scholarship_details', 'prev_scholarships',
         'prev_joyee', 'books_read_count', 'reading_habit', 'books_read_names',
         'national_id', 'father_occupation', 'mother_occupation', 'father_status', 'mother_status', 'family_count', 'earning_count', 'orphan_status', 'disability', 'disability_type', 'disability_details', 'guardian_relation', 'current_year',
         'pay_method', 'pay_account_owner', 'pay_account_name', 'pay_account_no', 'pay_bank_name', 'pay_bank_branch',
