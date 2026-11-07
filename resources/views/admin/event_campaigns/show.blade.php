@@ -3021,14 +3021,14 @@
                                                         <span class="small fw-bold text-muted" style="font-size: 10.5px;">ডানে ↔ বামে (X)</span>
                                                         <span class="badge bg-secondary-subtle text-secondary" id="photoOffsetXBadge" style="font-size: 10px;">{{ $cPhotoOffsetX }} px</span>
                                                     </div>
-                                                    <input type="range" class="custom-range-slider" id="photoOffsetXSlider" name="photo_offset_x" min="-80" max="80" step="1" value="{{ $cPhotoOffsetX }}">
+                                                    <input type="range" class="custom-range-slider" id="photoOffsetXSlider" name="photo_offset_x" min="-220" max="220" step="1" value="{{ $cPhotoOffsetX }}">
                                                 </div>
                                                 <div class="mb-2">
                                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                                         <span class="small fw-bold text-muted" style="font-size: 10.5px;">উপরে ↕ নিচে (Y)</span>
                                                         <span class="badge bg-secondary-subtle text-secondary" id="photoOffsetYBadge" style="font-size: 10px;">{{ $cPhotoOffsetY }} px</span>
                                                     </div>
-                                                    <input type="range" class="custom-range-slider" id="photoOffsetYSlider" name="photo_offset_y" min="-80" max="80" step="1" value="{{ $cPhotoOffsetY }}">
+                                                    <input type="range" class="custom-range-slider" id="photoOffsetYSlider" name="photo_offset_y" min="-260" max="260" step="1" value="{{ $cPhotoOffsetY }}">
                                                 </div>
                                                 <div>
                                                     <div class="d-flex align-items-center justify-content-between mb-1">
@@ -3529,14 +3529,14 @@
                                                     <span class="small fw-bold text-muted" style="font-size: 10.5px;">ডানে ↔ বামে (X)</span>
                                                     <span class="badge bg-secondary-subtle text-secondary" id="qrOffsetXBadge" style="font-size: 10px;">{{ $cQrOffsetX }} px</span>
                                                 </div>
-                                                <input type="range" class="custom-range-slider" id="qrOffsetXSlider" name="qr_offset_x" min="-180" max="180" step="1" value="{{ $cQrOffsetX }}">
+                                                <input type="range" class="custom-range-slider" id="qrOffsetXSlider" name="qr_offset_x" min="-200" max="200" step="1" value="{{ $cQrOffsetX }}">
                                             </div>
                                             <div class="col-6">
                                                 <div class="d-flex align-items-center justify-content-between mb-1">
                                                     <span class="small fw-bold text-muted" style="font-size: 10.5px;">উপরে ↕ নিচে (Y)</span>
                                                     <span class="badge bg-secondary-subtle text-secondary" id="qrOffsetYBadge" style="font-size: 10px;">{{ $cQrOffsetY }} px</span>
                                                 </div>
-                                                <input type="range" class="custom-range-slider" id="qrOffsetYSlider" name="qr_offset_y" min="-200" max="200" step="1" value="{{ $cQrOffsetY }}">
+                                                <input type="range" class="custom-range-slider" id="qrOffsetYSlider" name="qr_offset_y" min="-250" max="250" step="1" value="{{ $cQrOffsetY }}">
                                             </div>
                                         </div>
                                     </div>
@@ -3614,7 +3614,8 @@
                                         <div class="card-middle-section" id="liveMiddleSection" style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                             <div class="author-photo-wrapper" id="livePhotoWrapper" style="margin-bottom: {{ $cPhotoNameGap }}px; transform: translate({{ $cPhotoOffsetX }}px, {{ $cPhotoOffsetY }}px) scale({{ $cPhotoScale / 100 }}); transition: transform 0.05s ease-out; {{ $cShowPhoto ? '' : 'display: none !important;' }}; display: flex; align-items: center; justify-content: center;">
                                                 <div class="author-photo-frame card-interactive-node" id="livePhotoFrame" data-node="photo" data-tab="tab-photo-pane" 
-                                                     style="width: {{ $cPhotoSize }}px; height: {{ $cPhotoSize }}px; border-radius: {{ $cPhotoBorderRadius }}; border: {{ $cPhotoBorderWidth }}px solid {{ $cPhotoBorderColor }}; filter: brightness({{ $cPhotoBrightness }}%) contrast({{ $cPhotoContrast }}%) grayscale({{ $cPhotoGrayscale }}%) sepia({{ $cPhotoSepia }}%); @if($cPhotoShadow === 'glow') box-shadow: 0 0 16px rgba(250, 204, 21, 0.6); @elseif($cPhotoShadow === 'deep') box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45); @elseif($cPhotoShadow === 'none') box-shadow: none; @else box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); @endif cursor: grab; user-select: none; touch-action: none; background-color: #f8fafc; background-image: url('{{ $cDemoPhotoUrl ?: "data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 160 160\'><rect width=\'160\' height=\'160\' fill=\'%23e2e8f0\'/><circle cx=\'80\' cy=\'62\' r=\'30\' fill=\'%2394a3b8\'/><path d=\'M80 102 C50 102 24 125 20 160 L140 160 C136 125 110 102 80 102 Z\' fill=\'%2364748b\'/></svg>" }}'); background-position: center center; background-size: cover; background-repeat: no-repeat; display: flex; align-items: center; justify-content: center; box-sizing: border-box;">
+                                                     style="width: {{ $cPhotoSize }}px; height: {{ $cPhotoSize }}px; border-radius: {{ $cPhotoBorderRadius }}; border: {{ $cPhotoBorderWidth }}px solid {{ $cPhotoBorderColor }}; filter: brightness({{ $cPhotoBrightness }}%) contrast({{ $cPhotoContrast }}%) grayscale({{ $cPhotoGrayscale }}%) sepia({{ $cPhotoSepia }}%); @if($cPhotoShadow === 'glow') box-shadow: 0 0 16px rgba(250, 204, 21, 0.6); @elseif($cPhotoShadow === 'deep') box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45); @elseif($cPhotoShadow === 'none') box-shadow: none; @else box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); @endif cursor: grab; user-select: none; touch-action: none; background-color: #f8fafc; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; box-sizing: border-box;">
+                                                    <img id="liveCardAuthorPhotoImg" src="{{ $cDemoPhotoUrl ?: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'><rect width='160' height='160' fill='%23e2e8f0'/><circle cx='80' cy='62' r='30' fill='%2394a3b8'/><path d='M80 102 C50 102 24 125 20 160 L140 160 C136 125 110 102 80 102 Z' fill='%2364748b'/></svg>" }}" alt="Author Photo" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; pointer-events: none;" crossorigin="anonymous">
                                                     <div class="photo-placeholder" id="liveCardAuthorPhotoPlaceholder" style="width: 100%; height: 100%; display: none; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.18); color: #ffffff; font-size: 32px; border-radius: inherit;">
                                                         <i class="fa-solid fa-user-pen"></i>
                                                     </div>

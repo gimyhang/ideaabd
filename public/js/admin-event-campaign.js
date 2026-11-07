@@ -1517,25 +1517,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (btnNudgePhotoUp) {
             btnNudgePhotoUp.addEventListener('click', function () {
-                curPhotoOffsetY = Math.max(-250, curPhotoOffsetY - 4);
+                curPhotoOffsetY = Math.max(-260, curPhotoOffsetY - 4);
                 updatePhotoTransform();
             });
         }
         if (btnNudgePhotoDown) {
             btnNudgePhotoDown.addEventListener('click', function () {
-                curPhotoOffsetY = Math.min(300, curPhotoOffsetY + 4);
+                curPhotoOffsetY = Math.min(260, curPhotoOffsetY + 4);
                 updatePhotoTransform();
             });
         }
         if (btnNudgePhotoLeft) {
             btnNudgePhotoLeft.addEventListener('click', function () {
-                curPhotoOffsetX = Math.max(-200, curPhotoOffsetX - 4);
+                curPhotoOffsetX = Math.max(-220, curPhotoOffsetX - 4);
                 updatePhotoTransform();
             });
         }
         if (btnNudgePhotoRight) {
             btnNudgePhotoRight.addEventListener('click', function () {
-                curPhotoOffsetX = Math.min(200, curPhotoOffsetX + 4);
+                curPhotoOffsetX = Math.min(220, curPhotoOffsetX + 4);
                 updatePhotoTransform();
             });
         }
@@ -1580,15 +1580,15 @@ document.addEventListener('DOMContentLoaded', function () {
         // Sample Portrait Preview Switch
         const toggleSamplePortrait = document.getElementById('toggleSamplePortrait');
         const liveAuthorPhotoPlaceholder = document.getElementById('liveCardAuthorPhotoPlaceholder');
+        const liveCardAuthorPhotoImg = document.getElementById('liveCardAuthorPhotoImg');
 
         if (toggleSamplePortrait && photoFrame && liveAuthorPhotoPlaceholder) {
-            const defaultPhotoBg = photoFrame.style.backgroundImage || `url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 160 160\'><rect width=\'160\' height=\'160\' fill=\'%23e2e8f0\'/><circle cx=\'80\' cy=\'62\' r=\'30\' fill=\'%2394a3b8\'/><path d=\'M80 102 C50 102 24 125 20 160 L140 160 C136 125 110 102 80 102 Z\' fill=\'%2364748b\'/></svg>")`;
             toggleSamplePortrait.addEventListener('change', function () {
                 if (this.checked) {
-                    photoFrame.style.backgroundImage = defaultPhotoBg;
+                    if (liveCardAuthorPhotoImg) liveCardAuthorPhotoImg.style.display = 'block';
                     liveAuthorPhotoPlaceholder.style.display = 'none';
                 } else {
-                    photoFrame.style.backgroundImage = 'none';
+                    if (liveCardAuthorPhotoImg) liveCardAuthorPhotoImg.style.display = 'none';
                     liveAuthorPhotoPlaceholder.style.display = 'flex';
                 }
             });
@@ -2190,8 +2190,8 @@ document.addEventListener('DOMContentLoaded', function () {
             makeCardElementDraggable(photoFrame,
                 () => ({ x: curPhotoOffsetX, y: curPhotoOffsetY }),
                 (newX, newY) => {
-                    curPhotoOffsetX = Math.max(-200, Math.min(200, Math.round(newX)));
-                    curPhotoOffsetY = Math.max(-250, Math.min(300, Math.round(newY)));
+                    curPhotoOffsetX = Math.max(-220, Math.min(220, Math.round(newX)));
+                    curPhotoOffsetY = Math.max(-260, Math.min(260, Math.round(newY)));
                     updatePhotoTransform();
                 }
             );
@@ -2201,8 +2201,8 @@ document.addEventListener('DOMContentLoaded', function () {
             makeCardElementDraggable(liveNamePlate,
                 () => ({ x: curNameOffsetX, y: curNameOffsetY }),
                 (newX, newY) => {
-                    curNameOffsetX = Math.max(-200, Math.min(200, Math.round(newX)));
-                    curNameOffsetY = Math.max(-250, Math.min(250, Math.round(newY)));
+                    curNameOffsetX = Math.max(-220, Math.min(220, Math.round(newX)));
+                    curNameOffsetY = Math.max(-260, Math.min(260, Math.round(newY)));
                     updateNameTransform();
                 }
             );
@@ -2212,8 +2212,8 @@ document.addEventListener('DOMContentLoaded', function () {
             makeCardElementDraggable(liveQrSection,
                 () => ({ x: curQrOffsetX, y: curQrOffsetY }),
                 (newX, newY) => {
-                    curQrOffsetX = Math.max(-180, Math.min(180, Math.round(newX)));
-                    curQrOffsetY = Math.max(-200, Math.min(200, Math.round(newY)));
+                    curQrOffsetX = Math.max(-200, Math.min(200, Math.round(newX)));
+                    curQrOffsetY = Math.max(-250, Math.min(250, Math.round(newY)));
                     updateQrTransform();
                 }
             );
@@ -2625,7 +2625,14 @@ document.addEventListener('DOMContentLoaded', function () {
                             backgroundColor: null,
                             logging: false,
                             scrollX: 0,
-                            scrollY: 0
+                            scrollY: 0,
+                            onclone: (clonedDoc) => {
+                                const card = clonedDoc.getElementById('adminLiveCard');
+                                if (card) {
+                                    card.style.boxShadow = 'none';
+                                    card.style.margin = '0';
+                                }
+                            }
                         });
                     }).then(canvas => {
                         const link = document.createElement('a');

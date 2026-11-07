@@ -253,13 +253,16 @@
            RSU OFFICIAL INVITATION CARD (3.8 x 5.4 inch Layout)
            ========================================================================== */
         .card-wrapper {
-            width: 3.8in;
+            width: 365px;
             max-width: 100%;
         }
 
         .rsu-invitation-card {
-            width: 3.8in;
-            height: 5.4in;
+            width: 365px;
+            height: 518px;
+            min-height: 518px;
+            max-height: 518px;
+            box-sizing: border-box;
             position: relative;
             overflow: hidden;
             border-radius: 12px;
@@ -365,17 +368,14 @@
             @else
                 box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
             @endif
-            filter: brightness({{ $photoBrightness }}%) contrast({{ $photoContrast }}%) grayscale({{ $photoGrayscale }}%) sepia({{ $photoSepia }}%);
             background-color: #f8fafc;
-            background-position: center center;
-            background-size: cover;
-            background-repeat: no-repeat;
             position: relative;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
+            overflow: hidden;
         }
         .author-photo-frame .photo-placeholder {
             width: 100%;
@@ -598,8 +598,10 @@
                         }
                     @endphp
                     <div class="author-photo-wrapper">
-                        <div class="author-photo-frame" @if($photoBgUrl) style="background-image: url('{{ $photoBgUrl }}');" @endif>
-                            @if(!$photoBgUrl)
+                        <div class="author-photo-frame">
+                            @if($photoBgUrl)
+                                <img src="{{ $photoBgUrl }}" alt="{{ $registration->name }}" class="author-actual-photo" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; filter: brightness({{ $photoBrightness }}%) contrast({{ $photoContrast }}%) grayscale({{ $photoGrayscale }}%) sepia({{ $photoSepia }}%);" crossorigin="anonymous">
+                            @else
                                 <div class="photo-placeholder">
                                     <i class="fa-solid fa-user-pen"></i>
                                 </div>
@@ -705,7 +707,14 @@
                     logging: false,
                     backgroundColor: null,
                     scrollX: 0,
-                    scrollY: 0
+                    scrollY: 0,
+                    onclone: (clonedDoc) => {
+                        const card = clonedDoc.getElementById('printableCard');
+                        if (card) {
+                            card.style.boxShadow = 'none';
+                            card.style.margin = '0';
+                        }
+                    }
                 });
             }).then(canvas => {
                 const link = document.createElement('a');
@@ -752,7 +761,14 @@
                     allowTaint: false, 
                     logging: false,
                     letterRendering: true,
-                    scrollY: 0
+                    scrollY: 0,
+                    onclone: (clonedDoc) => {
+                        const card = clonedDoc.getElementById('printableCard');
+                        if (card) {
+                            card.style.boxShadow = 'none';
+                            card.style.margin = '0';
+                        }
+                    }
                 },
                 jsPDF:        { unit: 'in', format: [3.8, 5.4], orientation: 'portrait' }
             };
