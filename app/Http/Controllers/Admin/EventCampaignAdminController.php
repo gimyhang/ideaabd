@@ -2975,9 +2975,11 @@ class EventCampaignAdminController extends Controller
         $campaign->loadCount('registrations');
         $query = $campaign->registrations();
 
-        // Default to confirmed registrations unless explicitly asked for all or another status
-        $status = $request->input('status', 'confirmed');
-        if ($status !== 'all' && !empty($status)) {
+        // Default to approved registrations only
+        $status = $request->input('status', 'approved');
+        if ($status === 'approved' || $status === 'confirmed') {
+            $query->whereIn('status', ['confirmed', 'selected', 'approved']);
+        } elseif ($status !== 'all' && !empty($status)) {
             $query->where('status', $status);
         }
         if ($request->filled('payment_status')) {

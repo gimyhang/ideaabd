@@ -609,32 +609,22 @@
             </a>
             <div>
                 <h1 class="batch-title">
-                    <i class="fa-solid fa-id-card text-success"></i>
-                    <span>সকল কার্ড ডাউনলোড ও প্রিন্ট</span>
-                    <span class="batch-badge">{{ $totalCount }} টি কার্ড</span>
+                    <i class="fa-solid fa-file-zipper text-success"></i>
+                    <span>অনুমোদিত কার্ড জিপ ডাউনলোড</span>
+                    <span class="batch-badge">{{ $totalCount }} টি অনুমোদিত কার্ড</span>
                 </h1>
-                <small style="color: #94a3b8; font-size: 11px;">{{ $campaign->title }}</small>
+                <small style="color: #94a3b8; font-size: 11px;">{{ $campaign->title }} • সিঙ্গেল কার্ড স্টাইল PNG প্যাকেজ</small>
             </div>
         </div>
 
-        <!-- Filter Status Switch -->
-        <div class="d-none d-md-flex align-items-center gap-1.5">
-            <a href="{{ route('admin.event-campaigns.cards.download-all', ['campaign' => $campaign->id, 'status' => 'confirmed']) }}" class="filter-pill-link {{ $status === 'confirmed' ? 'active' : '' }}">
-                <i class="fa-solid fa-circle-check text-success"></i> শুধু কনফার্মড
-            </a>
-            <a href="{{ route('admin.event-campaigns.cards.download-all', ['campaign' => $campaign->id, 'status' => 'all']) }}" class="filter-pill-link {{ $status === 'all' ? 'active' : '' }}">
-                <i class="fa-solid fa-users"></i> সকল অংশগ্রহণকারী
-            </a>
-        </div>
-
         <div class="batch-btn-group">
-            <button type="button" id="btnZipAll" onclick="startBatchZipDownload()" class="btn-batch btn-zip">
+            <button type="button" id="btnZipAll" onclick="startBatchZipDownload()" class="btn-batch btn-zip" style="font-size: 13px; padding: 10px 22px;">
                 <i class="fa-solid fa-file-zipper"></i>
-                <span id="btnZipText">এক ক্লিকে অল কার্ড জিপ ডাউনলোড (ZIP - All PNG)</span>
+                <span id="btnZipText">সকল অনুমোদিত কার্ড জিপ ডাউনলোড (ZIP - All Single Cards)</span>
             </button>
             <button type="button" onclick="window.print()" class="btn-batch btn-pdf" title="ব্রাউজার থেকে সরাসরি প্রিন্ট বা 'Save as PDF' করুন">
                 <i class="fa-solid fa-print"></i>
-                <span>সকল কার্ড প্রিন্ট / PDF</span>
+                <span>প্রিন্ট / PDF</span>
             </button>
         </div>
     </header>
@@ -667,7 +657,7 @@
                 $formData = $registration->form_data ?? [];
 
                 // Candidate Photo: resolve base64 or asset
-                $photoPath = $formData['student_photo'] ?? ($formData['author_photo'] ?? null);
+                $photoPath = $formData['student_photo'] ?? ($formData['photo'] ?? ($formData['author_photo'] ?? ($formData['applicant_photo'] ?? ($registration->photo ?? null))));
                 $photoBgUrl = null;
                 if (!empty($photoPath)) {
                     try {
@@ -702,7 +692,7 @@
                 $qrApiUrl  = \App\Services\BarcodeService::generateQrCodeDataUri($verifyUrl, $qrCodeSize);
 
                 $safeName = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $registration->name);
-                $filename = "Card_{$registration->registration_number}_" . ($safeName ?: 'delegate') . ".png";
+                $filename = "Invitation_Card_{$registration->registration_number}_" . ($safeName ?: 'delegate') . ".png";
             @endphp
 
             <div class="card-item-container" id="cardContainer_{{ $registration->id }}">
@@ -922,7 +912,7 @@
 
                 try {
                     const canvas = await html2canvas(cardEl, {
-                        scale: 2, // 2x gives 730x1036px crisp print-ready resolution while keeping memory lean
+                        scale: 2.5, // 2.5x gives 912x1295px razor-sharp studio quality matching single card print
                         useCORS: true,
                         allowTaint: false,
                         backgroundColor: null,
@@ -970,7 +960,7 @@
                     progressPercentText.textContent = `${Math.round(metadata.percent)}%`;
                 });
 
-                const zipFilename = "All_Cards_{{ preg_replace('/[^a-zA-Z0-9_\-]/', '_', $campaign->title) }}_Total_{{ $totalCount }}.zip";
+                const zipFilename = "All_Approved_Cards_{{ preg_replace('/[^a-zA-Z0-9_\-]/', '_', $campaign->title) }}_Total_{{ $totalCount }}.zip";
                 
                 if (window.saveAs) {
                     saveAs(zipContent, zipFilename);
@@ -983,7 +973,7 @@
                     document.body.removeChild(link);
                 }
 
-                progressCurrentStatus.innerHTML = '<span style="color: #10b981; font-weight: bold;"><i class="fa-solid fa-circle-check"></i> সফলভাবে ডাউনলোড সম্পন্ন হয়েছে!</span>';
+                progressCurrentStatus.innerHTML = '<span style="color: #10b981; font-weight: bold;"><i class="fa-solid fa-circle-check"></i> সফলভাবে জিপ ডাউনলোড সম্পন্ন হয়েছে!</span>';
                 setTimeout(() => {
                     progressOverlay.style.display = 'none';
                     btnZip.disabled = false;
@@ -995,6 +985,16 @@
                 btnZip.disabled = false;
             }
         }
+
+        // Auto-start download if requested via query param ?autostart=1
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('autostart') === '1' && {{ $totalCount }} > 0) {
+                setTimeout(() => {
+                    startBatchZipDownload();
+                }, 600);
+            }
+        });
     </script>
 </body>
 </html>

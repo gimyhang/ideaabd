@@ -230,9 +230,9 @@
                     <i class="fa-solid fa-wand-magic-sparkles text-warning"></i>
                     <span>কার্ড ডিজাইন</span>
                 </button>
-                <a href="{{ route('admin.event-campaigns.cards.download-all', $campaign->id) }}?status=confirmed" target="_blank" class="aec-btn-hero aec-btn-hero-success aec-btn-hover-lift d-inline-flex align-items-center" title="সকল অনুমোদিত কার্ড এক ক্লিকে ডাউনলোড ও প্রিন্ট">
-                    <i class="fa-solid fa-cloud-arrow-down text-white"></i>
-                    <span>অল কার্ড ডাউনলোড</span>
+                <a href="{{ route('admin.event-campaigns.cards.download-all', $campaign->id) }}?status=approved" target="_blank" class="aec-btn-hero aec-btn-hero-success aec-btn-hover-lift d-inline-flex align-items-center" title="সকল অনুমোদিত কার্ড সিঙ্গেল স্টাইলে একসাথে জিপ ডাউনলোড করুন">
+                    <i class="fa-solid fa-file-zipper text-white"></i>
+                    <span>অনুমোদিত কার্ড জিপ</span>
                 </a>
                 @endunless
                 <a href="{{ route('admin.event-campaigns.edit', $campaign->id) }}" class="btn btn-outline-light rounded-pill px-3 py-2 small fw-bold aec-btn-hover-lift d-inline-flex align-items-center">
@@ -910,8 +910,8 @@
                     <i class="fa-solid fa-paper-plane"></i> <span>আপডেট এসএমএস</span>
                 </button>
                 @unless($isScholarship)
-                <a href="{{ route('admin.event-campaigns.cards.download-all', $campaign->id) }}?{{ http_build_query(request()->all()) }}" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" title="সকল অংশগ্রহণকারীর কার্ড এক ক্লিকে ডাউনলোড ও প্রিন্ট করুন">
-                    <i class="fa-solid fa-cloud-arrow-down"></i> <span>অল কার্ড ডাউনলোড</span>
+                <a href="{{ route('admin.event-campaigns.cards.download-all', $campaign->id) }}?status=approved" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" title="সকল অনুমোদিত কার্ড সিঙ্গেল স্টাইলে একসাথে জিপ ডাউনলোড করুন">
+                    <i class="fa-solid fa-file-zipper"></i> <span>এপ্রুভড কার্ড জিপ</span>
                 </a>
                 @endunless
                 <a href="{{ route('admin.event-campaigns.print-all', $campaign->id) }}?{{ http_build_query(request()->all()) }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-xs" title="বর্তমান ফিল্টার অনুযায়ী সকল তালিকা ও আবেদন ফরম এক কমান্ডে প্রিন্ট করুন">
@@ -3612,8 +3612,8 @@
                                         <span class="fw-bold text-dark small">লাইভ এডিটর ও প্রিভিউ</span>
                                     </div>
                                     <div class="d-flex align-items-center gap-1.5">
-                                        <a href="{{ route('admin.event-campaigns.cards.download-all', $campaign->id) }}?status=confirmed" target="_blank" class="btn btn-success btn-sm rounded-pill py-0.5 px-2.5 text-white" title="সকল অংশগ্রহণকারীর কার্ড এক ক্লিকে জিপ ডাউনলোড বা প্রিন্ট করুন" style="font-size: 11px;">
-                                            <i class="fa-solid fa-cloud-arrow-down me-1"></i> অল কার্ড ডাউনলোড
+                                        <a href="{{ route('admin.event-campaigns.cards.download-all', $campaign->id) }}?status=approved" target="_blank" class="btn btn-success btn-sm rounded-pill py-0.5 px-2.5 text-white" title="সকল অনুমোদিত কার্ড সিঙ্গেল স্টাইলে একসাথে জিপ ডাউনলোড করুন" style="font-size: 11px;">
+                                            <i class="fa-solid fa-file-zipper me-1"></i> এপ্রুভড কার্ড জিপ
                                         </a>
                                         <button type="button" class="btn btn-outline-dark btn-sm rounded-pill py-0.5 px-2.5" id="btnDownloadCardPng" title="উচ্চ রেজোলিউশনে ডেমো কার্ড ইমেজ ডাউনলোড করুন" style="font-size: 11px;">
                                             <i class="fa-solid fa-download me-1 text-primary"></i> ডেমো PNG
