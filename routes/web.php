@@ -793,6 +793,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/registrations/{registration}/pdf', 'pdfRegistration')->name('registrations.pdf');
         Route::get('/{campaign}/export-csv', 'exportCsv')->name('export');
         Route::get('/{campaign}/print-all', 'printAll')->name('print-all');
+        Route::get('/{campaign}/download-all-cards', 'downloadAllCards')->name('cards.download-all');
         Route::post('/registrations/{registration}/send-sms', 'sendCustomSms')->name('registrations.send-sms');
         Route::post('/registrations/{registration}/convert-to-writer', 'convertToWriter')->name('registrations.convert-to-writer');
         Route::post('/{campaign}/bulk-action', 'bulkAction')->name('bulk-action');

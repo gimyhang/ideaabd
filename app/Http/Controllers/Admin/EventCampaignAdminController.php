@@ -2968,6 +2968,113 @@ class EventCampaignAdminController extends Controller
     }
 
     /**
+     * Download or Print All Participant Invitation Cards in 1 Click (Batch PNG / ZIP / PDF).
+     */
+    public function downloadAllCards(Request $request, EventCampaign $campaign)
+    {
+        $campaign->loadCount('registrations');
+        $query = $campaign->registrations();
+
+        // Default to confirmed registrations unless explicitly asked for all or another status
+        $status = $request->input('status', 'confirmed');
+        if ($status !== 'all' && !empty($status)) {
+            $query->where('status', $status);
+        }
+        if ($request->filled('payment_status')) {
+            $query->where('payment_status', $request->payment_status);
+        }
+        if ($request->filled('division')) {
+            $rawDiv = trim($request->division);
+            $canonicalDiv = \App\Support\BangladeshGeo::normalizeDivision($rawDiv) ?: $rawDiv;
+            $divVariants = \App\Support\BangladeshGeo::getVariants($canonicalDiv);
+            $query->where(function ($q) use ($divVariants) {
+                foreach ($divVariants as $v) {
+                    $q->orWhere('form_data->perm_division', 'like', "%{$v}%")
+                      ->orWhere('form_data->division', 'like', "%{$v}%");
+                }
+            });
+        }
+        if ($request->filled('district')) {
+            $rawDst = trim($request->district);
+            $canonicalDst = \App\Support\BangladeshGeo::normalizeDistrict($rawDst) ?: $rawDst;
+            $dstVariants = \App\Support\BangladeshGeo::getVariants($canonicalDst);
+            $query->where(function ($q) use ($dstVariants) {
+                $q->whereIn('district', $dstVariants)
+                  ->orWhere(function ($sq) use ($dstVariants) {
+                      foreach ($dstVariants as $v) {
+                          $sq->orWhere('district', 'like', "%{$v}%")
+                             ->orWhere('form_data->district', 'like', "%{$v}%");
+                      }
+                  });
+            });
+        }
+        if ($request->boolean('is_littlemag') || $request->input('type') === 'littlemag') {
+            $query->where(function ($q) {
+                $q->where(function ($sq) {
+                    $sq->whereNotNull('form_data->magazine_name')
+                       ->where('form_data->magazine_name', '!=', '');
+                })
+                ->orWhere('form_data->author_categories', 'like', '%লিটিলম্যাগ%')
+                ->orWhere('form_data->author_category', 'like', '%লিটিলম্যাগ%')
+                ->orWhere('designation_or_class', 'like', '%লিটিলম্যাগ%')
+                ->orWhere('designation_or_class', 'like', '%সম্পাদক%');
+            });
+        }
+        if ($request->filled('search')) {
+            $s = trim($request->search);
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('phone', 'like', "%{$s}%")
+                  ->orWhere('email', 'like', "%{$s}%")
+                  ->orWhere('registration_number', 'like', "%{$s}%")
+                  ->orWhere('district', 'like', "%{$s}%")
+                  ->orWhere('thana', 'like', "%{$s}%");
+            });
+        }
+
+        $sort = $request->input('sort', 'reg_no');
+        if ($sort === 'alpha' || $sort === 'name') {
+            $query->orderBy('name', 'asc');
+        } elseif ($sort === 'alpha_desc') {
+            $query->orderBy('name', 'desc');
+        } elseif ($sort === 'oldest') {
+            $query->orderBy('id', 'asc');
+        } elseif ($sort === 'latest') {
+            $query->orderBy('id', 'desc');
+        } else {
+            $query->orderBy('registration_number', 'asc');
+        }
+
+        $registrations = $query->get();
+        $totalCount = $registrations->count();
+
+        // Card Design Customizer Settings
+        $cardDesign = $campaign->form_settings['card_design'] ?? [];
+
+        // Preload base64 background image to ensure zero-CORS canvas capture
+        $bgImage = $cardDesign['bg_image'] ?? null;
+        $bgDataUri = null;
+        if (!empty($bgImage)) {
+            try {
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($bgImage)) {
+                    $m = \Illuminate\Support\Facades\Storage::disk('public')->mimeType($bgImage) ?: 'image/jpeg';
+                    $c = \Illuminate\Support\Facades\Storage::disk('public')->get($bgImage);
+                    $bgDataUri = 'data:' . $m . ';base64,' . base64_encode($c);
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        return view('admin.event_campaigns.download_all_cards', compact(
+            'campaign',
+            'registrations',
+            'totalCount',
+            'cardDesign',
+            'bgDataUri',
+            'status'
+        ));
+    }
+
+    /**
      * Send direct custom SMS to a participant.
      */
     public function sendCustomSms(Request $request, EventRegistration $registration)

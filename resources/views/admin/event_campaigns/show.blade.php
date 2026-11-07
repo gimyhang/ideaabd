@@ -230,6 +230,10 @@
                     <i class="fa-solid fa-wand-magic-sparkles text-warning"></i>
                     <span>কার্ড ডিজাইন</span>
                 </button>
+                <a href="{{ route('admin.event-campaigns.cards.download-all', $campaign->id) }}?status=confirmed" target="_blank" class="aec-btn-hero aec-btn-hero-success aec-btn-hover-lift d-inline-flex align-items-center" title="সকল অনুমোদিত কার্ড এক ক্লিকে ডাউনলোড ও প্রিন্ট">
+                    <i class="fa-solid fa-cloud-arrow-down text-white"></i>
+                    <span>অল কার্ড ডাউনলোড</span>
+                </a>
                 @endunless
                 <a href="{{ route('admin.event-campaigns.edit', $campaign->id) }}" class="btn btn-outline-light rounded-pill px-3 py-2 small fw-bold aec-btn-hover-lift d-inline-flex align-items-center">
                     <i class="fa-solid fa-sliders me-1.5"></i>
@@ -905,6 +909,11 @@
                 <button type="button" class="btn btn-sm btn-info text-white rounded-pill px-3 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" onclick="openBulkBroadcastSmsModal()" title="একবারে ইভেন্ট আপডেট মেসেজ পাঠান">
                     <i class="fa-solid fa-paper-plane"></i> <span>আপডেট এসএমএস</span>
                 </button>
+                @unless($isScholarship)
+                <a href="{{ route('admin.event-campaigns.cards.download-all', $campaign->id) }}?{{ http_build_query(request()->all()) }}" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" title="সকল অংশগ্রহণকারীর কার্ড এক ক্লিকে ডাউনলোড ও প্রিন্ট করুন">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> <span>অল কার্ড ডাউনলোড</span>
+                </a>
+                @endunless
                 <a href="{{ route('admin.event-campaigns.print-all', $campaign->id) }}?{{ http_build_query(request()->all()) }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-xs" title="বর্তমান ফিল্টার অনুযায়ী সকল তালিকা ও আবেদন ফরম এক কমান্ডে প্রিন্ট করুন">
                     <i class="fa-solid fa-print me-1.5"></i> প্রিন্ট (তালিকা ও ফরম)
                 </a>
@@ -2647,14 +2656,15 @@
     $cDesigColor         = $cCardDesign['designation_color'] ?? ($cCardDesign['meta_color'] ?? '#334155');
     $cLocColor           = $cCardDesign['location_color'] ?? ($cCardDesign['meta_color'] ?? '#475569');
     $cTextShadow         = $cCardDesign['text_shadow'] ?? 'white';
+    if ($cTextShadow === 'dark') {
+        $cTextShadow = 'white';
+    }
     $nameShadowStyle     = match($cTextShadow) {
         'none' => 'none',
-        'dark' => '0 1px 3px rgba(0, 0, 0, 0.5)',
         default => '0 0 5px #ffffff, 0 0 2px #ffffff, 0 1px 2px rgba(255, 255, 255, 0.95)',
     };
     $metaShadowStyle     = match($cTextShadow) {
         'none' => 'none',
-        'dark' => '0 1px 2px rgba(0, 0, 0, 0.4)',
         default => '0 0 4px #ffffff, 0 1px 2px rgba(255, 255, 255, 0.95)',
     };
 
@@ -3602,8 +3612,11 @@
                                         <span class="fw-bold text-dark small">লাইভ এডিটর ও প্রিভিউ</span>
                                     </div>
                                     <div class="d-flex align-items-center gap-1.5">
-                                        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill py-0.5 px-2.5" id="btnDownloadCardPng" title="উচ্চ রেজোলিউশনে কার্ড ইমেজ ডাউনলোড করুন" style="font-size: 11px;">
-                                            <i class="fa-solid fa-download me-1 text-primary"></i> ডাউনলোড PNG
+                                        <a href="{{ route('admin.event-campaigns.cards.download-all', $campaign->id) }}?status=confirmed" target="_blank" class="btn btn-success btn-sm rounded-pill py-0.5 px-2.5 text-white" title="সকল অংশগ্রহণকারীর কার্ড এক ক্লিকে জিপ ডাউনলোড বা প্রিন্ট করুন" style="font-size: 11px;">
+                                            <i class="fa-solid fa-cloud-arrow-down me-1"></i> অল কার্ড ডাউনলোড
+                                        </a>
+                                        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill py-0.5 px-2.5" id="btnDownloadCardPng" title="উচ্চ রেজোলিউশনে ডেমো কার্ড ইমেজ ডাউনলোড করুন" style="font-size: 11px;">
+                                            <i class="fa-solid fa-download me-1 text-primary"></i> ডেমো PNG
                                         </button>
                                         <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5" style="font-size: 10px;">
                                             <i class="fa-solid fa-bolt me-1"></i> লাইভ

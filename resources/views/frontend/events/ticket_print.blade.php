@@ -73,14 +73,15 @@
 
     $fontFamily         = $cardDesign['font_family'] ?? 'Hind Siliguri';
     $textShadow         = $cardDesign['text_shadow'] ?? 'white';
+    if ($textShadow === 'dark') {
+        $textShadow = 'white';
+    }
     $nameShadowStyle    = match($textShadow) {
         'none' => 'none',
-        'dark' => '0 1px 3px rgba(0, 0, 0, 0.5)',
         default => '0 0 5px #ffffff, 0 0 2px #ffffff, 0 1px 2px rgba(255, 255, 255, 0.95)',
     };
     $metaShadowStyle    = match($textShadow) {
         'none' => 'none',
-        'dark' => '0 1px 2px rgba(0, 0, 0, 0.4)',
         default => '0 0 4px #ffffff, 0 1px 2px rgba(255, 255, 255, 0.95)',
     };
 
@@ -560,6 +561,11 @@
             <button type="button" id="btnDownloadImage" onclick="downloadCardImage()" class="btn-action btn-image">
                 <i class="fa-solid fa-image"></i> কার্ড ছবি ডাউনলোড (PNG)
             </button>
+            @if(auth()->check())
+            <a href="{{ route('admin.event-campaigns.cards.download-all', $campaign->id) }}?status=confirmed" class="btn-action" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff;" title="সকল কার্ড এক ক্লিকে ডাউনলোড ও প্রিন্ট করুন">
+                <i class="fa-solid fa-cloud-arrow-down"></i> অল কার্ড ডাউনলোড
+            </a>
+            @endif
             <button type="button" id="btnDownloadPdf" onclick="downloadCardPdf()" class="btn-action btn-pdf">
                 <i class="fa-solid fa-file-pdf"></i> PDF ডাউনলোড
             </button>
