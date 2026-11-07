@@ -43,7 +43,7 @@ class AdminDashboardService
 
     public function pendingRegistrations(): int
     {
-        return $this->swr('admin_pending_registrations_count', 60, function () {
+        return $this->swr('admin_pending_registrations_count', 180, function () {
             return $this->safe(fn () => User::whereIn('role', ['seller', 'publisher', 'author'])
                 ->where('reg_status', User::STATUS_PENDING)
                 ->count(), 0);
@@ -55,7 +55,7 @@ class AdminDashboardService
      */
     public function getPendingAlerts(): array
     {
-        return $this->swr('admin_dash_pending_alerts', 60, function () {
+        return $this->swr('admin_dash_pending_alerts', 180, function () {
         $countsRow = $this->safe(function () {
             $parts = [
                 "(SELECT COUNT(*) FROM `orders` WHERE `status` = 'pending' AND `deleted_at` IS NULL) AS `pending_orders`",
@@ -124,7 +124,7 @@ class AdminDashboardService
      */
     public function getPendingRecordsData(int $limit = 10): array
     {
-        return $this->swr('admin_dash_pending_records_' . $limit, 45, function () use ($limit) {
+        return $this->swr('admin_dash_pending_records_' . $limit, 180, function () use ($limit) {
             return $this->getPendingRecordsDataUncached($limit);
         });
     }
@@ -238,7 +238,7 @@ class AdminDashboardService
     {
         $cacheKey = 'admin_dash_filtered_stats_' . md5(($from ?? '') . '_' . ($to ?? '') . '_' . $period);
 
-        return $this->swr($cacheKey, 60, function () use ($from, $to, $period) {
+        return $this->swr($cacheKey, 300, function () use ($from, $to, $period) {
             $today = now()->startOfDay();
             $thisMonth = now()->startOfMonth();
             $thisYear = now()->startOfYear();
@@ -290,20 +290,28 @@ class AdminDashboardService
                 ? round((($todayRevenue - $yesterdayRevenue) / $yesterdayRevenue) * 100, 1) 
                 : ($todayRevenue > 0 ? 100 : 0);
 
-            // 3. Visitor Traffic Analytics (Combined into 1 query instead of 10)
+            // 3. Visitor Traffic Analytics (Fast index-assisted query)
             $hasVisitorTable = \App\Support\SchemaCache::has('visitor_logs');
             $vRow = null;
+            $allTimeTotals = null;
             if ($hasVisitorTable) {
-                $vRow = $this->safe(fn () => VisitorLog::selectRaw("
-                    COUNT(*) as total_views,
-                    COUNT(DISTINCT ip_address) as total_uniques,
-                    SUM(CASE WHEN visited_at >= ? THEN 1 ELSE 0 END) as year_views,
-                    COUNT(DISTINCT CASE WHEN visited_at >= ? THEN ip_address END) as year_uniques,
+                // Cache lifetime total views and uniques for 1 hour to avoid unindexed full-table scans
+                $allTimeTotals = Cache::remember('admin_visitor_all_time_totals', 3600, function () {
+                    return $this->safe(fn () => VisitorLog::selectRaw("
+                        COUNT(*) as total_views,
+                        COUNT(DISTINCT ip_address) as total_uniques
+                    ")->first(), (object) ['total_views' => 0, 'total_uniques' => 0]);
+                });
+
+                // For year, month, and today, scan ONLY records from the start of this year (utilizes idx_visited_at)
+                $vRow = $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisYear)->selectRaw("
+                    COUNT(*) as year_views,
+                    COUNT(DISTINCT ip_address) as year_uniques,
                     SUM(CASE WHEN visited_at >= ? THEN 1 ELSE 0 END) as month_views,
                     COUNT(DISTINCT CASE WHEN visited_at >= ? THEN ip_address END) as month_uniques,
                     SUM(CASE WHEN visited_at >= ? THEN 1 ELSE 0 END) as today_views,
                     COUNT(DISTINCT CASE WHEN visited_at >= ? THEN ip_address END) as today_uniques
-                ", [$thisYear, $thisYear, $thisMonth, $thisMonth, $today, $today])->first(), null);
+                ", [$thisMonth, $thisMonth, $today, $today])->first(), null);
             }
 
             $visitorStats = [
@@ -313,8 +321,8 @@ class AdminDashboardService
                 'month_uniques'   => (int) ($vRow->month_uniques ?? 0),
                 'year_views'      => (int) ($vRow->year_views ?? 0),
                 'year_uniques'    => (int) ($vRow->year_uniques ?? 0),
-                'total_views'     => (int) ($vRow->total_views ?? 0),
-                'total_uniques'   => (int) ($vRow->total_uniques ?? 0),
+                'total_views'     => (int) ($allTimeTotals->total_views ?? ($vRow->year_views ?? 0)),
+                'total_uniques'   => (int) ($allTimeTotals->total_uniques ?? ($vRow->year_uniques ?? 0)),
                 'filtered_views'  => 0,
                 'filtered_uniques'=> 0,
             ];
@@ -665,7 +673,7 @@ class AdminDashboardService
     {
         $cacheKey = 'admin_dash_sales_series_' . md5($period . '_' . ($from ?? '') . '_' . ($to ?? ''));
 
-        return $this->swr($cacheKey, 120, function () use ($period, $from, $to) {
+        return $this->swr($cacheKey, 300, function () use ($period, $from, $to) {
             $labels = [];
             $revenue = [];
             $orders = [];
@@ -745,7 +753,7 @@ class AdminDashboardService
     {
         $cacheKey = 'admin_dash_visitor_series_' . md5($period . '_' . ($from ?? '') . '_' . ($to ?? ''));
 
-        return $this->swr($cacheKey, 120, function () use ($period, $from, $to) {
+        return $this->swr($cacheKey, 300, function () use ($period, $from, $to) {
             $labels = [];
             $views = [];
             $uniques = [];
@@ -826,17 +834,17 @@ class AdminDashboardService
      */
     public function recentOrders(int $limit = 8)
     {
-        return $this->swr('admin_dash_recent_orders_' . $limit, 45, fn () => $this->safe(fn () => Order::with('book')->latest()->limit($limit)->get(), collect()));
+        return $this->swr('admin_dash_recent_orders_' . $limit, 180, fn () => $this->safe(fn () => Order::with('book')->latest()->limit($limit)->get(), collect()));
     }
 
     public function recentBills(int $limit = 8)
     {
-        return $this->swr('admin_dash_recent_bills_' . $limit, 45, fn () => $this->safe(fn () => Bill::with('seller')->latest()->limit($limit)->get(), collect()));
+        return $this->swr('admin_dash_recent_bills_' . $limit, 180, fn () => $this->safe(fn () => Bill::with('seller')->latest()->limit($limit)->get(), collect()));
     }
 
     public function recentRegistrations(int $limit = 6)
     {
-        return $this->swr('admin_dash_recent_regs_' . $limit, 45, fn () => $this->safe(fn () => User::whereIn('role', ['seller', 'publisher', 'author'])
+        return $this->swr('admin_dash_recent_regs_' . $limit, 180, fn () => $this->safe(fn () => User::whereIn('role', ['seller', 'publisher', 'author'])
             ->where('reg_status', User::STATUS_PENDING)
             ->latest()->limit($limit)->get(), collect()));
     }
@@ -878,7 +886,7 @@ class AdminDashboardService
      */
     public function sellersSummary(int $limit = 6): array
     {
-        return $this->swr('admin_dash_sellers_summary_' . $limit, 120, function () use ($limit) {
+        return $this->swr('admin_dash_sellers_summary_' . $limit, 300, function () use ($limit) {
             return $this->safe(function () use ($limit) {
             $totalSellers = User::whereIn('role', [User::ROLE_SELLER, User::ROLE_SUB_ADMIN])->count();
             $todayStart = today()->startOfDay();

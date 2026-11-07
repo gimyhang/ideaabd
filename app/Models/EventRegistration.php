@@ -115,19 +115,32 @@ class EventRegistration extends Model
         $fs = is_array($campaign?->form_settings) ? $campaign->form_settings : [];
 
         // withTrashed: a soft-deleted entry still owns its number (the unique index covers deleted rows too)
-        $nextInSequence = function (string $prefix): int {
-            $query = static::withTrashed()->where('registration_number', 'LIKE', $prefix . '%');
+        $nextInSequence = function (string $prefix) use ($campaign): int {
+            $campId = $campaign?->id;
 
-            // MySQL: let the database return only the highest number instead of loading every row.
-            // Prefixes are alphanumerics and dashes only, so they are literal inside the REGEXP.
-            if (in_array($query->getConnection()->getDriverName(), ['mysql', 'mariadb'], true) && preg_match('/^[A-Za-z0-9-]+$/', $prefix)) {
-                $max = (int) $query->whereRaw('registration_number REGEXP ?', ['^' . $prefix . '[0-9]+$'])
+            // Ultra-fast indexed seek: find the most recently created registration number matching the prefix
+            $query = static::withTrashed();
+            if ($campId) {
+                $query->where('event_campaign_id', $campId);
+            }
+            $latest = (clone $query)->where('registration_number', 'LIKE', $prefix . '%')
+                ->latest('id')
+                ->value('registration_number');
+
+            if ($latest && preg_match('/' . preg_quote($prefix, '/') . '(\d+)$/', $latest, $m)) {
+                return ((int) $m[1]) + 1;
+            }
+
+            // Fallback: MySQL max calculation with indexed prefix
+            $fallbackQuery = static::withTrashed()->where('registration_number', 'LIKE', $prefix . '%');
+            if (in_array($fallbackQuery->getConnection()->getDriverName(), ['mysql', 'mariadb'], true) && preg_match('/^[A-Za-z0-9-]+$/', $prefix)) {
+                $max = (int) (clone $fallbackQuery)->whereRaw('registration_number REGEXP ?', ['^' . $prefix . '[0-9]+$'])
                     ->max(\Illuminate\Support\Facades\DB::raw('CAST(SUBSTRING(registration_number, ' . (strlen($prefix) + 1) . ') AS UNSIGNED)'));
 
                 return $max + 1;
             }
 
-            $max = $query->pluck('registration_number')
+            $max = (clone $fallbackQuery)->latest('id')->limit(100)->pluck('registration_number')
                 ->map(fn ($n) => preg_match('/^' . preg_quote($prefix, '/') . '(\d+)$/', $n, $mm) ? (int) $mm[1] : 0)
                 ->max() ?? 0;
 

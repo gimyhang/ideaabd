@@ -830,11 +830,11 @@ class RegistrationController extends Controller
             }
         }
 
-        // Send registration SMS notification
+        // Send registration SMS notification asynchronously so HTTP response is instant
         try {
             if ($isCustomer) {
                 $welcomeMsg = "Welcome to Idea Prokashon! Your account is ready.";
-                SmsService::send($user->phone, $welcomeMsg);
+                SmsService::sendAsync($user->phone, $welcomeMsg);
             }
         } catch (\Throwable $smsEx) {
             Log::warning("Customer welcome SMS note: " . $smsEx->getMessage());
@@ -1076,9 +1076,9 @@ class RegistrationController extends Controller
         $otpCode = random_int(100000, 999999);
         $smsMessage = "Idea Prokashon: your code is {$otpCode}.";
 
-        // Dispatch & Log SMS
+        // Dispatch & Log SMS asynchronously to eliminate registration delay
         try {
-            \App\Services\SmsService::send($base['phone'], $smsMessage);
+            \App\Services\SmsService::sendAsync($base['phone'], $smsMessage);
         } catch (\Throwable $smsEx) {
             Log::warning("Could not dispatch registration SMS: " . $smsEx->getMessage());
         }

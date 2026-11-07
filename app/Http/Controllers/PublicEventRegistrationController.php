@@ -579,49 +579,81 @@ class PublicEventRegistrationController extends Controller
         // Linked to the signed-in account only when it is that person's own number (a library keeps its manager's account).
         $ownerId = ($user && ($isLibrary || array_intersect(PhoneNormalizer::normalize((string) $user->phone)['query_phones'], $queryPhones))) ? $user->id : null;
 
-        $registration = \Illuminate\Support\Facades\DB::transaction(function () use ($campaign, $queryPhones, $ownerId, $request, $validated, $localPhone, $email, $address, $district, $institution, $designation, $hasPrevBooks, $prevYear, $prevCount, $amountPaid, $paymentStatus, $customFieldAnswers, $initialStatus, &$regNumber) {
-            // Serialise submissions per campaign so a double click or a retry can neither
-            // create two registrations for one phone nor hand out the same number twice.
-            EventCampaign::whereKey($campaign->id)->lockForUpdate()->first();
+        // Check if already registered
+        $already = EventRegistration::where('event_campaign_id', $campaign->id)->whereIn('phone', $queryPhones)->first();
+        if ($already) {
+            $this->rememberRegistration($campaign, $already);
+            return redirect()->route('event.success', $campaign->slug)
+                ->with('info', "মোবাইল নম্বরে ইতোমধ্যে নিবন্ধন সম্পন্ন হয়েছে! রেজিস্ট্রেশন রোল: #{$already->registration_number}");
+        }
 
+        // Check max participant limit if configured
+        if ($campaign->max_participants && $campaign->max_participants > 0) {
+            if ($campaign->registrations()->count() >= $campaign->max_participants) {
+                return back()->withInput()->with('error', 'Sorry, the maximum application limit has been reached.');
+            }
+        }
+
+        // Concurrency protection: lock per phone number to prevent rapid double-clicks from the same user,
+        // while allowing hundreds of different users to register simultaneously without database-level row blocking.
+        $phoneLockKey = 'event_reg_phone_' . $campaign->id . '_' . preg_replace('/[^\d]/', '', $localPhone);
+        $phoneLock = \Illuminate\Support\Facades\Cache::lock($phoneLockKey, 10);
+
+        try {
+            $phoneLock->block(5);
+        } catch (\Illuminate\Contracts\Cache\LockTimeoutException) {
+            return back()->withInput()->with('error', 'একটি নিবন্ধন প্রক্রিয়াধীন রয়েছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন।');
+        }
+
+        $registration = null;
+        try {
+            // Re-check duplicate under the per-phone lock
             $already = EventRegistration::where('event_campaign_id', $campaign->id)->whereIn('phone', $queryPhones)->first();
             if ($already) {
-                return $already;
+                $this->rememberRegistration($campaign, $already);
+                return redirect()->route('event.success', $campaign->slug)
+                    ->with('info', "মোবাইল নম্বরে ইতোমধ্যে নিবন্ধন সম্পন্ন হয়েছে! রেজিস্ট্রেশন রোল: #{$already->registration_number}");
             }
 
-            // the limit is checked again under the lock, so the last seats cannot be oversold
-            if ($campaign->max_participants && $campaign->registrations()->count() >= $campaign->max_participants) {
-                return null;
+            // Retry loop (up to 3 attempts) to generate unique sequence without table-wide locks
+            for ($attempt = 1; $attempt <= 3; $attempt++) {
+                try {
+                    $regNumber = EventRegistration::generateRegNumber($campaign);
+                    $registration = EventRegistration::create([
+                        'event_campaign_id'    => $campaign->id,
+                        'user_id'              => $ownerId,
+                        'registration_number'  => $regNumber,
+                        'name'                 => $validated['name'],
+                        'phone'                => $localPhone,
+                        'email'                => $email,
+                        'address'              => $address,
+                        'district'             => $district,
+                        'thana'                => $validated['thana'] ?? null,
+                        'institution_or_org'   => $institution,
+                        'designation_or_class' => $designation,
+                        'has_previous_books'   => $hasPrevBooks,
+                        'previous_books_year'  => $prevYear,
+                        'previous_books_count' => $prevCount,
+                        'amount_paid'          => $amountPaid,
+                        'payment_method'       => $validated['payment_method'] ?? ($campaign->has_fee_or_donation ? 'online' : 'free'),
+                        'transaction_id'       => $validated['transaction_id'] ?? null,
+                        'payment_status'       => $paymentStatus,
+                        'form_data'            => $customFieldAnswers,
+                        'status'               => $initialStatus,
+                        'ip_address'           => $request->ip(),
+                    ]);
+                    break;
+                } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+                    if ($attempt === 3) throw $e;
+                    usleep(30000); // 30ms backoff
+                }
             }
-
-            $regNumber = EventRegistration::generateRegNumber($campaign);
-            return EventRegistration::create([
-            'event_campaign_id'    => $campaign->id,
-            'user_id'              => $ownerId,
-            'registration_number'  => $regNumber,
-            'name'                 => $validated['name'],
-            'phone'                => $localPhone,
-            'email'                => $email,
-            'address'              => $address,
-            'district'             => $district,
-            'thana'                => $validated['thana'] ?? null,
-            'institution_or_org'   => $institution,
-            'designation_or_class' => $designation,
-            'has_previous_books'   => $hasPrevBooks,
-            'previous_books_year'  => $prevYear,
-            'previous_books_count' => $prevCount,
-            'amount_paid'          => $amountPaid,
-            'payment_method'       => $validated['payment_method'] ?? ($campaign->has_fee_or_donation ? 'online' : 'free'),
-            'transaction_id'       => $validated['transaction_id'] ?? null,
-            'payment_status'       => $paymentStatus,
-            'form_data'            => $customFieldAnswers,
-            'status'               => $initialStatus,
-            'ip_address'           => $request->ip(),
-            ]);
-        });
+        } finally {
+            $phoneLock?->release();
+        }
 
         if (!$registration) {
-            return back()->withInput()->with('error', 'Sorry, the maximum application limit has been reached.');
+            return back()->withInput()->with('error', 'নিবন্ধন সম্পন্ন করা সম্ভব হয়নি। অনুগ্রহ করে পুনরায় চেষ্টা করুন।');
         }
 
         // Lost the race to an identical submission: show that registration instead of a second one.
