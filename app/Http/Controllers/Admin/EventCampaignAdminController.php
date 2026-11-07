@@ -2931,13 +2931,36 @@ class EventCampaignAdminController extends Controller
             $query->orderBy('id', 'desc');
         }
 
-        $allRegistrations = $query->get();
-        $totalCount = $allRegistrations->count();
+        $rawRegistrations = $query->get();
+        $totalCount = $rawRegistrations->count();
         $isLittleMagOnly = $request->boolean('is_littlemag') || $request->input('type') === 'littlemag';
+
+        // Canonical division display priority
+        $divisionPriority = [
+            'রংপুর'    => 1,
+            'ঢাকা'     => 2,
+            'রাজশাহী'  => 3,
+            'চট্টগ্রাম' => 4,
+            'খুলনা'    => 5,
+            'ময়মনসিংহ' => 6,
+            'সিলেট'    => 7,
+            'বরিশাল'   => 8,
+        ];
+
+        // Group registrations strictly by division (canonical Bengali division)
+        $groupedRegistrations = $rawRegistrations->groupBy(function ($reg) {
+            return $reg->resolved_division ?: 'অনির্ধারিত বিভাগ';
+        })->sortBy(function ($regs, $divName) use ($divisionPriority) {
+            return $divisionPriority[$divName] ?? 99;
+        });
+
+        // Keep $allRegistrations ordered by division sequence
+        $allRegistrations = $groupedRegistrations->flatten(1);
 
         return view('admin.event_campaigns.print_all', compact(
             'campaign',
             'allRegistrations',
+            'groupedRegistrations',
             'totalCount',
             'isLittleMagOnly'
         ));
