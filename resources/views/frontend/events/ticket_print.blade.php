@@ -72,6 +72,17 @@
     $locationColor      = $cardDesign['location_color'] ?? ($cardDesign['meta_color'] ?? '#e2e8f0');
 
     $fontFamily         = $cardDesign['font_family'] ?? 'Hind Siliguri';
+    $textShadow         = $cardDesign['text_shadow'] ?? 'white';
+    $nameShadowStyle    = match($textShadow) {
+        'none' => 'none',
+        'dark' => '0 1px 3px rgba(0, 0, 0, 0.5)',
+        default => '0 0 5px #ffffff, 0 0 2px #ffffff, 0 1px 2px rgba(255, 255, 255, 0.95)',
+    };
+    $metaShadowStyle    = match($textShadow) {
+        'none' => 'none',
+        'dark' => '0 1px 2px rgba(0, 0, 0, 0.4)',
+        default => '0 0 4px #ffffff, 0 1px 2px rgba(255, 255, 255, 0.95)',
+    };
 
     // 3.1 Detailed Text Colors & Background Effects
     $annivColor         = $cardDesign['anniv_color'] ?? '#fef08a';
@@ -405,7 +416,7 @@
             color: {{ $nameColor }};
             line-height: {{ $nameLineHeight }};
             margin-bottom: {{ $nameSpacing }}px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.65), 0 0 2px rgba(0, 0, 0, 0.8);
+            text-shadow: {{ $nameShadowStyle }};
             letter-spacing: 0.2px;
         }
         .author-text-container .author-designation {
@@ -414,7 +425,7 @@
             color: {{ $designationColor }};
             line-height: 1.25;
             margin-bottom: 2px;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+            text-shadow: {{ $metaShadowStyle }};
         }
         .author-text-container .author-location {
             font-size: {{ $locationFontSize }}px;
@@ -422,7 +433,7 @@
             color: {{ $locationColor }};
             opacity: 0.95;
             line-height: 1.2;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+            text-shadow: {{ $metaShadowStyle }};
         }
 
         /* ==========================================================================
@@ -443,7 +454,7 @@
             font-size: {{ $quoteSize }}px;
             font-weight: 700;
             line-height: 1.45;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            text-shadow: {{ $metaShadowStyle }};
             width: 100%;
         }
 

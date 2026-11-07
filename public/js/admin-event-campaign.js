@@ -2516,6 +2516,30 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
+        const textShadowSelect = document.getElementById('textShadowSelect');
+        if (textShadowSelect) {
+            textShadowSelect.addEventListener('change', function () {
+                const val = this.value;
+                const aName = document.getElementById('liveAuthorName');
+                const aDesig = document.getElementById('liveAuthorDesignation');
+                const aLoc = document.getElementById('liveAuthorLocation');
+                const aQuote = document.getElementById('liveQuoteText');
+                let nShadow = '0 0 5px #ffffff, 0 0 2px #ffffff, 0 1px 2px rgba(255, 255, 255, 0.95)';
+                let mShadow = '0 0 4px #ffffff, 0 1px 2px rgba(255, 255, 255, 0.95)';
+                if (val === 'none') {
+                    nShadow = 'none';
+                    mShadow = 'none';
+                } else if (val === 'dark') {
+                    nShadow = '0 1px 3px rgba(0, 0, 0, 0.5)';
+                    mShadow = '0 1px 2px rgba(0, 0, 0, 0.4)';
+                }
+                if (aName) aName.style.textShadow = nShadow;
+                if (aDesig) aDesig.style.textShadow = mShadow;
+                if (aLoc) aLoc.style.textShadow = mShadow;
+                if (aQuote) aQuote.style.textShadow = mShadow;
+            });
+        }
+
         function bindColorPicker(pickerId, textId, targetSelector, cssProperty = 'color') {
             const picker = document.getElementById(pickerId);
             const textInput = document.getElementById(textId);
@@ -2731,10 +2755,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     bgBlurSlider.dispatchEvent(new Event('input'));
                 }
 
-                // Reset font family
+                // Reset font family & shadow
                 if (fontFamilySelect) {
                     fontFamilySelect.value = 'Hind Siliguri';
                     fontFamilySelect.dispatchEvent(new Event('change'));
+                }
+                if (textShadowSelect) {
+                    textShadowSelect.value = 'white';
+                    textShadowSelect.dispatchEvent(new Event('change'));
                 }
 
                 // Reset logo to default ring

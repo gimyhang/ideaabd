@@ -2646,6 +2646,17 @@
     $cPlateBorderRadius  = intval($cCardDesign['plate_border_radius'] ?? 12);
     $cDesigColor         = $cCardDesign['designation_color'] ?? ($cCardDesign['meta_color'] ?? '#334155');
     $cLocColor           = $cCardDesign['location_color'] ?? ($cCardDesign['meta_color'] ?? '#475569');
+    $cTextShadow         = $cCardDesign['text_shadow'] ?? 'white';
+    $nameShadowStyle     = match($cTextShadow) {
+        'none' => 'none',
+        'dark' => '0 1px 3px rgba(0, 0, 0, 0.5)',
+        default => '0 0 5px #ffffff, 0 0 2px #ffffff, 0 1px 2px rgba(255, 255, 255, 0.95)',
+    };
+    $metaShadowStyle     = match($cTextShadow) {
+        'none' => 'none',
+        'dark' => '0 1px 2px rgba(0, 0, 0, 0.4)',
+        default => '0 0 4px #ffffff, 0 1px 2px rgba(255, 255, 255, 0.95)',
+    };
 
     // Calculate RGBA for plate background
     $cPlateAlpha = ($cPlateBgOpacity / 100);
@@ -3225,15 +3236,25 @@
                                             <div class="fw-bold small text-dark">
                                                 <i class="fa-solid fa-address-card text-success me-1"></i> অংশগ্রহণকারীর নাম, পদবি ও জেলা
                                             </div>
-                                            <div class="d-flex align-items-center gap-1">
-                                                <label class="form-label small text-muted mb-0 me-1" style="font-size: 11px;">ফন্ট:</label>
-                                                <select class="form-select form-select-sm py-0.5 px-2" name="font_family" id="fontFamilySelect" style="width: auto; font-size: 11px;">
-                                                    <option value="Hind Siliguri" {{ $cFontFamily == 'Hind Siliguri' ? 'selected' : '' }}>হিন্দ শিলিগুড়ি</option>
-                                                    <option value="Noto Serif Bengali" {{ $cFontFamily == 'Noto Serif Bengali' ? 'selected' : '' }}>নোটো সেরিফ বাংলা</option>
-                                                    <option value="Tiro Bangla" {{ $cFontFamily == 'Tiro Bangla' ? 'selected' : '' }}>তিরো বাংলা</option>
-                                                    <option value="SolaimanLipi" {{ $cFontFamily == 'SolaimanLipi' ? 'selected' : '' }}>সোলায়মান লিপি</option>
-                                                    <option value="Kalpurush" {{ $cFontFamily == 'Kalpurush' ? 'selected' : '' }}>কালপুরুষ</option>
-                                                </select>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="d-flex align-items-center gap-1">
+                                                    <label class="form-label small text-muted mb-0 me-1" style="font-size: 11px;">ফন্ট:</label>
+                                                    <select class="form-select form-select-sm py-0.5 px-2" name="font_family" id="fontFamilySelect" style="width: auto; font-size: 11px;">
+                                                        <option value="Hind Siliguri" {{ $cFontFamily == 'Hind Siliguri' ? 'selected' : '' }}>হিন্দ শিলিগুড়ি</option>
+                                                        <option value="Noto Serif Bengali" {{ $cFontFamily == 'Noto Serif Bengali' ? 'selected' : '' }}>নোটো সেরিফ বাংলা</option>
+                                                        <option value="Tiro Bangla" {{ $cFontFamily == 'Tiro Bangla' ? 'selected' : '' }}>তিরো বাংলা</option>
+                                                        <option value="SolaimanLipi" {{ $cFontFamily == 'SolaimanLipi' ? 'selected' : '' }}>সোলায়মান লিপি</option>
+                                                        <option value="Kalpurush" {{ $cFontFamily == 'Kalpurush' ? 'selected' : '' }}>কালপুরুষ</option>
+                                                    </select>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-1">
+                                                    <label class="form-label small text-muted mb-0 me-1" style="font-size: 11px;">শেড:</label>
+                                                    <select class="form-select form-select-sm py-0.5 px-2" name="text_shadow" id="textShadowSelect" style="width: auto; font-size: 11px;">
+                                                        <option value="white" {{ $cTextShadow == 'white' ? 'selected' : '' }}>সাদা শেড (ক্লিন হোয়াইট)</option>
+                                                        <option value="none" {{ $cTextShadow == 'none' ? 'selected' : '' }}>শেডহীন (সম্পূর্ণ ক্লিন)</option>
+                                                        <option value="dark" {{ $cTextShadow == 'dark' ? 'selected' : '' }}>কালো শেড</option>
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -3622,15 +3643,15 @@
                                                 </div>
                                             </div>
                                             <div class="author-text-container card-interactive-node" id="liveNamePlate" data-node="nameplate" data-tab="tab-text-pane" style="text-align: center; width: 100%; padding: 0 10px; transform: translate({{ $cNameOffsetX }}px, {{ $cNameOffsetY }}px); cursor: grab; user-select: none; touch-action: none; transition: transform 0.05s ease-out;">
-                                                <div class="author-name live-editable-text" id="liveAuthorName" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cNameSize }}px; font-weight: 800; line-height: {{ $cNameLineHeight }}; margin-bottom: {{ $cNameSpacing }}px; color: {{ $cNameColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">{{ $cDemoName }}</div>
-                                                <div class="author-designation live-editable-text" id="liveAuthorDesignation" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cDesigSize }}px; font-weight: 600; color: {{ $cDesigColor }}; line-height: 1.25; margin-bottom: 2px; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">{{ $cDemoDesig }}</div>
-                                                <div class="author-location live-editable-text" id="liveAuthorLocation" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cLocSize }}px; font-weight: 500; color: {{ $cLocColor }}; opacity: 0.95; line-height: 1.2; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">{{ $cDemoLoc }}</div>
+                                                <div class="author-name live-editable-text" id="liveAuthorName" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cNameSize }}px; font-weight: 800; line-height: {{ $cNameLineHeight }}; margin-bottom: {{ $cNameSpacing }}px; color: {{ $cNameColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif; text-shadow: {{ $nameShadowStyle }};">{{ $cDemoName }}</div>
+                                                <div class="author-designation live-editable-text" id="liveAuthorDesignation" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cDesigSize }}px; font-weight: 600; color: {{ $cDesigColor }}; line-height: 1.25; margin-bottom: 2px; text-shadow: {{ $metaShadowStyle }};">{{ $cDemoDesig }}</div>
+                                                <div class="author-location live-editable-text" id="liveAuthorLocation" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cLocSize }}px; font-weight: 500; color: {{ $cLocColor }}; opacity: 0.95; line-height: 1.2; text-shadow: {{ $metaShadowStyle }};">{{ $cDemoLoc }}</div>
                                             </div>
                                         </div>
 
                                         {{-- 3. MESSAGE SECTION (Artwork Removed) --}}
                                         <div class="card-message-section card-interactive-node" id="liveMessageSection" data-node="quote" data-tab="tab-text-pane" style="{{ $cShowQuote ? '' : 'display: none;' }}; justify-content: center; text-align: center; padding: 6px 10px 4px 10px; transform: translate({{ $cQuoteOffsetX }}px, {{ $cQuoteOffsetY }}px); cursor: grab; user-select: none; touch-action: none; transition: transform 0.05s ease-out;">
-                                            <div class="invitation-quote-text live-editable-text" id="liveQuoteText" contenteditable="true" data-bind="liveInputQuote" title="ক্লিক করে সরাসরি এডিট করুন" style="white-space: pre-line; color: {{ $cQuoteColor }}; font-size: {{ $cQuoteSize }}px; line-height: 1.45; text-align: center; width: 100%;">{!! nl2br(e($cQuote)) !!}</div>
+                                            <div class="invitation-quote-text live-editable-text" id="liveQuoteText" contenteditable="true" data-bind="liveInputQuote" title="ক্লিক করে সরাসরি এডিট করুন" style="white-space: pre-line; color: {{ $cQuoteColor }}; font-size: {{ $cQuoteSize }}px; line-height: 1.45; text-align: center; width: 100%; text-shadow: {{ $metaShadowStyle }};">{!! nl2br(e($cQuote)) !!}</div>
                                         </div>
 
                                         {{-- 4. DYNAMIC VERIFICATION QR CODE SECTION (স্বাক্ষর বাদ হয়ে অটোমেটিক ভেরিফাই কিউ আর কোড) --}}

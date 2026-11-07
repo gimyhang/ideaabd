@@ -1835,6 +1835,7 @@ class EventCampaignAdminController extends Controller
             // 6. Name Plate & Typography (Artificial box / shade removed, pure clean text)
             $cardDesign['show_name_plate']       = false;
             $cardDesign['show_plate_bg']         = false;
+            $cardDesign['text_shadow']           = $request->input('text_shadow', $cardDesign['text_shadow'] ?? 'white');
             $cardDesign['name_font_size']        = intval($request->input('name_font_size', 16));
             $cardDesign['name_offset_x']        = intval($request->input('name_offset_x', $cardDesign['name_offset_x'] ?? 0));
             $cardDesign['name_offset_y']        = intval($request->input('name_offset_y', $cardDesign['name_offset_y'] ?? 0));
