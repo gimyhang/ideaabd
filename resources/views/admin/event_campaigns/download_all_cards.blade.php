@@ -55,7 +55,13 @@
     $titleColor         = $cardDesign['title_color'] ?? '#ffffff';
     $subtitleColor      = $cardDesign['subtitle_color'] ?? '#fde047';
     $nameColor          = $cardDesign['name_color'] ?? '#ffffff';
-    $quoteColor         = $cardDesign['quote_color'] ?? '#ffffff';
+    $rawQuoteColor      = $cardDesign['quote_color'] ?? null;
+    if (empty($rawQuoteColor)) {
+        $isNameDark = !empty($nameColor) && !in_array(strtolower($nameColor), ['#ffffff', '#fff', '#f8fafc', '#f1f5f9', '#fef08a']);
+        $quoteColor = $isNameDark ? $nameColor : '#ffffff';
+    } else {
+        $quoteColor = $rawQuoteColor;
+    }
     $bgOverlayOpacity   = intval($cardDesign['bg_overlay_opacity'] ?? 0);
     $bgOverlayColor     = $cardDesign['bg_overlay_color'] ?? '#000000';
     $bgBlur             = intval($cardDesign['bg_blur'] ?? 0);
@@ -433,7 +439,7 @@
             color: {{ $nameColor }};
             line-height: {{ $nameLineHeight }};
             margin-bottom: {{ $nameSpacing }}px;
-            text-shadow: {{ $nameShadowStyle }};
+            text-shadow: {{ $nameShadowStyle }} !important;
             letter-spacing: 0.2px;
         }
         .author-text-container .author-designation {
@@ -442,7 +448,7 @@
             color: {{ $designationColor }};
             line-height: 1.25;
             margin-bottom: 2px;
-            text-shadow: {{ $metaShadowStyle }};
+            text-shadow: {{ $metaShadowStyle }} !important;
         }
         .author-text-container .author-location {
             font-size: {{ $locationFontSize }}px;
@@ -450,30 +456,10 @@
             color: {{ $locationColor }};
             opacity: 0.95;
             line-height: 1.2;
-            text-shadow: {{ $metaShadowStyle }};
+            text-shadow: {{ $metaShadowStyle }} !important;
         }
 
-        /* 3. INVITATION MESSAGE SECTION */
-        .card-message-section {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 6px 10px 4px 10px;
-            transform: translate({{ $quoteOffsetX }}px, {{ $quoteOffsetY }}px);
-        }
-        .invitation-quote-text {
-            color: {{ $quoteColor }};
-            font-size: {{ $quoteSize }}px;
-            font-weight: 700;
-            line-height: 1.45;
-            text-shadow: {{ $metaShadowStyle }};
-            width: 100%;
-        }
-
-        /* 4. VERIFICATION QR CODE SECTION */
+        /* 3. VERIFICATION QR CODE SECTION */
         .card-verify-qr-section {
             position: relative;
             z-index: 2;
@@ -485,6 +471,26 @@
             justify-content: center;
             text-align: center;
             transform: translate({{ $qrOffsetX }}px, {{ $qrOffsetY }}px);
+        }
+
+        /* 4. INVITATION MESSAGE SECTION */
+        .card-message-section {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 3px 10px 2px 10px;
+            transform: translate({{ $quoteOffsetX }}px, {{ $quoteOffsetY }}px);
+        }
+        .invitation-quote-text {
+            color: {{ $quoteColor }};
+            font-size: {{ $quoteSize }}px;
+            font-weight: 700;
+            line-height: 1.4;
+            text-shadow: {{ $metaShadowStyle }} !important;
+            width: 100%;
         }
         .verify-qr-anchor {
             text-decoration: none;
@@ -742,28 +748,19 @@
                         @endif
 
                         <div class="author-text-container">
-                            <div class="author-name">{{ $registration->name }}</div>
+                            <div class="author-name" style="text-shadow: {{ $nameShadowStyle }} !important;">{{ $registration->name }}</div>
                             @if(!empty($designation))
-                                <div class="author-designation">{{ $designation }}</div>
+                                <div class="author-designation" style="text-shadow: {{ $metaShadowStyle }} !important;">{{ $designation }}</div>
                             @endif
                             @if(!empty($location))
-                                <div class="author-location">
+                                <div class="author-location" style="text-shadow: {{ $metaShadowStyle }} !important;">
                                     <i class="fa-solid fa-location-dot" style="font-size: 8.5px; opacity: 0.85; margin-right: 2px;"></i>{{ $location }}
                                 </div>
                             @endif
                         </div>
                     </div>
 
-                    {{-- 3. INVITATION MESSAGE SECTION --}}
-                    @if($showQuote)
-                        <div class="card-message-section">
-                            <div class="invitation-quote-text">
-                                {!! nl2br(e($quoteText)) !!}
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- 4. BOTTOM DYNAMIC VERIFICATION QR CODE SECTION --}}
+                    {{-- 3. VERIFICATION QR CODE SECTION --}}
                     @if($showQrCode)
                         <div class="card-verify-qr-section">
                             <a href="{{ $verifyUrl }}" target="_blank" class="verify-qr-anchor">
@@ -785,6 +782,15 @@
                                     </div>
                                 </div>
                             </a>
+                        </div>
+                    @endif
+
+                    {{-- 4. BOTTOM INVITATION MESSAGE SECTION --}}
+                    @if($showQuote)
+                        <div class="card-message-section">
+                            <div class="invitation-quote-text" style="color: {{ $quoteColor }}; text-shadow: {{ $metaShadowStyle }} !important;">
+                                {!! nl2br(e($quoteText)) !!}
+                            </div>
                         </div>
                     @endif
 

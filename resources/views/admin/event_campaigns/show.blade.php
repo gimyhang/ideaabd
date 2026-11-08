@@ -3260,9 +3260,8 @@
                                                 <div class="d-flex align-items-center gap-1">
                                                     <label class="form-label small text-muted mb-0 me-1" style="font-size: 11px;">শেড:</label>
                                                     <select class="form-select form-select-sm py-0.5 px-2" name="text_shadow" id="textShadowSelect" style="width: auto; font-size: 11px;">
-                                                        <option value="white" {{ $cTextShadow == 'white' ? 'selected' : '' }}>সাদা শেড (ক্লিন হোয়াইট)</option>
-                                                        <option value="none" {{ $cTextShadow == 'none' ? 'selected' : '' }}>শেডহীন (সম্পূর্ণ ক্লিন)</option>
-                                                        <option value="dark" {{ $cTextShadow == 'dark' ? 'selected' : '' }}>কালো শেড</option>
+                                                        <option value="white" {{ $cTextShadow == 'white' ? 'selected' : '' }}>সাদা শেড (সফট হোয়াইট গ্লো)</option>
+                                                        <option value="none" {{ $cTextShadow == 'none' ? 'selected' : '' }}>শেডহীন (সম্পূর্ণ ক্লিন টাইপ)</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -3662,12 +3661,7 @@
                                             </div>
                                         </div>
 
-                                        {{-- 3. MESSAGE SECTION (Artwork Removed) --}}
-                                        <div class="card-message-section card-interactive-node" id="liveMessageSection" data-node="quote" data-tab="tab-text-pane" style="{{ $cShowQuote ? '' : 'display: none;' }}; justify-content: center; text-align: center; padding: 6px 10px 4px 10px; transform: translate({{ $cQuoteOffsetX }}px, {{ $cQuoteOffsetY }}px); cursor: grab; user-select: none; touch-action: none; transition: transform 0.05s ease-out;">
-                                            <div class="invitation-quote-text live-editable-text" id="liveQuoteText" contenteditable="true" data-bind="liveInputQuote" title="ক্লিক করে সরাসরি এডিট করুন" style="white-space: pre-line; color: {{ $cQuoteColor }}; font-size: {{ $cQuoteSize }}px; line-height: 1.45; text-align: center; width: 100%; text-shadow: {{ $metaShadowStyle }};">{!! nl2br(e($cQuote)) !!}</div>
-                                        </div>
-
-                                        {{-- 4. DYNAMIC VERIFICATION QR CODE SECTION (স্বাক্ষর বাদ হয়ে অটোমেটিক ভেরিফাই কিউ আর কোড) --}}
+                                        {{-- 3. DYNAMIC VERIFICATION QR CODE SECTION (স্বাক্ষর বাদ হয়ে অটোমেটিক ভেরিফাই কিউ আর কোড) --}}
                                         <div class="card-verify-qr-section card-interactive-node" id="liveQrSection" data-node="qr" data-tab="tab-qr-pane" style="position: relative; z-index: 2; border-top: 1.5px solid rgba(255, 255, 255, 0.45); padding-top: 5px; margin-top: 4px; display: {{ $cShowQrCode ? 'flex' : 'none !important' }}; align-items: center; justify-content: center; text-align: center; transform: translate({{ $cQrOffsetX }}px, {{ $cQrOffsetY }}px); cursor: grab; user-select: none; touch-action: none; transition: transform 0.05s ease-out;">
                                             <a href="{{ $cDemoVerifyUrl }}" target="_blank" class="verify-qr-anchor" title="ক্লিক করলেই লাইভ ভেরিফিকেশন ও উপস্থিতি নিশ্চিত হবে" style="text-decoration: none; display: inline-flex; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 5px 12px 5px 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.35); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28); transition: all 0.2s ease; max-width: 96%;">
                                                 <div class="qr-code-box" id="liveQrCodeBox" style="width: {{ $cQrSize }}px; height: {{ $cQrSize }}px; background: #ffffff; padding: 4px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
@@ -3688,6 +3682,11 @@
                                                     </div>
                                                 </div>
                                             </a>
+                                        </div>
+
+                                        {{-- 4. INVITATION MESSAGE SECTION (শুভেচ্ছা বার্তা / স্লোগান) --}}
+                                        <div class="card-message-section card-interactive-node" id="liveMessageSection" data-node="quote" data-tab="tab-text-pane" style="{{ $cShowQuote ? '' : 'display: none;' }}; justify-content: center; text-align: center; padding: 3px 10px 2px 10px; transform: translate({{ $cQuoteOffsetX }}px, {{ $cQuoteOffsetY }}px); cursor: grab; user-select: none; touch-action: none; transition: transform 0.05s ease-out;">
+                                            <div class="invitation-quote-text live-editable-text" id="liveQuoteText" contenteditable="true" data-bind="liveInputQuote" title="ক্লিক করে সরাসরি এডিট করুন" style="white-space: pre-line; color: {{ $cQuoteColor }}; font-size: {{ $cQuoteSize }}px; line-height: 1.4; text-align: center; width: 100%; text-shadow: {{ $metaShadowStyle }} !important;">{!! nl2br(e($cQuote)) !!}</div>
                                         </div>
 
                                         {{-- 5. FLOATING CUSTOM OBJECTS / STICKERS / WATERMARK LAYER --}}

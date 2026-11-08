@@ -430,7 +430,7 @@ class EventCampaignAdminController extends Controller
             $totalRegistrations = $allCampaignRegistrations->count();
             $totalCollected = $allCampaignRegistrations->where('payment_status', 'verified')->sum('amount_paid');
             $pendingCount = $allCampaignRegistrations->where('status', 'pending')->count();
-            $confirmedCount = $allCampaignRegistrations->whereIn('status', ['confirmed', 'attended'])->count();
+            $confirmedCount = $allCampaignRegistrations->whereIn('status', ['confirmed', 'approved', 'selected', 'attended'])->count();
 
             $geoDatabase = [];
             $divisionStats = [];
@@ -1506,7 +1506,7 @@ class EventCampaignAdminController extends Controller
         } elseif (in_array($rawStatus, ['attended', 'attend'], true)) {
             $newStatus = 'attended';
         } else {
-            $isApproved = in_array($registration->status, ['confirmed', 'selected', 'approved'], true);
+            $isApproved = in_array($registration->status, ['confirmed', 'selected', 'approved', 'attended'], true);
             $newStatus = $isApproved ? 'pending' : 'confirmed';
         }
 
@@ -1522,7 +1522,7 @@ class EventCampaignAdminController extends Controller
         }
 
         $pendingCount = $campaign ? $campaign->registrations()->where('status', 'pending')->count() : 0;
-        $confirmedCount = $campaign ? $campaign->registrations()->whereIn('status', ['confirmed', 'selected', 'approved'])->count() : 0;
+        $confirmedCount = $campaign ? $campaign->registrations()->whereIn('status', ['confirmed', 'selected', 'approved', 'attended'])->count() : 0;
 
         if ($newStatus === 'confirmed' || $newStatus === 'selected') {
             // SMS on approval
@@ -1615,6 +1615,7 @@ class EventCampaignAdminController extends Controller
 
         switch ($action) {
             case 'approve':
+            case 'confirm':
                 $regs = $query->with('campaign')->get();
                 foreach ($regs as $r) {
                     $r->update(['status' => 'confirmed']);
@@ -1628,6 +1629,7 @@ class EventCampaignAdminController extends Controller
                 break;
 
             case 'reject':
+            case 'cancel':
                 $regs = $query->with('campaign')->get();
                 foreach ($regs as $r) {
                     $r->update(['status' => 'rejected']);
@@ -1659,6 +1661,8 @@ class EventCampaignAdminController extends Controller
                 break;
 
             case 'mark_pending':
+            case 'pending':
+            case 'unapprove':
                 $query->update(['status' => 'pending']);
                 $msg = "{$count} participant(s) marked as Pending.";
                 break;
@@ -1709,8 +1713,14 @@ class EventCampaignAdminController extends Controller
                 return back()->with('error', 'Invalid bulk action specified.');
         }
 
+        if ($campaign) {
+            Cache::forget("campaign_analysis_{$campaign->id}");
+            Cache::forget("campaign_confirmed_count_{$campaign->id}");
+            Cache::forget("campaign_pending_count_{$campaign->id}");
+        }
+
         $pendingCount = $campaign->registrations()->where('status', 'pending')->count();
-        $confirmedCount = $campaign->registrations()->whereIn('status', ['confirmed', 'selected', 'approved'])->count();
+        $confirmedCount = $campaign->registrations()->whereIn('status', ['confirmed', 'selected', 'approved', 'attended'])->count();
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -2993,7 +3003,7 @@ class EventCampaignAdminController extends Controller
         // Default to approved registrations only
         $status = $request->input('status', 'approved');
         if ($status === 'approved' || $status === 'confirmed') {
-            $query->whereIn('status', ['confirmed', 'selected', 'approved']);
+            $query->whereIn('status', ['confirmed', 'selected', 'approved', 'attended']);
         } elseif ($status !== 'all' && !empty($status)) {
             $query->where('status', $status);
         }
@@ -3244,7 +3254,7 @@ class EventCampaignAdminController extends Controller
         // Target group filter
         switch ($validated['target_group']) {
             case 'confirmed':
-                $query->whereIn('status', ['confirmed', 'selected', 'approved']);
+                $query->whereIn('status', ['confirmed', 'selected', 'approved', 'attended']);
                 break;
             case 'pending':
                 $query->where('status', 'pending');

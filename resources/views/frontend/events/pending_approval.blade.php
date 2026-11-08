@@ -10,11 +10,17 @@
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden text-center">
                 
                 {{-- Header Bar --}}
-                <div class="p-4" style="background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%); color: #fff;">
+                <div class="p-4" style="background: {{ $registration->status === 'rejected' ? 'linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%)' : 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%)' }}; color: #fff;">
                     <div class="mb-2">
-                        <span class="badge bg-warning text-dark font-monospace px-3 py-1.5 rounded-pill fw-bold" style="font-size: 11px;">
-                            <i class="fa-solid fa-hourglass-half me-1"></i> PENDING ADMIN APPROVAL
-                        </span>
+                        @if($registration->status === 'rejected')
+                            <span class="badge bg-danger text-white font-monospace px-3 py-1.5 rounded-pill fw-bold" style="font-size: 11px;">
+                                <i class="fa-solid fa-circle-xmark me-1"></i> APPLICATION REJECTED / বাতিলকৃত
+                            </span>
+                        @else
+                            <span class="badge bg-warning text-dark font-monospace px-3 py-1.5 rounded-pill fw-bold" style="font-size: 11px;">
+                                <i class="fa-solid fa-hourglass-half me-1"></i> PENDING ADMIN APPROVAL
+                            </span>
+                        @endif
                     </div>
                     <h4 class="fw-bold mb-1 text-white">{{ $campaign->title }}</h4>
                     <p class="mb-0 text-white-50 small">লেখকদের অংশগ্রহণ ও ডেলিগেট কার্ড অনুমোদন</p>
@@ -23,22 +29,41 @@
                 <div class="card-body p-4 p-md-5">
 
                     <div class="mb-4">
-                        <div class="d-inline-flex align-items-center justify-content-center bg-warning-subtle text-warning-emphasis rounded-circle" style="width: 76px; height: 76px; font-size: 32px;">
-                            <i class="fa-solid fa-clock-rotate-left"></i>
-                        </div>
+                        @if($registration->status === 'rejected')
+                            <div class="d-inline-flex align-items-center justify-content-center bg-danger-subtle text-danger rounded-circle" style="width: 76px; height: 76px; font-size: 32px;">
+                                <i class="fa-solid fa-circle-xmark"></i>
+                            </div>
+                        @else
+                            <div class="d-inline-flex align-items-center justify-content-center bg-warning-subtle text-warning-emphasis rounded-circle" style="width: 76px; height: 76px; font-size: 32px;">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                            </div>
+                        @endif
                     </div>
 
-                    <h5 class="fw-bold text-dark mb-2">আপনার আবেদনটি পর্যালোচনায় রয়েছে</h5>
-                    
-                    <div class="alert alert-info border-0 rounded-3 py-3 px-3 mb-3 text-start" style="background-color: #f0f9ff; border-left: 4px solid #0284c7 !important;">
-                        <div class="d-flex align-items-start gap-2">
-                            <i class="fa-solid fa-bell text-primary fs-5 mt-0.5"></i>
-                            <div class="small" style="line-height: 1.6;">
-                                <strong class="text-dark d-block">অ্যাডমিন অনুমোদন সংক্রান্ত তথ্য:</strong>
-                                অ্যাডমিন অনুমোদন করার সাথে সাথেই আপনার মোবাইল নম্বরে (<strong>{{ $registration->phone }}</strong>) সরাসরি ডেলিগেট কার্ড/পাস ডাউনলোড লিংক মেসেজ (SMS) আকারে পাঠানো হবে। অনুমোদন না হওয়া পর্যন্ত কার্ড ডাউনলোড ও দেখা স্থগিত থাকবে।
+                    @if($registration->status === 'rejected')
+                        <h5 class="fw-bold text-danger mb-2">আবেদনটি অনুমোদন করা সম্ভব হয়নি (বাতিল)</h5>
+                        <div class="alert alert-danger border-0 rounded-3 py-3 px-3 mb-3 text-start" style="background-color: #fef2f2; border-left: 4px solid #ef4444 !important;">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="fa-solid fa-circle-exclamation text-danger fs-5 mt-0.5"></i>
+                                <div class="small" style="line-height: 1.6;">
+                                    <strong class="text-dark d-block">আবেদন বাতিল সংক্রান্ত বিজ্ঞপ্তি:</strong>
+                                    কর্তৃপক্ষের যাচাই-বাছাইয়ে আপনার এই নিবন্ধনটি বাতিল হিসেবে চিহ্নিত করা হয়েছে। এ সংক্রান্ত কোনো জিজ্ঞাসা থাকলে অনুগ্রহ করে নিচের হেল্পলাইন নম্বরে যোগাযোগ করুন।
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    @else
+                        <h5 class="fw-bold text-dark mb-2">আপনার আবেদনটি পর্যালোচনায় রয়েছে</h5>
+                        
+                        <div class="alert alert-info border-0 rounded-3 py-3 px-3 mb-3 text-start" style="background-color: #f0f9ff; border-left: 4px solid #0284c7 !important;">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="fa-solid fa-bell text-primary fs-5 mt-0.5"></i>
+                                <div class="small" style="line-height: 1.6;">
+                                    <strong class="text-dark d-block">অ্যাডমিন অনুমোদন সংক্রান্ত তথ্য:</strong>
+                                    অ্যাডমিন অনুমোদন করার সাথে সাথেই আপনার মোবাইল নম্বরে (<strong>{{ $registration->phone }}</strong>) সরাসরি ডেলিগেট কার্ড/পাস ডাউনলোড লিংক মেসেজ (SMS) আকারে পাঠানো হবে। অনুমোদন না হওয়া পর্যন্ত কার্ড ডাউনলোড ও দেখা স্থগিত থাকবে।
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                     <p class="text-muted small mb-4" style="font-size: 12px; line-height: 1.55;">
                         বিশেষ বিজ্ঞপ্তি: ইভেন্ট আয়োজক “ফিরেদেখা” আইডিয়া প্রকাশন ইউআরএল ব্যবহারের অনুমতি দিয়েছেন সংগঠনকে সহযোগিতা করা ও লেখকগণের সুবিধার্থে।

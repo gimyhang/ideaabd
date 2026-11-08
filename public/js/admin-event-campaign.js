@@ -2524,14 +2524,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 const aDesig = document.getElementById('liveAuthorDesignation');
                 const aLoc = document.getElementById('liveAuthorLocation');
                 const aQuote = document.getElementById('liveQuoteText');
-                let nShadow = '0 0 5px #ffffff, 0 0 2px #ffffff, 0 1px 2px rgba(255, 255, 255, 0.95)';
-                let mShadow = '0 0 4px #ffffff, 0 1px 2px rgba(255, 255, 255, 0.95)';
+                let nShadow = '0 0 4px #ffffff, 0 0 2px #ffffff, 0 1px 2px rgba(255, 255, 255, 0.95)';
+                let mShadow = '0 0 3px #ffffff, 0 1px 2px rgba(255, 255, 255, 0.95)';
                 if (val === 'none') {
                     nShadow = 'none';
                     mShadow = 'none';
-                } else if (val === 'dark') {
-                    nShadow = '0 1px 3px rgba(0, 0, 0, 0.5)';
-                    mShadow = '0 1px 2px rgba(0, 0, 0, 0.4)';
                 }
                 if (aName) aName.style.textShadow = nShadow;
                 if (aDesig) aDesig.style.textShadow = mShadow;
