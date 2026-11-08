@@ -151,9 +151,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Noto+Serif+Bengali:wght@600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- html2canvas and html2pdf for robust Bengali Card Image & PDF Export -->
+    <!-- html2canvas, html2pdf and FileSaver for robust Bengali Card Image & PDF Export across all mobile and desktop devices -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <style>
         @page {
@@ -220,6 +221,28 @@
             }
         }
 
+        /* Mobile Device Optimization */
+        @media screen and (max-width: 480px) {
+            html, body {
+                padding: 10px 4px 28px 4px;
+                overflow-x: hidden;
+            }
+            .action-bar {
+                gap: 5px;
+                margin-bottom: 12px;
+            }
+            .btn-action {
+                padding: 6px 12px;
+                font-size: 11px;
+                border-radius: 20px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            }
+            .status-badge-pill {
+                padding: 4px 10px;
+                font-size: 10.5px;
+            }
+        }
+
         .action-bar {
             display: flex;
             flex-wrap: wrap;
@@ -262,15 +285,29 @@
         }
 
         /* ==========================================================================
-           RSU OFFICIAL INVITATION CARD (3.8 x 5.4 inch Layout)
+           RSU OFFICIAL INVITATION CARD (3.8 x 5.4 inch Exact Layout / Mobile-Safe)
            ========================================================================== */
+        .card-stage-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            overflow: visible;
+        }
+
         .card-wrapper {
             width: 365px;
-            max-width: 100%;
+            min-width: 365px;
+            max-width: 365px;
+            margin: 0 auto;
+            flex-shrink: 0;
+            transform-origin: top center;
         }
 
         .rsu-invitation-card {
             width: 365px;
+            min-width: 365px;
+            max-width: 365px;
             height: 518px;
             min-height: 518px;
             max-height: 518px;
@@ -579,8 +616,9 @@
     @endif
 
     {{-- 3.8 x 5.4 INCH INVITATION CARD --}}
-    <div class="card-wrapper">
-        <div class="rsu-invitation-card" id="printableCard">
+    <div class="card-stage-container">
+        <div class="card-wrapper">
+            <div class="rsu-invitation-card" id="printableCard">
             
             {{-- Background Overlay Tint --}}
             @if($bgOverlayOpacity > 0 || $bgBlur > 0)
@@ -699,8 +737,28 @@
 
         </div>
     </div>
+    </div>
 
     <script>
+        // Automatic Mobile Device Scaling: Keeps 365x518px ratio razor-sharp without any text-wrap or breaking
+        function adjustMobileScale() {
+            const cardWrap = document.querySelector('.card-wrapper');
+            if (!cardWrap) return;
+            const availableWidth = window.innerWidth - 14;
+            if (availableWidth < 365) {
+                const scale = availableWidth / 365;
+                cardWrap.style.transform = `scale(${scale})`;
+                const heightDiff = 518 * (1 - scale);
+                cardWrap.style.marginBottom = `-${heightDiff}px`;
+            } else {
+                cardWrap.style.transform = 'none';
+                cardWrap.style.marginBottom = '0';
+            }
+        }
+        window.addEventListener('resize', adjustMobileScale);
+        window.addEventListener('DOMContentLoaded', adjustMobileScale);
+
+        // Robust Mobile & Desktop High-Resolution PNG Downloader
         function downloadCardImage() {
             const btn = document.getElementById('btnDownloadImage');
             let originalHtml = '';
@@ -718,7 +776,11 @@
 
             readyPromise.then(() => {
                 return html2canvas(element, {
-                    scale: 3,
+                    scale: 3, // Razor-sharp 1095x1554px studio export
+                    windowWidth: 1200, // Forces full desktop layout viewport in html2canvas iframe to prevent mobile wrapping
+                    windowHeight: 900,
+                    width: 365,
+                    height: 518,
                     useCORS: true,
                     allowTaint: false,
                     logging: false,
@@ -728,22 +790,52 @@
                     onclone: (clonedDoc) => {
                         const card = clonedDoc.getElementById('printableCard');
                         if (card) {
+                            card.style.transform = 'none';
+                            card.style.width = '365px';
+                            card.style.minWidth = '365px';
+                            card.style.maxWidth = '365px';
+                            card.style.height = '518px';
+                            card.style.minHeight = '518px';
+                            card.style.maxHeight = '518px';
                             card.style.boxShadow = 'none';
-                            card.style.margin = '0';
+                            card.style.margin = '0 auto';
+                        }
+                        const wrap = clonedDoc.querySelector('.card-wrapper');
+                        if (wrap) {
+                            wrap.style.transform = 'none';
+                            wrap.style.width = '365px';
+                            wrap.style.minWidth = '365px';
+                            wrap.style.maxWidth = '365px';
+                            wrap.style.marginBottom = '0';
                         }
                     }
                 });
             }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = filename;
-                link.href = canvas.toDataURL('image/png', 1.0);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                if (btn) {
-                    btn.innerHTML = originalHtml;
-                    btn.disabled = false;
-                }
+                canvas.toBlob(blob => {
+                    if (!blob) {
+                        throw new Error('Canvas blob generation failed');
+                    }
+
+                    if (window.saveAs) {
+                        saveAs(blob, filename);
+                    } else {
+                        const blobUrl = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.download = filename;
+                        link.href = blobUrl;
+                        document.body.appendChild(link);
+                        link.click();
+                        setTimeout(() => {
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(blobUrl);
+                        }, 2000);
+                    }
+
+                    if (btn) {
+                        btn.innerHTML = originalHtml;
+                        btn.disabled = false;
+                    }
+                }, 'image/png', 1.0);
             }).catch(err => {
                 console.error('Image Generation Error:', err);
                 if (btn) {
@@ -755,6 +847,7 @@
             });
         }
 
+        // Mobile-Safe Multi-Format PDF Downloader
         function downloadCardPdf() {
             const btn = document.getElementById('btnDownloadPdf');
             let originalHtml = '';
@@ -774,6 +867,9 @@
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { 
                     scale: 3, 
+                    windowWidth: 1200,
+                    width: 365,
+                    height: 518,
                     useCORS: true, 
                     allowTaint: false, 
                     logging: false,
@@ -782,8 +878,23 @@
                     onclone: (clonedDoc) => {
                         const card = clonedDoc.getElementById('printableCard');
                         if (card) {
+                            card.style.transform = 'none';
+                            card.style.width = '365px';
+                            card.style.minWidth = '365px';
+                            card.style.maxWidth = '365px';
+                            card.style.height = '518px';
+                            card.style.minHeight = '518px';
+                            card.style.maxHeight = '518px';
                             card.style.boxShadow = 'none';
-                            card.style.margin = '0';
+                            card.style.margin = '0 auto';
+                        }
+                        const wrap = clonedDoc.querySelector('.card-wrapper');
+                        if (wrap) {
+                            wrap.style.transform = 'none';
+                            wrap.style.width = '365px';
+                            wrap.style.minWidth = '365px';
+                            wrap.style.maxWidth = '365px';
+                            wrap.style.marginBottom = '0';
                         }
                     }
                 },

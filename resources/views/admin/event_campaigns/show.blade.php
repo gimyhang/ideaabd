@@ -1400,7 +1400,7 @@
                                                         </form>
 
                                                         {{-- Reset to Pending if confirmed or rejected --}}
-                                                        <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}" data-status-action="modal-pending" id="modalPendingForm_{{ $reg->id }}" style="{{ $reg->status === 'pending' ? 'display: none !important;' : '' }}">
+                                                        <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}" data-status-action="modal-pending" id="modalPendingForm_{{ $reg->id }}" style="{{ $reg->status === 'pending' ? 'display: none;' : '' }}">
                                                             @csrf
                                                             <input type="hidden" name="status" value="pending">
                                                             <button type="button" onclick="handleQuickStatusAction(this.closest('form'), this); return false;" class="btn btn-sm btn-outline-warning border-0 text-dark px-2.5 py-1 rounded-pill quick-status-btn" title="পেন্ডিংয়ে ফেরত নিন">
@@ -4906,6 +4906,16 @@
                 requestAnimationFrame(() => {
                     row.classList.add(isApproved ? 'aec-row-updated-success' : (isRejected ? 'aec-row-updated-danger' : 'aec-row-updated-warning'));
                 });
+                if (window.location.search.includes('status=confirmed') && !isApproved) {
+                    row.style.transition = 'all 0.5s ease';
+                    row.style.background = '#fef2f2';
+                    setTimeout(() => {
+                        row.style.opacity = '0.55';
+                    }, 1200);
+                } else if (isApproved) {
+                    row.style.opacity = '1';
+                    row.style.background = '';
+                }
             }
 
             // 6. Live Update Counter Badges & Statistics

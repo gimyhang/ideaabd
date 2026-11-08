@@ -11,6 +11,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -1493,11 +1494,19 @@ class EventCampaignAdminController extends Controller
      */
     public function toggleApproval(Request $request, EventRegistration $registration)
     {
-        $requestedStatus = $request->input('status');
-        if ($requestedStatus && in_array($requestedStatus, ['confirmed', 'rejected', 'pending', 'selected', 'attended'])) {
-            $newStatus = $requestedStatus;
+        $rawStatus = strtolower(trim((string)($request->input('status') ?: $request->input('action'))));
+        if (in_array($rawStatus, ['rejected', 'reject', 'cancel', 'cancelled', 'বাতিল'], true)) {
+            $newStatus = 'rejected';
+        } elseif (in_array($rawStatus, ['pending', 'unapprove', 'unapproved', 'reset', 'পেন্ডিং'], true)) {
+            $newStatus = 'pending';
+        } elseif (in_array($rawStatus, ['confirmed', 'confirm', 'approved', 'approve', 'এপ্রুভ'], true)) {
+            $newStatus = 'confirmed';
+        } elseif (in_array($rawStatus, ['selected', 'select'], true)) {
+            $newStatus = 'selected';
+        } elseif (in_array($rawStatus, ['attended', 'attend'], true)) {
+            $newStatus = 'attended';
         } else {
-            $isApproved = ($registration->status === 'confirmed' || $registration->status === 'selected' || $registration->status === 'approved');
+            $isApproved = in_array($registration->status, ['confirmed', 'selected', 'approved'], true);
             $newStatus = $isApproved ? 'pending' : 'confirmed';
         }
 
@@ -1506,6 +1515,12 @@ class EventCampaignAdminController extends Controller
         ]);
 
         $campaign = $registration->campaign;
+        if ($campaign) {
+            Cache::forget("campaign_analysis_{$campaign->id}");
+            Cache::forget("campaign_confirmed_count_{$campaign->id}");
+            Cache::forget("campaign_pending_count_{$campaign->id}");
+        }
+
         $pendingCount = $campaign ? $campaign->registrations()->where('status', 'pending')->count() : 0;
         $confirmedCount = $campaign ? $campaign->registrations()->whereIn('status', ['confirmed', 'selected', 'approved'])->count() : 0;
 

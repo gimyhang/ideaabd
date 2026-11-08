@@ -833,6 +833,10 @@
             try {
                 const canvas = await html2canvas(cardEl, {
                     scale: 2.5,
+                    windowWidth: 1200,
+                    windowHeight: 900,
+                    width: 365,
+                    height: 518,
                     useCORS: true,
                     allowTaint: false,
                     backgroundColor: null,
@@ -841,8 +845,15 @@
                     onclone: (clonedDoc) => {
                         const target = clonedDoc.getElementById(cardId);
                         if (target) {
+                            target.style.transform = 'none';
+                            target.style.width = '365px';
+                            target.style.minWidth = '365px';
+                            target.style.maxWidth = '365px';
+                            target.style.height = '518px';
+                            target.style.minHeight = '518px';
+                            target.style.maxHeight = '518px';
                             target.style.boxShadow = 'none';
-                            target.style.margin = '0';
+                            target.style.margin = '0 auto';
                         }
                     }
                 });
@@ -913,6 +924,10 @@
                 try {
                     const canvas = await html2canvas(cardEl, {
                         scale: 2.5, // 2.5x gives 912x1295px razor-sharp studio quality matching single card print
+                        windowWidth: 1200,
+                        windowHeight: 900,
+                        width: 365,
+                        height: 518,
                         useCORS: true,
                         allowTaint: false,
                         backgroundColor: null,
@@ -922,8 +937,15 @@
                         onclone: (clonedDoc) => {
                             const target = clonedDoc.getElementById(cardEl.id);
                             if (target) {
+                                target.style.transform = 'none';
+                                target.style.width = '365px';
+                                target.style.minWidth = '365px';
+                                target.style.maxWidth = '365px';
+                                target.style.height = '518px';
+                                target.style.minHeight = '518px';
+                                target.style.maxHeight = '518px';
                                 target.style.boxShadow = 'none';
-                                target.style.margin = '0';
+                                target.style.margin = '0 auto';
                             }
                         }
                     });

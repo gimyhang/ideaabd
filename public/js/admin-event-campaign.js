@@ -2644,6 +2644,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     readyPromise.then(() => {
                         return html2canvas(adminLiveCard, {
                             scale: 3,
+                            windowWidth: 1200,
+                            windowHeight: 900,
+                            width: 365,
+                            height: 518,
                             useCORS: true,
                             allowTaint: false,
                             backgroundColor: null,
@@ -2653,8 +2657,15 @@ document.addEventListener('DOMContentLoaded', function () {
                             onclone: (clonedDoc) => {
                                 const card = clonedDoc.getElementById('adminLiveCard');
                                 if (card) {
+                                    card.style.transform = 'none';
+                                    card.style.width = '365px';
+                                    card.style.minWidth = '365px';
+                                    card.style.maxWidth = '365px';
+                                    card.style.height = '518px';
+                                    card.style.minHeight = '518px';
+                                    card.style.maxHeight = '518px';
                                     card.style.boxShadow = 'none';
-                                    card.style.margin = '0';
+                                    card.style.margin = '0 auto';
                                 }
                             }
                         });
