@@ -497,17 +497,17 @@
             <table class="table table-bordered align-middle mb-0 invoice-items-table" id="itemsTable">
                 <thead>
                     <tr class="text-uppercase" style="font-size: 10.5px; letter-spacing: 0.4px;">
-                        <th style="width: 34px; min-width: 34px;" class="text-center py-2">#</th>
-                        <th style="min-width: 250px;" class="py-2" id="thTitleCol"><span id="thTitleLabel">Item / Book Title</span> <span class="text-danger">*</span></th>
-                        <th style="width: 145px; min-width: 130px;" class="py-2" id="thAuthorCol"><span id="thAuthorLabel">Author / Spec</span></th>
-                        <th style="width: 130px; min-width: 120px;" class="py-2" id="thTypeCol"><span id="thTypeLabel">Type / Edition</span></th>
-                        <th style="width: 65px; min-width: 60px;" class="text-center py-2" id="thUnitCol"><span id="thUnitLabel">Unit</span></th>
-                        <th style="width: 65px; min-width: 60px;" class="text-center py-2" id="thQtyCol"><span id="thQtyLabel">Qty</span> <span class="text-danger">*</span></th>
-                        <th style="width: 80px; min-width: 75px;" class="text-end py-2" id="thRegPriceCol"><span id="thRegPriceLabel">Price (৳)</span></th>
-                        <th style="width: 60px; min-width: 55px;" class="text-center py-2" id="thDiscCol">Disc %</th>
-                        <th style="width: 85px; min-width: 80px;" class="text-end py-2" id="thUnitPriceCol"><span id="thUnitPriceLabel">Net (৳)</span> <span class="text-danger">*</span></th>
-                        <th style="width: 95px; min-width: 90px;" class="text-end py-2" id="thTotalCol">Total (৳)</th>
-                        <th style="width: 55px; min-width: 55px;" class="text-center py-2">Action</th>
+                        <th style="width: 34px; min-width: 34px;" class="text-center py-2.5">#</th>
+                        <th style="min-width: 270px; width: 28%;" class="py-2.5" id="thTitleCol"><span id="thTitleLabel">Item / Book Title</span> <span class="text-danger">*</span></th>
+                        <th style="width: 160px; min-width: 145px;" class="py-2.5" id="thAuthorCol"><span id="thAuthorLabel">Author / Spec</span></th>
+                        <th style="width: 135px; min-width: 125px;" class="py-2.5" id="thTypeCol"><span id="thTypeLabel">Type / Edition</span></th>
+                        <th style="width: 65px; min-width: 60px;" class="text-center py-2.5" id="thUnitCol"><span id="thUnitLabel">Unit</span></th>
+                        <th style="width: 70px; min-width: 65px;" class="text-center py-2.5" id="thQtyCol"><span id="thQtyLabel">Qty</span> <span class="text-danger">*</span></th>
+                        <th style="width: 85px; min-width: 75px;" class="text-end py-2.5" id="thRegPriceCol"><span id="thRegPriceLabel">Price (৳)</span></th>
+                        <th style="width: 65px; min-width: 55px;" class="text-center py-2.5" id="thDiscCol">Disc %</th>
+                        <th style="width: 90px; min-width: 80px;" class="text-end py-2.5" id="thUnitPriceCol"><span id="thUnitPriceLabel">Net (৳)</span> <span class="text-danger">*</span></th>
+                        <th style="width: 105px; min-width: 95px;" class="text-end py-2.5" id="thTotalCol">Total (৳)</th>
+                        <th style="width: 95px; min-width: 90px;" class="text-center py-2.5">Action</th>
                     </tr>
                 </thead>
                 <tbody id="itemsBody">
@@ -558,27 +558,29 @@
                         @endphp
                         <tr class="item-row" data-row="{{ $i }}">
                             <td class="text-center text-muted fw-bold item-serial-num font-monospace" style="width: 34px;">{{ $i + 1 }}</td>
-                            <td class="position-relative book-search-container" style="min-width: 250px;">
+                            <td class="position-relative book-search-container" style="min-width: 270px;">
                                 <div class="input-group input-group-sm">
-                                    <input type="text" name="items[{{ $i }}][title]" class="form-control form-control-sm item-title fw-bold" 
+                                    <textarea name="items[{{ $i }}][title]" class="form-control form-control-sm item-title fw-bold" 
                                            required 
+                                           rows="2"
                                            oninput="handleLiveBookSearch(this, {{ $i }})" 
                                            onfocus="handleLiveBookSearch(this, {{ $i }})" 
                                            onkeydown="handleBookSearchKeydown(event, {{ $i }})" 
-                                           autocomplete="off" style="font-size: 13px; height: 36px;" value="{{ $item['title'] ?? '' }}">
-                                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center {{ $isBookItem ? '' : 'd-none' }}" onclick="openQuickAddBookModal({{ $i }})" title="Add new book to Bookshop" style="height: 36px;">
+                                           autocomplete="off" style="font-size: 13px; min-height: 52px; line-height: 1.35; resize: vertical;">{{ $item['title'] ?? '' }}</textarea>
+                                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center {{ $isBookItem ? '' : 'd-none' }}" onclick="openQuickAddBookModal({{ $i }})" title="Add new book to Bookshop" style="min-height: 52px;">
                                         <i class="fa-solid fa-plus"></i>
                                     </button>
                                 </div>
                                 <input type="hidden" name="items[{{ $i }}][book_id]" class="item-book-id" value="{{ $bookIdVal }}">
+                                <input type="hidden" name="items[{{ $i }}][calc_data]" class="item-calc-data" value="{{ is_array($item['calc_data'] ?? null) ? json_encode($item['calc_data']) : ($item['calc_data'] ?? '') }}">
                                 <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 420px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
                             </td>
                             <td>
-                                <input type="text" name="items[{{ $i }}][author_name]" class="form-control form-control-sm item-author" 
-                                       value="{{ $authorName }}" autocomplete="off" style="height: 36px; font-size: 12.5px;">
+                                <textarea name="items[{{ $i }}][author_name]" class="form-control form-control-sm item-author" 
+                                       rows="2" autocomplete="off" style="min-height: 52px; font-size: 12.5px; line-height: 1.35; resize: vertical;">{{ $authorName }}</textarea>
                             </td>
                             <td>
-                                <select name="items[{{ $i }}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, {{ $i }})" style="height: 36px; font-size: 12.5px;">
+                                <select name="items[{{ $i }}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, {{ $i }})" style="min-height: 52px; height: 52px; font-size: 12.5px;">
                                     <optgroup label="Books & Publications">
                                         <option value="Book (Hardcover)" @selected(($item['item_type'] ?? '') === 'Book (Hardcover)')>Book (Hardcover)</option>
                                         <option value="Book (Paperback)" @selected(($item['item_type'] ?? '') === 'Book (Paperback)' || ($item['item_type'] ?? '') === 'Book')>Book (Paperback)</option>
@@ -600,27 +602,30 @@
                             </td>
                             <td>
                                 <input type="text" name="items[{{ $i }}][unit]" class="form-control form-control-sm item-unit text-center font-monospace" 
-                                       value="{{ $unitVal }}" autocomplete="off" style="height: 36px; font-size: 12.5px;">
+                                       value="{{ $unitVal }}" autocomplete="off" style="min-height: 52px; height: 52px; font-size: 12.5px;">
                             </td>
                             <td>
                                 <input type="number" step="0.01" name="items[{{ $i }}][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
-                                       value="{{ $qty }}" min="0.01" required oninput="calcRow({{ $i }}, 'qty')" style="height: 36px; font-size: 13px;">
+                                       value="{{ $qty }}" min="0.01" required oninput="calcRow({{ $i }}, 'qty')" style="min-height: 52px; height: 52px; font-size: 13px;">
                             </td>
                             <td>
                                 <input type="number" step="0.01" name="items[{{ $i }}][regular_price]" class="form-control item-regular-price text-end font-monospace" 
-                                       value="{{ $regPrice > 0 ? $regPrice : '' }}" min="0" oninput="calcRow({{ $i }}, 'regular_price')" style="height: 36px; font-size: 12.5px;">
+                                       value="{{ $regPrice > 0 ? $regPrice : '' }}" min="0" oninput="calcRow({{ $i }}, 'regular_price')" style="min-height: 52px; height: 52px; font-size: 12.5px;">
                             </td>
                             <td>
                                 <input type="number" step="0.01" name="items[{{ $i }}][discount_percent]" class="form-control item-discount-percent text-center font-monospace fw-bold text-success" 
-                                       value="{{ $discPct > 0 ? $discPct : '' }}" min="0" max="100" oninput="calcRow({{ $i }}, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
+                                       value="{{ $discPct > 0 ? $discPct : '' }}" min="0" max="100" oninput="calcRow({{ $i }}, 'discount_percent')" style="min-height: 52px; height: 52px; font-size: 12.5px;">
                             </td>
                             <td>
                                 <input type="number" step="0.01" name="items[{{ $i }}][price]" class="form-control item-price text-end font-monospace fw-bold text-primary" 
-                                       value="{{ $price > 0 ? $price : '' }}" min="0" required oninput="calcRow({{ $i }}, 'unit_price')" style="height: 36px; font-size: 13px;">
+                                       value="{{ $price > 0 ? $price : '' }}" min="0" required oninput="calcRow({{ $i }}, 'unit_price')" style="min-height: 52px; height: 52px; font-size: 13px;">
                             </td>
-                            <td class="text-end fw-bold text-dark item-subtotal font-monospace" style="font-size: 13.5px;">৳{{ number_format($lineTotal, 2) }}</td>
-                            <td class="text-center text-nowrap">
+                            <td class="text-end fw-bold text-dark item-subtotal font-monospace" style="font-size: 13.5px; vertical-align: middle;">৳{{ number_format($lineTotal, 2) }}</td>
+                            <td class="text-center text-nowrap" style="vertical-align: middle;">
                                 <div class="d-inline-flex align-items-center gap-1">
+                                    <button type="button" class="btn btn-xs btn-outline-warning text-dark border p-1 rounded-2 btn-row-calc" onclick="openPrintCostCalculatorForRow({{ $i }})" title="ক্যালকুলেটর / রিক্যালকুলেট করুন">
+                                        <i class="fa-solid fa-calculator text-dark"></i>
+                                    </button>
                                     <button type="button" class="btn btn-xs btn-light text-secondary border p-1 rounded-2" onclick="duplicateRow(this)" title="Duplicate Row">
                                         <i class="fa-regular fa-copy"></i>
                                     </button>
@@ -1310,27 +1315,29 @@
         tr.setAttribute('data-row', i);
         tr.innerHTML = `
             <td class="text-center text-muted fw-bold item-serial-num font-monospace" style="width: 34px;">${nextSerial}</td>
-            <td class="position-relative book-search-container" style="min-width: 250px;">
+            <td class="position-relative book-search-container" style="min-width: 270px;">
                 <div class="input-group input-group-sm">
-                    <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title fw-bold" 
+                    <textarea name="items[${i}][title]" class="form-control form-control-sm item-title fw-bold" 
                            required 
+                           rows="2"
                            oninput="handleLiveBookSearch(this, ${i})" 
                            onfocus="handleLiveBookSearch(this, ${i})" 
                            onkeydown="handleBookSearchKeydown(event, ${i})" 
-                           autocomplete="off" style="font-size: 13px; height: 36px;">
-                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBook ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="height: 36px;">
+                           autocomplete="off" style="font-size: 13px; min-height: 52px; line-height: 1.35; resize: vertical;"></textarea>
+                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBook ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
                         <i class="fa-solid fa-plus"></i>
                     </button>
                 </div>
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
+                <input type="hidden" name="items[${i}][calc_data]" class="item-calc-data" value="">
                 <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 420px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
             </td>
             <td>
-                <input type="text" name="items[${i}][author_name]" class="form-control form-control-sm item-author" 
-                       autocomplete="off" style="height: 36px; font-size: 12.5px;">
+                <textarea name="items[${i}][author_name]" class="form-control form-control-sm item-author" 
+                       rows="2" autocomplete="off" style="min-height: 52px; font-size: 12.5px; line-height: 1.35; resize: vertical;"></textarea>
             </td>
             <td>
-                <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})" style="height: 36px; font-size: 12.5px;">
+                <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})" style="min-height: 52px; height: 52px; font-size: 12.5px;">
                     <optgroup label="Books & Publications">
                         <option value="Book (Hardcover)" ${defaultItemType === 'Book (Hardcover)' ? 'selected' : ''}>Book (Hardcover)</option>
                         <option value="Book (Paperback)" ${defaultItemType === 'Book (Paperback)' ? 'selected' : ''}>Book (Paperback)</option>
@@ -1357,27 +1364,30 @@
             </td>
             <td>
                 <input type="text" name="items[${i}][unit]" class="form-control form-control-sm item-unit text-center font-monospace" 
-                       value="${defaultUnit}" autocomplete="off" style="height: 36px; font-size: 12.5px;">
+                       value="${defaultUnit}" autocomplete="off" style="min-height: 52px; height: 52px; font-size: 12.5px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
-                       value="1" min="0.01" required oninput="calcRow(${i}, 'qty')" style="height: 36px; font-size: 13px;">
+                       value="1" min="0.01" required oninput="calcRow(${i}, 'qty')" style="min-height: 52px; height: 52px; font-size: 13px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control form-control-sm item-regular-price text-end font-monospace" 
-                       value="" min="0" oninput="calcRow(${i}, 'regular_price')" style="height: 36px; font-size: 12.5px;">
+                       value="" min="0" oninput="calcRow(${i}, 'regular_price')" style="min-height: 52px; height: 52px; font-size: 12.5px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control form-control-sm item-discount-percent text-center font-monospace fw-bold text-success" 
-                       value="" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
+                       value="" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')" style="min-height: 52px; height: 52px; font-size: 12.5px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][price]" class="form-control form-control-sm item-price text-end font-monospace fw-bold text-primary" 
-                       value="" min="0" required oninput="calcRow(${i}, 'unit_price')" style="height: 36px; font-size: 13px;">
+                       value="" min="0" required oninput="calcRow(${i}, 'unit_price')" style="min-height: 52px; height: 52px; font-size: 13px;">
             </td>
-            <td class="text-end fw-bold text-dark item-subtotal font-monospace" style="font-size: 13.5px;">৳0.00</td>
-            <td class="text-center text-nowrap">
+            <td class="text-end fw-bold text-dark item-subtotal font-monospace" style="font-size: 13.5px; vertical-align: middle;">৳0.00</td>
+            <td class="text-center text-nowrap" style="vertical-align: middle;">
                 <div class="d-inline-flex align-items-center gap-1">
+                    <button type="button" class="btn btn-xs btn-outline-warning text-dark border p-1 rounded-2 btn-row-calc" onclick="openPrintCostCalculatorForRow(${i})" title="ক্যালকুলেটর / রিক্যালকুলেট করুন">
+                        <i class="fa-solid fa-calculator text-dark"></i>
+                    </button>
                     <button type="button" class="btn btn-xs btn-light text-secondary border p-1 rounded-2" onclick="duplicateRow(this)" title="Duplicate Row">
                         <i class="fa-regular fa-copy"></i>
                     </button>
@@ -1417,6 +1427,7 @@
 
         const title = (row.querySelector('.item-title')?.value || '');
         const bookId = (row.querySelector('.item-book-id')?.value || '');
+        const calcData = (row.querySelector('.item-calc-data')?.value || '');
         const author = (row.querySelector('.item-author')?.value || '');
         const itemType = (row.querySelector('.item-type-select')?.value || 'Book (Hardcover)');
         const unit = (row.querySelector('.item-unit')?.value || 'Copy');
@@ -1432,28 +1443,29 @@
         tr.setAttribute('data-row', i);
         tr.innerHTML = `
             <td class="text-center text-muted fw-bold item-serial-num font-monospace" style="width: 34px;">#</td>
-            <td class="position-relative book-search-container" style="min-width: 250px;">
+            <td class="position-relative book-search-container" style="min-width: 270px;">
                 <div class="input-group input-group-sm">
-                    <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title fw-bold" 
+                    <textarea name="items[${i}][title]" class="form-control form-control-sm item-title fw-bold" 
                            required 
-                           value="${escapeHtml(title)}"
+                           rows="2"
                            oninput="handleLiveBookSearch(this, ${i})" 
                            onfocus="handleLiveBookSearch(this, ${i})" 
                            onkeydown="handleBookSearchKeydown(event, ${i})" 
-                           autocomplete="off" style="font-size: 13px; height: 36px;">
-                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBook ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="height: 36px;">
+                           autocomplete="off" style="font-size: 13px; min-height: 52px; line-height: 1.35; resize: vertical;">${escapeHtml(title)}</textarea>
+                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBook ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
                         <i class="fa-solid fa-plus"></i>
                     </button>
                 </div>
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="${bookId}">
+                <input type="hidden" name="items[${i}][calc_data]" class="item-calc-data" value="${escapeHtml(calcData)}">
                 <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 420px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
             </td>
             <td>
-                <input type="text" name="items[${i}][author_name]" class="form-control form-control-sm item-author" 
-                       value="${escapeHtml(author)}" autocomplete="off" style="height: 36px; font-size: 12.5px;">
+                <textarea name="items[${i}][author_name]" class="form-control form-control-sm item-author" 
+                       rows="2" autocomplete="off" style="min-height: 52px; font-size: 12.5px; line-height: 1.35; resize: vertical;">${escapeHtml(author)}</textarea>
             </td>
             <td>
-                <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})" style="height: 36px; font-size: 12.5px;">
+                <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})" style="min-height: 52px; height: 52px; font-size: 12.5px;">
                     <optgroup label="Books & Publications">
                         <option value="Book (Hardcover)" ${itemType === 'Book (Hardcover)' ? 'selected' : ''}>Book (Hardcover)</option>
                         <option value="Book (Paperback)" ${itemType === 'Book (Paperback)' ? 'selected' : ''}>Book (Paperback)</option>
@@ -1475,27 +1487,30 @@
             </td>
             <td>
                 <input type="text" name="items[${i}][unit]" class="form-control form-control-sm item-unit text-center font-monospace" 
-                       value="${escapeHtml(unit)}" autocomplete="off" style="height: 36px; font-size: 12.5px;">
+                       value="${escapeHtml(unit)}" autocomplete="off" style="min-height: 52px; height: 52px; font-size: 12.5px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
-                       value="${qty}" min="0.01" required oninput="calcRow(${i}, 'qty')" style="height: 36px; font-size: 13px;">
+                       value="${qty}" min="0.01" required oninput="calcRow(${i}, 'qty')" style="min-height: 52px; height: 52px; font-size: 13px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control form-control-sm item-regular-price text-end font-monospace" 
-                       value="${regPrice > 0 ? regPrice.toFixed(2) : ''}" min="0" oninput="calcRow(${i}, 'regular_price')" style="height: 36px; font-size: 12.5px;">
+                       value="${regPrice > 0 ? regPrice.toFixed(2) : ''}" min="0" oninput="calcRow(${i}, 'regular_price')" style="min-height: 52px; height: 52px; font-size: 12.5px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control form-control-sm item-discount-percent text-center font-monospace fw-bold text-success" 
-                       value="${disc > 0 ? disc : ''}" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
+                       value="${disc > 0 ? disc : ''}" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')" style="min-height: 52px; height: 52px; font-size: 12.5px;">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][price]" class="form-control form-control-sm item-price text-end font-monospace fw-bold text-primary" 
-                       value="${price > 0 ? price.toFixed(2) : ''}" min="0" oninput="calcRow(${i}, 'unit_price')" style="height: 36px; font-size: 13px;">
+                       value="${price > 0 ? price.toFixed(2) : ''}" min="0" oninput="calcRow(${i}, 'unit_price')" style="min-height: 52px; height: 52px; font-size: 13px;">
             </td>
-            <td class="text-end fw-bold text-dark item-subtotal font-monospace" style="font-size: 13.5px;">৳${(qty * price).toFixed(2)}</td>
-            <td class="text-center text-nowrap">
+            <td class="text-end fw-bold text-dark item-subtotal font-monospace" style="font-size: 13.5px; vertical-align: middle;">৳${(qty * price).toFixed(2)}</td>
+            <td class="text-center text-nowrap" style="vertical-align: middle;">
                 <div class="d-inline-flex align-items-center gap-1">
+                    <button type="button" class="btn btn-xs btn-outline-warning text-dark border p-1 rounded-2 btn-row-calc" onclick="openPrintCostCalculatorForRow(${i})" title="ক্যালকুলেটর / রিক্যালকুলেট করুন">
+                        <i class="fa-solid fa-calculator text-dark"></i>
+                    </button>
                     <button type="button" class="btn btn-xs btn-light text-secondary border p-1 rounded-2" onclick="duplicateRow(this)" title="Duplicate Row">
                         <i class="fa-regular fa-copy"></i>
                     </button>
@@ -2324,7 +2339,7 @@
         calcTotals();
     }
 
-    function addPresetItem(title, authorSpec, itemType, unit, defaultPrice, regPrice, quantity) {
+    function addPresetItem(title, authorSpec, itemType, unit, defaultPrice, regPrice, quantity, calcSnapshot) {
         const tbody = document.getElementById('itemsBody');
         const firstRow = tbody.querySelector('.item-row:first-child');
         const firstTitle = firstRow ? (firstRow.querySelector('.item-title')?.value || '').trim() : 'has_data';
@@ -2353,41 +2368,56 @@
             const qtyInput = firstRow.querySelector('.item-qty');
             if (qtyInput) qtyInput.value = qtyVal;
             const regInput = firstRow.querySelector('.item-regular-price');
-            if (regInput) regInput.value = regularPrice;
+            if (regInput) regInput.value = regularPrice > 0 ? regularPrice.toFixed(2) : '';
             const discInput = firstRow.querySelector('.item-discount-percent');
-            if (discInput) discInput.value = discountPct;
+            if (discInput) discInput.value = discountPct > 0 ? discountPct : '';
             const priceInput = firstRow.querySelector('.item-price');
-            if (priceInput) priceInput.value = defPrice;
+            if (priceInput) priceInput.value = defPrice > 0 ? defPrice.toFixed(2) : '0.00';
             const subtotal = firstRow.querySelector('.item-subtotal');
             if (subtotal) subtotal.textContent = '৳' + lineTotal.toFixed(2);
+            let calcDataInput = firstRow.querySelector('.item-calc-data');
+            if (!calcDataInput) {
+                calcDataInput = document.createElement('input');
+                calcDataInput.type = 'hidden';
+                calcDataInput.name = `items[0][calc_data]`;
+                calcDataInput.className = 'item-calc-data';
+                const cell = firstRow.querySelector('td:nth-child(2)');
+                if (cell) cell.appendChild(calcDataInput);
+            }
+            if (calcSnapshot) {
+                calcDataInput.value = JSON.stringify(calcSnapshot);
+            }
         } else {
             const i = rowCounter++;
             const tr = document.createElement('tr');
             tr.className = 'item-row';
             tr.setAttribute('data-row', i);
+            const calcDataJson = calcSnapshot ? escapeHtml(JSON.stringify(calcSnapshot)) : '';
             tr.innerHTML = `
                 <td class="text-center text-muted fw-bold item-serial-num font-monospace" style="width: 34px;">#</td>
-                <td class="position-relative book-search-container" style="min-width: 250px;">
+                <td class="position-relative book-search-container" style="min-width: 270px;">
                     <div class="input-group input-group-sm">
-                        <input type="text" name="items[${i}][title]" class="form-control form-control-sm item-title fw-bold" 
+                        <textarea name="items[${i}][title]" class="form-control form-control-sm item-title fw-bold" 
                                required 
+                               rows="2"
                                oninput="handleLiveBookSearch(this, ${i})" 
                                onfocus="handleLiveBookSearch(this, ${i})" 
                                onkeydown="handleBookSearchKeydown(event, ${i})" 
-                               autocomplete="off" style="font-size: 13px; height: 36px;" value="${escapeHtml(title)}">
-                        <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBookTypeVal(defType) ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="height: 36px;">
+                               autocomplete="off" style="font-size: 13px; min-height: 52px; line-height: 1.35; resize: vertical;">${escapeHtml(title)}</textarea>
+                        <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBookTypeVal(defType) ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px; height: 52px;">
                             <i class="fa-solid fa-plus"></i>
                         </button>
                     </div>
                     <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
+                    <input type="hidden" name="items[${i}][calc_data]" class="item-calc-data" value="${calcDataJson}">
                     <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 420px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
                 </td>
                 <td>
-                    <input type="text" name="items[${i}][author_name]" class="form-control form-control-sm item-author" 
-                           value="${authorSpec || ''}" autocomplete="off" style="height: 36px; font-size: 12.5px;">
+                    <textarea name="items[${i}][author_name]" class="form-control form-control-sm item-author" 
+                           rows="2" autocomplete="off" style="min-height: 52px; font-size: 12.5px; line-height: 1.35; resize: vertical;">${escapeHtml(authorSpec || '')}</textarea>
                 </td>
                 <td>
-                    <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})" style="height: 36px; font-size: 12.5px;">
+                    <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})" style="min-height: 52px; height: 52px; font-size: 12.5px;">
                         <optgroup label="Books & Publications">
                             <option value="Book (Hardcover)" ${defType === 'Book (Hardcover)' ? 'selected' : ''}>Book (Hardcover)</option>
                             <option value="Book (Paperback)" ${defType === 'Book (Paperback)' ? 'selected' : ''}>Book (Paperback)</option>
@@ -2414,27 +2444,30 @@
                 </td>
                 <td>
                     <input type="text" name="items[${i}][unit]" class="form-control form-control-sm item-unit text-center font-monospace" 
-                           value="${unit || (isBookTypeVal(defType) ? 'Copy' : 'Pcs')}" autocomplete="off" style="height: 36px; font-size: 12.5px;">
+                           value="${escapeHtml(unit || (isBookTypeVal(defType) ? 'Copy' : 'Pcs'))}" autocomplete="off" style="min-height: 52px; height: 52px; font-size: 12.5px;">
                 </td>
                 <td>
                     <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
-                           value="${qtyVal}" min="0.01" required oninput="calcRow(${i}, 'qty')" style="height: 36px; font-size: 13px;">
+                           value="${qtyVal}" min="0.01" required oninput="calcRow(${i}, 'qty')" style="min-height: 52px; height: 52px; font-size: 13px;">
                 </td>
                 <td>
                     <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control item-regular-price text-end font-monospace" 
-                       value="${regularPrice}" min="0" oninput="calcRow(${i}, 'regular_price')" style="height: 36px; font-size: 12.5px;">
+                       value="${regularPrice > 0 ? regularPrice.toFixed(2) : ''}" min="0" oninput="calcRow(${i}, 'regular_price')" style="min-height: 52px; height: 52px; font-size: 12.5px;">
                 </td>
                 <td>
                     <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control item-discount-percent text-center font-monospace fw-bold text-success" 
-                           value="${discountPct}" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')" style="height: 36px; font-size: 12.5px;">
+                           value="${discountPct > 0 ? discountPct : ''}" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')" style="min-height: 52px; height: 52px; font-size: 12.5px;">
                 </td>
                 <td>
                     <input type="number" step="0.01" name="items[${i}][price]" class="form-control item-price text-end font-monospace fw-bold text-primary" 
-                           value="${defPrice}" min="0" required oninput="calcRow(${i}, 'unit_price')" style="height: 36px; font-size: 13px;">
+                           value="${defPrice > 0 ? defPrice.toFixed(2) : ''}" min="0" required oninput="calcRow(${i}, 'unit_price')" style="min-height: 52px; height: 52px; font-size: 13px;">
                 </td>
-                <td class="text-end fw-bold text-dark item-subtotal font-monospace" style="font-size: 13.5px;">৳${lineTotal.toFixed(2)}</td>
-                <td class="text-center text-nowrap">
+                <td class="text-end fw-bold text-dark item-subtotal font-monospace" style="font-size: 13.5px; vertical-align: middle;">৳${lineTotal.toFixed(2)}</td>
+                <td class="text-center text-nowrap" style="vertical-align: middle;">
                     <div class="d-inline-flex align-items-center gap-1">
+                        <button type="button" class="btn btn-xs btn-outline-warning text-dark border p-1 rounded-2 btn-row-calc" onclick="openPrintCostCalculatorForRow(${i})" title="ক্যালকুলেটর / রিক্যালকুলেট করুন">
+                            <i class="fa-solid fa-calculator text-dark"></i>
+                        </button>
                         <button type="button" class="btn btn-xs btn-light text-secondary border p-1 rounded-2" onclick="duplicateRow(this)" title="Duplicate Row">
                             <i class="fa-regular fa-copy"></i>
                         </button>
@@ -2450,6 +2483,110 @@
         calcTotals();
     }
     window.addPresetItem = addPresetItem;
+
+    function openPrintCostCalculatorForRow(rowIndex) {
+        const row = document.querySelector(`.item-row[data-row="${rowIndex}"]`);
+        let snapshot = null;
+        let rowInfo = null;
+        if (row) {
+            const calcDataInput = row.querySelector('.item-calc-data');
+            if (calcDataInput && calcDataInput.value) {
+                try {
+                    snapshot = JSON.parse(calcDataInput.value);
+                } catch (e) {
+                    console.warn('Could not parse calc_data JSON', e);
+                }
+            }
+            rowInfo = {
+                title: row.querySelector('.item-title')?.value || '',
+                authorSpec: row.querySelector('.item-author')?.value || '',
+                itemType: row.querySelector('.item-type-select')?.value || '',
+                unit: row.querySelector('.item-unit')?.value || 'Copy',
+                qty: parseFloat(row.querySelector('.item-qty')?.value) || 1,
+                price: parseFloat(row.querySelector('.item-price')?.value) || 0
+            };
+        }
+        if (typeof window.openPrintCostCalculator === 'function') {
+            window.openPrintCostCalculator(rowIndex, snapshot, rowInfo);
+        } else {
+            const modalEl = document.getElementById('printCostCalculatorModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        }
+    }
+    window.openPrintCostCalculatorForRow = openPrintCostCalculatorForRow;
+
+    function applyCalcToInvoiceItem(title, authorSpec, itemType, unit, defaultPrice, regPrice, quantity, calcSnapshot) {
+        const targetIndex = window.currentCalcTargetRowIndex;
+        if (targetIndex !== null && targetIndex !== undefined && targetIndex !== '') {
+            const row = document.querySelector(`.item-row[data-row="${targetIndex}"]`);
+            if (row) {
+                const titleInput = row.querySelector('.item-title');
+                if (titleInput) titleInput.value = title;
+
+                const authorInput = row.querySelector('.item-author');
+                if (authorInput) authorInput.value = authorSpec || '';
+
+                const typeSelect = row.querySelector('.item-type-select');
+                if (typeSelect && itemType) typeSelect.value = itemType;
+
+                const unitInput = row.querySelector('.item-unit');
+                if (unitInput) unitInput.value = unit || (isBookTypeVal(itemType) ? 'Copy' : 'Pcs');
+
+                const qtyInput = row.querySelector('.item-qty');
+                const qtyVal = parseFloat(quantity) > 0 ? parseFloat(quantity) : 1;
+                if (qtyInput) qtyInput.value = qtyVal;
+
+                let defPrice = parseFloat(defaultPrice) || 0;
+                let regularPrice = (parseFloat(regPrice) > 0) ? parseFloat(regPrice) : defPrice;
+                if (defPrice > 0 && regularPrice === 0) regularPrice = defPrice;
+                const discountPct = (regularPrice > defPrice && regularPrice > 0) ? Math.round(((regularPrice - defPrice) / regularPrice) * 100) : 0;
+
+                const regInput = row.querySelector('.item-regular-price');
+                if (regInput) regInput.value = regularPrice > 0 ? regularPrice.toFixed(2) : '';
+
+                const discInput = row.querySelector('.item-discount-percent');
+                if (discInput) discInput.value = discountPct > 0 ? discountPct : '';
+
+                const priceInput = row.querySelector('.item-price');
+                if (priceInput) priceInput.value = defPrice > 0 ? defPrice.toFixed(2) : '0.00';
+
+                let calcDataInput = row.querySelector('.item-calc-data');
+                if (!calcDataInput) {
+                    calcDataInput = document.createElement('input');
+                    calcDataInput.type = 'hidden';
+                    calcDataInput.name = `items[${targetIndex}][calc_data]`;
+                    calcDataInput.className = 'item-calc-data';
+                    const cell = row.querySelector('td:nth-child(2)');
+                    if (cell) cell.appendChild(calcDataInput);
+                }
+                if (calcSnapshot) {
+                    calcDataInput.value = JSON.stringify(calcSnapshot);
+                }
+
+                calcRow(targetIndex, 'unit_price');
+                calcTotals();
+
+                // Clear target index
+                window.currentCalcTargetRowIndex = null;
+
+                // Visual feedback highlight
+                row.style.transition = 'background-color 0.4s ease';
+                row.style.backgroundColor = '#ecfdf5';
+                setTimeout(() => {
+                    row.style.backgroundColor = '';
+                }, 1500);
+
+                return;
+            }
+        }
+
+        // Otherwise add as new preset item
+        addPresetItem(title, authorSpec, itemType, unit, defaultPrice, regPrice, quantity, calcSnapshot);
+    }
+    window.applyCalcToInvoiceItem = applyCalcToInvoiceItem;
 
     function onStationeryPresetSelected(selectEl) {
         if (!selectEl || !selectEl.value) return;
@@ -2786,22 +2923,42 @@
     }
     #itemsTable .form-control:not(textarea), 
     #itemsTable .form-select {
-        height: 36px;
+        height: 52px;
+        min-height: 52px;
         font-size: 13px;
         border-radius: 6px;
         border: 1px solid #cbd5e1;
-        padding: 5px 8px;
+        padding: 6px 8px;
         transition: border-color 0.15s ease, box-shadow 0.15s ease;
         background-color: #ffffff;
     }
     #itemsTable textarea.form-control {
+        min-height: 52px;
         font-size: 13px;
         border-radius: 6px;
         border: 1px solid #cbd5e1;
-        padding: 5px 8px;
+        padding: 6px 8px;
         line-height: 1.35;
+        resize: vertical;
         transition: border-color 0.15s ease, box-shadow 0.15s ease;
         background-color: #ffffff;
+    }
+    .btn-row-calc {
+        background-color: #fffbeb !important;
+        border-color: #fde68a !important;
+        color: #b45309 !important;
+        width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+    }
+    .btn-row-calc:hover {
+        background-color: #fef3c7 !important;
+        border-color: #f59e0b !important;
+        color: #92400e !important;
+        transform: scale(1.08);
     }
     #itemsTable .form-control:focus, 
     #itemsTable .form-select:focus {

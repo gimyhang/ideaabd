@@ -2358,6 +2358,7 @@ class IdeaAccountingController extends Controller
             'items.*.item_type'        => 'nullable|string|max:50',
             'items.*.unit'             => 'nullable|string|max:50',
             'items.*.book_id'          => 'nullable|integer',
+            'items.*.calc_data'        => 'nullable',
             'items.*.quantity'         => 'required|numeric|min:0.01',
             'items.*.regular_price'    => 'nullable|numeric|min:0',
             'items.*.discount_percent' => 'nullable|numeric|min:0|max:100',

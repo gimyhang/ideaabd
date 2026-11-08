@@ -1200,8 +1200,30 @@
         if (state.type === 'stationery') itemType = 'Stationery';
         else if (state.type === 'book') itemType = 'Book (Paperback)';
 
-        if (typeof window.addPresetItem === 'function') {
-            window.addPresetItem(title, spec, itemType, $('pcUnit').value || 'Pcs', s.unit, s.unit, s.j.q);
+        // Detailed Snapshot for full recalculation support
+        var calcSnapshot = {
+            type: state.type,
+            title: $('pcTitleIn').value.trim(),
+            qty: $('pcQty').value,
+            pages: $('pcPages') ? $('pcPages').value : '',
+            formas: $('pcFormasIn') ? $('pcFormasIn').value : '',
+            formaSize: $('pcFormaSize') ? $('pcFormaSize').value : '16',
+            colors: $('pcColors') ? $('pcColors').value : '4',
+            sides: $('pcSides') ? $('pcSides').value : '1',
+            plateMethod: $('pcPlateMethod') ? $('pcPlateMethod').value : 'work_and_turn',
+            size: $('pcSize') ? $('pcSize').value : '',
+            sheet: $('pcSheet') ? $('pcSheet').value : '',
+            overhead: $('pcOverhead') ? $('pcOverhead').value : '',
+            profit: $('pcProfit') ? $('pcProfit').value : '',
+            round: $('pcRound') ? $('pcRound').value : '',
+            unitCost: s.unit,
+            totalCost: s.total
+        };
+
+        if (typeof window.applyCalcToInvoiceItem === 'function') {
+            window.applyCalcToInvoiceItem(title, spec, itemType, $('pcUnit').value || 'Pcs', s.unit, s.unit, s.j.q, calcSnapshot);
+        } else if (typeof window.addPresetItem === 'function') {
+            window.addPresetItem(title, spec, itemType, $('pcUnit').value || 'Pcs', s.unit, s.unit, s.j.q, calcSnapshot);
             toast('Added to quotation ✓');
         }
 
@@ -1813,11 +1835,88 @@
         loadSheet();
     }
 
-    window.openPrintCostCalculator = function () {
+    window.openPrintCostCalculator = function (targetRowIndex, snapshot, rowInfo) {
         boot();
+        if (targetRowIndex !== undefined && targetRowIndex !== null) {
+            window.currentCalcTargetRowIndex = targetRowIndex;
+        } else {
+            window.currentCalcTargetRowIndex = null;
+        }
         var root = $('printCostCalculatorModal');
         if (!root || !window.bootstrap) return;
         window.bootstrap.Modal.getOrCreateInstance(root).show();
+
+        if (snapshot || rowInfo) {
+            var info = Object.assign({}, rowInfo || {}, { rowIndex: targetRowIndex });
+            window.loadCalcSnapshotIntoModal(snapshot, info);
+        } else {
+            window.loadCalcSnapshotIntoModal(null, null);
+        }
+    };
+
+    window.loadCalcSnapshotIntoModal = function (snapshot, rowInfo) {
+        boot();
+        var rootEl = $('printCostCalculatorModal');
+        if (!rootEl) return;
+        var alertBox = $('pcItemTargetAlert');
+        if (!alertBox) {
+            alertBox = document.createElement('div');
+            alertBox.id = 'pcItemTargetAlert';
+            var modalBody = rootEl.querySelector('.modal-body');
+            if (modalBody) modalBody.insertBefore(alertBox, modalBody.firstChild);
+        }
+
+        if (rowInfo && rowInfo.rowIndex !== undefined && rowInfo.rowIndex !== null) {
+            var rowNum = parseInt(rowInfo.rowIndex) + 1;
+            alertBox.className = 'alert alert-warning py-1.5 px-3 mb-2 small d-flex align-items-center justify-content-between rounded-3 border-warning shadow-2xs';
+            alertBox.innerHTML = '<div><i class="fa-solid fa-calculator text-warning me-1.5"></i><strong>আইটেম #' + rowNum + ' (' + (rowInfo.title || 'আইটেম') + ') রিক্যালকুলেট ও এডিট করছেন</strong></div>' +
+                '<button type="button" class="btn btn-xs btn-outline-dark rounded-pill py-0.5 px-2" onclick="window.currentCalcTargetRowIndex=null; var ab=document.getElementById(\'pcItemTargetAlert\'); if(ab) ab.style.display=\'none\'; var pb=document.getElementById(\'pcAdd\'); if(pb){pb.innerHTML=\'<i class=\\\'fa-solid fa-plus me-1\\\'></i> Add to Quotation\'; pb.classList.remove(\'btn-success\'); pb.classList.add(\'btn-primary\');}">' +
+                'নতুন আইটেম করুন</button>';
+            alertBox.style.display = '';
+
+            if ($('pcAdd')) {
+                $('pcAdd').innerHTML = '<i class="fa-solid fa-check me-1"></i> আপডেট করুন (আইটেম #' + rowNum + ')';
+                $('pcAdd').classList.remove('btn-primary');
+                $('pcAdd').classList.add('btn-success');
+            }
+        } else {
+            alertBox.style.display = 'none';
+            if ($('pcAdd')) {
+                $('pcAdd').innerHTML = '<i class="fa-solid fa-plus me-1"></i> Add to Quotation';
+                $('pcAdd').classList.remove('btn-success');
+                $('pcAdd').classList.add('btn-primary');
+            }
+        }
+
+        if (snapshot && typeof snapshot === 'object') {
+            if (snapshot.type && TYPES[snapshot.type]) applyType(snapshot.type, true);
+            if (snapshot.title !== undefined) $('pcTitleIn').value = snapshot.title;
+            if (snapshot.qty !== undefined) $('pcQty').value = snapshot.qty;
+            if (snapshot.pages !== undefined && $('pcPages')) $('pcPages').value = snapshot.pages;
+            if (snapshot.formaSize !== undefined && $('pcFormaSize')) $('pcFormaSize').value = snapshot.formaSize;
+            if (snapshot.formas !== undefined && $('pcFormasIn')) $('pcFormasIn').value = snapshot.formas;
+            if (snapshot.size !== undefined && $('pcSize')) $('pcSize').value = snapshot.size;
+            if (snapshot.sheet !== undefined && $('pcSheet')) $('pcSheet').value = snapshot.sheet;
+            if (snapshot.colors !== undefined && $('pcColors')) $('pcColors').value = snapshot.colors;
+            if (snapshot.sides !== undefined && $('pcSides')) $('pcSides').value = snapshot.sides;
+            if (snapshot.overhead !== undefined && $('pcOverhead')) $('pcOverhead').value = snapshot.overhead;
+            if (snapshot.profit !== undefined && $('pcProfit')) $('pcProfit').value = snapshot.profit;
+            if (snapshot.round !== undefined && $('pcRound')) $('pcRound').value = snapshot.round;
+            recalcAuto();
+            paint();
+        } else if (rowInfo) {
+            if (rowInfo.title) $('pcTitleIn').value = rowInfo.title;
+            if (rowInfo.qty) $('pcQty').value = rowInfo.qty;
+            if (rowInfo.unit && $('pcUnit')) $('pcUnit').value = rowInfo.unit;
+            var t = 'book';
+            var it = (rowInfo.itemType || '').toLowerCase();
+            if (it.includes('stationery') || it.includes('pad') || it.includes('memo')) t = 'stationery';
+            else if (it.includes('banner') || it.includes('poster') || it.includes('leaflet')) t = 'single';
+            else if (it.includes('book')) t = 'book';
+            applyType(t, true);
+            recalcAuto();
+            paint();
+        }
     };
 
     doc.addEventListener('DOMContentLoaded', boot);
