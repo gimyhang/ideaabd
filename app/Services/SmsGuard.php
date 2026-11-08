@@ -274,17 +274,22 @@ class SmsGuard
                 return self::refuse($phone, 'restricted', $message, $ctx, $batch, max(60, $restriction->restricted_until->getTimestamp() - time()));
             }
 
-            $limit = max(1, (int) config('sms.guard.daily_limit', 2));
+            $limit = max(1, (int) config('sms.guard.daily_limit', 5));
             $sentToday = SmsLog::where('phone', $phone)
                 ->where('source', 'system')
                 ->when(config('sms.guard.limit_scope', 'otp') === 'otp', fn ($q) => $q->where('purpose', 'otp'))
-                ->whereIn('status', ['pending', 'sent'])
+                ->where(function ($q) {
+                    $q->where('status', 'sent')
+                      ->orWhere(function ($sub) {
+                          $sub->where('status', 'pending')->where('created_at', '>', now()->subMinutes(5));
+                      });
+                })
                 ->where('created_at', '>', now()->subDay())
                 ->where('id', '>', (int) $restriction->count_after_id) // after an admin release, earlier rows no longer count
                 ->count();
 
             if ($sentToday >= $limit) {
-                $hours = max(1, (int) config('sms.guard.restrict_hours', 24));
+                $hours = max(1, (int) config('sms.guard.restrict_hours', 4));
                 $restriction->restricted_until = now()->addHours($hours);
                 $restriction->violations = (int) $restriction->violations + 1;
 

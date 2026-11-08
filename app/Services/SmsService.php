@@ -44,16 +44,25 @@ class SmsService
             $dbApiKey = '';
         }
 
+        $activeApiKey = $dbApiKey !== '' ? $dbApiKey : env('SMS_GATEWAY_API_KEY', env('BULKSMSBD_API_KEY', self::DEFAULT_API_KEY));
+
         $dbSenderId = trim((string) ($settings['sender_id'] ?? ''));
-        if ($dbSenderId === '' || in_array(strtolower($dbSenderId), ['your_sender_id', 'your_sms_api_key', 'sender_id_here'], true)) {
+        if ($dbSenderId === '' || in_array(strtolower($dbSenderId), ['your_sender_id', 'your_sms_api_key', 'sender_id_here'], true) || $dbSenderId === $activeApiKey) {
             $dbSenderId = '';
         }
+
+        $envSenderId = trim((string) env('SMS_GATEWAY_SENDER_ID', env('BULKSMSBD_SENDER_ID', '')));
+        if ($envSenderId === $activeApiKey || in_array(strtolower($envSenderId), ['your_sender_id', 'sender_id_here'], true)) {
+            $envSenderId = '';
+        }
+
+        $activeSenderId = $dbSenderId !== '' ? $dbSenderId : ($envSenderId !== '' ? $envSenderId : self::DEFAULT_SENDER_ID);
 
         $creds = [
             'provider'  => $settings['provider'] ?? env('SMS_GATEWAY_PROVIDER', 'bulksmsbd'),
             'url'       => $settings['url'] ?? env('SMS_GATEWAY_URL', self::DEFAULT_API_URL),
-            'api_key'   => $dbApiKey !== '' ? $dbApiKey : env('SMS_GATEWAY_API_KEY', env('BULKSMSBD_API_KEY', self::DEFAULT_API_KEY)),
-            'sender_id' => $dbSenderId !== '' ? $dbSenderId : env('SMS_GATEWAY_SENDER_ID', env('BULKSMSBD_SENDER_ID', self::DEFAULT_SENDER_ID)),
+            'api_key'   => $activeApiKey,
+            'sender_id' => $activeSenderId,
             'client_id' => $settings['client_id'] ?? env('ALAAP_SMS_CLIENT_ID', ''),
         ];
 
@@ -310,7 +319,9 @@ class SmsService
 
                 $outcome['success']       = self::isSuccessfulResponse($statusCode, is_array($json) ? $json : null, (string) $body);
                 $outcome['response_code'] = is_array($json) ? ($json['response_code'] ?? null) : null;
-                $outcome['message']       = is_array($json) ? ($json['success_message'] ?? ($json['error_message'] ?? self::getResponseCodeMessage($outcome['response_code'], (string) $body))) : self::getResponseCodeMessage(null, (string) $body);
+                $outcome['message']       = $outcome['success']
+                    ? (!empty($json['success_message']) ? $json['success_message'] : (!empty($json['message']) ? $json['message'] : self::getResponseCodeMessage($outcome['response_code'], (string) $body)))
+                    : (!empty($json['error_message']) ? $json['error_message'] : (!empty($json['message']) ? $json['message'] : (!empty($json['error']) ? $json['error'] : self::getResponseCodeMessage($outcome['response_code'], (string) $body))));
 
                 if ($outcome['success']) {
                     $totalSent += count($chunk);
@@ -412,11 +423,16 @@ class SmsService
                     $jsonCurl = json_decode($rawCurl, true);
                     $respCode = $jsonCurl['response_code'] ?? null;
 
+                    $isCurlSuccess = self::isSuccessfulResponse(200, is_array($jsonCurl) ? $jsonCurl : null, $rawCurl);
+                    $curlMsg = $isCurlSuccess
+                        ? (!empty($jsonCurl['success_message']) ? $jsonCurl['success_message'] : self::getResponseCodeMessage($respCode, $rawCurl))
+                        : (!empty($jsonCurl['error_message']) ? $jsonCurl['error_message'] : (!empty($jsonCurl['message']) ? $jsonCurl['message'] : self::getResponseCodeMessage($respCode, $rawCurl)));
+
                     return [
-                        'success'       => self::isSuccessfulResponse(200, is_array($jsonCurl) ? $jsonCurl : null, $rawCurl),
+                        'success'       => $isCurlSuccess,
                         'status'        => 200,
                         'response_code' => $respCode,
-                        'message'       => $jsonCurl['success_message'] ?? ($jsonCurl['error_message'] ?? self::getResponseCodeMessage($respCode, $rawCurl)),
+                        'message'       => $curlMsg,
                         'raw_response'  => $rawCurl,
                     ];
                 }
@@ -453,12 +469,17 @@ class SmsService
             Log::info("SMS gateway response [{$status}]: " . \Illuminate\Support\Str::limit($body, 300));
 
             $responseCode = $json['response_code'] ?? null;
+            $isSuccess = self::isSuccessfulResponse($status, is_array($json) ? $json : null, $body);
+
+            $msg = $isSuccess
+                ? (!empty($json['success_message']) ? $json['success_message'] : (!empty($json['message']) ? $json['message'] : self::getResponseCodeMessage($responseCode, $body)))
+                : (!empty($json['error_message']) ? $json['error_message'] : (!empty($json['message']) ? $json['message'] : (!empty($json['error']) ? $json['error'] : self::getResponseCodeMessage($responseCode, $body))));
 
             return [
-                'success'       => self::isSuccessfulResponse($status, is_array($json) ? $json : null, $body),
+                'success'       => $isSuccess,
                 'status'        => $status,
                 'response_code' => $responseCode,
-                'message'       => $json['success_message'] ?? ($json['error_message'] ?? ($json['message'] ?? self::getResponseCodeMessage($responseCode, $body))),
+                'message'       => $msg,
                 'raw_response'  => $body,
             ];
         } catch (\Throwable $e) {

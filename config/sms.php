@@ -12,7 +12,7 @@ return [
         'enabled' => env('SMS_GUARD', true),
 
         // OTP: one number can get this many per rolling 24 hours.
-        'daily_limit' => (int) env('SMS_DAILY_LIMIT', 2),
+        'daily_limit' => (int) env('SMS_DAILY_LIMIT', 5),
 
         // otp = the daily limit and lock apply to OTP messages only; all = to every automatic message (welcome, order notices …).
         'limit_scope' => env('SMS_LIMIT_SCOPE', 'otp'),
@@ -21,7 +21,7 @@ return [
         'notification_limit' => (int) env('SMS_NOTIFICATION_LIMIT', 5),
 
         // The attempt after the limit locks the number for this many hours.
-        'restrict_hours' => (int) env('SMS_RESTRICT_HOURS', 24),
+        'restrict_hours' => (int) env('SMS_RESTRICT_HOURS', 4),
 
         // Hitting the limit again on this many different days (inside the window) blocks OTP to the number until an admin releases it.
         'block_after_days'      => (int) env('SMS_BLOCK_AFTER_DAYS', 3),
