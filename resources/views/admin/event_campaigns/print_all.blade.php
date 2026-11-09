@@ -305,6 +305,22 @@
 
         {{-- Interactive Section Toggles --}}
         <div class="d-flex align-items-center gap-3">
+            {{-- Grouping Switcher (Category vs Division) --}}
+            <div class="btn-group btn-group-sm">
+                <a href="?{{ http_build_query(array_merge(request()->all(), ['group_by' => 'category'])) }}" 
+                   class="btn btn-sm {{ ($groupBy ?? 'category') === 'category' ? 'btn-warning text-dark fw-bold' : 'btn-outline-secondary text-white' }}" 
+                   style="font-size: 11.5px;" 
+                   title="ক্যাটাগরি অনুসারে তালিকা সাজান (কবি, ছড়াকার, লিটিলম্যাগ ইত্যাদি)">
+                    <i class="fa-solid fa-layer-group me-1"></i> ক্যাটাগরি ভিত্তিক
+                </a>
+                <a href="?{{ http_build_query(array_merge(request()->all(), ['group_by' => 'division'])) }}" 
+                   class="btn btn-sm {{ ($groupBy ?? 'category') === 'division' ? 'btn-warning text-dark fw-bold' : 'btn-outline-secondary text-white' }}" 
+                   style="font-size: 11.5px;" 
+                   title="বিভাগ অনুসারে তালিকা সাজান (রংপুর, ঢাকা, রাজশাহী ইত্যাদি)">
+                    <i class="fa-solid fa-map-location-dot me-1"></i> বিভাগ ভিত্তিক
+                </a>
+            </div>
+
             <div class="form-check form-check-inline text-white m-0 d-flex align-items-center gap-1.5" style="cursor: pointer;">
                 <input class="form-check-input" type="checkbox" id="toggleSummaryTable" checked onchange="toggleSection('printSummarySection', this.checked)">
                 <label class="form-check-label fw-semibold small" for="toggleSummaryTable" style="cursor: pointer;">
@@ -399,17 +415,22 @@
                 @endif
             </div>
 
-            {{-- Main Summary Table Grouped by Division --}}
+            {{-- Main Summary Table Grouped by Category or Division --}}
             @php $globalSerial = 1; @endphp
-            @forelse($groupedRegistrations as $divisionName => $divRegistrations)
+            @forelse($groupedRegistrations as $groupTitle => $groupRegistrations)
                 <div class="division-print-block mb-4" style="page-break-inside: avoid;">
                     <div class="division-banner d-flex justify-content-between align-items-center mb-2">
                         <div class="fw-bold fs-6 d-flex align-items-center gap-2">
-                            <i class="fa-solid fa-map-location-dot text-warning"></i>
-                            <span>বিভাগ: <strong>{{ $divisionName }}</strong></span>
+                            @if(($groupBy ?? 'category') === 'category')
+                                <i class="fa-solid fa-feather-pointed text-warning"></i>
+                                <span>ক্যাটাগরি: <strong>{{ $groupTitle }}</strong></span>
+                            @else
+                                <i class="fa-solid fa-map-location-dot text-warning"></i>
+                                <span>বিভাগ: <strong>{{ $groupTitle }}</strong></span>
+                            @endif
                         </div>
                         <span class="badge bg-light text-dark font-mono px-3 py-1 fw-bold" style="font-size: 11.5px;">
-                            মোট: {{ $divRegistrations->count() }} জন
+                            মোট: {{ $groupRegistrations->count() }} জন
                         </span>
                     </div>
 
@@ -419,8 +440,9 @@
                                 <th style="width: 35px;" class="text-center">ক্র.</th>
                                 <th style="width: 95px;">আইডি</th>
                                 <th>অংশগ্রহণকারী ও বিবরণ</th>
+                                <th>ক্যাটাগরি / শাখা</th>
                                 <th>যোগাযোগ</th>
-                                <th>ঠিকানা (জেলা ও থানা)</th>
+                                <th>ঠিকানা (বিভাগ ও জেলা)</th>
                                 @if($campaign->has_fee_or_donation)
                                     <th style="width: 75px;">ফি</th>
                                     <th style="width: 80px;">পেমেন্ট</th>
@@ -430,9 +452,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($divRegistrations as $reg)
+                            @foreach($groupRegistrations as $reg)
                                 @php
-                                    $authorCat = $reg->form_data['author_category'] ?? ($reg->form_data['author_categories'][0] ?? null);
+                                    $authorCat = $reg->resolved_category;
                                     $magName = $reg->form_data['magazine_name'] ?? null;
                                 @endphp
                                 <tr>
@@ -447,12 +469,14 @@
                                             <span class="badge bg-warning-subtle text-dark border border-warning-subtle py-0 px-1" style="font-size: 10px;">
                                                 পত্রিকা: {{ $magName }}
                                             </span>
-                                        @elseif($authorCat)
-                                            <span class="badge bg-light text-secondary border py-0 px-1" style="font-size: 10px;">
-                                                {{ $authorCat }}
-                                            </span>
-                                        @elseif($reg->designation_or_class)
-                                            <small class="text-muted d-block" style="font-size: 10.5px;">{{ $reg->designation_or_class }}</small>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border py-0.5 px-2 fw-semibold" style="font-size: 10.5px;">
+                                            <i class="fa-solid fa-feather-pointed text-warning me-1"></i>{{ $authorCat }}
+                                        </span>
+                                        @if(!empty($reg->designation_or_class) && $reg->designation_or_class !== $authorCat)
+                                            <small class="text-muted d-block mt-0.5" style="font-size: 10px;">{{ $reg->designation_or_class }}</small>
                                         @endif
                                     </td>
                                     <td>
@@ -462,10 +486,8 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <div class="fw-medium">{{ $reg->district ?: '-' }}</div>
-                                        @if($reg->thana)
-                                            <small class="text-muted d-block">{{ $reg->thana }}</small>
-                                        @endif
+                                        <div class="fw-medium text-dark">{{ $reg->resolved_district ?: '-' }}</div>
+                                        <small class="text-muted d-block">{{ $reg->resolved_division }} &bull; {{ $reg->thana ?: '' }}</small>
                                     </td>
                                     @if($campaign->has_fee_or_donation)
                                         <td class="font-mono fw-semibold">৳{{ number_format($reg->amount_paid) }}</td>
@@ -479,7 +501,7 @@
                                         </td>
                                     @endif
                                     <td class="text-center">
-                                        @if(in_array($reg->status, ['confirmed', 'approved', 'selected']))
+                                        @if(in_array($reg->status, ['confirmed', 'approved', 'selected', 'attended']))
                                             <span class="status-pill status-confirmed">Approved</span>
                                         @elseif($reg->status === 'rejected')
                                             <span class="status-pill status-rejected">Rejected</span>
@@ -514,11 +536,11 @@
         </div>
 
         {{-- =========================================================================
-             SECTION 2: INDIVIDUAL REGISTRATION & APPLICATION FORMS (GROUPED BY DIVISION)
+             SECTION 2: INDIVIDUAL REGISTRATION & APPLICATION FORMS (GROUPED)
              ========================================================================= --}}
         <div id="printFormsSection">
-            @foreach($groupedRegistrations as $divisionName => $divRegistrations)
-                @foreach($divRegistrations as $reg)
+            @foreach($groupedRegistrations as $groupTitle => $groupRegistrations)
+                @foreach($groupRegistrations as $reg)
                     @php
                         $fData = $reg->form_data ?? [];
                         $rawPhoto = $fData['student_photo'] 
@@ -538,20 +560,21 @@
                             }
                         }
 
-                        $authorCat = $fData['author_category'] ?? ($fData['author_categories'][0] ?? null);
-                        if (is_array($fData['author_categories'] ?? null) && count($fData['author_categories']) > 1) {
-                            $authorCat = implode(', ', $fData['author_categories']);
-                        }
+                        $authorCat = $reg->resolved_category;
                         $magName = $fData['magazine_name'] ?? null;
                         $penName = $fData['pen_name'] ?? null;
                         $isForeign = ($fData['resident_type'] ?? '') === 'international';
-                        $statusApproved = in_array($reg->status, ['confirmed', 'approved', 'selected']);
+                        $statusApproved = in_array($reg->status, ['confirmed', 'approved', 'selected', 'attended']);
                     @endphp
 
                     <div class="applicant-form-sheet">
-                        {{-- Division & Location Tag --}}
+                        {{-- Grouping & Location Tag --}}
                         <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom border-light">
                             <span class="badge bg-dark-subtle text-dark border border-secondary-subtle font-mono px-2 py-0.5" style="font-size: 11px;">
+                                <i class="fa-solid fa-feather-pointed text-warning me-1"></i> ক্যাটাগরি: <strong>{{ $authorCat }}</strong> &bull; <i class="fa-solid fa-map-location-dot text-primary me-1"></i> বিভাগ: <strong>{{ $reg->resolved_division }}</strong> &bull; জেলা: <strong>{{ $reg->resolved_district ?: '-' }}</strong>
+                            </span>
+                            <span class="text-muted font-mono" style="font-size: 10px;">ID: #{{ $reg->registration_number }}</span>
+                        </div>
                                 <i class="fa-solid fa-map-location-dot text-primary me-1"></i> বিভাগ: <strong>{{ $divisionName }}</strong> &bull; জেলা: <strong>{{ $reg->district ?: '-' }}</strong>
                             </span>
                             <span class="text-muted font-mono" style="font-size: 10px;">ID: #{{ $reg->registration_number }}</span>

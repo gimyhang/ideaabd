@@ -131,13 +131,18 @@
     }
 
     // Author Category / Designation
-    $catList = $formData['author_categories'] ?? (!empty($formData['author_category']) ? (is_array($formData['author_category']) ? $formData['author_category'] : explode(', ', $formData['author_category'])) : []);
-    if (!empty($catList) && is_array($catList)) {
-        $designation = implode(' • ', array_slice($catList, 0, 2));
-    } elseif (!empty($registration->designation_or_class)) {
-        $designation = $registration->designation_or_class;
+    if (!empty($formData['magazine_name'])) {
+        $mag = trim($formData['magazine_name']);
+        $designation = 'সম্পাদক • ' . $mag;
     } else {
-        $designation = $formData['author_category'] ?? 'কবি, লেখক ও সাহিত্যিক';
+        $catList = $formData['author_categories'] ?? (!empty($formData['author_category']) ? (is_array($formData['author_category']) ? $formData['author_category'] : explode(', ', $formData['author_category'])) : []);
+        if (!empty($catList) && is_array($catList)) {
+            $designation = implode(' • ', array_slice($catList, 0, 2));
+        } elseif (!empty($registration->designation_or_class)) {
+            $designation = $registration->designation_or_class;
+        } else {
+            $designation = $registration->resolved_category ?: ($formData['author_category'] ?? 'কবি, লেখক ও সাহিত্যিক');
+        }
     }
 
     // Location

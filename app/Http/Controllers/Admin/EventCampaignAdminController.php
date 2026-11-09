@@ -2889,7 +2889,12 @@ class EventCampaignAdminController extends Controller
 
         // Apply filters if passed via query
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $rawStatus = trim($request->status);
+            if ($rawStatus === 'confirmed' || $rawStatus === 'approved') {
+                $query->whereIn('status', ['confirmed', 'selected', 'approved', 'attended']);
+            } elseif ($rawStatus !== 'all') {
+                $query->where('status', $rawStatus);
+            }
         }
         if ($request->filled('payment_status')) {
             $query->where('payment_status', $request->payment_status);
@@ -2918,6 +2923,29 @@ class EventCampaignAdminController extends Controller
                       }
                   });
             });
+        }
+        if ($request->filled('category')) {
+            $cat = trim($request->category);
+            if ($cat === 'littlemag' || $cat === 'লিটিলম্যাগ' || $cat === 'লিটিলম্যাগাজিন' || $cat === 'লিটিলম্যাগ সম্পাদক' || $cat === 'ছোটকাগজ') {
+                $query->where(function ($q) {
+                    $q->where(function ($sq) {
+                        $sq->whereNotNull('form_data->magazine_name')
+                           ->where('form_data->magazine_name', '!=', '');
+                    })
+                    ->orWhere('form_data->author_categories', 'like', '%লিটিলম্যাগ%')
+                    ->orWhere('form_data->author_category', 'like', '%লিটিলম্যাগ%')
+                    ->orWhere('designation_or_class', 'like', '%লিটিলম্যাগ%')
+                    ->orWhere('designation_or_class', 'like', '%সম্পাদক%');
+                });
+            } else {
+                $query->where(function ($q) use ($cat) {
+                    $q->where('form_data->author_category', 'like', "%{$cat}%")
+                      ->orWhere('form_data->author_categories', 'like', "%{$cat}%")
+                      ->orWhere('designation_or_class', 'like', "%{$cat}%")
+                      ->orWhere('form_data->genres', 'like', "%{$cat}%")
+                      ->orWhere('form_data->category', 'like', "%{$cat}%");
+                });
+            }
         }
         if ($request->boolean('is_littlemag') || $request->input('type') === 'littlemag') {
             $query->where(function ($q) {
@@ -2961,6 +2989,12 @@ class EventCampaignAdminController extends Controller
         $totalCount = $rawRegistrations->count();
         $isLittleMagOnly = $request->boolean('is_littlemag') || $request->input('type') === 'littlemag';
 
+        // Grouping determination (default: category for writer events or when filtered by category, division otherwise)
+        $groupBy = $request->input('group_by');
+        if (!$groupBy) {
+            $groupBy = ($request->filled('category') || $request->input('by') === 'category' || $campaign->isWriter()) ? 'category' : 'division';
+        }
+
         // Canonical division display priority
         $divisionPriority = [
             'রংপুর'    => 1,
@@ -2973,14 +3007,43 @@ class EventCampaignAdminController extends Controller
             'বরিশাল'   => 8,
         ];
 
-        // Group registrations strictly by division (canonical Bengali division)
-        $groupedRegistrations = $rawRegistrations->groupBy(function ($reg) {
-            return $reg->resolved_division ?: 'অনির্ধারিত বিভাগ';
-        })->sortBy(function ($regs, $divName) use ($divisionPriority) {
-            return $divisionPriority[$divName] ?? 99;
-        });
+        // Canonical category display priority for literary events
+        $categoryPriority = [
+            'কবি'                => 1,
+            'ছড়াকার'              => 2,
+            'কথাসাহিত্যিক'        => 3,
+            'গল্পকার'             => 4,
+            'উপন্যাসিক'           => 5,
+            'প্রাবন্ধিক'          => 6,
+            'গবেষক'               => 7,
+            'অনুবাদক'             => 8,
+            'নাট্যকার'            => 9,
+            'লিটিলম্যাগ সম্পাদক'   => 10,
+            'সম্পাদক'             => 11,
+            'প্রকাশক'             => 12,
+            'শিল্পী'              => 13,
+            'চিত্রশিল্পী'          => 14,
+            'আবৃত্তিশিল্পী'         => 15,
+            'সংগঠক'               => 16,
+            'সাধারণ অংশগ্রহণকারী' => 90,
+            'অনির্ধারিত ক্যাটাগরি' => 99,
+        ];
 
-        // Keep $allRegistrations ordered by division sequence
+        if ($groupBy === 'category') {
+            $groupedRegistrations = $rawRegistrations->groupBy(function ($reg) {
+                return $reg->resolved_category ?: 'অনির্ধারিত ক্যাটাগরি';
+            })->sortBy(function ($regs, $catName) use ($categoryPriority) {
+                return $categoryPriority[$catName] ?? 50;
+            });
+        } else {
+            $groupedRegistrations = $rawRegistrations->groupBy(function ($reg) {
+                return $reg->resolved_division ?: 'অনির্ধারিত বিভাগ';
+            })->sortBy(function ($regs, $divName) use ($divisionPriority) {
+                return $divisionPriority[$divName] ?? 99;
+            });
+        }
+
+        // Keep $allRegistrations ordered by the grouped sequence
         $allRegistrations = $groupedRegistrations->flatten(1);
 
         return view('admin.event_campaigns.print_all', compact(
@@ -2988,7 +3051,8 @@ class EventCampaignAdminController extends Controller
             'allRegistrations',
             'groupedRegistrations',
             'totalCount',
-            'isLittleMagOnly'
+            'isLittleMagOnly',
+            'groupBy'
         ));
     }
 
@@ -3034,6 +3098,29 @@ class EventCampaignAdminController extends Controller
                       }
                   });
             });
+        }
+        if ($request->filled('category')) {
+            $cat = trim($request->category);
+            if ($cat === 'littlemag' || $cat === 'লিটিলম্যাগ' || $cat === 'লিটিলম্যাগাজিন' || $cat === 'লিটিলম্যাগ সম্পাদক' || $cat === 'ছোটকাগজ') {
+                $query->where(function ($q) {
+                    $q->where(function ($sq) {
+                        $sq->whereNotNull('form_data->magazine_name')
+                           ->where('form_data->magazine_name', '!=', '');
+                    })
+                    ->orWhere('form_data->author_categories', 'like', '%লিটিলম্যাগ%')
+                    ->orWhere('form_data->author_category', 'like', '%লিটিলম্যাগ%')
+                    ->orWhere('designation_or_class', 'like', '%লিটিলম্যাগ%')
+                    ->orWhere('designation_or_class', 'like', '%সম্পাদক%');
+                });
+            } else {
+                $query->where(function ($q) use ($cat) {
+                    $q->where('form_data->author_category', 'like', "%{$cat}%")
+                      ->orWhere('form_data->author_categories', 'like', "%{$cat}%")
+                      ->orWhere('designation_or_class', 'like', "%{$cat}%")
+                      ->orWhere('form_data->genres', 'like', "%{$cat}%")
+                      ->orWhere('form_data->category', 'like', "%{$cat}%");
+                });
+            }
         }
         if ($request->boolean('is_littlemag') || $request->input('type') === 'littlemag') {
             $query->where(function ($q) {

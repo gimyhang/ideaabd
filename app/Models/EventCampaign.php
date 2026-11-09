@@ -153,6 +153,16 @@ class EventCampaign extends Model
     public function isLibrary(): bool     { return $this->kind() === self::KIND_LIBRARY; }
     public function isWriter(): bool      { return $this->kind() === self::KIND_WRITER; }
 
+    /**
+     * Resolve route binding by either numeric ID or campaign slug (e.g. 'rsu' or 3).
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where($field ?? 'id', $value)
+            ->orWhere('slug', $value)
+            ->first() ?? abort(404);
+    }
+
     /** Scholarship, library and writer applications are reviewed by an admin before a card or slip is issued. */
     public function requiresApproval(): bool
     {

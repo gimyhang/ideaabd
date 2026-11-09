@@ -294,6 +294,48 @@ class EventRegistration extends Model
     }
 
     /**
+     * Get resolved Category (canonical Bengali writer/attendee category)
+     */
+    public function getResolvedCategoryAttribute(): string
+    {
+        if ($this->isLittleMagEditor()) {
+            return 'লিটিলম্যাগ সম্পাদক';
+        }
+
+        $authorCat = trim((string) ($this->form_data['author_category'] ?? ''));
+        if (!empty($authorCat)) {
+            return $authorCat;
+        }
+
+        $cats = (array) ($this->form_data['author_categories'] ?? []);
+        if (!empty($cats[0])) {
+            return trim((string) $cats[0]);
+        }
+
+        $desig = trim((string) ($this->designation_or_class ?? ''));
+        if (!empty($desig)) {
+            if (mb_strpos($desig, 'কবিতা') !== false || mb_strpos($desig, 'কবি') !== false) return 'কবি';
+            if (mb_strpos($desig, 'ছড়া') !== false) return 'ছড়াকার';
+            if (mb_strpos($desig, 'গল্প') !== false) return 'গল্পকার';
+            if (mb_strpos($desig, 'উপন্যাস') !== false || mb_strpos($desig, 'কথাসাহিত্য') !== false) return 'কথাসাহিত্যিক';
+            if (mb_strpos($desig, 'প্রবন্ধ') !== false) return 'প্রাবন্ধিক';
+            if (mb_strpos($desig, 'গবেষণা') !== false) return 'গবেষক';
+            if (mb_strpos($desig, 'অনুবাদ') !== false) return 'অনুবাদক';
+            if (mb_strpos($desig, 'নাটক') !== false) return 'নাট্যকার';
+            if (mb_strpos($desig, 'শিল্প') !== false || mb_strpos($desig, 'চিত্র') !== false) return 'শিল্পী';
+            if (mb_strpos($desig, 'আবৃত্তি') !== false) return 'আবৃত্তিশিল্পী';
+            return $desig;
+        }
+
+        $cat = trim((string) ($this->form_data['category'] ?? ''));
+        if (!empty($cat)) {
+            return $cat;
+        }
+
+        return 'সাধারণ অংশগ্রহণকারী';
+    }
+
+    /**
      * Get resolved District (always canonical Bengali, no English/Bengali duplicates)
      */
     public function getResolvedDistrictAttribute(): string
