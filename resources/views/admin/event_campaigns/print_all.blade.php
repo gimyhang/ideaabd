@@ -575,10 +575,6 @@
                             </span>
                             <span class="text-muted font-mono" style="font-size: 10px;">ID: #{{ $reg->registration_number }}</span>
                         </div>
-                                <i class="fa-solid fa-map-location-dot text-primary me-1"></i> বিভাগ: <strong>{{ $divisionName }}</strong> &bull; জেলা: <strong>{{ $reg->district ?: '-' }}</strong>
-                            </span>
-                            <span class="text-muted font-mono" style="font-size: 10px;">ID: #{{ $reg->registration_number }}</span>
-                        </div>
 
                         {{-- Form Header --}}
                         <div class="form-sheet-header d-flex justify-content-between align-items-center">
