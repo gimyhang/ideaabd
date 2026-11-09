@@ -2103,13 +2103,13 @@ class EventCampaignAdminController extends Controller
         }
 
         // 2. Division & District Wise Geo Database Export
-        if ($type === 'geo' || $request->filled('division')) {
+        if ($type === 'geo' || (!$campaign->isScholarship() && $request->filled('division'))) {
             return $this->exportGeoDatabase($request, $campaign, $targetDivision, $format ?: 'excel');
         }
 
         // 3. Scholarship applications: every answer needed to review and pay (default for scholarship campaigns)
         if ($type === 'scholarship' || ($campaign->isScholarship() && !$type)) {
-            return $this->exportScholarship($campaign);
+            return $this->exportScholarship($request, $campaign);
         }
 
         // 4. Standard / General Participants Export
@@ -2214,10 +2214,46 @@ class EventCampaignAdminController extends Controller
     /**
      * Scholarship applications as CSV: identity, family, academic, payment account and the statement.
      */
-    protected function exportScholarship(EventCampaign $campaign)
+    protected function exportScholarship(Request $request, EventCampaign $campaign)
     {
         $filename = "scholarship_applications_{$campaign->slug}_" . date('Y-m-d') . ".csv";
-        $registrations = $campaign->registrations()->orderBy('id')->get();
+        $regQuery = $campaign->registrations();
+
+        if ($request->filled('status')) {
+            $rawStatus = trim($request->status);
+            if ($rawStatus === 'confirmed' || $rawStatus === 'approved') {
+                $regQuery->whereIn('status', ['confirmed', 'selected', 'approved', 'attended']);
+            } elseif ($rawStatus !== 'all') {
+                $regQuery->where('status', $rawStatus);
+            }
+        }
+        if ($request->filled('division')) {
+            $rawDiv = trim($request->division);
+            $canonicalDiv = BangladeshGeo::normalizeDivision($rawDiv) ?: $rawDiv;
+            $divVariants = BangladeshGeo::getVariants($canonicalDiv);
+            $regQuery->where(function ($q) use ($divVariants) {
+                foreach ($divVariants as $v) {
+                    $q->orWhere('form_data->perm_division', 'like', "%{$v}%")
+                      ->orWhere('form_data->division', 'like', "%{$v}%");
+                }
+            });
+        }
+        if ($request->filled('district')) {
+            $rawDst = trim($request->district);
+            $canonicalDst = BangladeshGeo::normalizeDistrict($rawDst) ?: $rawDst;
+            $dstVariants = BangladeshGeo::getVariants($canonicalDst);
+            $regQuery->where(function ($q) use ($dstVariants) {
+                $q->whereIn('district', $dstVariants)
+                  ->orWhere(function ($sq) use ($dstVariants) {
+                      foreach ($dstVariants as $v) {
+                          $sq->orWhere('district', 'like', "%{$v}%")
+                             ->orWhere('form_data->district', 'like', "%{$v}%");
+                      }
+                  });
+            });
+        }
+
+        $registrations = $regQuery->orderBy('id')->get();
 
         // Cells that start with = + - @ would run as formulas in Excel; numbers keep their leading zeros as text.
         $safe = function ($v) {
@@ -2921,14 +2957,16 @@ class EventCampaignAdminController extends Controller
         $campaign->loadCount('registrations');
         $query = $campaign->registrations();
 
-        // Apply filters if passed via query
-        if ($request->filled('status')) {
-            $rawStatus = trim($request->status);
-            if ($rawStatus === 'confirmed' || $rawStatus === 'approved') {
-                $query->whereIn('status', ['confirmed', 'selected', 'approved', 'attended']);
-            } elseif ($rawStatus !== 'all') {
-                $query->where('status', $rawStatus);
-            }
+        // Apply filters if passed via query (default to 'approved' to exclude pending by default as requested)
+        $currentStatus = $request->input('status', 'approved');
+        if ($currentStatus === 'confirmed' || $currentStatus === 'approved') {
+            $query->whereIn('status', ['confirmed', 'selected', 'approved', 'attended']);
+        } elseif ($currentStatus === 'pending') {
+            $query->where('status', 'pending');
+        } elseif ($currentStatus === 'rejected') {
+            $query->where('status', 'rejected');
+        } elseif ($currentStatus !== 'all' && !empty($currentStatus)) {
+            $query->where('status', $currentStatus);
         }
         if ($request->filled('payment_status')) {
             $query->where('payment_status', $request->payment_status);
@@ -3086,7 +3124,8 @@ class EventCampaignAdminController extends Controller
             'groupedRegistrations',
             'totalCount',
             'isLittleMagOnly',
-            'groupBy'
+            'groupBy',
+            'currentStatus'
         ));
     }
 

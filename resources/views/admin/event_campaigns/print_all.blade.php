@@ -304,43 +304,80 @@
         </div>
 
         {{-- Interactive Section Toggles --}}
-        <div class="d-flex align-items-center gap-3">
-            {{-- Grouping Switcher (Category vs Division) --}}
-            <div class="btn-group btn-group-sm">
-                <a href="?{{ http_build_query(array_merge(request()->all(), ['group_by' => 'category'])) }}" 
-                   class="btn btn-sm {{ ($groupBy ?? 'category') === 'category' ? 'btn-warning text-dark fw-bold' : 'btn-outline-secondary text-white' }}" 
+        <div class="d-flex align-items-center flex-wrap gap-2">
+            {{-- Status Filter Switcher --}}
+            <div class="btn-group btn-group-sm" role="group" aria-label="Status filter">
+                <a href="?{{ http_build_query(array_merge(request()->all(), ['status' => 'approved'])) }}" 
+                   class="btn btn-sm {{ in_array(($currentStatus ?? 'approved'), ['approved', 'confirmed']) ? 'btn-success text-white fw-bold shadow-xs' : 'btn-outline-secondary text-white' }}" 
                    style="font-size: 11.5px;" 
-                   title="ক্যাটাগরি অনুসারে তালিকা সাজান (কবি, ছড়াকার, লিটিলম্যাগ ইত্যাদি)">
-                    <i class="fa-solid fa-layer-group me-1"></i> ক্যাটাগরি ভিত্তিক
+                   title="পেন্ডিং বাদ দিয়ে শুধুমাত্র অনুমোদিত তালিকা ও ফরম লোড করুন">
+                    <i class="fa-solid fa-circle-check me-1"></i> অনুমোদিত (পেন্ডিং ছাড়া)
                 </a>
+                <a href="?{{ http_build_query(array_merge(request()->all(), ['status' => 'pending'])) }}" 
+                   class="btn btn-sm {{ ($currentStatus ?? '') === 'pending' ? 'btn-warning text-dark fw-bold shadow-xs' : 'btn-outline-secondary text-white' }}" 
+                   style="font-size: 11.5px;" 
+                   title="শুধুমাত্র পেন্ডিং আবেদনগুলো আলাদাভাবে লোড করুন">
+                    <i class="fa-solid fa-clock-rotate-left me-1"></i> পেন্ডিং আলাদা
+                </a>
+                <a href="?{{ http_build_query(array_merge(request()->all(), ['status' => 'all'])) }}" 
+                   class="btn btn-sm {{ ($currentStatus ?? '') === 'all' ? 'btn-info text-dark fw-bold shadow-xs' : 'btn-outline-secondary text-white' }}" 
+                   style="font-size: 11.5px;" 
+                   title="সকল আবেদন (অনুমোদিত + পেন্ডিং)">
+                    <i class="fa-solid fa-users me-1"></i> সকল
+                </a>
+            </div>
+
+            {{-- Grouping Switcher (Category vs Division) --}}
+            <div class="btn-group btn-group-sm" role="group" aria-label="Group by switcher">
                 <a href="?{{ http_build_query(array_merge(request()->all(), ['group_by' => 'division'])) }}" 
-                   class="btn btn-sm {{ ($groupBy ?? 'category') === 'division' ? 'btn-warning text-dark fw-bold' : 'btn-outline-secondary text-white' }}" 
+                   class="btn btn-sm {{ ($groupBy ?? 'division') === 'division' ? 'btn-primary text-white fw-bold' : 'btn-outline-secondary text-white' }}" 
                    style="font-size: 11.5px;" 
                    title="বিভাগ অনুসারে তালিকা সাজান (রংপুর, ঢাকা, রাজশাহী ইত্যাদি)">
                     <i class="fa-solid fa-map-location-dot me-1"></i> বিভাগ ভিত্তিক
+                </a>
+                <a href="?{{ http_build_query(array_merge(request()->all(), ['group_by' => 'category'])) }}" 
+                   class="btn btn-sm {{ ($groupBy ?? 'division') === 'category' ? 'btn-primary text-white fw-bold' : 'btn-outline-secondary text-white' }}" 
+                   style="font-size: 11.5px;" 
+                   title="ক্যাটাগরি অনুসারে তালিকা সাজান (কবি, ছড়াকার, লিটিলম্যাগ ইত্যাদি)">
+                    <i class="fa-solid fa-layer-group me-1"></i> ক্যাটাগরি ভিত্তিক
                 </a>
             </div>
 
             <div class="form-check form-check-inline text-white m-0 d-flex align-items-center gap-1.5" style="cursor: pointer;">
                 <input class="form-check-input" type="checkbox" id="toggleSummaryTable" checked onchange="toggleSection('printSummarySection', this.checked)">
                 <label class="form-check-label fw-semibold small" for="toggleSummaryTable" style="cursor: pointer;">
-                    <i class="fa-solid fa-table-list text-info me-1"></i> তালিকা প্রিন্ট
+                    <i class="fa-solid fa-table-list text-info me-1"></i> তালিকা
                 </label>
             </div>
             <div class="form-check form-check-inline text-white m-0 d-flex align-items-center gap-1.5" style="cursor: pointer;">
                 <input class="form-check-input" type="checkbox" id="toggleForms" checked onchange="toggleSection('printFormsSection', this.checked)">
                 <label class="form-check-label fw-semibold small" for="toggleForms" style="cursor: pointer;">
-                    <i class="fa-solid fa-file-lines text-warning me-1"></i> ফরমগুলো প্রিন্ট ({{ $totalCount }})
+                    <i class="fa-solid fa-file-lines text-warning me-1"></i> ফরমগুলো ({{ $totalCount }})
                 </label>
             </div>
         </div>
 
         <div class="d-flex align-items-center gap-2">
+            <a href="{{ route('admin.event-campaigns.export', $campaign->id) }}?{{ http_build_query(request()->all()) }}" 
+               class="btn btn-sm btn-outline-info text-white rounded-pill px-3" 
+               style="font-size: 11.5px;"
+               title="বর্তমান ফিল্টার অনুসারে CSV ডাউনলোড করুন">
+                <i class="fa-solid fa-file-csv me-1 text-info"></i> CSV ডাউনলোড
+            </a>
+            @if($campaign->isWriter())
+            <a href="{{ route('admin.event-campaigns.cards.download-all', $campaign->id) }}?{{ http_build_query(request()->all()) }}" 
+               target="_blank"
+               class="btn btn-sm btn-outline-warning text-white rounded-pill px-3" 
+               style="font-size: 11.5px;"
+               title="বর্তমান ফিল্টার অনুসারে কার্ড ডাউনলোড করুন">
+                <i class="fa-solid fa-id-card me-1 text-warning"></i> কার্ড ডাউনলোড
+            </a>
+            @endif
             <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="window.close()">
                 <i class="fa-solid fa-xmark me-1"></i> বন্ধ করুন
             </button>
             <button type="button" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="window.print()">
-                <i class="fa-solid fa-print me-1.5"></i> এখনই প্রিন্ট করুন (Ctrl + P)
+                <i class="fa-solid fa-print me-1.5"></i> প্রিন্ট / PDF (Ctrl + P)
             </button>
         </div>
     </div>
