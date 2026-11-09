@@ -2122,6 +2122,39 @@ class EventCampaignAdminController extends Controller
             $regQuery->latest();
         }
 
+        if ($request->filled('status')) {
+            $rawStatus = trim($request->status);
+            if ($rawStatus === 'confirmed' || $rawStatus === 'approved') {
+                $regQuery->whereIn('status', ['confirmed', 'selected', 'approved', 'attended']);
+            } elseif ($rawStatus !== 'all') {
+                $regQuery->where('status', $rawStatus);
+            }
+        }
+
+        if ($request->filled('category')) {
+            $cat = trim($request->category);
+            if ($cat === 'littlemag' || $cat === 'লিটিলম্যাগ' || $cat === 'লিটিলম্যাগাজিন' || $cat === 'লিটিলম্যাগ সম্পাদক' || $cat === 'ছোটকাগজ') {
+                $regQuery->where(function ($q) {
+                    $q->where(function ($sq) {
+                        $sq->whereNotNull('form_data->magazine_name')
+                           ->where('form_data->magazine_name', '!=', '');
+                    })
+                    ->orWhere('form_data->author_categories', 'like', '%লিটিলম্যাগ%')
+                    ->orWhere('form_data->author_category', 'like', '%লিটিলম্যাগ%')
+                    ->orWhere('designation_or_class', 'like', '%লিটিলম্যাগ%')
+                    ->orWhere('designation_or_class', 'like', '%সম্পাদক%');
+                });
+            } else {
+                $regQuery->where(function ($q) use ($cat) {
+                    $q->where('form_data->author_category', 'like', "%{$cat}%")
+                      ->orWhere('form_data->author_categories', 'like', "%{$cat}%")
+                      ->orWhere('designation_or_class', 'like', "%{$cat}%")
+                      ->orWhere('form_data->genres', 'like', "%{$cat}%")
+                      ->orWhere('form_data->category', 'like', "%{$cat}%");
+                });
+            }
+        }
+
         if ($request->filled('district')) {
             $rawDst = trim($request->district);
             $canonicalDst = BangladeshGeo::normalizeDistrict($rawDst) ?: $rawDst;
@@ -2151,7 +2184,7 @@ class EventCampaignAdminController extends Controller
         $callback = function () use ($registrations) {
             $handle = fopen('php://output', 'w');
             fputs($handle, "\xEF\xBB\xBF"); // UTF-8 BOM
-            fputcsv($handle, ['Reg Number', 'Name', 'Phone', 'Email', 'Division', 'District', 'Thana', 'Institution/Genre', 'Magazine Name', 'Amount Paid', 'Trx ID', 'Payment Status', 'Status', 'Registered At']);
+            fputcsv($handle, ['Reg Number', 'Name', 'Phone', 'Email', 'Division', 'District', 'Thana', 'Category', 'Institution/Genre', 'Magazine Name', 'Amount Paid', 'Trx ID', 'Payment Status', 'Status', 'Registered At']);
 
             foreach ($registrations as $r) {
                 fputcsv($handle, [
@@ -2162,7 +2195,8 @@ class EventCampaignAdminController extends Controller
                     $r->resolved_division,
                     $r->resolved_district,
                     $r->resolved_thana ?: 'N/A',
-                    $r->institution_or_org ?: ($r->form_data['author_category'] ?? ''),
+                    $r->resolved_category,
+                    $r->institution_or_org ?: ($r->designation_or_class ?? ''),
                     $r->magazine_name ?: '',
                     $r->amount_paid,
                     $r->transaction_id,

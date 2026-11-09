@@ -784,8 +784,11 @@
             }
 
             const element = document.getElementById('printableCard');
-            const safeName = "{{ preg_replace('/[^a-zA-Z0-9_\-]/', '_', $registration->name) }}";
-            const filename = "Invitation_Card_{{ $registration->registration_number }}_" + (safeName || 'delegate') + ".png";
+            @php
+                $cleanCardName = trim(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $registration->name), '_');
+                $cardBaseFilename = "Invitation_Card_{$registration->registration_number}" . ($cleanCardName ? "_{$cleanCardName}" : "");
+            @endphp
+            const filename = "{{ $cardBaseFilename }}.png";
 
             const readyPromise = document.fonts ? document.fonts.ready : Promise.resolve();
 
@@ -873,8 +876,7 @@
             }
 
             const element = document.getElementById('printableCard');
-            const safeName = "{{ preg_replace('/[^a-zA-Z0-9_\-]/', '_', $registration->name) }}";
-            const filename = "Invitation_Card_{{ $registration->registration_number }}_" + (safeName || 'delegate') + ".pdf";
+            const filename = "{{ $cardBaseFilename }}.pdf";
 
             const opt = {
                 margin:       0,

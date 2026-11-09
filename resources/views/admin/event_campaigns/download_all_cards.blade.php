@@ -680,13 +680,18 @@
                 }
 
                 // Designation
-                $catList = $formData['author_categories'] ?? (!empty($formData['author_category']) ? (is_array($formData['author_category']) ? $formData['author_category'] : explode(', ', $formData['author_category'])) : []);
-                if (!empty($catList) && is_array($catList)) {
-                    $designation = implode(' • ', array_slice($catList, 0, 2));
-                } elseif (!empty($registration->designation_or_class)) {
-                    $designation = $registration->designation_or_class;
+                if (!empty($formData['magazine_name'])) {
+                    $mag = trim($formData['magazine_name']);
+                    $designation = 'সম্পাদক • ' . $mag;
                 } else {
-                    $designation = $formData['author_category'] ?? 'কবি, লেখক ও সাহিত্যিক';
+                    $catList = $formData['author_categories'] ?? (!empty($formData['author_category']) ? (is_array($formData['author_category']) ? $formData['author_category'] : explode(', ', $formData['author_category'])) : []);
+                    if (!empty($catList) && is_array($catList)) {
+                        $designation = implode(' • ', array_slice($catList, 0, 2));
+                    } elseif (!empty($registration->designation_or_class)) {
+                        $designation = $registration->designation_or_class;
+                    } else {
+                        $designation = $registration->resolved_category ?: ($formData['author_category'] ?? 'কবি, লেখক ও সাহিত্যিক');
+                    }
                 }
 
                 // Location
@@ -697,8 +702,8 @@
                 $verifyUrl = route('event.attendance.verify', $registration->registration_number);
                 $qrApiUrl  = \App\Services\BarcodeService::generateQrCodeDataUri($verifyUrl, $qrCodeSize);
 
-                $safeName = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $registration->name);
-                $filename = "Invitation_Card_{$registration->registration_number}_" . ($safeName ?: 'delegate') . ".png";
+                $cleanName = trim(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $registration->name), '_');
+                $filename = "Invitation_Card_{$registration->registration_number}" . ($cleanName ? "_{$cleanName}" : "") . ".png";
             @endphp
 
             <div class="card-item-container" id="cardContainer_{{ $registration->id }}">
@@ -988,7 +993,7 @@
                     progressPercentText.textContent = `${Math.round(metadata.percent)}%`;
                 });
 
-                const zipFilename = "All_Approved_Cards_{{ preg_replace('/[^a-zA-Z0-9_\-]/', '_', $campaign->title) }}_Total_{{ $totalCount }}.zip";
+                const zipFilename = "All_Approved_Cards_{{ $campaign->slug ?: 'event' }}_Total_{{ $totalCount }}.zip";
                 
                 if (window.saveAs) {
                     saveAs(zipContent, zipFilename);
