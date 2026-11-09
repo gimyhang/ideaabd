@@ -1400,7 +1400,7 @@ class AdminMediaController extends Controller
             return str_starts_with($normParent, $publicDir) || str_starts_with($normParent, $storageDir);
         }
 
-        $normReal = strtolower(str_replace('\\', '/', $realPath));
+        $normReal = rtrim(strtolower(str_replace('\\', '/', $realPath)), '/') . '/';
         return str_starts_with($normReal, $publicDir) || str_starts_with($normReal, $storageDir);
     }
 

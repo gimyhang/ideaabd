@@ -439,8 +439,8 @@
                             <tr>
                                 <th style="width: 35px;" class="text-center">ক্র.</th>
                                 <th style="width: 95px;">আইডি</th>
-                                <th>অংশগ্রহণকারী ও বিবরণ</th>
-                                <th>ক্যাটাগরি / শাখা</th>
+                                <th>{{ $campaign->isScholarship() ? 'শিক্ষার্থী ও অভিভাবক' : 'অংশগ্রহণকারী ও বিবরণ' }}</th>
+                                <th>{{ $campaign->isScholarship() ? 'শিক্ষা প্রতিষ্ঠান ও বিভাগ' : 'ক্যাটাগরি / শাখা' }}</th>
                                 <th>যোগাযোগ</th>
                                 <th>ঠিকানা (বিভাগ ও জেলা)</th>
                                 @if($campaign->has_fee_or_donation)
@@ -462,21 +462,32 @@
                                     <td class="font-mono fw-bold text-dark">#{{ $reg->registration_number }}</td>
                                     <td>
                                         <div class="fw-bold text-dark">{{ $reg->name }}</div>
-                                        @if(!empty($reg->form_data['pen_name']))
-                                            <small class="text-muted d-block">কলমী নাম: {{ $reg->form_data['pen_name'] }}</small>
-                                        @endif
-                                        @if($magName)
-                                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle py-0 px-1" style="font-size: 10px;">
-                                                পত্রিকা: {{ $magName }}
-                                            </span>
+                                        @if($campaign->isScholarship())
+                                            @if(!empty($reg->form_data['father_name']))
+                                                <small class="text-muted d-block">পিতা: {{ $reg->form_data['father_name'] }}</small>
+                                            @endif
+                                        @else
+                                            @if(!empty($reg->form_data['pen_name']))
+                                                <small class="text-muted d-block">কলমী নাম: {{ $reg->form_data['pen_name'] }}</small>
+                                            @endif
+                                            @if($magName)
+                                                <span class="badge bg-warning-subtle text-dark border border-warning-subtle py-0 px-1" style="font-size: 10px;">
+                                                    পত্রিকা: {{ $magName }}
+                                                </span>
+                                            @endif
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="badge bg-light text-dark border py-0.5 px-2 fw-semibold" style="font-size: 10.5px;">
-                                            <i class="fa-solid fa-feather-pointed text-warning me-1"></i>{{ $authorCat }}
-                                        </span>
-                                        @if(!empty($reg->designation_or_class) && $reg->designation_or_class !== $authorCat)
-                                            <small class="text-muted d-block mt-0.5" style="font-size: 10px;">{{ $reg->designation_or_class }}</small>
+                                        @if($campaign->isScholarship())
+                                            <div class="fw-medium text-dark">{{ $reg->form_data['college_name'] ?? ($reg->institution_or_org ?: '-') }}</div>
+                                            <small class="text-muted d-block">{{ $reg->form_data['scholarship_degree'] ?? '' }} • {{ $reg->form_data['group'] ?? '' }} @if(!empty($reg->form_data['ssc_gpa'])) &bull; GPA: {{ $reg->form_data['ssc_gpa'] }} @endif</small>
+                                        @else
+                                            <span class="badge bg-light text-dark border py-0.5 px-2 fw-semibold" style="font-size: 10.5px;">
+                                                <i class="fa-solid fa-feather-pointed text-warning me-1"></i>{{ $authorCat }}
+                                            </span>
+                                            @if(!empty($reg->designation_or_class) && $reg->designation_or_class !== $authorCat)
+                                                <small class="text-muted d-block mt-0.5" style="font-size: 10px;">{{ $reg->designation_or_class }}</small>
+                                            @endif
                                         @endif
                                     </td>
                                     <td>
@@ -638,22 +649,45 @@
                                         <th>পূর্ণ নাম:</th>
                                         <td class="fw-bold fs-6 text-dark" colspan="3">{{ $reg->name }}</td>
                                     </tr>
-                                    <tr>
-                                        <th>কলমী নাম / সাহিত্যিক নাম:</th>
-                                        <td colspan="3">{{ $penName ?: '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>মোবাইল নম্বর:</th>
-                                        <td class="font-mono fw-bold text-primary">{{ $reg->phone }}</td>
-                                        <th>ইমেইল:</th>
-                                        <td class="font-mono">{{ $reg->email ?: '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>প্রতিষ্ঠান / সংগঠন:</th>
-                                        <td>{{ $reg->institution_or_org ?: ($fData['organization_name'] ?? '-') }}</td>
-                                        <th>পদবি / শাখা / পেশা:</th>
-                                        <td>{{ $reg->designation_or_class ?: '-' }}</td>
-                                    </tr>
+                                    @if($campaign->isScholarship())
+                                        <tr>
+                                            <th>পিতার নাম:</th>
+                                            <td>{{ $fData['father_name'] ?? '-' }}</td>
+                                            <th>মাতার নাম:</th>
+                                            <td>{{ $fData['mother_name'] ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>মোবাইল নম্বর:</th>
+                                            <td class="font-mono fw-bold text-primary">{{ $reg->phone }}</td>
+                                            <th>অভিভাবকের ফোন:</th>
+                                            <td class="font-mono text-dark">{{ $fData['guardian_phone'] ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>শিক্ষা প্রতিষ্ঠান:</th>
+                                            <td>{{ $fData['college_name'] ?? ($reg->institution_or_org ?: '-') }}</td>
+                                            <th>শ্রেণি / ডিগ্রি / বিষয়:</th>
+                                            <td>{{ trim(($fData['scholarship_degree'] ?? '') . ' • ' . ($fData['group'] ?? '') . ' • ' . ($fData['assigned_subject'] ?? '')) ?: '-' }}</td>
+                                        </tr>
+                                    @else
+                                        @if(!empty($penName))
+                                        <tr>
+                                            <th>কলমী নাম / সাহিত্যিক নাম:</th>
+                                            <td colspan="3">{{ $penName }}</td>
+                                        </tr>
+                                        @endif
+                                        <tr>
+                                            <th>মোবাইল নম্বর:</th>
+                                            <td class="font-mono fw-bold text-primary">{{ $reg->phone }}</td>
+                                            <th>ইমেইল:</th>
+                                            <td class="font-mono">{{ $reg->email ?: '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>প্রতিষ্ঠান / সংগঠন:</th>
+                                            <td>{{ $reg->institution_or_org ?: ($fData['organization_name'] ?? '-') }}</td>
+                                            <th>পদবি / শাখা / পেশা:</th>
+                                            <td>{{ $reg->designation_or_class ?: '-' }}</td>
+                                        </tr>
+                                    @endif
                                 </table>
                             </div>
                         </div>
@@ -677,36 +711,73 @@
                             </tr>
                             <tr>
                                 <th>পোস্টকোড:</th>
-                                <td class="font-mono">{{ $fData['zip_code'] ?? '-' }}</td>
+                                <td class="font-mono">{{ $fData['zip_code'] ?? ($fData['perm_postcode'] ?? '-') }}</td>
                                 <th>গ্রাম / সড়ক / হোল্ডিং:</th>
-                                <td>{{ $reg->address ?: ($fData['foreign_address'] ?? '-') }}</td>
+                                <td>{{ $reg->address ?: ($fData['permanent_address'] ?? ($fData['foreign_address'] ?? '-')) }}</td>
                             </tr>
                         </table>
 
-                        {{-- Publication / Category / Magazine Details --}}
-                        <div class="info-section-title">
-                            <i class="fa-solid fa-book-bookmark text-primary"></i> ২. সাহিত্য ও প্রকাশনা তথ্য
-                        </div>
-                        <table class="info-grid-table">
-                            <tr>
-                                <th>অংশগ্রহণের ক্যাটাগরি:</th>
-                                <td class="fw-bold text-dark">{{ $authorCat ?: '-' }}</td>
-                                <th>লিটিলম্যাগাজিনের নাম:</th>
-                                <td class="fw-bold text-warning-emphasis">{{ $magName ?: '-' }}</td>
-                            </tr>
-                            <tr>
-                                <th>প্রকাশিত বইয়ের সংখ্যা:</th>
-                                <td>{{ !empty($fData['published_book_count']) ? $fData['published_book_count'] . ' টি' : '-' }}</td>
-                                <th>প্রকাশনা সংস্থা:</th>
-                                <td>{{ $fData['publisher_name'] ?? '-' }}</td>
-                            </tr>
-                            @if(!empty($fData['published_books']))
+                        @if($campaign->isScholarship())
+                            {{-- Academic Results & Details for Scholarship --}}
+                            <div class="info-section-title">
+                                <i class="fa-solid fa-graduation-cap text-primary"></i> ২. শিক্ষাগত ফলাফল ও পরিবারের তথ্য
+                            </div>
+                            <table class="info-grid-table">
                                 <tr>
-                                    <th>প্রকাশিত বইসমূহের নাম:</th>
-                                    <td colspan="3">{{ $fData['published_books'] }}</td>
+                                    <th>এসএসসি (SSC):</th>
+                                    <td>রোল: <strong>{{ $fData['ssc_roll'] ?? '-' }}</strong> | বোর্ড: {{ $fData['ssc_board'] ?? '-' }} | সন: {{ $fData['ssc_year'] ?? '-' }}</td>
+                                    <th>এসএসসি জিপিএ:</th>
+                                    <td class="font-mono fw-bold text-success">{{ $fData['ssc_gpa'] ?? '-' }}</td>
                                 </tr>
-                            @endif
-                        </table>
+                                @if(!empty($fData['hsc_roll']) || !empty($fData['hsc_gpa']))
+                                <tr>
+                                    <th>এইচএসসি (HSC):</th>
+                                    <td>রোল: <strong>{{ $fData['hsc_roll'] ?? '-' }}</strong> | বোর্ড: {{ $fData['hsc_board'] ?? '-' }} | সন: {{ $fData['hsc_year'] ?? '-' }}</td>
+                                    <th>এইচএসসি জিপিএ:</th>
+                                    <td class="font-mono fw-bold text-success">{{ $fData['hsc_gpa'] ?? '-' }}</td>
+                                </tr>
+                                @endif
+                                <tr>
+                                    <th>জাতীয় পরিচয়পত্র / জন্মনিবন্ধন:</th>
+                                    <td class="font-mono">{{ $fData['national_id'] ?? '-' }}</td>
+                                    <th>পারিবারিক আয় / পেশা:</th>
+                                    <td>{{ $fData['father_occupation'] ?? '' }} (বার্ষিক আয়: ৳{{ number_format((float)($fData['annual_income'] ?? 0)) }})</td>
+                                </tr>
+                                @if(!empty($fData['pay_account_no']))
+                                <tr>
+                                    <th>বৃত্তির পেমেন্ট হিসাব:</th>
+                                    <td colspan="3" class="font-mono">
+                                        {{ $fData['pay_method'] ?? 'Bank' }} &bull; হিসাব নম্বর: <strong>{{ $fData['pay_account_no'] }}</strong> &bull; ব্যাংক / শাখা: {{ $fData['pay_bank_name'] ?? '' }} ({{ $fData['pay_bank_branch'] ?? '' }}) &bull; হিসাবের নাম: {{ $fData['pay_account_name'] ?? '' }}
+                                    </td>
+                                </tr>
+                                @endif
+                            </table>
+                        @else
+                            {{-- Publication / Category / Magazine Details for Writers & General Events --}}
+                            <div class="info-section-title">
+                                <i class="fa-solid fa-book-bookmark text-primary"></i> ২. সাহিত্য ও প্রকাশনা তথ্য
+                            </div>
+                            <table class="info-grid-table">
+                                <tr>
+                                    <th>অংশগ্রহণের ক্যাটাগরি:</th>
+                                    <td class="fw-bold text-dark">{{ $authorCat ?: '-' }}</td>
+                                    <th>লিটিলম্যাগাজিনের নাম:</th>
+                                    <td class="fw-bold text-warning-emphasis">{{ $magName ?: '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>প্রকাশিত বইয়ের সংখ্যা:</th>
+                                    <td>{{ !empty($fData['published_book_count']) ? $fData['published_book_count'] . ' টি' : '-' }}</td>
+                                    <th>প্রকাশনা সংস্থা:</th>
+                                    <td>{{ $fData['publisher_name'] ?? '-' }}</td>
+                                </tr>
+                                @if(!empty($fData['published_books']))
+                                    <tr>
+                                        <th>প্রকাশিত বইসমূহের নাম:</th>
+                                        <td colspan="3">{{ $fData['published_books'] }}</td>
+                                    </tr>
+                                @endif
+                            </table>
+                        @endif
 
                         {{-- Fee & Payment Info (If Applicable) --}}
                         @if($campaign->has_fee_or_donation)
