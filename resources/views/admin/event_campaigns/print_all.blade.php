@@ -217,6 +217,17 @@
             margin-bottom: 8px;
             border-radius: 6px;
         }
+        .district-banner {
+            background: #f1f5f9;
+            color: #0f172a;
+            border-left: 4px solid #0284c7;
+            padding: 6px 12px;
+            margin-bottom: 6px;
+            border-radius: 4px;
+        }
+        .district-sub-block {
+            margin-bottom: 18px;
+        }
 
         /* Print Media Styles */
         @media print {
@@ -253,12 +264,31 @@
                 padding: 5px 8px !important;
                 border: 1px solid #94a3b8 !important;
             }
+            .division-print-block {
+                page-break-before: always !important;
+                break-before: page !important;
+            }
+            .division-print-block:first-of-type {
+                page-break-before: avoid !important;
+                break-before: avoid !important;
+            }
             .division-banner {
                 background: #1e293b !important;
                 color: #ffffff !important;
                 border-left: 6px solid #10b981 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+            }
+            .district-banner {
+                background: #f1f5f9 !important;
+                color: #0f172a !important;
+                border-left: 4px solid #0284c7 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .district-sub-block {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
             .applicant-photo-box {
                 border: 1.5px solid #000000 !important;
@@ -361,8 +391,14 @@
             <a href="{{ route('admin.event-campaigns.export', $campaign->id) }}?{{ http_build_query(request()->all()) }}" 
                class="btn btn-sm btn-outline-info text-white rounded-pill px-3" 
                style="font-size: 11.5px;"
-               title="বর্তমান ফিল্টার অনুসারে CSV ডাউনলোড করুন">
+               title="বর্তমান ফিল্টার ও সাজানো অনুসারে CSV ডাউনলোড করুন">
                 <i class="fa-solid fa-file-csv me-1 text-info"></i> CSV ডাউনলোড
+            </a>
+            <a href="{{ route('admin.event-campaigns.export', $campaign->id) }}?{{ http_build_query(array_merge(request()->all(), ['format' => 'excel'])) }}" 
+               class="btn btn-sm btn-outline-success text-white rounded-pill px-3" 
+               style="font-size: 11.5px;"
+               title="বিভাগ ও জেলা অনুসারে এক্সেল ফাইল ডাউনলোড করুন">
+                <i class="fa-solid fa-file-excel me-1 text-success"></i> বিভাগ-জেলা Excel
             </a>
             @if($campaign->isWriter())
             <a href="{{ route('admin.event-campaigns.cards.download-all', $campaign->id) }}?{{ http_build_query(request()->all()) }}" 
@@ -373,11 +409,14 @@
                 <i class="fa-solid fa-id-card me-1 text-warning"></i> কার্ড ডাউনলোড
             </a>
             @endif
-            <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="window.close()">
-                <i class="fa-solid fa-xmark me-1"></i> বন্ধ করুন
+            <button type="button" class="btn btn-sm btn-warning rounded-pill px-3 fw-bold text-dark shadow-xs" onclick="printSummaryOnly()" title="ফরমগুলো বাদ দিয়ে শুধুমাত্র বিভাগ ও জেলাওয়ারী সামারি তালিকা প্রিন্ট করুন">
+                <i class="fa-solid fa-list-check me-1"></i> শুধু তালিকা প্রিন্ট
             </button>
-            <button type="button" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="window.print()">
-                <i class="fa-solid fa-print me-1.5"></i> প্রিন্ট / PDF (Ctrl + P)
+            <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" onclick="printAllSections()" title="তালিকা ও সকল আবেদন ফরম একসাথে প্রিন্ট করুন">
+                <i class="fa-solid fa-print me-1"></i> সম্পূর্ণ প্রিন্ট
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-2.5" onclick="window.close()" title="উইন্ডো বন্ধ করুন">
+                <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
     </div>
@@ -453,12 +492,18 @@
             </div>
 
             {{-- Main Summary Table Grouped by Category or Division --}}
-            @php $globalSerial = 1; @endphp
+            @php 
+                $globalSerial = 1; 
+                $isDivisionGroup = ($groupBy ?? 'division') === 'division';
+            @endphp
             @forelse($groupedRegistrations as $groupTitle => $groupRegistrations)
-                <div class="division-print-block mb-4" style="page-break-inside: avoid;">
+                @php
+                    $groupTotal = $isDivisionGroup ? $groupRegistrations->flatten(1)->count() : $groupRegistrations->count();
+                @endphp
+                <div class="division-print-block mb-4">
                     <div class="division-banner d-flex justify-content-between align-items-center mb-2">
                         <div class="fw-bold fs-6 d-flex align-items-center gap-2">
-                            @if(($groupBy ?? 'category') === 'category')
+                            @if(!$isDivisionGroup)
                                 <i class="fa-solid fa-feather-pointed text-warning"></i>
                                 <span>ক্যাটাগরি: <strong>{{ $groupTitle }}</strong></span>
                             @else
@@ -467,103 +512,214 @@
                             @endif
                         </div>
                         <span class="badge bg-light text-dark font-mono px-3 py-1 fw-bold" style="font-size: 11.5px;">
-                            মোট: {{ $groupRegistrations->count() }} জন
+                            মোট: {{ $groupTotal }} জন
                         </span>
                     </div>
 
-                    <table class="print-table mb-3">
-                        <thead>
-                            <tr>
-                                <th style="width: 35px;" class="text-center">ক্র.</th>
-                                <th style="width: 95px;">আইডি</th>
-                                <th>{{ $campaign->isScholarship() ? 'শিক্ষার্থী ও অভিভাবক' : 'অংশগ্রহণকারী ও বিবরণ' }}</th>
-                                <th>{{ $campaign->isScholarship() ? 'শিক্ষা প্রতিষ্ঠান ও বিভাগ' : 'ক্যাটাগরি / শাখা' }}</th>
-                                <th>যোগাযোগ</th>
-                                <th>ঠিকানা (বিভাগ ও জেলা)</th>
-                                @if($campaign->has_fee_or_donation)
-                                    <th style="width: 75px;">ফি</th>
-                                    <th style="width: 80px;">পেমেন্ট</th>
-                                @endif
-                                <th style="width: 85px;" class="text-center">স্ট্যাটাস</th>
-                                <th style="width: 90px;">তারিখ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($groupRegistrations as $reg)
-                                @php
-                                    $authorCat = $reg->resolved_category;
-                                    $magName = $reg->form_data['magazine_name'] ?? null;
-                                @endphp
+                    @if($isDivisionGroup)
+                        {{-- Under this Division, group by District --}}
+                        @foreach($groupRegistrations as $districtName => $districtRegistrations)
+                            <div class="district-sub-block">
+                                <div class="district-banner d-flex justify-content-between align-items-center">
+                                    <div class="fw-bold text-dark" style="font-size: 12.5px;">
+                                        <i class="fa-solid fa-location-dot text-primary me-1"></i> জেলা: <strong>{{ $districtName }}</strong>
+                                    </div>
+                                    <span class="badge bg-secondary-subtle text-dark border font-mono px-2 py-0.5" style="font-size: 11px;">
+                                        {{ $districtRegistrations->count() }} জন
+                                    </span>
+                                </div>
+
+                                <table class="print-table mb-2">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 35px;" class="text-center">ক্র.</th>
+                                            <th style="width: 95px;">আইডি</th>
+                                            <th>{{ $campaign->isScholarship() ? 'শিক্ষার্থী ও অভিভাবক' : 'অংশগ্রহণকারী ও বিবরণ' }}</th>
+                                            <th>{{ $campaign->isScholarship() ? 'শিক্ষা প্রতিষ্ঠান ও বিভাগ' : 'ক্যাটাগরি / শাখা' }}</th>
+                                            <th>যোগাযোগ</th>
+                                            <th>উপজেলা / ঠিকানা</th>
+                                            @if($campaign->has_fee_or_donation)
+                                                <th style="width: 75px;">ফি</th>
+                                                <th style="width: 80px;">পেমেন্ট</th>
+                                            @endif
+                                            <th style="width: 85px;" class="text-center">স্ট্যাটাস</th>
+                                            <th style="width: 90px;">তারিখ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($districtRegistrations as $reg)
+                                            @php
+                                                $authorCat = $reg->resolved_category;
+                                                $magName = $reg->form_data['magazine_name'] ?? null;
+                                            @endphp
+                                            <tr>
+                                                <td class="text-center font-mono">{{ $globalSerial++ }}</td>
+                                                <td class="font-mono fw-bold text-dark">#{{ $reg->registration_number }}</td>
+                                                <td>
+                                                    <div class="fw-bold text-dark">{{ $reg->name }}</div>
+                                                    @if($campaign->isScholarship())
+                                                        @if(!empty($reg->form_data['father_name']))
+                                                            <small class="text-muted d-block">পিতা: {{ $reg->form_data['father_name'] }}</small>
+                                                        @endif
+                                                    @else
+                                                        @if(!empty($reg->form_data['pen_name']))
+                                                            <small class="text-muted d-block">কলমী নাম: {{ $reg->form_data['pen_name'] }}</small>
+                                                        @endif
+                                                        @if($magName)
+                                                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle py-0 px-1" style="font-size: 10px;">
+                                                                পত্রিকা: {{ $magName }}
+                                                            </span>
+                                                        @endif
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if($campaign->isScholarship())
+                                                        <div class="fw-medium text-dark">{{ $reg->form_data['college_name'] ?? ($reg->institution_or_org ?: '-') }}</div>
+                                                        <small class="text-muted d-block">{{ $reg->form_data['scholarship_degree'] ?? '' }} • {{ $reg->form_data['group'] ?? '' }} @if(!empty($reg->form_data['ssc_gpa'])) &bull; GPA: {{ $reg->form_data['ssc_gpa'] }} @endif</small>
+                                                    @else
+                                                        <span class="badge bg-light text-dark border py-0.5 px-2 fw-semibold" style="font-size: 10.5px;">
+                                                            <i class="fa-solid fa-feather-pointed text-warning me-1"></i>{{ $authorCat }}
+                                                        </span>
+                                                        @if(!empty($reg->designation_or_class) && $reg->designation_or_class !== $authorCat)
+                                                            <small class="text-muted d-block mt-0.5" style="font-size: 10px;">{{ $reg->designation_or_class }}</small>
+                                                        @endif
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <div class="font-mono fw-semibold">{{ $reg->phone }}</div>
+                                                    @if($reg->email)
+                                                        <small class="text-muted d-block text-truncate" style="max-width: 130px;">{{ $reg->email }}</small>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <div class="fw-medium text-dark">{{ $reg->resolved_district ?: '-' }}</div>
+                                                    <small class="text-muted d-block">{{ $reg->resolved_thana ?: ($reg->thana ?: '') }}</small>
+                                                </td>
+                                                @if($campaign->has_fee_or_donation)
+                                                    <td class="font-mono fw-semibold">৳{{ number_format($reg->amount_paid) }}</td>
+                                                    <td>
+                                                        <span class="status-pill {{ $reg->payment_status === 'verified' ? 'status-confirmed' : 'status-pending' }}">
+                                                            {{ $reg->payment_status === 'verified' ? 'Verified' : ucfirst($reg->payment_status) }}
+                                                        </span>
+                                                        @if($reg->transaction_id)
+                                                            <small class="font-mono text-muted d-block" style="font-size: 9.5px;">{{ $reg->transaction_id }}</small>
+                                                        @endif
+                                                    </td>
+                                                @endif
+                                                <td class="text-center">
+                                                    @if(in_array($reg->status, ['confirmed', 'approved', 'selected', 'attended']))
+                                                        <span class="status-pill status-confirmed">Approved</span>
+                                                    @elseif($reg->status === 'rejected')
+                                                        <span class="status-pill status-rejected">Rejected</span>
+                                                    @else
+                                                        <span class="status-pill status-pending">{{ ucfirst($reg->status) }}</span>
+                                                    @endif
+                                                </td>
+                                                <td class="font-mono text-muted" style="font-size: 11px;">
+                                                    {{ $reg->created_at->format('d/m/Y') }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endforeach
+                    @else
+                        {{-- Category Group Mode --}}
+                        <table class="print-table mb-3">
+                            <thead>
                                 <tr>
-                                    <td class="text-center font-mono">{{ $globalSerial++ }}</td>
-                                    <td class="font-mono fw-bold text-dark">#{{ $reg->registration_number }}</td>
-                                    <td>
-                                        <div class="fw-bold text-dark">{{ $reg->name }}</div>
-                                        @if($campaign->isScholarship())
-                                            @if(!empty($reg->form_data['father_name']))
-                                                <small class="text-muted d-block">পিতা: {{ $reg->form_data['father_name'] }}</small>
-                                            @endif
-                                        @else
-                                            @if(!empty($reg->form_data['pen_name']))
-                                                <small class="text-muted d-block">কলমী নাম: {{ $reg->form_data['pen_name'] }}</small>
-                                            @endif
-                                            @if($magName)
-                                                <span class="badge bg-warning-subtle text-dark border border-warning-subtle py-0 px-1" style="font-size: 10px;">
-                                                    পত্রিকা: {{ $magName }}
-                                                </span>
-                                            @endif
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($campaign->isScholarship())
-                                            <div class="fw-medium text-dark">{{ $reg->form_data['college_name'] ?? ($reg->institution_or_org ?: '-') }}</div>
-                                            <small class="text-muted d-block">{{ $reg->form_data['scholarship_degree'] ?? '' }} • {{ $reg->form_data['group'] ?? '' }} @if(!empty($reg->form_data['ssc_gpa'])) &bull; GPA: {{ $reg->form_data['ssc_gpa'] }} @endif</small>
-                                        @else
-                                            <span class="badge bg-light text-dark border py-0.5 px-2 fw-semibold" style="font-size: 10.5px;">
-                                                <i class="fa-solid fa-feather-pointed text-warning me-1"></i>{{ $authorCat }}
-                                            </span>
-                                            @if(!empty($reg->designation_or_class) && $reg->designation_or_class !== $authorCat)
-                                                <small class="text-muted d-block mt-0.5" style="font-size: 10px;">{{ $reg->designation_or_class }}</small>
-                                            @endif
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <div class="font-mono fw-semibold">{{ $reg->phone }}</div>
-                                        @if($reg->email)
-                                            <small class="text-muted d-block text-truncate" style="max-width: 130px;">{{ $reg->email }}</small>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <div class="fw-medium text-dark">{{ $reg->resolved_district ?: '-' }}</div>
-                                        <small class="text-muted d-block">{{ $reg->resolved_division }} &bull; {{ $reg->thana ?: '' }}</small>
-                                    </td>
+                                    <th style="width: 35px;" class="text-center">ক্র.</th>
+                                    <th style="width: 95px;">আইডি</th>
+                                    <th>{{ $campaign->isScholarship() ? 'শিক্ষার্থী ও অভিভাবক' : 'অংশগ্রহণকারী ও বিবরণ' }}</th>
+                                    <th>{{ $campaign->isScholarship() ? 'শিক্ষা প্রতিষ্ঠান ও বিভাগ' : 'ক্যাটাগরি / শাখা' }}</th>
+                                    <th>যোগাযোগ</th>
+                                    <th>ঠিকানা (বিভাগ ও জেলা)</th>
                                     @if($campaign->has_fee_or_donation)
-                                        <td class="font-mono fw-semibold">৳{{ number_format($reg->amount_paid) }}</td>
+                                        <th style="width: 75px;">ফি</th>
+                                        <th style="width: 80px;">পেমেন্ট</th>
+                                    @endif
+                                    <th style="width: 85px;" class="text-center">স্ট্যাটাস</th>
+                                    <th style="width: 90px;">তারিখ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($groupRegistrations as $reg)
+                                    @php
+                                        $authorCat = $reg->resolved_category;
+                                        $magName = $reg->form_data['magazine_name'] ?? null;
+                                    @endphp
+                                    <tr>
+                                        <td class="text-center font-mono">{{ $globalSerial++ }}</td>
+                                        <td class="font-mono fw-bold text-dark">#{{ $reg->registration_number }}</td>
                                         <td>
-                                            <span class="status-pill {{ $reg->payment_status === 'verified' ? 'status-confirmed' : 'status-pending' }}">
-                                                {{ $reg->payment_status === 'verified' ? 'Verified' : ucfirst($reg->payment_status) }}
-                                            </span>
-                                            @if($reg->transaction_id)
-                                                <small class="font-mono text-muted d-block" style="font-size: 9.5px;">{{ $reg->transaction_id }}</small>
+                                            <div class="fw-bold text-dark">{{ $reg->name }}</div>
+                                            @if($campaign->isScholarship())
+                                                @if(!empty($reg->form_data['father_name']))
+                                                    <small class="text-muted d-block">পিতা: {{ $reg->form_data['father_name'] }}</small>
+                                                @endif
+                                            @else
+                                                @if(!empty($reg->form_data['pen_name']))
+                                                    <small class="text-muted d-block">কলমী নাম: {{ $reg->form_data['pen_name'] }}</small>
+                                                @endif
+                                                @if($magName)
+                                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle py-0 px-1" style="font-size: 10px;">
+                                                        পত্রিকা: {{ $magName }}
+                                                    </span>
+                                                @endif
                                             @endif
                                         </td>
-                                    @endif
-                                    <td class="text-center">
-                                        @if(in_array($reg->status, ['confirmed', 'approved', 'selected', 'attended']))
-                                            <span class="status-pill status-confirmed">Approved</span>
-                                        @elseif($reg->status === 'rejected')
-                                            <span class="status-pill status-rejected">Rejected</span>
-                                        @else
-                                            <span class="status-pill status-pending">{{ ucfirst($reg->status) }}</span>
+                                        <td>
+                                            @if($campaign->isScholarship())
+                                                <div class="fw-medium text-dark">{{ $reg->form_data['college_name'] ?? ($reg->institution_or_org ?: '-') }}</div>
+                                                <small class="text-muted d-block">{{ $reg->form_data['scholarship_degree'] ?? '' }} • {{ $reg->form_data['group'] ?? '' }} @if(!empty($reg->form_data['ssc_gpa'])) &bull; GPA: {{ $reg->form_data['ssc_gpa'] }} @endif</small>
+                                            @else
+                                                <span class="badge bg-light text-dark border py-0.5 px-2 fw-semibold" style="font-size: 10.5px;">
+                                                    <i class="fa-solid fa-feather-pointed text-warning me-1"></i>{{ $authorCat }}
+                                                </span>
+                                                @if(!empty($reg->designation_or_class) && $reg->designation_or_class !== $authorCat)
+                                                    <small class="text-muted d-block mt-0.5" style="font-size: 10px;">{{ $reg->designation_or_class }}</small>
+                                                @endif
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div class="font-mono fw-semibold">{{ $reg->phone }}</div>
+                                            @if($reg->email)
+                                                <small class="text-muted d-block text-truncate" style="max-width: 130px;">{{ $reg->email }}</small>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div class="fw-medium text-dark">{{ $reg->resolved_district ?: '-' }}</div>
+                                            <small class="text-muted d-block">{{ $reg->resolved_division }} &bull; {{ $reg->thana ?: '' }}</small>
+                                        </td>
+                                        @if($campaign->has_fee_or_donation)
+                                            <td class="font-mono fw-semibold">৳{{ number_format($reg->amount_paid) }}</td>
+                                            <td>
+                                                <span class="status-pill {{ $reg->payment_status === 'verified' ? 'status-confirmed' : 'status-pending' }}">
+                                                    {{ $reg->payment_status === 'verified' ? 'Verified' : ucfirst($reg->payment_status) }}
+                                                </span>
+                                                @if($reg->transaction_id)
+                                                    <small class="font-mono text-muted d-block" style="font-size: 9.5px;">{{ $reg->transaction_id }}</small>
+                                                @endif
+                                            </td>
                                         @endif
-                                    </td>
-                                    <td class="font-mono text-muted" style="font-size: 11px;">
-                                        {{ $reg->created_at->format('d/m/Y') }}
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                                        <td class="text-center">
+                                            @if(in_array($reg->status, ['confirmed', 'approved', 'selected', 'attended']))
+                                                <span class="status-pill status-confirmed">Approved</span>
+                                            @elseif($reg->status === 'rejected')
+                                                <span class="status-pill status-rejected">Rejected</span>
+                                            @else
+                                                <span class="status-pill status-pending">{{ ucfirst($reg->status) }}</span>
+                                            @endif
+                                        </td>
+                                        <td class="font-mono text-muted" style="font-size: 11px;">
+                                            {{ $reg->created_at->format('d/m/Y') }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
                 </div>
             @empty
                 <div class="text-center py-5 text-muted">
@@ -587,9 +743,8 @@
              SECTION 2: INDIVIDUAL REGISTRATION & APPLICATION FORMS (GROUPED)
              ========================================================================= --}}
         <div id="printFormsSection">
-            @foreach($groupedRegistrations as $groupTitle => $groupRegistrations)
-                @foreach($groupRegistrations as $reg)
-                    @php
+            @foreach($allRegistrations as $reg)
+                @php
                         $fData = $reg->form_data ?? [];
                         $rawPhoto = $fData['student_photo'] 
                             ?? ($fData['photo'] 
@@ -864,7 +1019,6 @@
                         </div>
                     </div>
                 @endforeach
-            @endforeach
         </div>
 
     </div>
@@ -876,6 +1030,36 @@
             if (el) {
                 el.style.display = isVisible ? 'block' : 'none';
             }
+        }
+
+        function printSummaryOnly() {
+            const formsSection = document.getElementById('printFormsSection');
+            const summarySection = document.getElementById('printSummarySection');
+            const toggleSummary = document.getElementById('toggleSummaryTable');
+            const toggleForms = document.getElementById('toggleForms');
+
+            if (summarySection) summarySection.style.display = 'block';
+            if (formsSection) formsSection.style.display = 'none';
+            if (toggleSummary) toggleSummary.checked = true;
+            if (toggleForms) toggleForms.checked = false;
+
+            window.focus();
+            window.print();
+        }
+
+        function printAllSections() {
+            const formsSection = document.getElementById('printFormsSection');
+            const summarySection = document.getElementById('printSummarySection');
+            const toggleSummary = document.getElementById('toggleSummaryTable');
+            const toggleForms = document.getElementById('toggleForms');
+
+            if (summarySection) summarySection.style.display = 'block';
+            if (formsSection) formsSection.style.display = 'block';
+            if (toggleSummary) toggleSummary.checked = true;
+            if (toggleForms) toggleForms.checked = true;
+
+            window.focus();
+            window.print();
         }
 
         window.addEventListener('load', function() {

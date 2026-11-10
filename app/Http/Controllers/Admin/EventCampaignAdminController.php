@@ -2103,7 +2103,7 @@ class EventCampaignAdminController extends Controller
         }
 
         // 2. Division & District Wise Geo Database Export
-        if ($type === 'geo' || (!$campaign->isScholarship() && $request->filled('division'))) {
+        if ($type === 'geo' || ($format === 'excel' && $request->input('group_by') === 'division') || (!$campaign->isScholarship() && $request->filled('division'))) {
             return $this->exportGeoDatabase($request, $campaign, $targetDivision, $format ?: 'excel');
         }
 
@@ -2175,6 +2175,25 @@ class EventCampaignAdminController extends Controller
         }
 
         $registrations = $regQuery->get();
+
+        if ($request->input('group_by') === 'division') {
+            $divisionPriority = [
+                'রংপুর'    => 1,
+                'ঢাকা'     => 2,
+                'রাজশাহী'  => 3,
+                'চট্টগ্রাম' => 4,
+                'খুলনা'    => 5,
+                'ময়মনসিংহ' => 6,
+                'সিলেট'    => 7,
+                'বরিশাল'   => 8,
+            ];
+            $registrations = $registrations->sortBy(function ($r) use ($divisionPriority) {
+                $div = $r->resolved_division;
+                $divPri = $divisionPriority[$div] ?? 99;
+                $dist = $r->resolved_district;
+                return sprintf('%02d_%s_%s_%07d', $divPri, $div, $dist, $r->id);
+            });
+        }
 
         $headers = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
@@ -2255,6 +2274,25 @@ class EventCampaignAdminController extends Controller
 
         $registrations = $regQuery->orderBy('id')->get();
 
+        if ($request->input('group_by') === 'division') {
+            $divisionPriority = [
+                'রংপুর'    => 1,
+                'ঢাকা'     => 2,
+                'রাজশাহী'  => 3,
+                'চট্টগ্রাম' => 4,
+                'খুলনা'    => 5,
+                'ময়মনসিংহ' => 6,
+                'সিলেট'    => 7,
+                'বরিশাল'   => 8,
+            ];
+            $registrations = $registrations->sortBy(function ($r) use ($divisionPriority) {
+                $div = $r->resolved_division;
+                $divPri = $divisionPriority[$div] ?? 99;
+                $dist = $r->resolved_district;
+                return sprintf('%02d_%s_%s_%07d', $divPri, $div, $dist, $r->id);
+            });
+        }
+
         // Cells that start with = + - @ would run as formulas in Excel; numbers keep their leading zeros as text.
         $safe = function ($v) {
             $v = is_array($v) ? json_encode($v, JSON_UNESCAPED_UNICODE) : (string) $v;
@@ -2266,6 +2304,9 @@ class EventCampaignAdminController extends Controller
             'Application No' => fn ($r, $d) => $r->registration_number,
             'Status' => fn ($r, $d) => $r->status,
             'Name' => fn ($r, $d) => $r->name,
+            'Division' => fn ($r, $d) => $r->resolved_division,
+            'District' => fn ($r, $d) => $r->resolved_district,
+            'Thana' => fn ($r, $d) => $r->resolved_thana ?: 'N/A',
             'Mobile' => fn ($r, $d) => $text($r->phone),
             'Email' => fn ($r, $d) => $d('email') ?: $r->email,
             'NID / Birth Reg' => fn ($r, $d) => $text($d('national_id')),
@@ -3107,16 +3148,24 @@ class EventCampaignAdminController extends Controller
             })->sortBy(function ($regs, $catName) use ($categoryPriority) {
                 return $categoryPriority[$catName] ?? 50;
             });
+            $allRegistrations = $groupedRegistrations->flatten(1);
         } else {
+            // Group by Division, then by District within each Division
             $groupedRegistrations = $rawRegistrations->groupBy(function ($reg) {
                 return $reg->resolved_division ?: 'অনির্ধারিত বিভাগ';
             })->sortBy(function ($regs, $divName) use ($divisionPriority) {
                 return $divisionPriority[$divName] ?? 99;
+            })->map(function ($divRegs, $divName) {
+                return $divRegs->groupBy(function ($reg) {
+                    return $reg->resolved_district ?: 'অনির্ধারিত জেলা';
+                })->sortBy(function ($distRegs, $distName) use ($divName) {
+                    if ($distName === $divName) return 1; // Divisional HQ district first
+                    if ($distName === 'অনির্ধারিত জেলা') return 99;
+                    return 10;
+                }, SORT_REGULAR);
             });
+            $allRegistrations = $groupedRegistrations->flatten(2);
         }
-
-        // Keep $allRegistrations ordered by the grouped sequence
-        $allRegistrations = $groupedRegistrations->flatten(1);
 
         return view('admin.event_campaigns.print_all', compact(
             'campaign',
