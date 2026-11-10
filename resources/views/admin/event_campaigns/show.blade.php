@@ -2654,8 +2654,8 @@
     $cQuoteOffsetX       = intval($cCardDesign['quote_offset_x'] ?? 0);
     $cQuoteOffsetY       = intval($cCardDesign['quote_offset_y'] ?? 0);
     $cQuoteSize          = intval($cCardDesign['quote_font_size'] ?? 11);
-    $cQrOffsetX          = intval($cCardDesign['qr_offset_x'] ?? 0);
-    $cQrOffsetY          = intval($cCardDesign['qr_offset_y'] ?? 0);
+    $cQrOffsetX          = max(-80, min(80, intval($cCardDesign['qr_offset_x'] ?? 0)));
+    $cQrOffsetY          = max(-35, min(60, intval($cCardDesign['qr_offset_y'] ?? 0)));
     $cPlatePadding       = intval($cCardDesign['plate_padding'] ?? 14);
     $cShowPlateBg        = isset($cCardDesign['show_plate_bg']) ? !empty($cCardDesign['show_plate_bg']) : true;
     $cPlateBg            = $cCardDesign['plate_bg_color'] ?? '#ecd8b4';
@@ -2750,7 +2750,7 @@
 
     // Verification QR Code & Attendance Settings (BaconQrCode Base64 SVG Data URI — 100% Offline & Zero-CORS)
     $cShowQrCode    = $cCardDesign['show_qr_code'] ?? ($cCardDesign['show_organizers'] ?? true);
-    $cQrSize        = intval($cCardDesign['qr_code_size'] ?? 72);
+    $cQrSize        = max(45, min(70, intval($cCardDesign['qr_code_size'] ?? 60)));
     $cQrCaption     = $cCardDesign['qr_caption_text'] ?? 'উপস্থিতি যাচাই ও নিশ্চিতকরণ QR কোড';
     $cQrSub         = $cCardDesign['qr_subtext'] ?? 'ক্লিক বা স্ক্যান করলেই অনুষ্ঠানে উপস্থিতি নিশ্চিত হবে';
     $cDemoVerifyUrl = route('event.attendance.verify', $cDemoRegNo);
@@ -3569,14 +3569,14 @@
                                                     <span class="small fw-bold text-muted" style="font-size: 10.5px;">ডানে ↔ বামে (X)</span>
                                                     <span class="badge bg-secondary-subtle text-secondary" id="qrOffsetXBadge" style="font-size: 10px;">{{ $cQrOffsetX }} px</span>
                                                 </div>
-                                                <input type="range" class="custom-range-slider" id="qrOffsetXSlider" name="qr_offset_x" min="-200" max="200" step="1" value="{{ $cQrOffsetX }}">
+                                                <input type="range" class="custom-range-slider" id="qrOffsetXSlider" name="qr_offset_x" min="-80" max="80" step="1" value="{{ $cQrOffsetX }}">
                                             </div>
                                             <div class="col-6">
                                                 <div class="d-flex align-items-center justify-content-between mb-1">
                                                     <span class="small fw-bold text-muted" style="font-size: 10.5px;">উপরে ↕ নিচে (Y)</span>
                                                     <span class="badge bg-secondary-subtle text-secondary" id="qrOffsetYBadge" style="font-size: 10px;">{{ $cQrOffsetY }} px</span>
                                                 </div>
-                                                <input type="range" class="custom-range-slider" id="qrOffsetYSlider" name="qr_offset_y" min="-250" max="250" step="1" value="{{ $cQrOffsetY }}">
+                                                <input type="range" class="custom-range-slider" id="qrOffsetYSlider" name="qr_offset_y" min="-35" max="60" step="1" value="{{ $cQrOffsetY }}">
                                             </div>
                                         </div>
                                     </div>
@@ -3672,22 +3672,22 @@
                                         </div>
 
                                         {{-- 3. DYNAMIC VERIFICATION QR CODE SECTION (স্বাক্ষর বাদ হয়ে অটোমেটিক ভেরিফাই কিউ আর কোড) --}}
-                                        <div class="card-verify-qr-section card-interactive-node" id="liveQrSection" data-node="qr" data-tab="tab-qr-pane" style="position: relative; z-index: 2; border-top: 1.5px solid rgba(255, 255, 255, 0.45); padding-top: 5px; margin-top: 4px; display: {{ $cShowQrCode ? 'flex' : 'none !important' }}; align-items: center; justify-content: center; text-align: center; transform: translate({{ $cQrOffsetX }}px, {{ $cQrOffsetY }}px); cursor: grab; user-select: none; touch-action: none; transition: transform 0.05s ease-out;">
-                                            <a href="{{ $cDemoVerifyUrl }}" target="_blank" class="verify-qr-anchor" title="ক্লিক করলেই লাইভ ভেরিফিকেশন ও উপস্থিতি নিশ্চিত হবে" style="text-decoration: none; display: inline-flex; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 5px 12px 5px 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.35); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28); transition: all 0.2s ease; max-width: 96%;">
-                                                <div class="qr-code-box" id="liveQrCodeBox" style="width: {{ $cQrSize }}px; height: {{ $cQrSize }}px; background: #ffffff; padding: 4px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <div class="card-verify-qr-section card-interactive-node" id="liveQrSection" data-node="qr" data-tab="tab-qr-pane" style="position: relative; z-index: 5; border-top: 1px solid rgba(255, 255, 255, 0.35); padding-top: 5px; margin-top: auto; margin-bottom: 2px; display: {{ $cShowQrCode ? 'flex' : 'none !important' }}; align-items: center; justify-content: center; text-align: center; flex-shrink: 0; transform: translate({{ $cQrOffsetX }}px, {{ $cQrOffsetY }}px); cursor: grab; user-select: none; touch-action: none; transition: transform 0.05s ease-out;">
+                                            <a href="{{ $cDemoVerifyUrl }}" target="_blank" class="verify-qr-anchor" title="ক্লিক করলেই লাইভ ভেরিফিকেশন ও উপস্থিতি নিশ্চিত হবে" style="text-decoration: none; display: inline-flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; gap: 9px !important; background: rgba(15, 23, 42, 0.65) !important; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 5px 12px 5px 6px !important; border-radius: 12px !important; border: 1px solid rgba(255, 255, 255, 0.35) !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28) !important; transition: all 0.2s ease; max-width: 96% !important; box-sizing: border-box !important;">
+                                                <div class="qr-code-box" id="liveQrCodeBox" style="width: {{ $cQrSize }}px; height: {{ $cQrSize }}px; min-width: {{ $cQrSize }}px; background: #ffffff; padding: 3.5px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0 !important; box-sizing: border-box;">
                                                     <img loading="lazy" src="{{ $cDemoQrApiUrl }}" alt="Verify QR Code" id="liveQrCodeImg" style="width: 100%; height: 100%; object-fit: contain; display: block;" crossorigin="anonymous">
                                                 </div>
-                                                <div class="qr-info-box" style="text-align: left; display: flex; flex-direction: column; justify-content: center;">
-                                                    <div class="qr-verify-badge" style="display: inline-flex; align-items: center; gap: 4px; font-size: 8px; font-weight: 800; background: #10b981; color: #ffffff; padding: 1.5px 7px; border-radius: 20px; width: fit-content; letter-spacing: 0.3px; margin-bottom: 2px;">
+                                                <div class="qr-info-box" style="text-align: left; display: flex; flex-direction: column; justify-content: center; flex: 1 1 auto; min-width: 0; overflow: hidden;">
+                                                    <div class="qr-verify-badge" style="display: inline-flex; align-items: center; gap: 4px; font-size: 7.5px; font-weight: 800; background: #10b981; color: #ffffff; padding: 1.5px 7px; border-radius: 20px; width: fit-content; letter-spacing: 0.3px; margin-bottom: 2px;">
                                                         <i class="fa-solid fa-circle-check" style="font-size: 7px;"></i> LIVE VERIFIED
                                                     </div>
-                                                    <div class="qr-title live-editable-text" id="liveQrTitleText" contenteditable="true" data-bind="liveInputQrCaption" title="ক্লিক করে সরাসরি এডিট করুন" style="color: #ffffff; font-size: 10px; font-weight: 800; line-height: 1.25; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);">
+                                                    <div class="qr-title live-editable-text" id="liveQrTitleText" contenteditable="true" data-bind="liveInputQrCaption" title="ক্লিক করে সরাসরি এডিট করুন" style="color: #ffffff; font-size: 9.5px; font-weight: 800; line-height: 1.25; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;">
                                                         {{ $cQrCaption }}
                                                     </div>
-                                                    <div class="qr-subtitle live-editable-text" id="liveQrSubText" contenteditable="true" data-bind="liveInputQrSubtext" title="ক্লিক করে সরাসরি এডিট করুন" style="color: rgba(255, 255, 255, 0.92); font-size: 7.8px; font-weight: 600; line-height: 1.3; margin-top: 1px;">
+                                                    <div class="qr-subtitle live-editable-text" id="liveQrSubText" contenteditable="true" data-bind="liveInputQrSubtext" title="ক্লিক করে সরাসরি এডিট করুন" style="color: rgba(255, 255, 255, 0.92); font-size: 7.5px; font-weight: 600; line-height: 1.3; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;">
                                                         <i class="fa-solid fa-arrow-pointer" style="font-size: 6.5px; color: #facc15; margin-right: 2px;"></i> {{ $cQrSub }}
                                                     </div>
-                                                    <div class="qr-url-text" style="color: #fef08a; font-size: 7.5px; font-family: monospace; font-weight: 700; margin-top: 1.5px; opacity: 0.95; letter-spacing: 0.2px;">
+                                                    <div class="qr-url-text" style="color: #fef08a; font-size: 7.2px; font-family: monospace; font-weight: 700; margin-top: 1.5px; opacity: 0.95; letter-spacing: 0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;">
                                                         {{ url('/v/' . $cDemoRegNo) }}
                                                     </div>
                                                 </div>

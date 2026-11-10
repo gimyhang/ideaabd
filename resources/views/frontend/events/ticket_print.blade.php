@@ -113,9 +113,9 @@
 
     // 5. Verification QR Code & Attendance Settings (BaconQrCode Base64 SVG Data URI — 100% Offline & Zero-CORS)
     $showQrCode     = $cardDesign['show_qr_code'] ?? ($cardDesign['show_organizers'] ?? true);
-    $qrCodeSize     = intval($cardDesign['qr_code_size'] ?? 72);
-    $qrOffsetX      = intval($cardDesign['qr_offset_x'] ?? 0);
-    $qrOffsetY      = intval($cardDesign['qr_offset_y'] ?? 0);
+    $qrCodeSize     = max(45, min(70, intval($cardDesign['qr_code_size'] ?? 60)));
+    $qrOffsetX      = max(-80, min(80, intval($cardDesign['qr_offset_x'] ?? 0)));
+    $qrOffsetY      = max(-35, min(60, intval($cardDesign['qr_offset_y'] ?? 0)));
     $qrCaptionText  = $cardDesign['qr_caption_text'] ?? 'উপস্থিতি যাচাই ও নিশ্চিতকরণ QR কোড';
     $qrSubtext      = $cardDesign['qr_subtext'] ?? 'ক্লিক বা স্ক্যান করলেই অনুষ্ঠানে উপস্থিতি নিশ্চিত হবে';
     $verifyUrl      = route('event.attendance.verify', $registration->registration_number);
@@ -490,14 +490,16 @@
            ========================================================================== */
         .card-verify-qr-section {
             position: relative;
-            z-index: 2;
-            border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+            z-index: 5;
+            border-top: 1px solid rgba(255, 255, 255, 0.35);
             padding-top: 5px;
-            margin-top: 4px;
+            margin-top: auto;
+            margin-bottom: 2px;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
+            flex-shrink: 0;
             transform: translate({{ $qrOffsetX }}px, {{ $qrOffsetY }}px);
         }
 
@@ -513,6 +515,7 @@
             text-align: center;
             padding: 3px 10px 2px 10px;
             transform: translate({{ $quoteOffsetX }}px, {{ $quoteOffsetY }}px);
+            flex-shrink: 0;
         }
         .invitation-quote-text {
             color: {{ $quoteColor }};
@@ -522,16 +525,14 @@
             text-shadow: {{ $metaShadowStyle }} !important;
             width: 100%;
         }
-            justify-content: center;
-            text-align: center;
-            transform: translate({{ $qrOffsetX }}px, {{ $qrOffsetY }}px);
-        }
         .verify-qr-anchor {
             text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(0, 0, 0, 0.35);
+            display: inline-flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            gap: 9px;
+            background: rgba(15, 23, 42, 0.65);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             padding: 5px 12px 5px 6px;
@@ -540,34 +541,39 @@
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
             transition: all 0.2s ease;
             max-width: 96%;
+            box-sizing: border-box;
         }
         .verify-qr-anchor:hover {
             transform: translateY(-1px) scale(1.02);
-            background: rgba(0, 0, 0, 0.45);
+            background: rgba(15, 23, 42, 0.78);
             border-color: rgba(255, 255, 255, 0.6);
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
         }
         .qr-code-box {
             background: #ffffff;
-            padding: 4px;
+            padding: 3.5px;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
+            flex-shrink: 0 !important;
+            box-sizing: border-box;
         }
         .qr-info-box {
             text-align: left;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: hidden;
         }
         .qr-verify-badge {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            font-size: 8px;
+            font-size: 7.5px;
             font-weight: 800;
             background: #10b981;
             color: #ffffff;
@@ -579,26 +585,38 @@
         }
         .qr-title {
             color: #ffffff;
-            font-size: 10px;
+            font-size: 9.5px;
             font-weight: 800;
             line-height: 1.25;
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 220px;
         }
         .qr-subtitle {
             color: rgba(255, 255, 255, 0.92);
-            font-size: 7.8px;
+            font-size: 7.5px;
             font-weight: 600;
             line-height: 1.3;
             margin-top: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 220px;
         }
         .qr-url-text {
             color: #fef08a;
-            font-size: 7.5px;
+            font-size: 7.2px;
             font-family: monospace;
             font-weight: 700;
             margin-top: 1.5px;
             opacity: 0.95;
             letter-spacing: 0.2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 220px;
         }
     </style>
 </head>
@@ -700,21 +718,21 @@
             {{-- 3. DYNAMIC VERIFICATION QR CODE SECTION (উপস্থিতি যাচাই কিউ আর কোড) --}}
             @if($showQrCode)
                 <div class="card-verify-qr-section">
-                    <a href="{{ $verifyUrl }}" target="_blank" class="verify-qr-anchor" title="ক্লিক করলেই অনুষ্ঠানে উপস্থিতি নিশ্চিত হবে">
-                        <div class="qr-code-box" style="width: {{ $qrCodeSize }}px; height: {{ $qrCodeSize }}px;">
-                            <img src="{{ $qrApiUrl }}" alt="Verify QR Code" style="width: 100%; height: 100%; object-fit: contain; display: block;">
+                    <a href="{{ $verifyUrl }}" target="_blank" class="verify-qr-anchor" title="ক্লিক করলেই অনুষ্ঠানে উপস্থিতি নিশ্চিত হবে" style="text-decoration: none; display: inline-flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; gap: 9px !important; background: rgba(15, 23, 42, 0.65) !important; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 5px 12px 5px 6px !important; border-radius: 12px !important; border: 1px solid rgba(255, 255, 255, 0.35) !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28) !important; max-width: 96% !important; box-sizing: border-box !important;">
+                        <div class="qr-code-box" style="width: {{ $qrCodeSize }}px; height: {{ $qrCodeSize }}px; min-width: {{ $qrCodeSize }}px; background: #ffffff; padding: 3.5px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0 !important; box-sizing: border-box;">
+                            <img src="{{ $qrApiUrl }}" alt="Verify QR Code" style="width: 100%; height: 100%; object-fit: contain; display: block;" crossorigin="anonymous">
                         </div>
-                        <div class="qr-info-box">
-                            <div class="qr-verify-badge">
+                        <div class="qr-info-box" style="text-align: left; display: flex; flex-direction: column; justify-content: center; flex: 1 1 auto; min-width: 0; overflow: hidden;">
+                            <div class="qr-verify-badge" style="display: inline-flex; align-items: center; gap: 4px; font-size: 7.5px; font-weight: 800; background: #10b981; color: #ffffff; padding: 1.5px 7px; border-radius: 20px; width: fit-content; letter-spacing: 0.3px; margin-bottom: 2px;">
                                 <i class="fa-solid fa-circle-check" style="font-size: 7px;"></i> LIVE VERIFIED
                             </div>
-                            <div class="qr-title">
+                            <div class="qr-title" style="color: #ffffff; font-size: 9.5px; font-weight: 800; line-height: 1.25; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;">
                                 {{ $qrCaptionText }}
                             </div>
-                            <div class="qr-subtitle">
+                            <div class="qr-subtitle" style="color: rgba(255, 255, 255, 0.92); font-size: 7.5px; font-weight: 600; line-height: 1.3; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;">
                                 <i class="fa-solid fa-arrow-pointer" style="font-size: 6.5px; color: #facc15; margin-right: 2px;"></i> {{ $qrSubtext }}
                             </div>
-                            <div class="qr-url-text">
+                            <div class="qr-url-text" style="color: #fef08a; font-size: 7.2px; font-family: monospace; font-weight: 700; margin-top: 1.5px; opacity: 0.95; letter-spacing: 0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;">
                                 {{ url('/v/' . $registration->registration_number) }}
                             </div>
                         </div>

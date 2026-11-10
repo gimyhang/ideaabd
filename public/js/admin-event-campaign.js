@@ -2212,8 +2212,8 @@ document.addEventListener('DOMContentLoaded', function () {
             makeCardElementDraggable(liveQrSection,
                 () => ({ x: curQrOffsetX, y: curQrOffsetY }),
                 (newX, newY) => {
-                    curQrOffsetX = Math.max(-200, Math.min(200, Math.round(newX)));
-                    curQrOffsetY = Math.max(-250, Math.min(250, Math.round(newY)));
+                    curQrOffsetX = Math.max(-80, Math.min(80, Math.round(newX)));
+                    curQrOffsetY = Math.max(-35, Math.min(60, Math.round(newY)));
                     updateQrTransform();
                 }
             );
