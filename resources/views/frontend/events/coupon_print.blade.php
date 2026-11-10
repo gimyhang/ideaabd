@@ -420,12 +420,38 @@
                 const canvas = await html2canvas(el, {
                     scale: 3,
                     useCORS: true,
+                    allowTaint: false,
                     backgroundColor: '#ffffff',
-                    logging: false
+                    logging: false,
+                    scrollX: 0,
+                    scrollY: 0,
+                    x: 0,
+                    y: 0,
+                    width: el.offsetWidth,
+                    height: el.offsetHeight,
+                    onclone: (clonedDoc) => {
+                        const s = clonedDoc.getElementById('{{ $stripDomId }}');
+                        if (s) {
+                            s.style.transform = 'none';
+                            s.style.margin = '0 auto';
+                        }
+                    }
                 });
                 canvas.toBlob(blob => {
-                    if (blob && window.saveAs) {
+                    if (!blob) throw new Error('Blob failed');
+                    if (window.saveAs) {
                         saveAs(blob, '{{ $pngFileName }}');
+                    } else {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = '{{ $pngFileName }}';
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(() => {
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                        }, 1000);
                     }
                 }, 'image/png');
             } catch (e) {

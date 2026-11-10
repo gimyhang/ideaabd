@@ -125,15 +125,77 @@
             align-items: center;
             gap: 16px;
             width: 100%;
-            max-width: 960px;
+            max-width: 980px;
             justify-content: center;
+        }
+
+        .coupon-scroll-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 4px 0;
+        }
+
+        .mobile-swipe-notice {
+            display: none;
+            font-size: 11.5px;
+            color: #94a3b8;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px dashed rgba(255, 255, 255, 0.15);
+            padding: 6px 14px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            text-align: center;
+            width: 100%;
+            max-width: 980px;
         }
 
         .strip-side-actions {
             display: flex;
             flex-direction: column;
             gap: 6px;
-            min-width: 120px;
+            min-width: 130px;
+        }
+
+        /* Mobile & Tablet Responsiveness */
+        @media screen and (max-width: 960px) {
+            .mobile-swipe-notice {
+                display: block;
+            }
+            .coupons-screen-stage {
+                padding: 16px 8px 50px 8px;
+                gap: 14px;
+            }
+            .coupon-strip-row {
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 8px;
+                padding: 10px;
+                gap: 10px;
+            }
+            .coupon-scroll-wrapper {
+                justify-content: flex-start;
+                border-radius: 6px;
+            }
+            .strip-side-actions {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+                border-top: 1px solid #334155;
+                padding-top: 8px;
+            }
+            .coupon-topbar {
+                padding: 8px 12px;
+            }
+            .coupon-search-input {
+                width: 100% !important;
+            }
         }
 
         .btn-strip-download {
@@ -550,12 +612,16 @@
 
     {{-- Main Printable Coupons Stage --}}
     <div class="coupons-screen-stage">
+        <div class="mobile-swipe-notice no-print">
+            <i class="fa-solid fa-arrows-left-right me-1"></i> মোবাইলে পুরো ৫টি কুপন স্পষ্ট দেখতে ডানে-বামে সোয়াইপ করুন
+        </div>
+
         @if($totalCount === 0)
             <div style="text-align: center; color: #94a3b8; padding: 60px 20px;">
                 <i class="fa-solid fa-ticket" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
-                <h4 style="color: #f8fafc; font-weight: 700;">কোনো কুপন স্লিপ পাওয়া যায়নি</h4>
-                <p>বর্তমান ফিল্টারে কোনো অংশগ্রহণকারী পাওয়া যায়নি। ফিল্টার পরিবর্তন করে পুনরায় চেষ্টা করুন।</p>
-                <a href="?status=all" class="btn-status-filter" style="background: #3b82f6; color: #fff; margin-top: 10px;">সকল এন্ট্রি দেখুন</a>
+                <h4 style="color: #f8fafc; font-weight: 700;">কোনো অনুমোদিত কুপন স্লিপ পাওয়া যায়নি</h4>
+                <p>বর্তমান তালিকায় কোনো অনুমোদিত অংশগ্রহণকারী নেই।</p>
+                <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}" class="btn-status-filter" style="background: #3b82f6; color: #fff; margin-top: 10px;">ক্যাম্পেইনে ফিরে যান</a>
             </div>
         @else
             @foreach($registrationChunks as $pageIndex => $pageRegistrations)
@@ -571,14 +637,14 @@
                             $pName = $reg->name ?: 'অংশগ্রহণকারী';
                             $pCat = $reg->resolved_category ?: ($reg->designation_or_class ?: 'কবি ও প্রতিনিধি');
                             $pPhone = $reg->phone ?: '';
-                            $pMaskedPhone = !empty($pPhone) ? (substr($pPhone, 0, 5) . '***' . substr($pPhone, -3)) : '';
                             $stripDomId = 'coupon_strip_' . $reg->id;
                             $pngFileName = 'Coupon_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $cardNoFormatted) . '.png';
                         @endphp
 
                         <div class="coupon-strip-row" data-card="{{ strtolower($cardNoFormatted) }}" data-name="{{ strtolower($pName) }}" data-phone="{{ $pPhone }}">
-                            {{-- THE 8in x 2in 5-COLUMN COUPON STRIP --}}
-                            <div class="coupon-strip" id="{{ $stripDomId }}">
+                            <div class="coupon-scroll-wrapper">
+                                {{-- THE 8in x 2in 5-COLUMN COUPON STRIP --}}
+                                <div class="coupon-strip" id="{{ $stripDomId }}">
                                 
                                 {{-- =========================================================================
                                      COLUMN 1: সকালের নাস্তা (BREAKFAST)
@@ -722,20 +788,21 @@
                                 </div>
 
                             </div>
-
-                            {{-- Side Action Buttons on Screen (Hidden on Print) --}}
-                            <div class="strip-side-actions no-print">
-                                <button type="button" class="btn-strip-download" onclick="downloadSingleStripPng('{{ $stripDomId }}', '{{ $pngFileName }}')" title="এই ৮x২ ইঞ্চি স্লিপটি PNG ছবি হিসেবে ডাউনলোড করুন">
-                                    <i class="fa-solid fa-download"></i> স্লিপ ডাউনলোড
-                                </button>
-                                <a href="{{ route('admin.event-campaigns.registrations.coupon', $reg->id) }}" target="_blank" class="btn-strip-download" style="color: #facc15;" title="সিঙ্গেল ভিউ পেজে খুলুন">
-                                    <i class="fa-solid fa-expand"></i> সিঙ্গেল ভিউ
-                                </a>
-                                <span style="font-size: 10px; color: #94a3b8; font-family: monospace; text-align: center;">
-                                    {{ $cardNoFormatted }}
-                                </span>
-                            </div>
                         </div>
+
+                        {{-- Side Action Buttons on Screen (Hidden on Print) --}}
+                        <div class="strip-side-actions no-print">
+                            <button type="button" class="btn-strip-download" onclick="downloadSingleStripPng('{{ $stripDomId }}', '{{ $pngFileName }}')" title="এই ৮x২ ইঞ্চি স্লিপটি PNG ছবি হিসেবে ডাউনলোড করুন">
+                                <i class="fa-solid fa-download"></i> স্লিপ ডাউনলোড
+                            </button>
+                            <a href="{{ route('admin.event-campaigns.registrations.coupon', $reg->id) }}" target="_blank" class="btn-strip-download" style="color: #facc15;" title="সিঙ্গেল ভিউ পেজে খুলুন">
+                                <i class="fa-solid fa-expand"></i> সিঙ্গেল ভিউ
+                            </a>
+                            <span style="font-size: 10.5px; color: #cbd5e1; font-family: monospace; font-weight: 700; text-align: center;">
+                                {{ $cardNoFormatted }}
+                            </span>
+                        </div>
+                    </div>
                     @endforeach
                 </div>
             @endforeach
@@ -772,7 +839,7 @@
             });
         }
 
-        // Single 8x2 inch Coupon Strip PNG Download
+        // Single 8x2 inch Coupon Strip PNG Download (Mobile & Desktop Conflict-Free)
         async function downloadSingleStripPng(elementId, filename) {
             const el = document.getElementById(elementId);
             if (!el) return;
@@ -783,19 +850,39 @@
                     useCORS: true,
                     allowTaint: false,
                     backgroundColor: '#ffffff',
-                    logging: false
+                    logging: false,
+                    scrollX: 0,
+                    scrollY: 0,
+                    x: 0,
+                    y: 0,
+                    width: el.offsetWidth,
+                    height: el.offsetHeight,
+                    onclone: (clonedDoc) => {
+                        const clonedEl = clonedDoc.getElementById(elementId);
+                        if (clonedEl) {
+                            clonedEl.style.transform = 'none';
+                            clonedEl.style.margin = '0 auto';
+                        }
+                    }
                 });
 
                 canvas.toBlob(blob => {
-                    if (blob && window.saveAs) {
+                    if (!blob) {
+                        throw new Error('Canvas blob generation failed');
+                    }
+                    if (window.saveAs) {
                         saveAs(blob, filename);
-                    } else if (blob) {
+                    } else {
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
                         a.download = filename;
+                        document.body.appendChild(a);
                         a.click();
-                        setTimeout(() => URL.revokeObjectURL(url), 1000);
+                        setTimeout(() => {
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                        }, 1000);
                     }
                 }, 'image/png');
             } catch (err) {
@@ -835,7 +922,20 @@
                             scale: 2.5,
                             useCORS: true,
                             backgroundColor: '#ffffff',
-                            logging: false
+                            logging: false,
+                            scrollX: 0,
+                            scrollY: 0,
+                            x: 0,
+                            y: 0,
+                            width: strip.offsetWidth,
+                            height: strip.offsetHeight,
+                            onclone: (clonedDoc) => {
+                                const s = clonedDoc.getElementById(strip.id);
+                                if (s) {
+                                    s.style.transform = 'none';
+                                    s.style.margin = '0 auto';
+                                }
+                            }
                         });
 
                         const dataUrl = canvas.toDataURL('image/png');
