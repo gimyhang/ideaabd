@@ -305,42 +305,74 @@
         /* Prominent Card Number Badge */
         .coupon-card-badge {
             background: #ffffff;
-            border: 1.2px solid #0f172a;
+            border: 1.5px solid #0f172a;
             border-radius: 4px;
-            padding: 1.5px 3px;
+            padding: 1px 2px;
             text-align: center;
-            font-family: 'Fira Code', monospace;
-            font-size: 11px;
-            font-weight: 800;
-            line-height: 1.15;
-            letter-spacing: -0.3px;
+            font-family: 'Fira Code', 'Hind Siliguri', monospace;
+            font-size: 20px;
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: -0.5px;
             margin: 2px 0;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .coupon-card-raffle {
+            border-color: #e11d48 !important;
+            color: #be123c !important;
+            background: #ffe4e6 !important;
         }
 
         /* Participant Name & Category */
         .coupon-participant-info {
             text-align: center;
-            line-height: 1.15;
+            line-height: 1.12;
             padding: 0 1px;
+            margin-top: 1px;
         }
         .coupon-participant-name {
-            font-size: 9px;
-            font-weight: 700;
+            font-size: 20px;
+            font-weight: 800;
             color: #0f172a;
-            white-space: nowrap;
+            line-height: 1.12;
+            text-align: center;
+            max-height: 46px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
             overflow: hidden;
-            text-overflow: ellipsis;
-            display: block;
+            word-break: break-word;
+            margin: 1px 0;
         }
         .coupon-participant-category {
-            font-size: 7.5px;
+            font-size: 8px;
             font-weight: 600;
-            color: #64748b;
+            color: #475569;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             display: block;
+            margin-top: 1px;
+        }
+
+        /* Mobile number in Column 5 */
+        .raffle-phone {
+            font-size: 20px;
+            font-weight: 900;
+            font-family: 'Fira Code', monospace;
+            color: #be123c;
+            line-height: 1.1;
+            letter-spacing: -0.8px;
+            text-align: center;
+            display: block;
+            margin: 2px 0 1px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* Footer & Barcode simulation */
@@ -491,23 +523,10 @@
 
             {{-- Middle Controls: Status filter & search --}}
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                {{-- Status Filter Tabs --}}
-                <div style="display: flex; gap: 4px; background: rgba(0, 0, 0, 0.3); padding: 3px; border-radius: 24px;">
-                    <a href="?{{ http_build_query(array_merge(request()->all(), ['status' => 'approved'])) }}" 
-                       class="btn-status-filter {{ in_array(($currentStatus ?? 'approved'), ['approved', 'confirmed']) ? 'active-approved' : '' }}" 
-                       title="পেন্ডিং বাদ দিয়ে শুধুমাত্র অনুমোদিত কুপন লোড করুন">
-                        <i class="fa-solid fa-circle-check"></i> অনুমোদিত (পেন্ডিং ছাড়া)
-                    </a>
-                    <a href="?{{ http_build_query(array_merge(request()->all(), ['status' => 'pending'])) }}" 
-                       class="btn-status-filter {{ ($currentStatus ?? '') === 'pending' ? 'active-pending' : '' }}" 
-                       title="শুধুমাত্র পেন্ডিং আবেদনগুলোর কুপন আলাদা প্রিন্ট করুন">
-                        <i class="fa-solid fa-clock-rotate-left"></i> পেন্ডিং আলাদা
-                    </a>
-                    <a href="?{{ http_build_query(array_merge(request()->all(), ['status' => 'all'])) }}" 
-                       class="btn-status-filter {{ ($currentStatus ?? '') === 'all' ? 'active-all' : '' }}" 
-                       title="সকল কুপন (অনুমোদিত + পেন্ডিং)">
-                        <i class="fa-solid fa-users"></i> সকল
-                    </a>
+                {{-- Exclusively Approved Indicator --}}
+                <div style="display: flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 4px 12px; border-radius: 20px;">
+                    <i class="fa-solid fa-circle-check" style="color: #34d399;"></i>
+                    <span style="font-size: 11.5px; font-weight: 700; color: #6ee7b7;">শুধুমাত্র অনুমোদিত কুপন (পেন্ডিং বাদ)</span>
                 </div>
 
                 {{-- Live Search Filter --}}
@@ -680,13 +699,13 @@
                                         <div class="coupon-event-name">
                                             {{ $eventTitle }}
                                         </div>
-                                        <div class="coupon-card-badge">
+                                        <div class="coupon-card-badge coupon-card-raffle">
                                             ড্র নং: {{ $cardNoFormatted }}
                                         </div>
                                         <div class="coupon-participant-info">
                                             <span class="coupon-participant-name" title="{{ $pName }}">{{ $pName }}</span>
-                                            @if(!empty($pMaskedPhone))
-                                                <span class="coupon-participant-category" style="color: #be123c; font-family: monospace;">{{ $pMaskedPhone }}</span>
+                                            @if(!empty($pPhone))
+                                                <span class="raffle-phone" title="মোবাইল">{{ $pPhone }}</span>
                                             @else
                                                 <span class="coupon-participant-category">{{ $pCat }}</span>
                                             @endif
@@ -852,3 +871,4 @@
     </script>
 </body>
 </html>
+

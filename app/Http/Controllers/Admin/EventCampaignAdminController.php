@@ -3269,17 +3269,9 @@ class EventCampaignAdminController extends Controller
         $campaign->loadCount('registrations');
         $query = $campaign->registrations();
 
-        // Status filter: defaults to approved/confirmed to exclude pending by default
-        $currentStatus = $request->input('status', 'approved');
-        if ($currentStatus === 'confirmed' || $currentStatus === 'approved') {
-            $query->whereIn('status', ['confirmed', 'selected', 'approved', 'attended']);
-        } elseif ($currentStatus === 'pending') {
-            $query->where('status', 'pending');
-        } elseif ($currentStatus === 'rejected') {
-            $query->where('status', 'rejected');
-        } elseif ($currentStatus !== 'all' && !empty($currentStatus)) {
-            $query->where('status', $currentStatus);
-        }
+        // Food & Raffle coupons are strictly for approved/confirmed participants only (pending registrations are excluded)
+        $query->whereIn('status', ['confirmed', 'selected', 'approved', 'attended']);
+        $currentStatus = 'approved';
 
         // Division filter
         if ($request->filled('division')) {
@@ -3368,6 +3360,9 @@ class EventCampaignAdminController extends Controller
     public function printSingleCoupon(Request $request, EventRegistration $registration)
     {
         $campaign = $registration->campaign;
+        if (!in_array($registration->status, ['confirmed', 'selected', 'approved', 'attended'], true)) {
+            abort(403, 'খাবার ও র‍্যাফেল ড্র কুপন শুধুমাত্র অনুমোদিত অংশগ্রহণকারীদের জন্য প্রযোজ্য।');
+        }
         return view('admin.event_campaigns.single_coupon', compact('campaign', 'registration'));
     }
 
