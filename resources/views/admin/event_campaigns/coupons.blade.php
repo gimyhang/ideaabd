@@ -478,6 +478,58 @@
             line-height: 1;
         }
 
+        /* Guest Specific Form Fields on Coupons */
+        .guest-write-in-line {
+            font-size: 7.5px;
+            font-weight: 700;
+            color: #475569;
+            margin-top: 2px;
+            display: flex;
+            align-items: flex-end;
+            width: 100%;
+            padding: 0 2px;
+        }
+        .guest-write-in-line .dotted-line {
+            border-bottom: 1px dashed #64748b;
+            flex-grow: 1;
+            height: 9px;
+            margin-left: 2px;
+        }
+        .raffle-guest-fill {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5px;
+            margin-top: 2px;
+            width: 100%;
+            padding: 0 2px;
+        }
+        .raffle-fill-row {
+            display: flex;
+            align-items: flex-end;
+            font-size: 7.5px;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.1;
+            width: 100%;
+        }
+        .raffle-fill-label {
+            min-width: 32px;
+            flex-shrink: 0;
+            color: #334155;
+            font-size: 7.5px;
+        }
+        .raffle-fill-line {
+            border-bottom: 1px dashed #475569;
+            flex-grow: 1;
+            height: 9px;
+        }
+        .badge-pill-link {
+            transition: all 0.2s ease;
+        }
+        .badge-pill-link:hover {
+            transform: translateY(-1px);
+        }
+
         /* Progress Modal / Overlay for Batch ZIP Download */
         #batchProgressOverlay {
             position: fixed;
@@ -569,11 +621,11 @@
 
     {{-- Top Action Bar (Hidden on Print) --}}
     <div class="coupon-topbar no-print">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
             {{-- Left Title & Event info --}}
-            <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <span style="font-size: 15px; font-weight: 800; color: #facc15;">
-                    <i class="fa-solid fa-utensils me-1"></i> খাবার ও র‍্যাফেল ড্র কুপন স্লিপ
+                    <i class="fa-solid fa-utensils me-1"></i> {{ !empty($isGuest) ? 'গেস্টদের জন্য নামহীন খাবার কুপন' : 'খাবার ও র‍্যাফেল ড্র কুপন স্লিপ' }}
                 </span>
                 <span style="background: #334155; color: #f8fafc; font-size: 11px; padding: 3px 9px; border-radius: 12px; font-family: monospace; font-weight: 700;">
                     মোট {{ $totalCount }} টি স্লিপ
@@ -583,22 +635,54 @@
                 </span>
             </div>
 
-            {{-- Middle Controls: Status filter & search --}}
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                {{-- Exclusively Approved Indicator --}}
-                <div style="display: flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 4px 12px; border-radius: 20px;">
-                    <i class="fa-solid fa-circle-check" style="color: #34d399;"></i>
-                    <span style="font-size: 11.5px; font-weight: 700; color: #6ee7b7;">শুধুমাত্র অনুমোদিত কুপন (পেন্ডিং বাদ)</span>
-                </div>
+            {{-- Mode Switcher Tabs (নিবন্ধিত বনাম গেস্ট কুপন) --}}
+            <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.35); padding: 3px 6px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.15);">
+                <a href="{{ route('admin.event-campaigns.coupons', $campaign->id) }}?status=approved" 
+                   class="btn-status-filter {{ empty($isGuest) ? 'active-approved' : '' }}" 
+                   style="text-decoration: none; padding: 4px 12px; font-size: 11.5px; border-radius: 20px; font-weight: 700; {{ empty($isGuest) ? 'background: #10b981; color: #fff;' : 'color: #cbd5e1; border: none;' }}">
+                    <i class="fa-solid fa-users me-1"></i> নিবন্ধিত অংশগ্রহণকারী ({{ $approvedCount ?? 0 }})
+                </a>
+                <a href="{{ route('admin.event-campaigns.coupons', $campaign->id) }}?guest=1&count={{ $guestCount ?? 25 }}" 
+                   class="btn-status-filter {{ !empty($isGuest) ? 'active' : '' }}" 
+                   style="text-decoration: none; padding: 4px 12px; font-size: 11.5px; border-radius: 20px; font-weight: 800; {{ !empty($isGuest) ? 'background: #f59e0b; color: #0f172a;' : 'color: #cbd5e1; border: none;' }}">
+                    <i class="fa-solid fa-user-tag me-1"></i> গেস্টদের নামহীন কুপন
+                </a>
+            </div>
 
-                {{-- Live Search Filter --}}
-                <input type="text" id="couponSearchBox" class="coupon-search-input" placeholder="কার্ড নং, নাম বা ফোন..." onkeyup="filterCouponsRealtime(this.value)">
+            {{-- Middle Controls: Guest Count OR Search Filter --}}
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                @if(!empty($isGuest))
+                    <div style="display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.08); padding: 3px 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);">
+                        <span style="font-size: 11px; color: #cbd5e1; font-weight: 600; margin-right: 4px;">স্লিপ সংখ্যা:</span>
+                        @foreach([10 => '১০টি (২ পাতা)', 20 => '২০টি (৪ পাতা)', 25 => '২৫টি (৫ পাতা)', 50 => '৫০টি (১০ পাতা)', 100 => '১০০টি'] as $cCount => $cLabel)
+                            <a href="{{ route('admin.event-campaigns.coupons', $campaign->id) }}?guest=1&count={{ $cCount }}" 
+                               class="badge-pill-link" 
+                               style="font-size: 11px; padding: 2px 7px; border-radius: 12px; text-decoration: none; {{ ($guestCount ?? 25) == $cCount ? 'background: #facc15; color: #0f172a; font-weight: 800;' : 'background: rgba(255,255,255,0.12); color: #f8fafc;' }}">
+                                {{ $cLabel }}
+                            </a>
+                        @endforeach
+                        <form action="{{ route('admin.event-campaigns.coupons', $campaign->id) }}" method="GET" style="display: inline-flex; align-items: center; gap: 3px; margin: 0 0 0 4px;">
+                            <input type="hidden" name="guest" value="1">
+                            <input type="number" name="count" min="1" max="500" value="{{ $guestCount ?? 25 }}" style="width: 50px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: #fff; border-radius: 6px; font-size: 10.5px; padding: 2px 4px; text-align: center;">
+                            <button type="submit" style="background: #3b82f6; border: none; color: #fff; font-size: 10px; padding: 2.5px 7px; border-radius: 6px; cursor: pointer; font-weight: 700;">সেট</button>
+                        </form>
+                    </div>
+                @else
+                    {{-- Exclusively Approved Indicator --}}
+                    <div style="display: flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 4px 12px; border-radius: 20px;">
+                        <i class="fa-solid fa-circle-check" style="color: #34d399;"></i>
+                        <span style="font-size: 11.5px; font-weight: 700; color: #6ee7b7;">অনুমোদিত কুপন</span>
+                    </div>
+
+                    {{-- Live Search Filter --}}
+                    <input type="text" id="couponSearchBox" class="coupon-search-input" placeholder="কার্ড নং, নাম বা ফোন..." onkeyup="filterCouponsRealtime(this.value)">
+                @endif
             </div>
 
             {{-- Right Buttons: Batch ZIP, Print, Close --}}
             <div style="display: flex; align-items: center; gap: 8px;">
                 <button type="button" onclick="downloadAllCouponsZip()" class="btn-status-filter" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none; color: #ffffff;" title="সকল কুপন স্লিপ একসাথে জিপ ফাইলে ডাউনলোড করুন">
-                    <i class="fa-solid fa-file-zipper"></i> সব স্লিপ জিপ ডাউনলোড
+                    <i class="fa-solid fa-file-zipper"></i> সব স্লিপ জিপ
                 </button>
                 <button type="button" onclick="window.print()" class="btn-status-filter" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: #ffffff; font-weight: 700;" title="এক ক্লিকে সকল কুপন প্রিন্ট করুন (Ctrl + P)">
                     <i class="fa-solid fa-print"></i> এক ক্লিকে সব প্রিন্ট (Ctrl + P)
@@ -628,17 +712,27 @@
                 <div class="coupon-page-block" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 14px;">
                     @foreach($pageRegistrations as $reg)
                         @php
-                            $rawRegNo = $reg->registration_number ?: ('ID-' . $reg->id);
-                            // Clean Card Number (e.g. RSU-2026-001 -> 001 or RSU-001)
-                            $cleanCardNo = preg_replace('/^RSU-?(?:2026-?)?/i', '', $rawRegNo);
-                            $cardDisplay = !empty($cleanCardNo) ? (is_numeric($cleanCardNo) ? sprintf('%03d', (int)$cleanCardNo) : $cleanCardNo) : $rawRegNo;
-                            $cardNoFormatted = 'RSU-' . $cardDisplay;
+                            $isGuestItem = !empty($isGuest) || !empty($reg->is_guest);
+                            if ($isGuestItem) {
+                                $cardNoFormatted = $reg->card_no_formatted ?? ('G-' . ($reg->card_display ?? sprintf('%03d', $loop->iteration)));
+                                $cardDisplay = $reg->card_display ?? sprintf('%03d', $loop->iteration);
+                                $pName = $reg->name ?? 'সম্মানিত অতিথি';
+                                $pCat = $reg->resolved_category ?? 'আমন্ত্রিত অতিথি';
+                                $pPhone = '';
+                                $stripDomId = 'coupon_strip_' . ($reg->id ?? $loop->iteration);
+                                $pngFileName = 'Guest_Coupon_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $cardNoFormatted) . '.png';
+                            } else {
+                                $rawRegNo = $reg->registration_number ?: ('ID-' . $reg->id);
+                                $cleanCardNo = preg_replace('/^RSU-?(?:2026-?)?/i', '', $rawRegNo);
+                                $cardDisplay = !empty($cleanCardNo) ? (is_numeric($cleanCardNo) ? sprintf('%03d', (int)$cleanCardNo) : $cleanCardNo) : $rawRegNo;
+                                $cardNoFormatted = 'RSU-' . $cardDisplay;
 
-                            $pName = $reg->name ?: 'অংশগ্রহণকারী';
-                            $pCat = $reg->resolved_category ?: ($reg->designation_or_class ?: 'কবি ও প্রতিনিধি');
-                            $pPhone = $reg->phone ?: '';
-                            $stripDomId = 'coupon_strip_' . $reg->id;
-                            $pngFileName = 'Coupon_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $cardNoFormatted) . '.png';
+                                $pName = $reg->name ?: 'অংশগ্রহণকারী';
+                                $pCat = $reg->resolved_category ?: ($reg->designation_or_class ?: 'কবি ও প্রতিনিধি');
+                                $pPhone = $reg->phone ?: '';
+                                $stripDomId = 'coupon_strip_' . $reg->id;
+                                $pngFileName = 'Coupon_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $cardNoFormatted) . '.png';
+                            }
                         @endphp
 
                         <div class="coupon-strip-row" data-card="{{ strtolower($cardNoFormatted) }}" data-name="{{ strtolower($pName) }}" data-phone="{{ $pPhone }}">
@@ -659,11 +753,16 @@
                                             {{ $eventTitle }}
                                         </div>
                                         <div class="coupon-card-badge">
-                                            কার্ড নং: {{ $cardNoFormatted }}
+                                            {{ !empty($isGuestItem) ? 'গেস্ট নং' : 'কার্ড নং' }}: {{ $cardNoFormatted }}
                                         </div>
                                         <div class="coupon-participant-info">
                                             <span class="coupon-participant-name" title="{{ $pName }}">{{ $pName }}</span>
                                             <span class="coupon-participant-category">{{ $pCat }}</span>
+                                            @if(!empty($isGuestItem))
+                                                <div class="guest-write-in-line">
+                                                    <span>নাম:</span><span class="dotted-line"></span>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                     <div class="coupon-footer">
@@ -686,11 +785,16 @@
                                             {{ $eventTitle }}
                                         </div>
                                         <div class="coupon-card-badge">
-                                            কার্ড নং: {{ $cardNoFormatted }}
+                                            {{ !empty($isGuestItem) ? 'গেস্ট নং' : 'কার্ড নং' }}: {{ $cardNoFormatted }}
                                         </div>
                                         <div class="coupon-participant-info">
                                             <span class="coupon-participant-name" title="{{ $pName }}">{{ $pName }}</span>
                                             <span class="coupon-participant-category">{{ $pCat }}</span>
+                                            @if(!empty($isGuestItem))
+                                                <div class="guest-write-in-line">
+                                                    <span>নাম:</span><span class="dotted-line"></span>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                     <div class="coupon-footer">
@@ -713,11 +817,16 @@
                                             {{ $eventTitle }}
                                         </div>
                                         <div class="coupon-card-badge">
-                                            কার্ড নং: {{ $cardNoFormatted }}
+                                            {{ !empty($isGuestItem) ? 'গেস্ট নং' : 'কার্ড নং' }}: {{ $cardNoFormatted }}
                                         </div>
                                         <div class="coupon-participant-info">
                                             <span class="coupon-participant-name" title="{{ $pName }}">{{ $pName }}</span>
                                             <span class="coupon-participant-category">{{ $pCat }}</span>
+                                            @if(!empty($isGuestItem))
+                                                <div class="guest-write-in-line">
+                                                    <span>নাম:</span><span class="dotted-line"></span>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                     <div class="coupon-footer">
@@ -740,11 +849,16 @@
                                             {{ $eventTitle }}
                                         </div>
                                         <div class="coupon-card-badge">
-                                            কার্ড নং: {{ $cardNoFormatted }}
+                                            {{ !empty($isGuestItem) ? 'গেস্ট নং' : 'কার্ড নং' }}: {{ $cardNoFormatted }}
                                         </div>
                                         <div class="coupon-participant-info">
                                             <span class="coupon-participant-name" title="{{ $pName }}">{{ $pName }}</span>
                                             <span class="coupon-participant-category">{{ $pCat }}</span>
+                                            @if(!empty($isGuestItem))
+                                                <div class="guest-write-in-line">
+                                                    <span>নাম:</span><span class="dotted-line"></span>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                     <div class="coupon-footer">
@@ -760,7 +874,7 @@
                                 <div class="coupon-col coupon-col-raffle">
                                     <div>
                                         <div class="coupon-badge">
-                                            <i class="fa-solid fa-ticket"></i> র‍্যাফেল ড্র
+                                            <i class="fa-solid fa-ticket"></i> {{ !empty($isGuestItem) ? 'র‍্যাফেল ড্র (গেস্ট)' : 'র‍্যাফেল ড্র' }}
                                         </div>
                                         <div class="coupon-event-name">
                                             {{ $eventTitle }}
@@ -769,11 +883,24 @@
                                             ড্র নং: {{ $cardNoFormatted }}
                                         </div>
                                         <div class="coupon-participant-info">
-                                            <span class="coupon-participant-name" title="{{ $pName }}">{{ $pName }}</span>
-                                            @if(!empty($pPhone))
-                                                <span class="raffle-phone" title="মোবাইল">{{ $pPhone }}</span>
+                                            @if(!empty($isGuestItem))
+                                                <div class="raffle-guest-fill">
+                                                    <div class="raffle-fill-row">
+                                                        <span class="raffle-fill-label">নাম:</span>
+                                                        <span class="raffle-fill-line"></span>
+                                                    </div>
+                                                    <div class="raffle-fill-row">
+                                                        <span class="raffle-fill-label">মোবাইল:</span>
+                                                        <span class="raffle-fill-line"></span>
+                                                    </div>
+                                                </div>
                                             @else
-                                                <span class="coupon-participant-category">{{ $pCat }}</span>
+                                                <span class="coupon-participant-name" title="{{ $pName }}">{{ $pName }}</span>
+                                                @if(!empty($pPhone))
+                                                    <span class="raffle-phone" title="মোবাইল">{{ $pPhone }}</span>
+                                                @else
+                                                    <span class="coupon-participant-category">{{ $pCat }}</span>
+                                                @endif
                                             @endif
                                         </div>
                                         <div class="raffle-box-drop">
@@ -783,7 +910,7 @@
                                     <div class="coupon-footer">
                                         <span class="coupon-serial">#DRW-{{ $cardDisplay }}</span>
                                         <span class="coupon-barcode-graphic">|||| ||</span>
-                                        <span>ড্র কুপন</span>
+                                        <span>{{ !empty($isGuestItem) ? 'গেস্ট ড্র কুপন' : 'ড্র কুপন' }}</span>
                                     </div>
                                 </div>
 
@@ -795,9 +922,16 @@
                             <button type="button" class="btn-strip-download" onclick="downloadSingleStripPng('{{ $stripDomId }}', '{{ $pngFileName }}')" title="এই ৮x২ ইঞ্চি স্লিপটি PNG ছবি হিসেবে ডাউনলোড করুন">
                                 <i class="fa-solid fa-download"></i> স্লিপ ডাউনলোড
                             </button>
-                            <a href="{{ route('admin.event-campaigns.registrations.coupon', $reg->id) }}" target="_blank" class="btn-strip-download" style="color: #facc15;" title="সিঙ্গেল ভিউ পেজে খুলুন">
-                                <i class="fa-solid fa-expand"></i> সিঙ্গেল ভিউ
-                            </a>
+                            @if(empty($isGuestItem) && !empty($reg->id) && is_numeric($reg->id))
+                                <a href="{{ route('admin.event-campaigns.registrations.coupon', $reg->id) }}" target="_blank" class="btn-strip-download" style="color: #facc15;" title="সিঙ্গেল ভিউ পেজে খুলুন">
+                                    <i class="fa-solid fa-expand"></i> সিঙ্গেল ভিউ
+                                </a>
+                            @endif
+                            <span style="font-size: 10.5px; color: #cbd5e1; font-family: monospace; font-weight: 700; text-align: center;">
+                                {{ $cardNoFormatted }}
+                            </span>
+                        </div>
+                    </div>
                             <span style="font-size: 10.5px; color: #cbd5e1; font-family: monospace; font-weight: 700; text-align: center;">
                                 {{ $cardNoFormatted }}
                             </span>

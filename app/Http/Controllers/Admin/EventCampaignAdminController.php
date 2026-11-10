@@ -3267,90 +3267,127 @@ class EventCampaignAdminController extends Controller
     public function printCoupons(Request $request, EventCampaign $campaign)
     {
         $campaign->loadCount('registrations');
-        $query = $campaign->registrations();
 
-        // Food & Raffle coupons are strictly for approved/confirmed participants only (pending registrations are excluded)
-        $query->whereIn('status', ['confirmed', 'selected', 'approved', 'attended']);
-        $currentStatus = 'approved';
+        $isGuest = $request->boolean('guest') || $request->input('type') === 'guest';
+        $guestCount = max(1, min(500, intval($request->input('count', $request->input('guest_count', 25)))));
+        $guestPrefix = trim($request->input('prefix', 'G'));
 
-        // Division filter
-        if ($request->filled('division')) {
-            $rawDiv = trim($request->division);
-            $canonicalDiv = \App\Support\BangladeshGeo::normalizeDivision($rawDiv) ?: $rawDiv;
-            $divVariants = \App\Support\BangladeshGeo::getVariants($canonicalDiv);
-            $query->where(function ($q) use ($divVariants) {
-                foreach ($divVariants as $v) {
-                    $q->orWhere('form_data->perm_division', 'like', "%{$v}%")
-                      ->orWhere('form_data->division', 'like', "%{$v}%");
-                }
-            });
-        }
+        // Total count of approved registrations for tab badge
+        $approvedCount = $campaign->registrations()
+            ->whereIn('status', ['confirmed', 'selected', 'approved', 'attended'])
+            ->count();
 
-        // District filter
-        if ($request->filled('district')) {
-            $rawDst = trim($request->district);
-            $canonicalDst = \App\Support\BangladeshGeo::normalizeDistrict($rawDst) ?: $rawDst;
-            $dstVariants = \App\Support\BangladeshGeo::getVariants($canonicalDst);
-            $query->where(function ($q) use ($dstVariants) {
-                $q->whereIn('district', $dstVariants)
-                  ->orWhere(function ($sq) use ($dstVariants) {
-                      foreach ($dstVariants as $v) {
-                          $sq->orWhere('district', 'like', "%{$v}%")
-                             ->orWhere('form_data->district', 'like', "%{$v}%");
-                      }
-                  });
-            });
-        }
-
-        // Category filter
-        if ($request->filled('category')) {
-            $cat = trim($request->category);
-            $query->where(function ($q) use ($cat) {
-                $q->where('form_data->author_category', 'like', "%{$cat}%")
-                  ->orWhere('form_data->author_categories', 'like', "%{$cat}%")
-                  ->orWhere('designation_or_class', 'like', "%{$cat}%")
-                  ->orWhere('form_data->genres', 'like', "%{$cat}%")
-                  ->orWhere('form_data->category', 'like', "%{$cat}%");
-            });
-        }
-
-        // Search query
-        if ($request->filled('search')) {
-            $s = trim($request->search);
-            $query->where(function ($q) use ($s) {
-                $q->where('name', 'like', "%{$s}%")
-                  ->orWhere('phone', 'like', "%{$s}%")
-                  ->orWhere('email', 'like', "%{$s}%")
-                  ->orWhere('registration_number', 'like', "%{$s}%");
-            });
-        }
-
-        // Sorting by reg no / ID
-        $sort = $request->input('sort', 'reg_no');
-        if ($sort === 'alpha' || $sort === 'name') {
-            $query->orderBy('name', 'asc');
-        } elseif ($sort === 'alpha_desc') {
-            $query->orderBy('name', 'desc');
-        } elseif ($sort === 'latest') {
-            $query->orderBy('id', 'desc');
-        } elseif ($sort === 'oldest') {
-            $query->orderBy('id', 'asc');
+        if ($isGuest) {
+            $currentStatus = 'guest';
+            $guestList = collect();
+            for ($i = 1; $i <= $guestCount; $i++) {
+                $padNum = sprintf('%03d', $i);
+                $cardNo = ($guestPrefix ? $guestPrefix . '-' : '') . $padNum;
+                $guestObj = new \stdClass();
+                $guestObj->id = 'guest_' . $i;
+                $guestObj->is_guest = true;
+                $guestObj->registration_number = $cardNo;
+                $guestObj->name = 'সম্মানিত অতিথি';
+                $guestObj->phone = '';
+                $guestObj->designation_or_class = 'আমন্ত্রিত অতিথি';
+                $guestObj->resolved_category = 'গেস্ট ডেলিগেট';
+                $guestObj->card_display = $padNum;
+                $guestObj->card_no_formatted = $cardNo;
+                $guestList->push($guestObj);
+            }
+            $registrations = $guestList;
+            $totalCount = $registrations->count();
+            $registrationChunks = $registrations->chunk(5);
         } else {
-            $query->orderBy('registration_number', 'asc')->orderBy('id', 'asc');
+            $query = $campaign->registrations();
+
+            // Food & Raffle coupons are strictly for approved/confirmed participants only (pending registrations are excluded)
+            $query->whereIn('status', ['confirmed', 'selected', 'approved', 'attended']);
+            $currentStatus = 'approved';
+
+            // Division filter
+            if ($request->filled('division')) {
+                $rawDiv = trim($request->division);
+                $canonicalDiv = \App\Support\BangladeshGeo::normalizeDivision($rawDiv) ?: $rawDiv;
+                $divVariants = \App\Support\BangladeshGeo::getVariants($canonicalDiv);
+                $query->where(function ($q) use ($divVariants) {
+                    foreach ($divVariants as $v) {
+                        $q->orWhere('form_data->perm_division', 'like', "%{$v}%")
+                          ->orWhere('form_data->division', 'like', "%{$v}%");
+                    }
+                });
+            }
+
+            // District filter
+            if ($request->filled('district')) {
+                $rawDst = trim($request->district);
+                $canonicalDst = \App\Support\BangladeshGeo::normalizeDistrict($rawDst) ?: $rawDst;
+                $dstVariants = \App\Support\BangladeshGeo::getVariants($canonicalDst);
+                $query->where(function ($q) use ($dstVariants) {
+                    $q->whereIn('district', $dstVariants)
+                      ->orWhere(function ($sq) use ($dstVariants) {
+                          foreach ($dstVariants as $v) {
+                              $sq->orWhere('district', 'like', "%{$v}%")
+                                 ->orWhere('form_data->district', 'like', "%{$v}%");
+                          }
+                      });
+                });
+            }
+
+            // Category filter
+            if ($request->filled('category')) {
+                $cat = trim($request->category);
+                $query->where(function ($q) use ($cat) {
+                    $q->where('form_data->author_category', 'like', "%{$cat}%")
+                      ->orWhere('form_data->author_categories', 'like', "%{$cat}%")
+                      ->orWhere('designation_or_class', 'like', "%{$cat}%")
+                      ->orWhere('form_data->genres', 'like', "%{$cat}%")
+                      ->orWhere('form_data->category', 'like', "%{$cat}%");
+                });
+            }
+
+            // Search query
+            if ($request->filled('search')) {
+                $s = trim($request->search);
+                $query->where(function ($q) use ($s) {
+                    $q->where('name', 'like', "%{$s}%")
+                      ->orWhere('phone', 'like', "%{$s}%")
+                      ->orWhere('email', 'like', "%{$s}%")
+                      ->orWhere('registration_number', 'like', "%{$s}%");
+                });
+            }
+
+            // Sorting by reg no / ID
+            $sort = $request->input('sort', 'reg_no');
+            if ($sort === 'alpha' || $sort === 'name') {
+                $query->orderBy('name', 'asc');
+            } elseif ($sort === 'alpha_desc') {
+                $query->orderBy('name', 'desc');
+            } elseif ($sort === 'latest') {
+                $query->orderBy('id', 'desc');
+            } elseif ($sort === 'oldest') {
+                $query->orderBy('id', 'asc');
+            } else {
+                $query->orderBy('registration_number', 'asc')->orderBy('id', 'asc');
+            }
+
+            $registrations = $query->get();
+            $totalCount = $registrations->count();
+
+            // 5 strips per A4 sheet pagination grouping for clean print without overlapping
+            $registrationChunks = $registrations->chunk(5);
         }
-
-        $registrations = $query->get();
-        $totalCount = $registrations->count();
-
-        // 5 strips per A4 sheet pagination grouping for clean print without overlapping
-        $registrationChunks = $registrations->chunk(5);
 
         return view('admin.event_campaigns.coupons', compact(
             'campaign',
             'registrations',
             'registrationChunks',
             'totalCount',
-            'currentStatus'
+            'currentStatus',
+            'isGuest',
+            'guestCount',
+            'guestPrefix',
+            'approvedCount'
         ));
     }
 

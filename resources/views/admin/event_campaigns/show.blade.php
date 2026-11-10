@@ -916,6 +916,9 @@
                 <a href="{{ route('admin.event-campaigns.coupons', $campaign->id) }}?status=approved" target="_blank" class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" title="খাবার ও র‍্যাফেল ড্র কুপন স্লিপ (৮x২ ইঞ্চি, ৫ কলাম)">
                     <i class="fa-solid fa-ticket"></i> <span>খাবার ও ড্র কুপন</span>
                 </a>
+                <a href="{{ route('admin.event-campaigns.coupons', $campaign->id) }}?guest=1&count=25" target="_blank" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" style="background: #fef08a;" title="গেস্টদের জন্য নামহীন খাবার ও র‍্যাফেল ড্র কুপন (৮x২ ইঞ্চি, ৫ কলাম)">
+                    <i class="fa-solid fa-user-tag"></i> <span>গেস্টদের কুপন</span>
+                </a>
                 @endunless
                 <a href="{{ route('admin.event-campaigns.print-all', $campaign->id) }}?{{ http_build_query(request()->all()) }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-xs" title="বর্তমান ফিল্টার অনুযায়ী সকল তালিকা ও আবেদন ফরম এক কমান্ডে প্রিন্ট করুন">
                     <i class="fa-solid fa-print me-1.5"></i> প্রিন্ট (তালিকা ও ফরম)
