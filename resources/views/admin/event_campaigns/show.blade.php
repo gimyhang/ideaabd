@@ -913,6 +913,9 @@
                 <a href="{{ route('admin.event-campaigns.cards.download-all', $campaign->id) }}?status=approved" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" title="সকল অনুমোদিত কার্ড সিঙ্গেল স্টাইলে একসাথে জিপ ডাউনলোড করুন">
                     <i class="fa-solid fa-file-zipper"></i> <span>এপ্রুভড কার্ড জিপ</span>
                 </a>
+                <a href="{{ route('admin.event-campaigns.coupons', $campaign->id) }}?status=approved" target="_blank" class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" title="খাবার ও র‍্যাফেল ড্র কুপন স্লিপ (৮x২ ইঞ্চি, ৫ কলাম)">
+                    <i class="fa-solid fa-ticket"></i> <span>খাবার ও ড্র কুপন</span>
+                </a>
                 @endunless
                 <a href="{{ route('admin.event-campaigns.print-all', $campaign->id) }}?{{ http_build_query(request()->all()) }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-xs" title="বর্তমান ফিল্টার অনুযায়ী সকল তালিকা ও আবেদন ফরম এক কমান্ডে প্রিন্ট করুন">
                     <i class="fa-solid fa-print me-1.5"></i> প্রিন্ট (তালিকা ও ফরম)
@@ -1305,6 +1308,13 @@
                                         <a href="{{ route('admin.event-campaigns.registrations.print', $reg->id) }}" target="_blank" class="btn-action-icon btn-action-print" title="{{ $isScholarship ? 'Print' : 'আমন্ত্রণপত্র / কার্ড প্রিন্ট' }}">
                                             <i class="fa-solid fa-print"></i>
                                         </a>
+
+                                        @unless($isScholarship)
+                                        {{-- Food & Raffle Coupon Button --}}
+                                        <a href="{{ route('admin.event-campaigns.registrations.coupon', $reg->id) }}" target="_blank" class="btn-action-icon" style="color: #d97706;" title="খাবার ও ড্র কুপন (৮x২ ইঞ্চি)">
+                                            <i class="fa-solid fa-ticket"></i>
+                                        </a>
+                                        @endunless
 
                                         {{-- Download PDF Button --}}
                                         <a href="{{ route('admin.event-campaigns.registrations.pdf', $reg->id) }}" class="btn-action-icon btn-action-pdf" title="{{ $isScholarship ? 'PDF' : 'PDF ফরম ডাউনলোড' }}">

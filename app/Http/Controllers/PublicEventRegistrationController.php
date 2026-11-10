@@ -924,7 +924,7 @@ class PublicEventRegistrationController extends Controller
      */
     public function print(string $registrationNumber)
     {
-        $registration = EventRegistration::with('campaign', 'user')
+        $registration = EventRegistration::with('campaign')
             ->where('registration_number', $registrationNumber)
             ->firstOrFail();
 
@@ -962,7 +962,7 @@ class PublicEventRegistrationController extends Controller
      */
     public function downloadPdf(string $registrationNumber)
     {
-        $registration = EventRegistration::with('campaign', 'user')
+        $registration = EventRegistration::with('campaign')
             ->where('registration_number', $registrationNumber)
             ->firstOrFail();
 
@@ -1011,11 +1011,31 @@ class PublicEventRegistrationController extends Controller
     }
 
     /**
+     * Print or Download Event Food & Raffle Draw Coupons for Participant (w8in x h2in, 5 columns).
+     */
+    public function printCoupon(string $registrationNumber)
+    {
+        $registration = EventRegistration::with('campaign')
+            ->where('registration_number', $registrationNumber)
+            ->firstOrFail();
+
+        $campaign = $registration->campaign;
+        abort_unless($campaign, 404);
+
+        $isApproved = in_array($registration->status, self::APPROVED_STATUSES, true);
+        if (!$isApproved && !$campaign->isScholarship()) {
+            return view('frontend.events.pending_approval', compact('registration', 'campaign'));
+        }
+
+        return view('frontend.events.coupon_print', compact('campaign', 'registration'));
+    }
+
+    /**
      * Show Public/User Library Book Grant Receipt Acknowledgment Form (বই প্রাপ্তিস্বীকার ফরম).
      */
     public function showAcknowledgment(string $registrationNumber)
     {
-        $registration = EventRegistration::with('campaign', 'user')
+        $registration = EventRegistration::with('campaign')
             ->where('registration_number', $registrationNumber)
             ->firstOrFail();
 
@@ -1027,7 +1047,7 @@ class PublicEventRegistrationController extends Controller
      */
     public function submitAcknowledgment(Request $request, string $registrationNumber)
     {
-        $registration = EventRegistration::with('campaign', 'user')
+        $registration = EventRegistration::with('campaign')
             ->where('registration_number', $registrationNumber)
             ->firstOrFail();
 
@@ -1080,7 +1100,7 @@ class PublicEventRegistrationController extends Controller
      */
     public function printLibrarySlip(string $registrationNumber)
     {
-        $registration = EventRegistration::with('campaign', 'user')
+        $registration = EventRegistration::with('campaign')
             ->where('registration_number', $registrationNumber)
             ->firstOrFail();
 

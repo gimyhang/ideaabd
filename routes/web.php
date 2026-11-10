@@ -794,6 +794,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/{campaign}/export-csv', 'exportCsv')->name('export');
         Route::get('/{campaign}/print-all', 'printAll')->name('print-all');
         Route::get('/{campaign}/download-all-cards', 'downloadAllCards')->name('cards.download-all');
+        Route::get('/{campaign}/coupons', 'printCoupons')->name('coupons');
+        Route::get('/registrations/{registration}/coupon', 'printSingleCoupon')->name('registrations.coupon');
         Route::post('/registrations/{registration}/send-sms', 'sendCustomSms')->name('registrations.send-sms');
         Route::post('/registrations/{registration}/convert-to-writer', 'convertToWriter')->name('registrations.convert-to-writer');
         Route::post('/{campaign}/bulk-action', 'bulkAction')->name('bulk-action');
@@ -1101,6 +1103,13 @@ Route::controller(\App\Http\Controllers\PublicEventRegistrationController::class
     Route::get('/event-registration/{registrationNumber}/pdf', 'downloadPdf')->name('event.registration.pdf');
     Route::get('/event/registration/pdf/{registrationNumber}', 'downloadPdf');
     Route::get('/rsu/pdf/{registrationNumber}', 'downloadPdf');
+
+    // Event Food & Raffle Draw Coupons (w8in x h2in, 5 columns)
+    Route::get('/event-registration/{registrationNumber}/coupon', 'printCoupon')->name('event.registration.coupon');
+    Route::get('/event/registration/coupon/{registrationNumber}', 'printCoupon');
+    Route::get('/event/coupon/{registrationNumber}', 'printCoupon');
+    Route::get('/rsu/coupon/{registrationNumber}', 'printCoupon');
+    Route::get('/coupon/{registrationNumber}', 'printCoupon');
 
     // Event Attendance Verification & Check-in (Scan QR Code or Click Link)
     Route::get('/event/verify/{registrationNumber}', 'verifyAttendance')->name('event.attendance.verify');

@@ -624,6 +624,9 @@
             <button type="button" onclick="window.print()" class="btn-action btn-print">
                 <i class="fa-solid fa-print"></i> প্রিন্ট করুন
             </button>
+            <a href="{{ route('event.registration.coupon', $registration->registration_number) }}" target="_blank" class="btn-action" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff;" title="খাবার ও র‍্যাফেল ড্র কুপন স্লিপ (৮x২ ইঞ্চি)">
+                <i class="fa-solid fa-ticket"></i> খাবার ও ড্র কুপন
+            </a>
             <a href="{{ url('/') }}" class="btn-action btn-back">
                 <i class="fa-solid fa-house"></i> হোমপেজ
             </a>
