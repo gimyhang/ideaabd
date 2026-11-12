@@ -22,7 +22,7 @@
             color: #1e293b;
             margin: 0;
             padding: 0;
-            font-size: 13px;
+            font-size: 14px;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
@@ -79,7 +79,7 @@
         .print-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: 14px;
             margin-bottom: 20px;
         }
         .print-table thead th {
@@ -90,12 +90,14 @@
             border: 1px solid #0f172a;
             text-align: left;
             white-space: nowrap;
+            font-size: 13.5px;
         }
         .print-table tbody td {
-            padding: 6px 10px;
+            padding: 8px 10px;
             border: 1px solid #cbd5e1;
             vertical-align: middle;
             color: #0f172a;
+            font-size: 14px;
         }
         .print-table tbody tr:nth-child(even) td {
             background-color: #f8fafc !important;
@@ -251,18 +253,21 @@
                 border: none !important;
             }
             .print-table {
-                font-size: 11px !important;
+                font-size: 14px !important;
             }
             .print-table thead th {
                 background: #1e293b !important;
                 color: #ffffff !important;
-                padding: 6px 8px !important;
+                padding: 7px 8px !important;
+                font-size: 13.5px !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
             .print-table tbody td {
-                padding: 5px 8px !important;
+                padding: 7px 8px !important;
                 border: 1px solid #94a3b8 !important;
+                font-size: 14px !important;
+                line-height: 1.35 !important;
             }
             .division-print-block {
                 page-break-before: always !important;
@@ -543,7 +548,7 @@
                                                 <th style="width: 80px;">পেমেন্ট</th>
                                             @endif
                                             <th style="width: 85px;" class="text-center">স্ট্যাটাস</th>
-                                            <th style="width: 90px;">তারিখ</th>
+                                            <th style="width: 145px; min-width: 135px;" class="text-center">মন্তব্য ও স্বাক্ষর</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -556,14 +561,14 @@
                                                 <td class="text-center font-mono">{{ $globalSerial++ }}</td>
                                                 <td class="font-mono fw-bold text-dark">#{{ $reg->registration_number }}</td>
                                                 <td>
-                                                    <div class="fw-bold text-dark">{{ $reg->name }}</div>
+                                                    <div class="fw-bold text-dark" style="font-size: 14.5px;">{{ $reg->name }}</div>
                                                     @if($campaign->isScholarship())
                                                         @if(!empty($reg->form_data['father_name']))
-                                                            <small class="text-muted d-block">পিতা: {{ $reg->form_data['father_name'] }}</small>
+                                                            <small class="text-muted d-block" style="font-size: 12.5px;">পিতা: {{ $reg->form_data['father_name'] }}</small>
                                                         @endif
                                                     @else
                                                         @if(!empty($reg->form_data['pen_name']))
-                                                            <small class="text-muted d-block">কলমী নাম: {{ $reg->form_data['pen_name'] }}</small>
+                                                            <small class="text-muted d-block" style="font-size: 12.5px;">কলমী নাম: {{ $reg->form_data['pen_name'] }}</small>
                                                         @endif
                                                         @if($magName)
                                                             <span class="badge bg-warning-subtle text-dark border border-warning-subtle py-0 px-1" style="font-size: 10px;">
@@ -574,26 +579,26 @@
                                                 </td>
                                                 <td>
                                                     @if($campaign->isScholarship())
-                                                        <div class="fw-medium text-dark">{{ $reg->form_data['college_name'] ?? ($reg->institution_or_org ?: '-') }}</div>
-                                                        <small class="text-muted d-block">{{ $reg->form_data['scholarship_degree'] ?? '' }} • {{ $reg->form_data['group'] ?? '' }} @if(!empty($reg->form_data['ssc_gpa'])) &bull; GPA: {{ $reg->form_data['ssc_gpa'] }} @endif</small>
+                                                        <div class="fw-medium text-dark" style="font-size: 14px;">{{ $reg->form_data['college_name'] ?? ($reg->institution_or_org ?: '-') }}</div>
+                                                        <small class="text-muted d-block" style="font-size: 12px;">{{ $reg->form_data['scholarship_degree'] ?? '' }} • {{ $reg->form_data['group'] ?? '' }} @if(!empty($reg->form_data['ssc_gpa'])) &bull; GPA: {{ $reg->form_data['ssc_gpa'] }} @endif</small>
                                                     @else
-                                                        <span class="badge bg-light text-dark border py-0.5 px-2 fw-semibold" style="font-size: 10.5px;">
+                                                        <span class="badge bg-light text-dark border py-0.5 px-2 fw-semibold" style="font-size: 11px;">
                                                             <i class="fa-solid fa-feather-pointed text-warning me-1"></i>{{ $authorCat }}
                                                         </span>
                                                         @if(!empty($reg->designation_or_class) && $reg->designation_or_class !== $authorCat)
-                                                            <small class="text-muted d-block mt-0.5" style="font-size: 10px;">{{ $reg->designation_or_class }}</small>
+                                                            <small class="text-muted d-block mt-0.5" style="font-size: 11px;">{{ $reg->designation_or_class }}</small>
                                                         @endif
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    <div class="font-mono fw-semibold">{{ $reg->phone }}</div>
+                                                    <div class="font-mono fw-semibold" style="font-size: 13.5px;">{{ $reg->phone }}</div>
                                                     @if($reg->email)
-                                                        <small class="text-muted d-block text-truncate" style="max-width: 130px;">{{ $reg->email }}</small>
+                                                        <small class="text-muted d-block text-truncate" style="max-width: 130px; font-size: 11.5px;">{{ $reg->email }}</small>
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    <div class="fw-medium text-dark">{{ $reg->resolved_district ?: '-' }}</div>
-                                                    <small class="text-muted d-block">{{ $reg->resolved_thana ?: ($reg->thana ?: '') }}</small>
+                                                    <div class="fw-medium text-dark" style="font-size: 14px;">{{ $reg->resolved_district ?: '-' }}</div>
+                                                    <small class="text-muted d-block" style="font-size: 12px;">{{ $reg->resolved_thana ?: ($reg->thana ?: '') }}</small>
                                                 </td>
                                                 @if($campaign->has_fee_or_donation)
                                                     <td class="font-mono fw-semibold">৳{{ number_format($reg->amount_paid) }}</td>
@@ -615,8 +620,13 @@
                                                         <span class="status-pill status-pending">{{ ucfirst($reg->status) }}</span>
                                                     @endif
                                                 </td>
-                                                <td class="font-mono text-muted" style="font-size: 11px;">
-                                                    {{ $reg->created_at->format('d/m/Y') }}
+                                                <td style="min-width: 135px; vertical-align: middle;">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <span class="font-mono text-muted" style="font-size: 11px;">{{ $reg->created_at->format('d/m/Y') }}</span>
+                                                        <span class="badge bg-light text-secondary border px-1" style="font-size: 9.5px;">মন্তব্য</span>
+                                                    </div>
+                                                    <div style="min-height: 28px; border-bottom: 1.5px dotted #64748b; margin-top: 4px;"></div>
+                                                    <div class="text-end text-muted font-bengali" style="font-size: 10px; margin-top: 2px;">স্বাক্ষর</div>
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -640,7 +650,7 @@
                                         <th style="width: 80px;">পেমেন্ট</th>
                                     @endif
                                     <th style="width: 85px;" class="text-center">স্ট্যাটাস</th>
-                                    <th style="width: 90px;">তারিখ</th>
+                                    <th style="width: 145px; min-width: 135px;" class="text-center">মন্তব্য ও স্বাক্ষর</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -653,14 +663,14 @@
                                         <td class="text-center font-mono">{{ $globalSerial++ }}</td>
                                         <td class="font-mono fw-bold text-dark">#{{ $reg->registration_number }}</td>
                                         <td>
-                                            <div class="fw-bold text-dark">{{ $reg->name }}</div>
+                                            <div class="fw-bold text-dark" style="font-size: 14.5px;">{{ $reg->name }}</div>
                                             @if($campaign->isScholarship())
                                                 @if(!empty($reg->form_data['father_name']))
-                                                    <small class="text-muted d-block">পিতা: {{ $reg->form_data['father_name'] }}</small>
+                                                    <small class="text-muted d-block" style="font-size: 12.5px;">পিতা: {{ $reg->form_data['father_name'] }}</small>
                                                 @endif
                                             @else
                                                 @if(!empty($reg->form_data['pen_name']))
-                                                    <small class="text-muted d-block">কলমী নাম: {{ $reg->form_data['pen_name'] }}</small>
+                                                    <small class="text-muted d-block" style="font-size: 12.5px;">কলমী নাম: {{ $reg->form_data['pen_name'] }}</small>
                                                 @endif
                                                 @if($magName)
                                                     <span class="badge bg-warning-subtle text-dark border border-warning-subtle py-0 px-1" style="font-size: 10px;">
@@ -671,26 +681,26 @@
                                         </td>
                                         <td>
                                             @if($campaign->isScholarship())
-                                                <div class="fw-medium text-dark">{{ $reg->form_data['college_name'] ?? ($reg->institution_or_org ?: '-') }}</div>
-                                                <small class="text-muted d-block">{{ $reg->form_data['scholarship_degree'] ?? '' }} • {{ $reg->form_data['group'] ?? '' }} @if(!empty($reg->form_data['ssc_gpa'])) &bull; GPA: {{ $reg->form_data['ssc_gpa'] }} @endif</small>
+                                                <div class="fw-medium text-dark" style="font-size: 14px;">{{ $reg->form_data['college_name'] ?? ($reg->institution_or_org ?: '-') }}</div>
+                                                <small class="text-muted d-block" style="font-size: 12px;">{{ $reg->form_data['scholarship_degree'] ?? '' }} • {{ $reg->form_data['group'] ?? '' }} @if(!empty($reg->form_data['ssc_gpa'])) &bull; GPA: {{ $reg->form_data['ssc_gpa'] }} @endif</small>
                                             @else
-                                                <span class="badge bg-light text-dark border py-0.5 px-2 fw-semibold" style="font-size: 10.5px;">
+                                                <span class="badge bg-light text-dark border py-0.5 px-2 fw-semibold" style="font-size: 11px;">
                                                     <i class="fa-solid fa-feather-pointed text-warning me-1"></i>{{ $authorCat }}
                                                 </span>
                                                 @if(!empty($reg->designation_or_class) && $reg->designation_or_class !== $authorCat)
-                                                    <small class="text-muted d-block mt-0.5" style="font-size: 10px;">{{ $reg->designation_or_class }}</small>
+                                                    <small class="text-muted d-block mt-0.5" style="font-size: 11px;">{{ $reg->designation_or_class }}</small>
                                                 @endif
                                             @endif
                                         </td>
                                         <td>
-                                            <div class="font-mono fw-semibold">{{ $reg->phone }}</div>
+                                            <div class="font-mono fw-semibold" style="font-size: 13.5px;">{{ $reg->phone }}</div>
                                             @if($reg->email)
-                                                <small class="text-muted d-block text-truncate" style="max-width: 130px;">{{ $reg->email }}</small>
+                                                <small class="text-muted d-block text-truncate" style="max-width: 130px; font-size: 11.5px;">{{ $reg->email }}</small>
                                             @endif
                                         </td>
                                         <td>
-                                            <div class="fw-medium text-dark">{{ $reg->resolved_district ?: '-' }}</div>
-                                            <small class="text-muted d-block">{{ $reg->resolved_division }} &bull; {{ $reg->thana ?: '' }}</small>
+                                            <div class="fw-medium text-dark" style="font-size: 14px;">{{ $reg->resolved_district ?: '-' }}</div>
+                                            <small class="text-muted d-block" style="font-size: 12px;">{{ $reg->resolved_division }} &bull; {{ $reg->thana ?: '' }}</small>
                                         </td>
                                         @if($campaign->has_fee_or_donation)
                                             <td class="font-mono fw-semibold">৳{{ number_format($reg->amount_paid) }}</td>
@@ -712,8 +722,13 @@
                                                 <span class="status-pill status-pending">{{ ucfirst($reg->status) }}</span>
                                             @endif
                                         </td>
-                                        <td class="font-mono text-muted" style="font-size: 11px;">
-                                            {{ $reg->created_at->format('d/m/Y') }}
+                                        <td style="min-width: 135px; vertical-align: middle;">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span class="font-mono text-muted" style="font-size: 11px;">{{ $reg->created_at->format('d/m/Y') }}</span>
+                                                <span class="badge bg-light text-secondary border px-1" style="font-size: 9.5px;">মন্তব্য</span>
+                                            </div>
+                                            <div style="min-height: 28px; border-bottom: 1.5px dotted #64748b; margin-top: 4px;"></div>
+                                            <div class="text-end text-muted font-bengali" style="font-size: 10px; margin-top: 2px;">স্বাক্ষর</div>
                                         </td>
                                     </tr>
                                 @endforeach
