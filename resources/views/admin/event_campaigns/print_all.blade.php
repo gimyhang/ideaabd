@@ -42,10 +42,11 @@
         }
 
         .print-container {
-            max-width: 1200px;
-            margin: 24px auto;
+            max-width: 98%;
+            width: 98%;
+            margin: 16px auto;
             background: #ffffff;
-            padding: 32px;
+            padding: 20px 24px;
             border-radius: 12px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.06);
             border: 1px solid #e2e8f0;
@@ -275,8 +276,11 @@
                 font-size: 14px !important;
                 line-height: 1.35 !important;
             }
+            .reg-email {
+                display: none !important;
+            }
             .signature-cell {
-                width: 130px !important;
+                width: 110px !important;
                 min-width: 120px !important;
                 height: 48px !important;
             }
@@ -548,18 +552,18 @@
                                 <table class="print-table mb-2">
                                     <thead>
                                         <tr>
-                                            <th style="width: 38px;" class="text-center">ক্র.</th>
-                                            <th style="width: 125px; white-space: nowrap;">আইডি</th>
-                                            <th style="min-width: 165px;">{{ $campaign->isScholarship() ? 'শিক্ষার্থী ও অভিভাবক' : 'অংশগ্রহণকারী ও বিবরণ' }}</th>
-                                            <th style="width: 120px;">{{ $campaign->isScholarship() ? 'শিক্ষা প্রতিষ্ঠান ও বিভাগ' : 'ক্যাটাগরি / শাখা' }}</th>
-                                            <th style="width: 135px; white-space: nowrap;">যোগাযোগ</th>
-                                            <th style="width: 120px;">উপজেলা / ঠিকানা</th>
+                                            <th style="width: 36px; white-space: nowrap;" class="text-center">ক্র.</th>
+                                            <th style="width: 115px; white-space: nowrap;">আইডি</th>
+                                            <th style="min-width: 160px;">{{ $campaign->isScholarship() ? 'শিক্ষার্থী ও অভিভাবক' : 'অংশগ্রহণকারী ও বিবরণ' }}</th>
+                                            <th style="width: 110px; white-space: nowrap;">{{ $campaign->isScholarship() ? 'শিক্ষা প্রতিষ্ঠান ও বিভাগ' : 'ক্যাটাগরি / শাখা' }}</th>
+                                            <th style="width: 120px; white-space: nowrap;">যোগাযোগ</th>
+                                            <th style="width: 110px; white-space: nowrap;">উপজেলা / থানা</th>
                                             @if($campaign->has_fee_or_donation)
-                                                <th style="width: 70px;">ফি</th>
-                                                <th style="width: 75px;">পেমেন্ট</th>
+                                                <th style="width: 65px; white-space: nowrap;">ফি</th>
+                                                <th style="width: 70px; white-space: nowrap;">পেমেন্ট</th>
                                             @endif
-                                            <th style="width: 80px;" class="text-center">স্ট্যাটাস</th>
-                                            <th class="text-center signature-cell">স্বাক্ষর</th>
+                                            <th style="width: 75px; white-space: nowrap;" class="text-center">স্ট্যাটাস</th>
+                                            <th style="width: 115px; white-space: nowrap;" class="text-center signature-cell">স্বাক্ষর</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -567,6 +571,10 @@
                                             @php
                                                 $authorCat = $reg->resolved_category;
                                                 $magName = $reg->form_data['magazine_name'] ?? null;
+                                                $displayEmail = $reg->email;
+                                                if ($displayEmail && str_starts_with($displayEmail, 'participant_')) {
+                                                    $displayEmail = null;
+                                                }
                                             @endphp
                                             <tr>
                                                 <td class="text-center font-mono fw-semibold" style="font-size: 14px;">{{ $globalSerial++ }}</td>
@@ -602,14 +610,13 @@
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    <div class="font-mono fw-bold text-dark" style="font-size: 14px; white-space: nowrap;">{{ $reg->phone }}</div>
-                                                    @if($reg->email)
-                                                        <small class="text-muted d-block text-truncate" style="max-width: 130px; font-size: 11.5px;">{{ $reg->email }}</small>
+                                                    <div class="font-mono fw-bold text-dark" style="font-size: 13.5px; white-space: nowrap;">{{ $reg->phone }}</div>
+                                                    @if(!empty($displayEmail))
+                                                        <small class="text-muted d-block text-truncate reg-email" style="max-width: 120px; font-size: 10.5px;">{{ $displayEmail }}</small>
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    <div class="fw-semibold text-dark" style="font-size: 14px;">{{ $reg->resolved_district ?: '-' }}</div>
-                                                    <small class="text-muted d-block" style="font-size: 12.5px;">{{ $reg->resolved_thana ?: ($reg->thana ?: '') }}</small>
+                                                    <div class="fw-semibold text-dark" style="font-size: 13.5px; line-height: 1.25;">{{ $reg->resolved_thana ?: ($reg->thana ?: '-') }}</div>
                                                 </td>
                                                 @if($campaign->has_fee_or_donation)
                                                     <td class="font-mono fw-semibold">৳{{ number_format($reg->amount_paid) }}</td>
@@ -643,18 +650,18 @@
                         <table class="print-table mb-3">
                             <thead>
                                 <tr>
-                                    <th style="width: 38px;" class="text-center">ক্র.</th>
-                                    <th style="width: 125px; white-space: nowrap;">আইডি</th>
-                                    <th style="min-width: 165px;">{{ $campaign->isScholarship() ? 'শিক্ষার্থী ও অভিভাবক' : 'অংশগ্রহণকারী ও বিবরণ' }}</th>
-                                    <th style="width: 120px;">{{ $campaign->isScholarship() ? 'শিক্ষা প্রতিষ্ঠান ও বিভাগ' : 'ক্যাটাগরি / শাখা' }}</th>
-                                    <th style="width: 135px; white-space: nowrap;">যোগাযোগ</th>
-                                    <th style="width: 120px;">ঠিকানা (বিভাগ ও জেলা)</th>
+                                    <th style="width: 36px; white-space: nowrap;" class="text-center">ক্র.</th>
+                                    <th style="width: 115px; white-space: nowrap;">আইডি</th>
+                                    <th style="min-width: 160px;">{{ $campaign->isScholarship() ? 'শিক্ষার্থী ও অভিভাবক' : 'অংশগ্রহণকারী ও বিবরণ' }}</th>
+                                    <th style="width: 110px; white-space: nowrap;">{{ $campaign->isScholarship() ? 'শিক্ষা প্রতিষ্ঠান ও বিভাগ' : 'ক্যাটাগরি / শাখা' }}</th>
+                                    <th style="width: 120px; white-space: nowrap;">যোগাযোগ</th>
+                                    <th style="width: 125px; white-space: nowrap;">ঠিকানা (বিভাগ ও জেলা)</th>
                                     @if($campaign->has_fee_or_donation)
-                                        <th style="width: 70px;">ফি</th>
-                                        <th style="width: 75px;">পেমেন্ট</th>
+                                        <th style="width: 65px; white-space: nowrap;">ফি</th>
+                                        <th style="width: 70px; white-space: nowrap;">পেমেন্ট</th>
                                     @endif
-                                    <th style="width: 80px;" class="text-center">স্ট্যাটাস</th>
-                                    <th class="text-center signature-cell">স্বাক্ষর</th>
+                                    <th style="width: 75px; white-space: nowrap;" class="text-center">স্ট্যাটাস</th>
+                                    <th style="width: 115px; white-space: nowrap;" class="text-center signature-cell">স্বাক্ষর</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -662,12 +669,16 @@
                                     @php
                                         $authorCat = $reg->resolved_category;
                                         $magName = $reg->form_data['magazine_name'] ?? null;
+                                        $displayEmail = $reg->email;
+                                        if ($displayEmail && str_starts_with($displayEmail, 'participant_')) {
+                                            $displayEmail = null;
+                                        }
                                     @endphp
                                     <tr>
-                                        <td class="text-center font-mono">{{ $globalSerial++ }}</td>
-                                        <td class="font-mono fw-bold text-dark">#{{ $reg->registration_number }}</td>
+                                        <td class="text-center font-mono fw-semibold" style="font-size: 14px;">{{ $globalSerial++ }}</td>
+                                        <td class="font-mono fw-bold text-dark text-nowrap" style="font-size: 13.5px; white-space: nowrap;">{{ $reg->registration_number }}</td>
                                         <td>
-                                            <div class="fw-bold text-dark" style="font-size: 14.5px;">{{ $reg->name }}</div>
+                                            <div class="fw-bold text-dark" style="font-size: 15.5px; line-height: 1.3;">{{ $reg->name }}</div>
                                             @if($campaign->isScholarship())
                                                 @if(!empty($reg->form_data['father_name']))
                                                     <small class="text-muted d-block" style="font-size: 13px;">পিতা: {{ $reg->form_data['father_name'] }}</small>
@@ -697,9 +708,9 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <div class="font-mono fw-bold text-dark" style="font-size: 14px; white-space: nowrap;">{{ $reg->phone }}</div>
-                                            @if($reg->email)
-                                                <small class="text-muted d-block text-truncate" style="max-width: 130px; font-size: 11.5px;">{{ $reg->email }}</small>
+                                            <div class="font-mono fw-bold text-dark" style="font-size: 13.5px; white-space: nowrap;">{{ $reg->phone }}</div>
+                                            @if(!empty($displayEmail))
+                                                <small class="text-muted d-block text-truncate reg-email" style="max-width: 120px; font-size: 10.5px;">{{ $displayEmail }}</small>
                                             @endif
                                         </td>
                                         <td>
