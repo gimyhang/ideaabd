@@ -102,6 +102,11 @@
         .print-table tbody tr:nth-child(even) td {
             background-color: #f8fafc !important;
         }
+        .signature-cell {
+            width: 175px;
+            min-width: 155px;
+            height: 48px;
+        }
 
         .status-pill {
             display: inline-block;
@@ -268,6 +273,11 @@
                 border: 1px solid #94a3b8 !important;
                 font-size: 14px !important;
                 line-height: 1.35 !important;
+            }
+            .signature-cell {
+                width: 175px !important;
+                min-width: 155px !important;
+                height: 48px !important;
             }
             .division-print-block {
                 page-break-before: always !important;
@@ -548,7 +558,7 @@
                                                 <th style="width: 80px;">পেমেন্ট</th>
                                             @endif
                                             <th style="width: 85px;" class="text-center">স্ট্যাটাস</th>
-                                            <th style="width: 145px; min-width: 135px;" class="text-center">মন্তব্য ও স্বাক্ষর</th>
+                                            <th class="text-center signature-cell">স্বাক্ষর</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -620,14 +630,7 @@
                                                         <span class="status-pill status-pending">{{ ucfirst($reg->status) }}</span>
                                                     @endif
                                                 </td>
-                                                <td style="min-width: 135px; vertical-align: middle;">
-                                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                                        <span class="font-mono text-muted" style="font-size: 11px;">{{ $reg->created_at->format('d/m/Y') }}</span>
-                                                        <span class="badge bg-light text-secondary border px-1" style="font-size: 9.5px;">মন্তব্য</span>
-                                                    </div>
-                                                    <div style="min-height: 28px; border-bottom: 1.5px dotted #64748b; margin-top: 4px;"></div>
-                                                    <div class="text-end text-muted font-bengali" style="font-size: 10px; margin-top: 2px;">স্বাক্ষর</div>
-                                                </td>
+                                                <td class="signature-cell"></td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -650,7 +653,7 @@
                                         <th style="width: 80px;">পেমেন্ট</th>
                                     @endif
                                     <th style="width: 85px;" class="text-center">স্ট্যাটাস</th>
-                                    <th style="width: 145px; min-width: 135px;" class="text-center">মন্তব্য ও স্বাক্ষর</th>
+                                    <th class="text-center signature-cell">স্বাক্ষর</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -722,14 +725,7 @@
                                                 <span class="status-pill status-pending">{{ ucfirst($reg->status) }}</span>
                                             @endif
                                         </td>
-                                        <td style="min-width: 135px; vertical-align: middle;">
-                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <span class="font-mono text-muted" style="font-size: 11px;">{{ $reg->created_at->format('d/m/Y') }}</span>
-                                                <span class="badge bg-light text-secondary border px-1" style="font-size: 9.5px;">মন্তব্য</span>
-                                            </div>
-                                            <div style="min-height: 28px; border-bottom: 1.5px dotted #64748b; margin-top: 4px;"></div>
-                                            <div class="text-end text-muted font-bengali" style="font-size: 10px; margin-top: 2px;">স্বাক্ষর</div>
-                                        </td>
+                                        <td class="signature-cell"></td>
                                     </tr>
                                 @endforeach
                             </tbody>
