@@ -917,11 +917,11 @@
 
                 {{-- Items / Price Schedule Table (Category-Aware Headers) --}}
                 <div class="table-responsive mb-2">
-                    <table class="table table-bordered table-sm align-middle invoice-table mb-0" style="font-size: 10px;">
+                    <table class="table table-bordered table-sm align-middle invoice-table mb-0" style="font-size: 12.5px;">
                         <thead class="table-light">
-                            <tr class="text-muted text-uppercase" style="font-size: 9px;">
-                                <th class="text-center py-1 px-1" style="width: 26px;">#</th>
-                                <th class="py-1 px-1.5">
+                            <tr class="text-muted text-uppercase" style="font-size: 11.5px;">
+                                <th class="text-center py-1 px-1" style="width: 30px;">#</th>
+                                <th class="py-1 px-1.5" style="width: 19%; min-width: 125px;">
                                     @if($invoice->sales_category === 'stationery')
                                         Delivered Stationery Items / Description
                                     @elseif($invoice->sales_category === 'printing_goods')
@@ -934,7 +934,7 @@
                                         Book Title & Description
                                     @endif
                                 </th>
-                                <th class="py-1 px-1" style="width: 105px;">
+                                <th class="py-1 px-1.5" style="min-width: 230px;">
                                     @if($invoice->sales_category === 'pvc_banner')
                                         সাইজ / মাপ (Dimensions)
                                     @elseif($invoice->sales_category === 'stationery' || $invoice->sales_category === 'printing_goods')
@@ -945,14 +945,14 @@
                                         Author / Spec
                                     @endif
                                 </th>
-                                <th class="text-end py-1 px-1" style="width: 50px;">
+                                <th class="text-end py-1 px-1" style="width: 56px; white-space: nowrap;">
                                     @if($invoice->sales_category === 'pvc_banner')
                                         স্কয়ারফিট (Sft)
                                     @else
                                         Qty
                                     @endif
                                 </th>
-                                <th class="text-end py-1 px-1" style="width: 70px;">
+                                <th class="text-end py-1 px-1" style="width: 78px; white-space: nowrap;">
                                     @if($invoice->sales_category === 'pvc_banner')
                                         দর (৳)
                                     @elseif($invoice->sales_category === 'stationery')
@@ -963,15 +963,15 @@
                                         Price (৳)
                                     @endif
                                 </th>
-                                <th class="text-end py-1 px-1" style="width: 55px;">Disc %</th>
-                                <th class="text-end py-1 px-1" style="width: 80px;">
+                                <th class="text-end py-1 px-1" style="width: 54px; white-space: nowrap;">Disc %</th>
+                                <th class="text-end py-1 px-1" style="width: 82px; white-space: nowrap;">
                                     @if($invoice->sales_category === 'pvc_banner')
                                         টাকা / রেট (৳)
                                     @else
                                         Net Price
                                     @endif
                                 </th>
-                                <th class="text-end py-1 pe-1.5" style="width: 85px;">
+                                <th class="text-end py-1 pe-1.5" style="width: 92px; white-space: nowrap;">
                                     @if($invoice->sales_category === 'pvc_banner')
                                         মোট টাকা (৳)
                                     @else
@@ -1014,23 +1014,23 @@
                                 <tr>
                                     <td class="text-center py-0.5 px-1 text-muted">{{ $idx + 1 }}</td>
                                     <td class="py-0.5 px-1.5">
-                                        <span class="fw-semibold text-dark" style="white-space: pre-line; line-height: 1.35; display: inline-block;">{!! nl2br(e($item['title'] ?? '—')) !!}</span>
+                                        <span class="fw-semibold text-dark" style="font-size: 13.5px; white-space: pre-line; line-height: 1.4; display: inline-block;">{!! nl2br(e($item['title'] ?? '—')) !!}</span>
                                         @if(!empty($item['item_type']) && !str_starts_with($item['item_type'], 'Book'))
-                                            <span class="badge bg-light text-dark border px-1 py-0 ms-1" style="font-size: 8px;">{{ $item['item_type'] }}</span>
+                                            <span class="badge bg-light text-dark border px-1 py-0 ms-1" style="font-size: 10px;">{{ $item['item_type'] }}</span>
                                         @endif
                                     </td>
-                                    <td class="py-0.5 px-1 text-muted" style="font-size: 9.5px;">{{ $authorName }}</td>
-                                    <td class="text-end py-0.5 px-1 fw-bold">{{ $qty }}</td>
-                                    <td class="text-end py-0.5 px-1 font-monospace">৳{{ number_format($coverPrice, 2) }}</td>
-                                    <td class="text-end py-0.5 px-1">
+                                    <td class="py-0.5 px-1.5 text-muted" style="font-size: 12px; line-height: 1.45;">{{ $authorName }}</td>
+                                    <td class="text-end py-0.5 px-1 fw-bold" style="white-space: nowrap;">{{ $qty }}</td>
+                                    <td class="text-end py-0.5 px-1 font-monospace" style="white-space: nowrap;">৳{{ number_format($coverPrice, 2) }}</td>
+                                    <td class="text-end py-0.5 px-1" style="white-space: nowrap;">
                                         @if($commPercent > 0)
-                                            <span class="badge bg-danger-subtle text-danger border px-1 py-0" style="font-size: 8.5px;">{{ $commPercent }}%</span>
+                                            <span class="badge bg-danger-subtle text-danger border px-1 py-0" style="font-size: 11px;">{{ $commPercent }}%</span>
                                         @else
-                                            <span class="text-muted" style="font-size: 8.5px;">—</span>
+                                            <span class="text-muted" style="font-size: 11px;">—</span>
                                         @endif
                                     </td>
-                                    <td class="text-end py-0.5 px-1 fw-semibold text-dark font-monospace">৳{{ number_format($netUnitPrice, 2) }}</td>
-                                    <td class="text-end py-0.5 pe-1.5 fw-bold text-dark font-monospace">৳{{ number_format($lineSubtotal, 2) }}</td>
+                                    <td class="text-end py-0.5 px-1 fw-semibold text-dark font-monospace" style="white-space: nowrap;">৳{{ number_format($netUnitPrice, 2) }}</td>
+                                    <td class="text-end py-0.5 pe-1.5 fw-bold text-dark font-monospace" style="white-space: nowrap;">৳{{ number_format($lineSubtotal, 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

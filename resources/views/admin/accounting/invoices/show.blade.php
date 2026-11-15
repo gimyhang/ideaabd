@@ -322,12 +322,12 @@
                     @endif
                     <div class="fw-bold text-dark mb-0 font-monospace invoice-no-text" style="font-size: 13pt; line-height: 1.2;">#{{ $invoice->invoice_no }}</div>
                     
-                    <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.2;">
+                    <div class="text-muted fw-semibold" style="font-size: 11.5px; line-height: 1.3;">
                         <i class="fa-solid fa-desktop me-1"></i>{{ $curDoc['gen_label'] }}
                         · Date: <strong>{{ $invoice->invoice_date ? $invoice->invoice_date->format('d M, Y') : '—' }}</strong>
                     </div>
                     @if($invoice->valid_until)
-                        <div class="text-danger fw-semibold" style="font-size: 9px;"><i class="fa-solid fa-hourglass-half me-0.5"></i>Valid until: {{ $invoice->valid_until->format('d M, Y') }}</div>
+                        <div class="text-danger fw-semibold" style="font-size: 11px;"><i class="fa-solid fa-hourglass-half me-0.5"></i>Valid until: {{ $invoice->valid_until->format('d M, Y') }}</div>
                     @endif
                 </div>
             </div>
@@ -468,11 +468,11 @@
 
             {{-- Items / Price Schedule Table (with Right-Aligned Numbers) --}}
             <div class="table-responsive mb-2">
-                <table class="table table-bordered table-sm align-middle invoice-table mb-0" style="font-size: 10px;">
+                <table class="table table-bordered table-sm align-middle invoice-table mb-0">
                     <thead class="table-light">
-                        <tr class="text-muted text-uppercase" style="font-size: 9px;">
-                            <th class="text-center py-1 px-1" style="width: 26px;">#</th>
-                            <th class="py-1 px-1.5">
+                        <tr class="text-muted text-uppercase">
+                            <th class="text-center py-1 px-1" style="width: 30px;">#</th>
+                            <th class="py-1 px-1.5" style="width: 19%; min-width: 125px;">
                                 @if($invoice->sales_category === 'stationery')
                                     Item Title & Description
                                 @elseif($invoice->sales_category === 'printing_goods')
@@ -485,7 +485,7 @@
                                     Book Title & Description
                                 @endif
                             </th>
-                            <th class="py-1 px-1" style="width: 105px;">
+                            <th class="py-1 px-1.5" style="min-width: 230px;">
                                 @if($invoice->sales_category === 'pvc_banner')
                                     সাইজ / মাপ (Dimensions)
                                 @elseif($invoice->sales_category === 'stationery' || $invoice->sales_category === 'printing_goods')
@@ -496,15 +496,15 @@
                                     Author / Spec
                                 @endif
                             </th>
-                            <th class="text-center py-1 px-1" style="width: 45px;">Unit</th>
-                            <th class="text-end py-1 px-1" style="width: 65px;">
+                            <th class="text-center py-1 px-1" style="width: 48px; white-space: nowrap;">Unit</th>
+                            <th class="text-end py-1 px-1" style="width: 56px; white-space: nowrap;">
                                 @if($invoice->sales_category === 'pvc_banner')
                                     স্কয়ারফিট (Sft)
                                 @else
                                     Qty
                                 @endif
                             </th>
-                            <th class="text-end py-1 px-1" style="width: 70px;">
+                            <th class="text-end py-1 px-1" style="width: 78px; white-space: nowrap;">
                                 @if($invoice->sales_category === 'pvc_banner')
                                     দর (৳)
                                 @elseif($invoice->sales_category === 'stationery')
@@ -515,15 +515,15 @@
                                     Price (৳)
                                 @endif
                             </th>
-                            <th class="text-end py-1 px-1" style="width: 55px;">Disc %</th>
-                            <th class="text-end py-1 px-1" style="width: 80px;">
+                            <th class="text-end py-1 px-1" style="width: 54px; white-space: nowrap;">Disc %</th>
+                            <th class="text-end py-1 px-1" style="width: 82px; white-space: nowrap;">
                                 @if($invoice->sales_category === 'pvc_banner')
                                     টাকা / রেট (৳)
                                 @else
                                     Net Price
                                 @endif
                             </th>
-                            <th class="text-end py-1 pe-1.5" style="width: 85px;">
+                            <th class="text-end py-1 pe-1.5" style="width: 92px; white-space: nowrap;">
                                 @if($invoice->sales_category === 'pvc_banner')
                                     মোট টাকা (৳)
                                 @else
@@ -567,24 +567,24 @@
                             <tr>
                                 <td class="text-center py-0.5 px-1 text-muted">{{ $idx + 1 }}</td>
                                 <td class="py-0.5 px-1.5">
-                                    <span class="fw-semibold text-dark" style="white-space: pre-line; line-height: 1.35; display: inline-block;">{!! nl2br(e($item['title'] ?? '—')) !!}</span>
+                                    <span class="fw-semibold text-dark" style="font-size: 13.5px; white-space: pre-line; line-height: 1.4; display: inline-block;">{!! nl2br(e($item['title'] ?? '—')) !!}</span>
                                     @if(!empty($item['item_type']) && !str_starts_with($item['item_type'], 'Book'))
-                                        <span class="badge bg-light text-dark border px-1 py-0 ms-1" style="font-size: 8px;">{{ $item['item_type'] }}</span>
+                                        <span class="badge bg-light text-dark border px-1 py-0 ms-1" style="font-size: 10px;">{{ $item['item_type'] }}</span>
                                     @endif
                                 </td>
-                                <td class="py-0.5 px-1 text-muted" style="font-size: 9.5px;">{{ $authorName }}</td>
-                                <td class="text-center py-0.5 px-1 text-muted font-monospace" style="font-size: 9px;">{{ $unitName }}</td>
-                                <td class="text-end py-0.5 px-1 fw-bold">{{ $qty }}</td>
-                                <td class="text-end py-0.5 px-1">৳{{ number_format($coverPrice, 2) }}</td>
-                                <td class="text-end py-0.5 px-1">
+                                <td class="py-0.5 px-1.5 text-muted" style="font-size: 12px; line-height: 1.45;">{{ $authorName }}</td>
+                                <td class="text-center py-0.5 px-1 text-muted font-monospace" style="font-size: 11.5px; white-space: nowrap;">{{ $unitName }}</td>
+                                <td class="text-end py-0.5 px-1 fw-bold" style="white-space: nowrap;">{{ $qty }}</td>
+                                <td class="text-end py-0.5 px-1" style="white-space: nowrap;">৳{{ number_format($coverPrice, 2) }}</td>
+                                <td class="text-end py-0.5 px-1" style="white-space: nowrap;">
                                     @if($commPercent > 0)
-                                        <span class="badge bg-danger-subtle text-danger border px-1 py-0" style="font-size: 8.5px;">{{ $commPercent }}%</span>
+                                        <span class="badge bg-danger-subtle text-danger border px-1 py-0" style="font-size: 11px;">{{ $commPercent }}%</span>
                                     @else
-                                        <span class="text-muted" style="font-size: 8.5px;">—</span>
+                                        <span class="text-muted" style="font-size: 11px;">—</span>
                                     @endif
                                 </td>
-                                <td class="text-end py-0.5 px-1 fw-semibold text-dark">৳{{ number_format($netUnitPrice, 2) }}</td>
-                                <td class="text-end py-0.5 pe-1.5 fw-bold text-dark">৳{{ number_format($lineSubtotal, 2) }}</td>
+                                <td class="text-end py-0.5 px-1 fw-semibold text-dark" style="white-space: nowrap;">৳{{ number_format($netUnitPrice, 2) }}</td>
+                                <td class="text-end py-0.5 pe-1.5 fw-bold text-dark" style="white-space: nowrap;">৳{{ number_format($lineSubtotal, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -604,16 +604,16 @@
                     <div class="col-6 col-print-6 d-flex flex-column">
                         <div class="invoice-total-words-box bg-light bg-opacity-50 rounded-2 border h-100 d-flex flex-column justify-content-between">
                             <div>
-                                <div class="text-muted fw-bold mb-1" style="font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.3px;">
+                                <div class="text-muted fw-bold mb-1" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">
                                     <i class="fa-solid fa-coins me-1 text-primary"></i>Total in Words:
                                 </div>
-                                <div class="fw-bold text-dark text-wrap" style="font-size: 11.5px; line-height: 1.45;">
+                                <div class="fw-bold text-dark text-wrap" style="font-size: 13px; line-height: 1.45;">
                                     @takaInWordsEn($invoice->grand_total)
                                 </div>
                             </div>
 
                             @if(in_array($invoice->type, ['invoice', 'challan']))
-                                <div class="mt-2.5 pt-2.5 border-top border-secondary-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 9.5px;">
+                                <div class="mt-2.5 pt-2.5 border-top border-secondary-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 11.5px;">
                                     <span class="text-muted fw-semibold">
                                         <i class="fa-solid fa-receipt me-1 text-secondary"></i>Payment Status:
                                     </span>
@@ -950,11 +950,11 @@
 
                 {{-- Delivery Items Table --}}
                 <div class="table-responsive mb-2">
-                    <table class="table table-bordered table-sm align-middle invoice-table mb-0" style="font-size: 10px;">
+                    <table class="table table-bordered table-sm align-middle invoice-table mb-0">
                         <thead class="table-light">
-                            <tr class="text-muted text-uppercase" style="font-size: 9px;">
-                                <th class="text-center py-1 px-1" style="width: 28px;">#</th>
-                                <th class="py-1 px-1.5">
+                            <tr class="text-muted text-uppercase">
+                                <th class="text-center py-1 px-1" style="width: 30px;">#</th>
+                                <th class="py-1 px-1.5" style="width: 22%; min-width: 130px;">
                                     @if($invoice->sales_category === 'stationery')
                                         Delivered Stationery Items / Description
                                     @elseif($invoice->sales_category === 'printing_goods')
@@ -967,7 +967,7 @@
                                         Delivered Book Title / Description
                                     @endif
                                 </th>
-                                <th class="py-1 px-1" style="width: 110px;">
+                                <th class="py-1 px-1.5" style="min-width: 210px;">
                                     @if($invoice->sales_category === 'pvc_banner')
                                         সাইজ / মাপ (Dimensions)
                                     @elseif($invoice->sales_category === 'stationery' || $invoice->sales_category === 'printing_goods')
@@ -978,17 +978,17 @@
                                         Author / Edition
                                     @endif
                                 </th>
-                                <th class="text-center py-1 px-1" style="width: 55px;">Type</th>
-                                <th class="text-center py-1 px-1" style="width: 45px;">Unit</th>
-                                <th class="text-end py-1 px-1" style="width: 65px;">
+                                <th class="text-center py-1 px-1" style="width: 58px; white-space: nowrap;">Type</th>
+                                <th class="text-center py-1 px-1" style="width: 48px; white-space: nowrap;">Unit</th>
+                                <th class="text-end py-1 px-1" style="width: 58px; white-space: nowrap;">
                                     @if($invoice->sales_category === 'pvc_banner')
                                         স্কয়ারফিট (Sft)
                                     @else
                                         Qty
                                     @endif
                                 </th>
-                                <th class="text-center py-1 px-1" style="width: 70px;">Condition</th>
-                                <th class="py-1 px-1.5" style="width: 75px;">Remarks</th>
+                                <th class="text-center py-1 px-1" style="width: 78px; white-space: nowrap;">Condition</th>
+                                <th class="py-1 px-1.5" style="width: 78px; white-space: nowrap;">Remarks</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1004,14 +1004,14 @@
                                 <tr>
                                     <td class="text-center py-0.5 px-1 text-muted">{{ $idx + 1 }}</td>
                                     <td class="py-0.5 px-1.5">
-                                        <span class="fw-semibold text-dark" style="white-space: pre-line; line-height: 1.35; display: inline-block;">{!! nl2br(e($item['title'] ?? '—')) !!}</span>
+                                        <span class="fw-semibold text-dark" style="font-size: 13.5px; white-space: pre-line; line-height: 1.4; display: inline-block;">{!! nl2br(e($item['title'] ?? '—')) !!}</span>
                                     </td>
-                                    <td class="py-0.5 px-1 text-muted" style="font-size: 9.5px;">{{ $authorName }}</td>
-                                    <td class="text-center py-0.5 px-1"><span class="badge bg-light text-dark border px-1 py-0" style="font-size: 8.5px;">{{ $item['item_type'] ?? 'Book' }}</span></td>
-                                    <td class="text-center py-0.5 px-1 text-muted font-monospace" style="font-size: 8.5px;">{{ $unitName }}</td>
-                                    <td class="text-end py-0.5 px-1 fw-bold text-primary">{{ $item['quantity'] ?? 1 }}</td>
-                                    <td class="text-center py-0.5 px-1 text-muted">Brand New</td>
-                                    <td class="py-0.5 px-1.5 text-muted">Verified</td>
+                                    <td class="py-0.5 px-1.5 text-muted" style="font-size: 12px; line-height: 1.45;">{{ $authorName }}</td>
+                                    <td class="text-center py-0.5 px-1" style="white-space: nowrap;"><span class="badge bg-light text-dark border px-1 py-0" style="font-size: 11px;">{{ $item['item_type'] ?? 'Book' }}</span></td>
+                                    <td class="text-center py-0.5 px-1 text-muted font-monospace" style="font-size: 11.5px; white-space: nowrap;">{{ $unitName }}</td>
+                                    <td class="text-end py-0.5 px-1 fw-bold text-primary" style="white-space: nowrap;">{{ $item['quantity'] ?? 1 }}</td>
+                                    <td class="text-center py-0.5 px-1 text-muted" style="white-space: nowrap;">Brand New</td>
+                                    <td class="py-0.5 px-1.5 text-muted" style="white-space: nowrap;">Verified</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -3460,7 +3460,7 @@ function resetCrop() {
 
 /* Invoice Page Base Card */
 .invoice-page-card {
-    font-size: 10.5px;
+    font-size: 13px;
     color: #1e293b;
     min-height: 980px;
     display: flex;
@@ -3517,7 +3517,7 @@ function resetCrop() {
 .colon-table .colon-label {
     color: #64748b;
     white-space: nowrap;
-    font-size: 11px;
+    font-size: 12.5px;
     font-weight: 500;
     padding-right: 8px !important;
 }
@@ -3542,19 +3542,20 @@ function resetCrop() {
 }
 
 .invoice-table th {
-    padding: 8px 10px !important;
+    padding: 9px 10px !important;
     vertical-align: middle;
     line-height: 1.35;
-    font-size: 9.5px;
+    font-size: 11.5px;
+    white-space: nowrap;
     background-color: #f1f5f9 !important;
     border: 1px solid #cbd5e1 !important;
 }
 
 .invoice-table td {
-    padding: 7px 10px !important;
+    padding: 8px 10px !important;
     vertical-align: middle;
-    line-height: 1.4;
-    font-size: 10px;
+    line-height: 1.45;
+    font-size: 12.5px;
     border: 1px solid #cbd5e1 !important;
 }
 
@@ -3942,9 +3943,9 @@ function resetCrop() {
 
     .invoice-table th,
     .invoice-table td {
-        padding: 5px 8px !important;
-        font-size: 9.5px !important;
-        line-height: 1.3 !important;
+        padding: 6px 8px !important;
+        font-size: 11.5px !important;
+        line-height: 1.4 !important;
         border-color: #475569 !important;
     }
 
