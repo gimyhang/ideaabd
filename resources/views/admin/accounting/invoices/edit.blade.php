@@ -1445,8 +1445,8 @@
 
     function autoResizeTextarea(el) {
         if (!el) return;
-        el.style.height = '38px';
-        el.style.height = Math.max(38, el.scrollHeight) + 'px';
+        el.style.height = '48px';
+        el.style.height = Math.max(48, el.scrollHeight) + 'px';
     }
 
     function rebalanceInvoiceColumns() {
@@ -2960,7 +2960,7 @@
         font-weight: 700;
         font-size: 11px;
         letter-spacing: 0.4px;
-        padding: 8px 6px;
+        padding: 10px 6px;
         border-bottom: 2px solid #94a3b8;
         border-right: 1px solid #cbd5e1;
         vertical-align: middle;
@@ -2970,7 +2970,7 @@
         border-right: none;
     }
     #itemsTable tbody td {
-        padding: 5px 6px;
+        padding: 7px 6px;
         vertical-align: middle;
         background-color: #fff;
         border-bottom: 1px solid #cbd5e1;
@@ -3008,21 +3008,21 @@
     }
     #itemsTable .form-control:not(textarea), 
     #itemsTable .form-select {
-        height: 38px;
-        min-height: 38px;
-        font-size: 13px;
-        border-radius: 5px;
-        border: 1px solid #cbd5e1;
-        padding: 5px 8px;
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
-        background-color: #ffffff;
-    }
-    #itemsTable textarea.form-control {
-        min-height: 38px;
+        height: 48px;
+        min-height: 48px;
         font-size: 13px;
         border-radius: 5px;
         border: 1px solid #cbd5e1;
         padding: 6px 8px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        background-color: #ffffff;
+    }
+    #itemsTable textarea.form-control {
+        min-height: 48px;
+        font-size: 13px;
+        border-radius: 5px;
+        border: 1px solid #cbd5e1;
+        padding: 8px 8px;
         line-height: 1.4;
         resize: vertical;
         overflow-y: hidden;
