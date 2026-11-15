@@ -467,12 +467,36 @@
             </div>
 
             {{-- Items / Price Schedule Table (with Right-Aligned Numbers) --}}
+            @php
+                $maxTitleLen = 0;
+                $maxSpecLen = 0;
+                foreach ($invoice->items ?? [] as $_it) {
+                    $_isBk = \App\Http\Controllers\Admin\IdeaAccountingController::isBookItem($_it['item_type'] ?? null, $invoice->sales_category ?? 'books');
+                    $_mb = ($_isBk && !empty($_it['book_id']) && isset($matchedBooks[$_it['book_id']]))
+                        ? $matchedBooks[$_it['book_id']]
+                        : ($_isBk && isset($_it['title'], $matchedBooksByTitle[$_it['title']]) ? $matchedBooksByTitle[$_it['title']] : null);
+                    $_t = trim((string)($_it['title'] ?? ''));
+                    $_s = trim((string)($_it['author'] ?? $_it['author_name'] ?? ($_mb->author_name ?? ($_mb->author->name ?? ''))));
+                    if ($_s === '—') {
+                        $_s = '';
+                    }
+                    $maxTitleLen = max($maxTitleLen, mb_strlen($_t));
+                    $maxSpecLen = max($maxSpecLen, mb_strlen($_s));
+                }
+                $titleScore = max(14, min(42, $maxTitleLen * 1.05));
+                $specScore  = $maxSpecLen > 0 ? max(14, min(46, $maxSpecLen * 0.65)) : 10;
+                $totalScore = $titleScore + $specScore;
+                $invTitleW  = round(($titleScore / $totalScore) * 54, 1);
+                $invSpecW   = round(54 - $invTitleW, 1);
+                $chalTitleW = round(($titleScore / $totalScore) * 62, 1);
+                $chalSpecW  = round(62 - $chalTitleW, 1);
+            @endphp
             <div class="table-responsive mb-2">
                 <table class="table table-bordered table-sm align-middle invoice-table mb-0">
                     <thead class="table-light">
                         <tr class="text-muted text-uppercase">
-                            <th class="text-center py-1 px-1" style="width: 30px;">#</th>
-                            <th class="py-1 px-1.5" style="width: 19%; min-width: 125px;">
+                            <th class="text-center py-1 px-1" style="width: 1%; white-space: nowrap;">#</th>
+                            <th class="py-1 px-1.5" style="width: {{ $invTitleW }}%;">
                                 @if($invoice->sales_category === 'stationery')
                                     Item Title & Description
                                 @elseif($invoice->sales_category === 'printing_goods')
@@ -485,7 +509,7 @@
                                     Book Title & Description
                                 @endif
                             </th>
-                            <th class="py-1 px-1.5" style="min-width: 230px;">
+                            <th class="py-1 px-1.5" style="width: {{ $invSpecW }}%;">
                                 @if($invoice->sales_category === 'pvc_banner')
                                     সাইজ / মাপ (Dimensions)
                                 @elseif($invoice->sales_category === 'stationery' || $invoice->sales_category === 'printing_goods')
@@ -496,15 +520,15 @@
                                     Author / Spec
                                 @endif
                             </th>
-                            <th class="text-center py-1 px-1" style="width: 48px; white-space: nowrap;">Unit</th>
-                            <th class="text-end py-1 px-1" style="width: 56px; white-space: nowrap;">
+                            <th class="text-center py-1 px-1" style="width: 1%; white-space: nowrap;">Unit</th>
+                            <th class="text-end py-1 px-1" style="width: 1%; white-space: nowrap;">
                                 @if($invoice->sales_category === 'pvc_banner')
                                     স্কয়ারফিট (Sft)
                                 @else
                                     Qty
                                 @endif
                             </th>
-                            <th class="text-end py-1 px-1" style="width: 78px; white-space: nowrap;">
+                            <th class="text-end py-1 px-1" style="width: 1%; white-space: nowrap;">
                                 @if($invoice->sales_category === 'pvc_banner')
                                     দর (৳)
                                 @elseif($invoice->sales_category === 'stationery')
@@ -515,15 +539,15 @@
                                     Price (৳)
                                 @endif
                             </th>
-                            <th class="text-end py-1 px-1" style="width: 54px; white-space: nowrap;">Disc %</th>
-                            <th class="text-end py-1 px-1" style="width: 82px; white-space: nowrap;">
+                            <th class="text-end py-1 px-1" style="width: 1%; white-space: nowrap;">Disc %</th>
+                            <th class="text-end py-1 px-1" style="width: 1%; white-space: nowrap;">
                                 @if($invoice->sales_category === 'pvc_banner')
                                     টাকা / রেট (৳)
                                 @else
                                     Net Price
                                 @endif
                             </th>
-                            <th class="text-end py-1 pe-1.5" style="width: 92px; white-space: nowrap;">
+                            <th class="text-end py-1 pe-1.5" style="width: 1%; white-space: nowrap;">
                                 @if($invoice->sales_category === 'pvc_banner')
                                     মোট টাকা (৳)
                                 @else
@@ -953,8 +977,8 @@
                     <table class="table table-bordered table-sm align-middle invoice-table mb-0">
                         <thead class="table-light">
                             <tr class="text-muted text-uppercase">
-                                <th class="text-center py-1 px-1" style="width: 30px;">#</th>
-                                <th class="py-1 px-1.5" style="width: 22%; min-width: 130px;">
+                                <th class="text-center py-1 px-1" style="width: 1%; white-space: nowrap;">#</th>
+                                <th class="py-1 px-1.5" style="width: {{ $chalTitleW }}%;">
                                     @if($invoice->sales_category === 'stationery')
                                         Delivered Stationery Items / Description
                                     @elseif($invoice->sales_category === 'printing_goods')
@@ -967,7 +991,7 @@
                                         Delivered Book Title / Description
                                     @endif
                                 </th>
-                                <th class="py-1 px-1.5" style="min-width: 210px;">
+                                <th class="py-1 px-1.5" style="width: {{ $chalSpecW }}%;">
                                     @if($invoice->sales_category === 'pvc_banner')
                                         সাইজ / মাপ (Dimensions)
                                     @elseif($invoice->sales_category === 'stationery' || $invoice->sales_category === 'printing_goods')
@@ -978,17 +1002,17 @@
                                         Author / Edition
                                     @endif
                                 </th>
-                                <th class="text-center py-1 px-1" style="width: 58px; white-space: nowrap;">Type</th>
-                                <th class="text-center py-1 px-1" style="width: 48px; white-space: nowrap;">Unit</th>
-                                <th class="text-end py-1 px-1" style="width: 58px; white-space: nowrap;">
+                                <th class="text-center py-1 px-1" style="width: 1%; white-space: nowrap;">Type</th>
+                                <th class="text-center py-1 px-1" style="width: 1%; white-space: nowrap;">Unit</th>
+                                <th class="text-end py-1 px-1" style="width: 1%; white-space: nowrap;">
                                     @if($invoice->sales_category === 'pvc_banner')
                                         স্কয়ারফিট (Sft)
                                     @else
                                         Qty
                                     @endif
                                 </th>
-                                <th class="text-center py-1 px-1" style="width: 78px; white-space: nowrap;">Condition</th>
-                                <th class="py-1 px-1.5" style="width: 78px; white-space: nowrap;">Remarks</th>
+                                <th class="text-center py-1 px-1" style="width: 1%; white-space: nowrap;">Condition</th>
+                                <th class="py-1 px-1.5" style="width: 1%; white-space: nowrap;">Remarks</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -3546,7 +3570,6 @@ function resetCrop() {
     vertical-align: middle;
     line-height: 1.35;
     font-size: 11.5px;
-    white-space: nowrap;
     background-color: #f1f5f9 !important;
     border: 1px solid #cbd5e1 !important;
 }
