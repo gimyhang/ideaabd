@@ -1303,6 +1303,7 @@
         }
 
         calcRow(index, 'book_select');
+        rebalanceInvoiceColumns();
 
         // Automatically move focus to quantity input
         const qtyInput = row.querySelector('.item-qty');
@@ -1444,7 +1445,7 @@
 
     function autoResizeTextarea(el) {
         if (!el) return;
-        el.style.height = 'auto';
+        el.style.height = '38px';
         el.style.height = Math.max(38, el.scrollHeight) + 'px';
     }
 
@@ -1921,6 +1922,7 @@
                     if (discPctInput) discPctInput.value = editionData.discountPercent;
                     if (priceInput) priceInput.value = editionData.sellingPrice;
                     calcRow(index, 'book_select');
+        rebalanceInvoiceColumns();
                 }
             }
         }
