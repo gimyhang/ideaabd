@@ -1491,30 +1491,30 @@
         tr.className = 'item-row';
         tr.setAttribute('data-row', i);
         tr.innerHTML = `
-            <td class="text-center text-muted fw-bold item-serial-num font-monospace" style="width: 34px;">#</td>
-            <td class="position-relative book-search-container" style="min-width: 270px;">
+            <td class="text-center text-muted fw-bold item-serial-num font-monospace">#</td>
+            <td class="position-relative book-search-container">
                 <div class="input-group input-group-sm">
                     <textarea name="items[${i}][title]" class="form-control form-control-sm item-title fw-bold" 
                            required 
-                           rows="2"
-                           oninput="handleLiveBookSearch(this, ${i})" 
+                           rows="1"
+                           oninput="handleLiveBookSearch(this, ${i}); autoResizeTextarea(this); rebalanceInvoiceColumns();" 
                            onfocus="handleLiveBookSearch(this, ${i})" 
                            onkeydown="handleBookSearchKeydown(event, ${i})" 
-                           autocomplete="off" style="font-size: 13px; min-height: 52px; line-height: 1.35; resize: vertical;">${escapeHtml(title)}</textarea>
-                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBook ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
+                           autocomplete="off">${escapeHtml(title)}</textarea>
+                    <button type="button" class="btn btn-outline-primary px-2 d-flex align-items-center justify-content-center ${isBook ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop">
                         <i class="fa-solid fa-plus"></i>
                     </button>
                 </div>
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="${bookId}">
                 <input type="hidden" name="items[${i}][calc_data]" class="item-calc-data" value="${escapeHtml(calcData)}">
-                <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 420px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
+                <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 360px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
             </td>
             <td>
                 <textarea name="items[${i}][author_name]" class="form-control form-control-sm item-author" 
-                       rows="2" autocomplete="off" style="min-height: 52px; font-size: 12.5px; line-height: 1.35; resize: vertical;">${escapeHtml(author)}</textarea>
+                       rows="1" oninput="autoResizeTextarea(this); rebalanceInvoiceColumns();" autocomplete="off">${escapeHtml(author)}</textarea>
             </td>
             <td>
-                <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})" style="min-height: 52px; height: 52px; font-size: 12.5px;">
+                <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})">
                     <optgroup label="Books & Publications">
                         <option value="Book (Hardcover)" ${itemType === 'Book (Hardcover)' ? 'selected' : ''}>Book (Hardcover)</option>
                         <option value="Book (Paperback)" ${itemType === 'Book (Paperback)' ? 'selected' : ''}>Book (Paperback)</option>
@@ -1536,23 +1536,23 @@
             </td>
             <td>
                 <input type="text" name="items[${i}][unit]" class="form-control form-control-sm item-unit text-center font-monospace" 
-                       value="${escapeHtml(unit)}" autocomplete="off" style="min-height: 52px; height: 52px; font-size: 12.5px;">
+                       value="${escapeHtml(unit)}" autocomplete="off">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
-                       value="${qty}" min="0.01" required oninput="calcRow(${i}, 'qty')" style="min-height: 52px; height: 52px; font-size: 13px;">
+                       value="${qty}" min="0.01" required oninput="calcRow(${i}, 'qty')">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control form-control-sm item-regular-price text-end font-monospace" 
-                       value="${regPrice > 0 ? regPrice.toFixed(2) : ''}" min="0" oninput="calcRow(${i}, 'regular_price')" style="min-height: 52px; height: 52px; font-size: 12.5px;">
+                       value="${regPrice > 0 ? regPrice.toFixed(2) : ''}" min="0" oninput="calcRow(${i}, 'regular_price')">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control form-control-sm item-discount-percent text-center font-monospace fw-bold text-success" 
-                       value="${disc > 0 ? disc : ''}" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')" style="min-height: 52px; height: 52px; font-size: 12.5px;">
+                       value="${disc > 0 ? disc : ''}" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][price]" class="form-control form-control-sm item-price text-end font-monospace fw-bold text-primary" 
-                       value="${price > 0 ? price.toFixed(2) : ''}" min="0" oninput="calcRow(${i}, 'unit_price')" style="min-height: 52px; height: 52px; font-size: 13px;">
+                       value="${price > 0 ? price.toFixed(2) : ''}" min="0" oninput="calcRow(${i}, 'unit_price')">
             </td>
             <td class="text-end fw-bold text-dark item-subtotal font-monospace" style="font-size: 13.5px; vertical-align: middle;">৳${(qty * price).toFixed(2)}</td>
             <td class="text-center text-nowrap" style="vertical-align: middle;">
@@ -1572,6 +1572,7 @@
         row.after(tr);
         updateRowSerials();
         calcTotals();
+        rebalanceInvoiceColumns();
     }
 
     function openQuickAddBookModal(rowIndex, prefilledTitle) {
@@ -2386,6 +2387,7 @@
         }
         updateRowSerials();
         calcTotals();
+        rebalanceInvoiceColumns();
     }
 
     function addPresetItem(title, authorSpec, itemType, unit, defaultPrice, regPrice, quantity, calcSnapshot) {
@@ -2443,30 +2445,30 @@
             tr.setAttribute('data-row', i);
             const calcDataJson = calcSnapshot ? escapeHtml(JSON.stringify(calcSnapshot)) : '';
             tr.innerHTML = `
-                <td class="text-center text-muted fw-bold item-serial-num font-monospace" style="width: 34px;">#</td>
-                <td class="position-relative book-search-container" style="min-width: 270px;">
+                <td class="text-center text-muted fw-bold item-serial-num font-monospace">#</td>
+                <td class="position-relative book-search-container">
                     <div class="input-group input-group-sm">
                         <textarea name="items[${i}][title]" class="form-control form-control-sm item-title fw-bold" 
                                required 
-                               rows="2"
-                               oninput="handleLiveBookSearch(this, ${i})" 
+                               rows="1"
+                               oninput="handleLiveBookSearch(this, ${i}); autoResizeTextarea(this); rebalanceInvoiceColumns();" 
                                onfocus="handleLiveBookSearch(this, ${i})" 
                                onkeydown="handleBookSearchKeydown(event, ${i})" 
-                               autocomplete="off" style="font-size: 13px; min-height: 52px; line-height: 1.35; resize: vertical;">${escapeHtml(title)}</textarea>
-                        <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBookTypeVal(defType) ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px; height: 52px;">
+                               autocomplete="off">${escapeHtml(title)}</textarea>
+                        <button type="button" class="btn btn-outline-primary px-2 d-flex align-items-center justify-content-center ${isBookTypeVal(defType) ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop">
                             <i class="fa-solid fa-plus"></i>
                         </button>
                     </div>
                     <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
                     <input type="hidden" name="items[${i}][calc_data]" class="item-calc-data" value="${calcDataJson}">
-                    <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 420px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
+                    <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 360px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
                 </td>
                 <td>
                     <textarea name="items[${i}][author_name]" class="form-control form-control-sm item-author" 
-                           rows="2" autocomplete="off" style="min-height: 52px; font-size: 12.5px; line-height: 1.35; resize: vertical;">${escapeHtml(authorSpec || '')}</textarea>
+                           rows="1" oninput="autoResizeTextarea(this); rebalanceInvoiceColumns();" autocomplete="off">${escapeHtml(authorSpec || '')}</textarea>
                 </td>
                 <td>
-                    <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})" style="min-height: 52px; height: 52px; font-size: 12.5px;">
+                    <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})">
                         <optgroup label="Books & Publications">
                             <option value="Book (Hardcover)" ${defType === 'Book (Hardcover)' ? 'selected' : ''}>Book (Hardcover)</option>
                             <option value="Book (Paperback)" ${defType === 'Book (Paperback)' ? 'selected' : ''}>Book (Paperback)</option>
@@ -2493,23 +2495,23 @@
                 </td>
                 <td>
                     <input type="text" name="items[${i}][unit]" class="form-control form-control-sm item-unit text-center font-monospace" 
-                           value="${escapeHtml(unit || (isBookTypeVal(defType) ? 'Copy' : 'Pcs'))}" autocomplete="off" style="min-height: 52px; height: 52px; font-size: 12.5px;">
+                           value="${escapeHtml(unit || (isBookTypeVal(defType) ? 'Copy' : 'Pcs'))}" autocomplete="off">
                 </td>
                 <td>
                     <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
-                           value="${qtyVal}" min="0.01" required oninput="calcRow(${i}, 'qty')" style="min-height: 52px; height: 52px; font-size: 13px;">
+                           value="${qtyVal}" min="0.01" required oninput="calcRow(${i}, 'qty')">
                 </td>
                 <td>
                     <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control item-regular-price text-end font-monospace" 
-                       value="${regularPrice > 0 ? regularPrice.toFixed(2) : ''}" min="0" oninput="calcRow(${i}, 'regular_price')" style="min-height: 52px; height: 52px; font-size: 12.5px;">
+                           value="${regularPrice > 0 ? regularPrice.toFixed(2) : ''}" min="0" oninput="calcRow(${i}, 'regular_price')">
                 </td>
                 <td>
                     <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control item-discount-percent text-center font-monospace fw-bold text-success" 
-                           value="${discountPct > 0 ? discountPct : ''}" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')" style="min-height: 52px; height: 52px; font-size: 12.5px;">
+                           value="${discountPct > 0 ? discountPct : ''}" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')">
                 </td>
                 <td>
                     <input type="number" step="0.01" name="items[${i}][price]" class="form-control item-price text-end font-monospace fw-bold text-primary" 
-                           value="${defPrice > 0 ? defPrice.toFixed(2) : ''}" min="0" required oninput="calcRow(${i}, 'unit_price')" style="min-height: 52px; height: 52px; font-size: 13px;">
+                           value="${defPrice > 0 ? defPrice.toFixed(2) : ''}" min="0" required oninput="calcRow(${i}, 'unit_price')">
                 </td>
                 <td class="text-end fw-bold text-dark item-subtotal font-monospace" style="font-size: 13.5px; vertical-align: middle;">৳${lineTotal.toFixed(2)}</td>
                 <td class="text-center text-nowrap" style="vertical-align: middle;">
@@ -2530,6 +2532,7 @@
         }
         updateRowSerials();
         calcTotals();
+        rebalanceInvoiceColumns();
     }
     window.addPresetItem = addPresetItem;
 
