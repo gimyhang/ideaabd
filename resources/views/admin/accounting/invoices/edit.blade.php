@@ -1445,8 +1445,36 @@
 
     function autoResizeTextarea(el) {
         if (!el) return;
-        el.style.height = '48px';
-        el.style.height = Math.max(48, el.scrollHeight) + 'px';
+        const row = el.closest('.item-row');
+        if (row) {
+            syncRowHeights(row);
+        } else {
+            el.style.height = 'auto';
+            const borderH = el.offsetHeight - el.clientHeight;
+            const nextH = Math.min(240, Math.max(48, el.scrollHeight + borderH));
+            el.style.height = nextH + 'px';
+            el.style.overflowY = (el.scrollHeight + borderH > 240) ? 'auto' : 'hidden';
+        }
+    }
+
+    function syncRowHeights(row) {
+        if (!row) return;
+        const textareas = row.querySelectorAll('textarea.form-control');
+        if (!textareas.length) return;
+
+        let maxH = 48;
+        textareas.forEach(ta => {
+            ta.style.height = 'auto';
+            const borderH = ta.offsetHeight - ta.clientHeight;
+            const needed = Math.min(240, Math.max(48, ta.scrollHeight + borderH));
+            if (needed > maxH) maxH = needed;
+        });
+
+        textareas.forEach(ta => {
+            const borderH = ta.offsetHeight - ta.clientHeight;
+            ta.style.height = maxH + 'px';
+            ta.style.overflowY = (ta.scrollHeight + borderH > 240) ? 'auto' : 'hidden';
+        });
     }
 
     function rebalanceInvoiceColumns() {
@@ -1472,11 +1500,26 @@
         thTitle.style.width = tW + '%';
         thAuthor.style.width = sW + '%';
 
-        document.querySelectorAll('#itemsBody textarea.form-control').forEach(autoResizeTextarea);
+        document.querySelectorAll('#itemsBody .item-row').forEach(syncRowHeights);
     }
 
     document.addEventListener('DOMContentLoaded', function() {
         rebalanceInvoiceColumns();
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                document.querySelectorAll('#itemsBody .item-row').forEach(syncRowHeights);
+            });
+        }
+        const tbl = document.getElementById('itemsTable');
+        if (tbl && typeof ResizeObserver !== 'undefined') {
+            let rafId = null;
+            new ResizeObserver(() => {
+                if (rafId) cancelAnimationFrame(rafId);
+                rafId = requestAnimationFrame(() => {
+                    document.querySelectorAll('#itemsBody .item-row').forEach(syncRowHeights);
+                });
+            }).observe(tbl);
+        }
     });
 
     function updateRowSerials() {
@@ -3019,6 +3062,7 @@
     }
     #itemsTable textarea.form-control {
         min-height: 48px;
+        max-height: 240px;
         font-size: 13px;
         border-radius: 5px;
         border: 1px solid #cbd5e1;
@@ -3026,8 +3070,14 @@
         line-height: 1.4;
         resize: vertical;
         overflow-y: hidden;
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        transition: height 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease;
         background-color: #ffffff;
+    }
+    #itemsTable .input-group {
+        align-items: stretch;
+    }
+    #itemsTable .input-group > .btn {
+        height: auto !important;
     }
     .btn-row-calc {
         background-color: #fffbeb !important;
