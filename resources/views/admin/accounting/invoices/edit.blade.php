@@ -518,14 +518,14 @@
                         <th style="width: 34px;" class="text-center py-2">#</th>
                         <th style="width: {{ $editTitleW }}%;" class="py-2" id="thTitleCol"><span id="thTitleLabel">Item / Book Title</span> <span class="text-danger">*</span></th>
                         <th style="width: {{ $editSpecW }}%;" class="py-2" id="thAuthorCol"><span id="thAuthorLabel">Author / Spec</span></th>
-                        <th style="width: 130px;" class="py-2" id="thTypeCol"><span id="thTypeLabel">Type / Edition</span></th>
-                        <th style="width: 58px;" class="text-center py-2" id="thUnitCol"><span id="thUnitLabel">Unit</span></th>
-                        <th style="width: 68px;" class="text-center py-2" id="thQtyCol"><span id="thQtyLabel">Qty</span> <span class="text-danger">*</span></th>
-                        <th style="width: 85px;" class="text-end py-2" id="thRegPriceCol"><span id="thRegPriceLabel">Price (৳)</span></th>
-                        <th style="width: 58px;" class="text-center py-2" id="thDiscCol">Disc %</th>
-                        <th style="width: 88px;" class="text-end py-2" id="thUnitPriceCol"><span id="thUnitPriceLabel">Net (৳)</span> <span class="text-danger">*</span></th>
-                        <th style="width: 96px;" class="text-end py-2" id="thTotalCol">Total (৳)</th>
-                        <th style="width: 88px;" class="text-center py-2">Action</th>
+                        <th style="width: 145px; min-width: 145px;" class="py-2" id="thTypeCol"><span id="thTypeLabel">Type / Edition</span></th>
+                        <th style="width: 68px; min-width: 68px;" class="text-center py-2" id="thUnitCol"><span id="thUnitLabel">Unit</span></th>
+                        <th style="width: 84px; min-width: 84px;" class="text-center py-2" id="thQtyCol"><span id="thQtyLabel">Qty</span> <span class="text-danger">*</span></th>
+                        <th style="width: 102px; min-width: 102px;" class="text-end py-2" id="thRegPriceCol"><span id="thRegPriceLabel">Price (৳)</span></th>
+                        <th style="width: 68px; min-width: 68px;" class="text-center py-2" id="thDiscCol">Disc %</th>
+                        <th style="width: 106px; min-width: 106px;" class="text-end py-2" id="thUnitPriceCol"><span id="thUnitPriceLabel">Net (৳)</span> <span class="text-danger">*</span></th>
+                        <th style="width: 112px; min-width: 112px;" class="text-end py-2" id="thTotalCol">Total (৳)</th>
+                        <th style="width: 96px; min-width: 96px;" class="text-center py-2">Action</th>
                     </tr>
                 </thead>
                 <tbody id="itemsBody">
@@ -1128,6 +1128,7 @@
                 </div>
             `;
             dropdown.classList.remove('d-none');
+            positionSearchDropdown(dropdown);
             return;
         }
 
@@ -1190,7 +1191,28 @@
 
         dropdown.innerHTML = html;
         dropdown.classList.remove('d-none');
+        positionSearchDropdown(dropdown);
     }
+
+    function positionSearchDropdown(dropdown) {
+        if (!dropdown) return;
+        const container = dropdown.closest('.book-search-container');
+        if (!container) return;
+        const rect = container.getBoundingClientRect();
+        const dropW = Math.max(380, rect.width);
+        const maxLeft = Math.max(8, window.innerWidth - dropW - 12);
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = (rect.bottom + 4) + 'px';
+        dropdown.style.left = Math.min(Math.max(8, rect.left), maxLeft) + 'px';
+        dropdown.style.width = dropW + 'px';
+        dropdown.style.zIndex = '1090';
+    }
+
+    function repositionOpenSearchDropdowns() {
+        document.querySelectorAll('.book-search-dropdown:not(.d-none)').forEach(positionSearchDropdown);
+    }
+    window.addEventListener('scroll', repositionOpenSearchDropdowns, { passive: true });
+    window.addEventListener('resize', repositionOpenSearchDropdowns, { passive: true });
 
     // Keyboard navigation in search list (Arrow Up, Arrow Down, Enter, Escape)
     function handleBookSearchKeydown(e, rowIndex) {
@@ -2926,7 +2948,7 @@
     }
     #itemsTable {
         width: 100%;
-        min-width: 880px;
+        min-width: 980px;
         border-collapse: collapse;
         margin-bottom: 0;
     }
@@ -2935,10 +2957,10 @@
         color: #1e293b;
         font-weight: 700;
         font-size: 11px;
-        letter-spacing: 0.5px;
-        padding: 9px 8px;
-        border-bottom: 2px solid #cbd5e1;
-        border-right: 1px solid #e2e8f0;
+        letter-spacing: 0.4px;
+        padding: 8px 6px;
+        border-bottom: 2px solid #94a3b8;
+        border-right: 1px solid #cbd5e1;
         vertical-align: middle;
         white-space: nowrap;
     }
@@ -2946,11 +2968,11 @@
         border-right: none;
     }
     #itemsTable tbody td {
-        padding: 6px 6px;
+        padding: 5px 6px;
         vertical-align: middle;
         background-color: #fff;
-        border-bottom: 1px solid #e2e8f0;
-        border-right: 1px solid #e2e8f0;
+        border-bottom: 1px solid #cbd5e1;
+        border-right: 1px solid #cbd5e1;
         transition: background-color 0.15s ease;
     }
     #itemsTable tbody td:last-child {
@@ -2962,8 +2984,8 @@
     #itemsTable tfoot td {
         background-color: #f8fafc;
         padding: 8px 10px;
-        border-top: 2px solid #cbd5e1;
-        border-right: 1px solid #e2e8f0;
+        border-top: 2px solid #94a3b8;
+        border-right: 1px solid #cbd5e1;
         vertical-align: middle;
     }
     #itemsTable tfoot td:last-child {
@@ -2972,6 +2994,15 @@
     #itemsTable .item-serial-num {
         font-size: 12px;
         user-select: none;
+    }
+    #itemsTable input[type="number"]::-webkit-outer-spin-button,
+    #itemsTable input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    #itemsTable input[type="number"] {
+        -moz-appearance: textfield;
+        padding: 5px 6px !important;
     }
     #itemsTable .form-control:not(textarea), 
     #itemsTable .form-select {
