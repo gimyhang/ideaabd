@@ -493,30 +493,42 @@
             </div>
         </div>
 
+        @php
+            $items = old('items', $invoice->items ?? []);
+            if (empty($items)) {
+                $items = [['title' => '', 'item_type' => 'Book (Hardcover)', 'unit' => 'Copy', 'quantity' => 1, 'unit_price' => 0, 'subtotal' => 0]];
+            }
+            $maxEditTitleLen = 0;
+            $maxEditSpecLen = 0;
+            foreach ($items as $_it) {
+                $maxEditTitleLen = max($maxEditTitleLen, mb_strlen(trim((string)($_it['title'] ?? ''))));
+                $maxEditSpecLen  = max($maxEditSpecLen, mb_strlen(trim((string)($_it['author_name'] ?? $_it['author'] ?? ''))));
+            }
+            $_tScore = max(14, min(40, $maxEditTitleLen * 1.1));
+            $_sScore = $maxEditSpecLen > 0 ? max(14, min(46, $maxEditSpecLen * 0.65)) : 14;
+            $_totScore = $_tScore + $_sScore;
+            $editTitleW = round(($_tScore / $_totScore) * 44, 1);
+            $editSpecW  = round(44 - $editTitleW, 1);
+        @endphp
+
         <div class="table-responsive rounded-2 border mb-3 invoice-table-wrap">
             <table class="table table-bordered align-middle mb-0 invoice-items-table" id="itemsTable">
                 <thead>
                     <tr class="text-uppercase" style="font-size: 10.5px; letter-spacing: 0.4px;">
-                        <th style="width: 34px; min-width: 34px;" class="text-center py-2.5">#</th>
-                        <th style="min-width: 270px; width: 28%;" class="py-2.5" id="thTitleCol"><span id="thTitleLabel">Item / Book Title</span> <span class="text-danger">*</span></th>
-                        <th style="width: 160px; min-width: 145px;" class="py-2.5" id="thAuthorCol"><span id="thAuthorLabel">Author / Spec</span></th>
-                        <th style="width: 135px; min-width: 125px;" class="py-2.5" id="thTypeCol"><span id="thTypeLabel">Type / Edition</span></th>
-                        <th style="width: 65px; min-width: 60px;" class="text-center py-2.5" id="thUnitCol"><span id="thUnitLabel">Unit</span></th>
-                        <th style="width: 70px; min-width: 65px;" class="text-center py-2.5" id="thQtyCol"><span id="thQtyLabel">Qty</span> <span class="text-danger">*</span></th>
-                        <th style="width: 85px; min-width: 75px;" class="text-end py-2.5" id="thRegPriceCol"><span id="thRegPriceLabel">Price (৳)</span></th>
-                        <th style="width: 65px; min-width: 55px;" class="text-center py-2.5" id="thDiscCol">Disc %</th>
-                        <th style="width: 90px; min-width: 80px;" class="text-end py-2.5" id="thUnitPriceCol"><span id="thUnitPriceLabel">Net (৳)</span> <span class="text-danger">*</span></th>
-                        <th style="width: 105px; min-width: 95px;" class="text-end py-2.5" id="thTotalCol">Total (৳)</th>
-                        <th style="width: 95px; min-width: 90px;" class="text-center py-2.5">Action</th>
+                        <th style="width: 34px;" class="text-center py-2">#</th>
+                        <th style="width: {{ $editTitleW }}%;" class="py-2" id="thTitleCol"><span id="thTitleLabel">Item / Book Title</span> <span class="text-danger">*</span></th>
+                        <th style="width: {{ $editSpecW }}%;" class="py-2" id="thAuthorCol"><span id="thAuthorLabel">Author / Spec</span></th>
+                        <th style="width: 130px;" class="py-2" id="thTypeCol"><span id="thTypeLabel">Type / Edition</span></th>
+                        <th style="width: 58px;" class="text-center py-2" id="thUnitCol"><span id="thUnitLabel">Unit</span></th>
+                        <th style="width: 68px;" class="text-center py-2" id="thQtyCol"><span id="thQtyLabel">Qty</span> <span class="text-danger">*</span></th>
+                        <th style="width: 85px;" class="text-end py-2" id="thRegPriceCol"><span id="thRegPriceLabel">Price (৳)</span></th>
+                        <th style="width: 58px;" class="text-center py-2" id="thDiscCol">Disc %</th>
+                        <th style="width: 88px;" class="text-end py-2" id="thUnitPriceCol"><span id="thUnitPriceLabel">Net (৳)</span> <span class="text-danger">*</span></th>
+                        <th style="width: 96px;" class="text-end py-2" id="thTotalCol">Total (৳)</th>
+                        <th style="width: 88px;" class="text-center py-2">Action</th>
                     </tr>
                 </thead>
                 <tbody id="itemsBody">
-                    @php
-                        $items = old('items', $invoice->items ?? []);
-                        if (empty($items)) {
-                            $items = [['title' => '', 'item_type' => 'Book (Hardcover)', 'unit' => 'Copy', 'quantity' => 1, 'unit_price' => 0, 'subtotal' => 0]];
-                        }
-                    @endphp
                     @foreach($items as $i => $item)
                         @php
                             $qty = (float)($item['quantity'] ?? 1);
@@ -557,30 +569,30 @@
                             $bookIdVal = $isBookItem ? ($item['book_id'] ?? ($bookObj ? $bookObj->id : '')) : '';
                         @endphp
                         <tr class="item-row" data-row="{{ $i }}">
-                            <td class="text-center text-muted fw-bold item-serial-num font-monospace" style="width: 34px;">{{ $i + 1 }}</td>
-                            <td class="position-relative book-search-container" style="min-width: 270px;">
+                            <td class="text-center text-muted fw-bold item-serial-num font-monospace">{{ $i + 1 }}</td>
+                            <td class="position-relative book-search-container">
                                 <div class="input-group input-group-sm">
                                     <textarea name="items[{{ $i }}][title]" class="form-control form-control-sm item-title fw-bold" 
                                            required 
-                                           rows="2"
-                                           oninput="handleLiveBookSearch(this, {{ $i }})" 
+                                           rows="1"
+                                           oninput="handleLiveBookSearch(this, {{ $i }}); autoResizeTextarea(this); rebalanceInvoiceColumns();" 
                                            onfocus="handleLiveBookSearch(this, {{ $i }})" 
                                            onkeydown="handleBookSearchKeydown(event, {{ $i }})" 
-                                           autocomplete="off" style="font-size: 13px; min-height: 52px; line-height: 1.35; resize: vertical;">{{ $item['title'] ?? '' }}</textarea>
-                                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center {{ $isBookItem ? '' : 'd-none' }}" onclick="openQuickAddBookModal({{ $i }})" title="Add new book to Bookshop" style="min-height: 52px;">
+                                           autocomplete="off">{{ $item['title'] ?? '' }}</textarea>
+                                    <button type="button" class="btn btn-outline-primary px-2 d-flex align-items-center justify-content-center {{ $isBookItem ? '' : 'd-none' }}" onclick="openQuickAddBookModal({{ $i }})" title="Add new book to Bookshop">
                                         <i class="fa-solid fa-plus"></i>
                                     </button>
                                 </div>
                                 <input type="hidden" name="items[{{ $i }}][book_id]" class="item-book-id" value="{{ $bookIdVal }}">
                                 <input type="hidden" name="items[{{ $i }}][calc_data]" class="item-calc-data" value="{{ is_array($item['calc_data'] ?? null) ? json_encode($item['calc_data']) : ($item['calc_data'] ?? '') }}">
-                                <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 420px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
+                                <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 360px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
                             </td>
                             <td>
                                 <textarea name="items[{{ $i }}][author_name]" class="form-control form-control-sm item-author" 
-                                       rows="2" autocomplete="off" style="min-height: 52px; font-size: 12.5px; line-height: 1.35; resize: vertical;">{{ $authorName }}</textarea>
+                                       rows="1" oninput="autoResizeTextarea(this); rebalanceInvoiceColumns();" autocomplete="off">{{ $authorName }}</textarea>
                             </td>
                             <td>
-                                <select name="items[{{ $i }}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, {{ $i }})" style="min-height: 52px; height: 52px; font-size: 12.5px;">
+                                <select name="items[{{ $i }}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, {{ $i }})">
                                     <optgroup label="Books & Publications">
                                         <option value="Book (Hardcover)" @selected(($item['item_type'] ?? '') === 'Book (Hardcover)')>Book (Hardcover)</option>
                                         <option value="Book (Paperback)" @selected(($item['item_type'] ?? '') === 'Book (Paperback)' || ($item['item_type'] ?? '') === 'Book')>Book (Paperback)</option>
@@ -602,23 +614,23 @@
                             </td>
                             <td>
                                 <input type="text" name="items[{{ $i }}][unit]" class="form-control form-control-sm item-unit text-center font-monospace" 
-                                       value="{{ $unitVal }}" autocomplete="off" style="min-height: 52px; height: 52px; font-size: 12.5px;">
+                                       value="{{ $unitVal }}" autocomplete="off">
                             </td>
                             <td>
                                 <input type="number" step="0.01" name="items[{{ $i }}][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
-                                       value="{{ $qty }}" min="0.01" required oninput="calcRow({{ $i }}, 'qty')" style="min-height: 52px; height: 52px; font-size: 13px;">
+                                       value="{{ $qty }}" min="0.01" required oninput="calcRow({{ $i }}, 'qty')">
                             </td>
                             <td>
                                 <input type="number" step="0.01" name="items[{{ $i }}][regular_price]" class="form-control item-regular-price text-end font-monospace" 
-                                       value="{{ $regPrice > 0 ? $regPrice : '' }}" min="0" oninput="calcRow({{ $i }}, 'regular_price')" style="min-height: 52px; height: 52px; font-size: 12.5px;">
+                                       value="{{ $regPrice > 0 ? $regPrice : '' }}" min="0" oninput="calcRow({{ $i }}, 'regular_price')">
                             </td>
                             <td>
                                 <input type="number" step="0.01" name="items[{{ $i }}][discount_percent]" class="form-control item-discount-percent text-center font-monospace fw-bold text-success" 
-                                       value="{{ $discPct > 0 ? $discPct : '' }}" min="0" max="100" oninput="calcRow({{ $i }}, 'discount_percent')" style="min-height: 52px; height: 52px; font-size: 12.5px;">
+                                       value="{{ $discPct > 0 ? $discPct : '' }}" min="0" max="100" oninput="calcRow({{ $i }}, 'discount_percent')">
                             </td>
                             <td>
                                 <input type="number" step="0.01" name="items[{{ $i }}][price]" class="form-control item-price text-end font-monospace fw-bold text-primary" 
-                                       value="{{ $price > 0 ? $price : '' }}" min="0" required oninput="calcRow({{ $i }}, 'unit_price')" style="min-height: 52px; height: 52px; font-size: 13px;">
+                                       value="{{ $price > 0 ? $price : '' }}" min="0" required oninput="calcRow({{ $i }}, 'unit_price')">
                             </td>
                             <td class="text-end fw-bold text-dark item-subtotal font-monospace" style="font-size: 13.5px; vertical-align: middle;">৳{{ number_format($lineTotal, 2) }}</td>
                             <td class="text-center text-nowrap" style="vertical-align: middle;">
@@ -1314,30 +1326,30 @@
         tr.className = 'item-row';
         tr.setAttribute('data-row', i);
         tr.innerHTML = `
-            <td class="text-center text-muted fw-bold item-serial-num font-monospace" style="width: 34px;">${nextSerial}</td>
-            <td class="position-relative book-search-container" style="min-width: 270px;">
+            <td class="text-center text-muted fw-bold item-serial-num font-monospace">${nextSerial}</td>
+            <td class="position-relative book-search-container">
                 <div class="input-group input-group-sm">
                     <textarea name="items[${i}][title]" class="form-control form-control-sm item-title fw-bold" 
                            required 
-                           rows="2"
-                           oninput="handleLiveBookSearch(this, ${i})" 
+                           rows="1"
+                           oninput="handleLiveBookSearch(this, ${i}); autoResizeTextarea(this); rebalanceInvoiceColumns();" 
                            onfocus="handleLiveBookSearch(this, ${i})" 
                            onkeydown="handleBookSearchKeydown(event, ${i})" 
-                           autocomplete="off" style="font-size: 13px; min-height: 52px; line-height: 1.35; resize: vertical;"></textarea>
-                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBook ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
+                           autocomplete="off"></textarea>
+                    <button type="button" class="btn btn-outline-primary px-2 d-flex align-items-center justify-content-center ${isBook ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop">
                         <i class="fa-solid fa-plus"></i>
                     </button>
                 </div>
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
                 <input type="hidden" name="items[${i}][calc_data]" class="item-calc-data" value="">
-                <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 420px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
+                <div class="book-search-dropdown shadow-lg rounded-3 border bg-white d-none" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 360px; width: 100%; z-index: 1090; max-height: 320px; overflow-y: auto;"></div>
             </td>
             <td>
                 <textarea name="items[${i}][author_name]" class="form-control form-control-sm item-author" 
-                       rows="2" autocomplete="off" style="min-height: 52px; font-size: 12.5px; line-height: 1.35; resize: vertical;"></textarea>
+                       rows="1" oninput="autoResizeTextarea(this); rebalanceInvoiceColumns();" autocomplete="off"></textarea>
             </td>
             <td>
-                <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})" style="min-height: 52px; height: 52px; font-size: 12.5px;">
+                <select name="items[${i}][item_type]" class="form-select form-select-sm item-type-select" onchange="onTypeChange(this, ${i})">
                     <optgroup label="Books & Publications">
                         <option value="Book (Hardcover)" ${defaultItemType === 'Book (Hardcover)' ? 'selected' : ''}>Book (Hardcover)</option>
                         <option value="Book (Paperback)" ${defaultItemType === 'Book (Paperback)' ? 'selected' : ''}>Book (Paperback)</option>
@@ -1364,23 +1376,23 @@
             </td>
             <td>
                 <input type="text" name="items[${i}][unit]" class="form-control form-control-sm item-unit text-center font-monospace" 
-                       value="${defaultUnit}" autocomplete="off" style="min-height: 52px; height: 52px; font-size: 12.5px;">
+                       value="${defaultUnit}" autocomplete="off">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control form-control-sm item-qty text-center font-monospace fw-bold" 
-                       value="1" min="0.01" required oninput="calcRow(${i}, 'qty')" style="min-height: 52px; height: 52px; font-size: 13px;">
+                       value="1" min="0.01" required oninput="calcRow(${i}, 'qty')">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][regular_price]" class="form-control form-control-sm item-regular-price text-end font-monospace" 
-                       value="" min="0" oninput="calcRow(${i}, 'regular_price')" style="min-height: 52px; height: 52px; font-size: 12.5px;">
+                       value="" min="0" oninput="calcRow(${i}, 'regular_price')">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][discount_percent]" class="form-control form-control-sm item-discount-percent text-center font-monospace fw-bold text-success" 
-                       value="" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')" style="min-height: 52px; height: 52px; font-size: 12.5px;">
+                       value="" min="0" max="100" oninput="calcRow(${i}, 'discount_percent')">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][price]" class="form-control form-control-sm item-price text-end font-monospace fw-bold text-primary" 
-                       value="" min="0" required oninput="calcRow(${i}, 'unit_price')" style="min-height: 52px; height: 52px; font-size: 13px;">
+                       value="" min="0" required oninput="calcRow(${i}, 'unit_price')">
             </td>
             <td class="text-end fw-bold text-dark item-subtotal font-monospace" style="font-size: 13.5px; vertical-align: middle;">৳0.00</td>
             <td class="text-center text-nowrap" style="vertical-align: middle;">
@@ -1400,12 +1412,49 @@
         tbody.appendChild(tr);
         updateRowSerials();
         calcTotals();
+        rebalanceInvoiceColumns();
 
         const newTitle = tr.querySelector('.item-title');
         if (newTitle) {
             newTitle.focus();
         }
     }
+
+    function autoResizeTextarea(el) {
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = Math.max(38, el.scrollHeight) + 'px';
+    }
+
+    function rebalanceInvoiceColumns() {
+        const thTitle = document.getElementById('thTitleCol');
+        const thAuthor = document.getElementById('thAuthorCol');
+        if (!thTitle || !thAuthor) return;
+
+        let maxTitle = 0;
+        let maxSpec = 0;
+        document.querySelectorAll('#itemsBody .item-row').forEach(row => {
+            const tEl = row.querySelector('.item-title');
+            const sEl = row.querySelector('.item-author');
+            if (tEl) maxTitle = Math.max(maxTitle, tEl.value.trim().length);
+            if (sEl) maxSpec = Math.max(maxSpec, sEl.value.trim().length);
+        });
+
+        const tScore = Math.max(14, Math.min(40, maxTitle * 1.1));
+        const sScore = maxSpec > 0 ? Math.max(14, Math.min(46, maxSpec * 0.65)) : 14;
+        const tot = tScore + sScore;
+        const tW = ((tScore / tot) * 44).toFixed(1);
+        const sW = (44 - parseFloat(tW)).toFixed(1);
+
+        thTitle.style.width = tW + '%';
+        thAuthor.style.width = sW + '%';
+
+        document.querySelectorAll('#itemsBody textarea.form-control').forEach(autoResizeTextarea);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        rebalanceInvoiceColumns();
+    });
 
     function updateRowSerials() {
         const rows = document.querySelectorAll('#itemsBody .item-row');
@@ -2874,7 +2923,7 @@
     }
     #itemsTable {
         width: 100%;
-        min-width: 1140px;
+        min-width: 880px;
         border-collapse: collapse;
         margin-bottom: 0;
     }
@@ -2923,23 +2972,24 @@
     }
     #itemsTable .form-control:not(textarea), 
     #itemsTable .form-select {
-        height: 52px;
-        min-height: 52px;
+        height: 38px;
+        min-height: 38px;
         font-size: 13px;
-        border-radius: 6px;
+        border-radius: 5px;
         border: 1px solid #cbd5e1;
-        padding: 6px 8px;
+        padding: 5px 8px;
         transition: border-color 0.15s ease, box-shadow 0.15s ease;
         background-color: #ffffff;
     }
     #itemsTable textarea.form-control {
-        min-height: 52px;
+        min-height: 38px;
         font-size: 13px;
-        border-radius: 6px;
+        border-radius: 5px;
         border: 1px solid #cbd5e1;
         padding: 6px 8px;
-        line-height: 1.35;
+        line-height: 1.4;
         resize: vertical;
+        overflow-y: hidden;
         transition: border-color 0.15s ease, box-shadow 0.15s ease;
         background-color: #ffffff;
     }
