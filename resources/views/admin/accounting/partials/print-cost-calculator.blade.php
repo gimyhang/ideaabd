@@ -11,11 +11,8 @@
     <div class="modal-dialog modal-fullscreen-md-down modal-dialog-centered modal-dialog-scrollable pc-modal-dialog">
         <div class="modal-content pc shadow-sm">
             {{-- Modal Header --}}
-            <div class="modal-header bg-white border-bottom py-2.5 px-4">
-                <div>
-                    <h5 class="modal-title fw-bold text-dark mb-0 fs-5" id="pcTitle">Calculator</h5>
-                    <p class="text-muted small mb-0 font-monospace" style="font-size: 11px;">Cost Estimator &amp; Quotation Generator</p>
-                </div>
+            <div class="modal-header bg-white border-bottom py-2 px-4">
+                <h5 class="modal-title fw-bold text-dark mb-0 fs-5" id="pcTitle">Calculator</h5>
                 <div class="pc-head-actions d-flex align-items-center gap-2">
                     <button type="button" class="btn btn-outline-primary btn-sm rounded-2 px-3 fw-semibold" id="pcRatesBtn" title="Rates">Rates</button>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-2 px-2.5" id="pcReset" title="Reset">Reset</button>
@@ -47,13 +44,13 @@
                                 {{-- 1. Job Title --}}
                                 <div class="pc-f pc-f-title">
                                     <label for="pcTitleIn" class="pc-label">Title</label>
-                                    <input id="pcTitleIn" class="form-control form-control-sm" maxlength="150" placeholder="Job / Item title...">
+                                    <input id="pcTitleIn" class="form-control form-control-sm" maxlength="150">
                                 </div>
 
                                 {{-- 2. Quantity --}}
                                 <div class="pc-f pc-f-qty">
                                     <label for="pcQty" class="pc-label">Quantity</label>
-                                    <input id="pcQty" type="number" min="1" step="1" class="form-control form-control-sm text-end font-monospace fw-bold" inputmode="numeric" placeholder="1000" style="font-size: 14px;">
+                                    <input id="pcQty" type="number" min="1" step="1" class="form-control form-control-sm text-end font-monospace fw-bold" inputmode="numeric" style="font-size: 14px;">
                                 </div>
 
                                 {{-- 3. Unit --}}
@@ -90,7 +87,7 @@
                                 {{-- 6. Book Pages (Input comes BEFORE Formas) --}}
                                 <div class="pc-f pc-f-pages" id="pcPagesWrap">
                                     <label for="pcPages" class="pc-label">Pages</label>
-                                    <input id="pcPages" type="number" min="0" step="1" class="form-control form-control-sm text-end font-monospace fw-bold" inputmode="numeric" placeholder="128" style="font-size: 14px;">
+                                    <input id="pcPages" type="number" min="0" step="1" class="form-control form-control-sm text-end font-monospace fw-bold" inputmode="numeric" style="font-size: 14px;">
                                 </div>
 
                                 {{-- 7. Formas (Calculated from Pages + Forma Size) --}}
@@ -102,7 +99,7 @@
                                         </span>
                                     </div>
                                     <div class="input-group input-group-sm">
-                                        <input id="pcFormasIn" type="number" min="0" step="any" class="form-control form-control-sm text-end font-monospace fw-bold" placeholder="8" style="font-size: 14px;">
+                                        <input id="pcFormasIn" type="number" min="0" step="any" class="form-control form-control-sm text-end font-monospace fw-bold" style="font-size: 14px;">
                                         <select id="pcFormaSize" class="form-select form-select-sm font-monospace bg-light fw-semibold" style="width: 140px; max-width: 150px; font-size: 12px;" title="Forma Size">
                                             <option value="16" selected>16p (Forma)</option>
                                             <option value="8">8p (Half)</option>
@@ -187,23 +184,23 @@
                             <div class="table-responsive m-0 pc-table-wrap">
                                 <table class="table table-hover align-middle mb-0 pc-comp-table" id="pcMainTable">
                                     <colgroup>
-                                        <col style="width: 38px;">
-                                        <col style="width: 125px;">
+                                        <col style="width: 36px;">
+                                        <col style="width: 112px;">
                                         <col style="width: auto;">
-                                        <col style="width: 140px;">
-                                        <col style="width: 140px;">
-                                        <col style="width: 140px;">
-                                        <col style="width: 38px;">
+                                        <col style="width: 92px;">
+                                        <col style="width: 102px;">
+                                        <col style="width: 102px;">
+                                        <col style="width: 36px;">
                                     </colgroup>
                                     <thead class="text-muted bg-light">
                                         <tr>
-                                            <th class="text-center" style="width: 38px;" title="Include">✓</th>
-                                            <th style="width: 125px;">Type</th>
+                                            <th class="text-center" style="width: 36px;" title="Include">✓</th>
+                                            <th style="width: 112px;">Type</th>
                                             <th>Item &amp; Specification</th>
-                                            <th style="width: 140px;" class="text-end">Qty</th>
-                                            <th style="width: 140px;" class="text-end">Rate</th>
-                                            <th style="width: 140px;" class="text-end">Total</th>
-                                            <th class="text-center" style="width: 38px;"></th>
+                                            <th style="width: 92px;" class="text-end">Qty</th>
+                                            <th style="width: 102px;" class="text-end">Rate</th>
+                                            <th style="width: 102px;" class="text-end">Total</th>
+                                            <th class="text-center" style="width: 36px;"></th>
                                         </tr>
                                     </thead>
                                     <tbody id="pcRowsBody">
@@ -239,50 +236,50 @@
                     {{-- 2. Side Panel: Cost Analysis, Margins & Tiers (Sticky on Desktop) --}}
                     <aside class="pc-side">
                         <section class="pc-card pc-summary shadow-xs mb-3">
-                            <header class="pc-card-head d-flex align-items-center justify-content-between mb-2.5 pb-1.5 border-bottom">
+                            <header class="pc-card-head d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom">
                                 <h6 class="pc-h m-0 text-dark fw-bold" style="font-size: 12px;">Summary</h6>
                             </header>
 
                             {{-- Component breakdown visual progress bars --}}
-                            <div class="pc-bars mb-3" id="pcBars"></div>
+                            <div class="pc-bars mb-2" id="pcBars"></div>
 
                             {{-- Cost Summary List --}}
                             <dl class="pc-sum m-0">
-                                <div class="d-flex align-items-center justify-content-between py-1.5 border-bottom border-light">
+                                <div class="d-flex align-items-center justify-content-between py-1 border-bottom border-light">
                                     <dt class="small text-muted fw-bold mb-0">Direct</dt>
                                     <dd id="pcDirect" class="mb-0 fw-bold font-monospace text-dark">৳0.00</dd>
                                 </div>
 
-                                <div class="pc-sum-input py-1.5 border-bottom border-light">
+                                <div class="pc-sum-input py-1 border-bottom border-light">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <dt class="small text-muted fw-bold mb-0"><label for="pcOverhead">Overhead %</label></dt>
                                         <dd class="mb-0 d-flex align-items-center gap-1.5">
-                                            <input id="pcOverhead" type="number" min="0" max="100" step="0.5" class="form-control form-control-sm text-end font-monospace rounded-2" style="width: 70px;" placeholder="0">
+                                            <input id="pcOverhead" type="number" min="0" max="100" step="0.5" class="form-control form-control-sm text-end font-monospace rounded-2" style="width: 65px;">
                                             <b id="pcOverheadAmt" class="font-monospace text-muted" style="min-width: 65px; text-align: right;">৳0.00</b>
                                         </dd>
                                     </div>
                                 </div>
 
-                                <div class="d-flex align-items-center justify-content-between py-1.5 border-bottom border-light">
+                                <div class="d-flex align-items-center justify-content-between py-1 border-bottom border-light">
                                     <dt class="small text-muted fw-bold mb-0">Cost</dt>
                                     <dd id="pcCost" class="mb-0 fw-bold font-monospace text-dark">৳0.00</dd>
                                 </div>
 
-                                <div class="pc-sum-input py-1.5 border-bottom border-light">
+                                <div class="pc-sum-input py-1 border-bottom border-light">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <dt class="small text-muted fw-bold mb-0"><label for="pcProfit">Profit %</label></dt>
                                         <dd class="mb-0 d-flex align-items-center gap-1.5">
-                                            <input id="pcProfit" type="number" min="0" max="500" step="0.5" class="form-control form-control-sm text-end font-monospace fw-bold text-success rounded-2" style="width: 70px;" placeholder="20">
+                                            <input id="pcProfit" type="number" min="0" max="500" step="0.5" class="form-control form-control-sm text-end font-monospace fw-bold text-success rounded-2" style="width: 65px;">
                                             <b id="pcProfitAmt" class="font-monospace text-success" style="min-width: 65px; text-align: right;">৳0.00</b>
                                         </dd>
                                     </div>
                                 </div>
 
-                                <div class="pc-sum-input py-1.5 border-bottom border-light">
+                                <div class="pc-sum-input py-1 border-bottom border-light">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <dt class="small text-muted fw-bold mb-0"><label for="pcRound">Rounding</label></dt>
                                         <dd class="mb-0">
-                                            <select id="pcRound" class="form-select form-select-sm py-0 px-2 font-monospace rounded-2" style="font-size: 11px; width: 95px; height: 28px;">
+                                            <select id="pcRound" class="form-select form-select-sm py-0 px-2 font-monospace rounded-2" style="font-size: 11px; width: 90px; height: 28px;">
                                                 <option value="0">Exact</option>
                                                 <option value="0.5">0.5</option>
                                                 <option value="1">1.0</option>
@@ -294,15 +291,15 @@
                                 </div>
 
                                 {{-- Grand Total & Unit Rate Hero Card --}}
-                                <div class="pc-grand pt-2">
-                                    <div class="p-2.5 rounded-2 bg-light border d-flex align-items-center justify-content-between mb-2">
+                                <div class="pc-grand pt-1.5">
+                                    <div class="p-2 rounded-2 bg-light border d-flex align-items-center justify-content-between mb-1.5">
                                         <span class="small fw-bold text-uppercase text-muted" style="font-size: 11px;">Total</span>
                                         <span id="pcTotal" class="fs-5 fw-bold font-monospace text-dark">৳0.00</span>
                                     </div>
                                 </div>
 
-                                <div class="pc-unitbox p-3 rounded-2 text-white text-center shadow-xs">
-                                    <div class="small fw-semibold opacity-75 mb-1 text-uppercase" style="font-size: 11px; letter-spacing: 0.04em;">
+                                <div class="pc-unitbox rounded-2 text-white text-center shadow-xs">
+                                    <div class="small fw-semibold opacity-75 mb-0.5 text-uppercase" style="font-size: 10.5px; letter-spacing: 0.04em;">
                                         Unit Price <small id="pcRoundedNote" hidden title="Rounded Up">↑</small>
                                     </div>
                                     <div class="fs-3 fw-bold font-monospace" id="pcUnit2">৳0.00</div>
