@@ -46,7 +46,7 @@
         Design: ['Layout Design', 'Cover Design', 'Proof Reading', 'Ebook Conversion', 'ISBN Processing', 'Dummy Copy'],
         Paper: ['Inner Paper', 'Cover Board', 'Hard Board / Grey Board', 'Endpaper', 'Jacket Paper'],
         CTP: ['Inner Plates', 'Cover Plates', 'Spot UV Plate', 'Foil Die Plate', 'Emboss Die Plate'],
-        Press: ['Inner Press (Offset)', 'Cover Press (Offset)', 'Spot Color Press', 'Digital Press'],
+        Press: ['Inner Press', 'Cover Press', 'Spot Color Press', 'Digital Press'],
         Lamination: ['Cover Lamination', 'Jacket Lamination', 'Spot UV Coating', 'Foil Stamping', 'Embossing'],
         Cutting: ['Final 3-Knife Trim', 'Die Cutting', 'Creasing & Scoring', 'Perforation', 'Corner Rounding'],
         Binding: ['Perfect Glue Binding', 'Sewn + Perfect Binding', 'Hardcover Binding', 'Saddle Stitch (Pin)', 'Spiral Binding', 'Wire-O Binding', 'Pad Pasting'],
@@ -168,7 +168,6 @@
     // half across its long side to get the machine sheet (23x36 -> 23x18, 20x30 -> 20x15 ...).
     var CUT_SHEETS = { '18x23': 1, '15x20': 1, '18.5x25': 1 };
     var FORMA_SIZES = [4, 8, 12, 16, 24, 32];
-    var FORMA_LABELS = { 4: '4p (Quarter)', 8: '8p (Half)', 12: '12p (Custom)', 16: '16p (Forma)', 24: '24p (Custom)', 32: '32p (Double)' };
 
     var SIZE_DEFAULTS = {
         Demy:        { sheet: '23x36', machine: '18×23', formaSize: 16, platePages: 8, ups: 8 },
@@ -200,8 +199,8 @@
                 P('Paper', 'Cover Board', { auto: 'sheet', ups: 8, waste: 5, flat: true, spread: true, a: 300, b: 'Art Card' }),
                 P('CTP', 'Inner Plates', { auto: 'platesBook', a: 'CTP Thermal', b: 'Inner' }),
                 P('CTP', 'Cover Plates', { auto: 'platesCover', a: 'CTP Thermal', b: 'Cover' }),
-                P('Press', 'Inner Press (Offset)', { auto: 'pressBook', a: 'Offset 1-Color', b: 'Inner' }),
-                P('Press', 'Cover Press (Offset)', { auto: 'pressCover', a: 'Offset 4-Color', b: 'Cover' }),
+                P('Press', 'Inner Press', { auto: 'pressBook', a: 'Offset 1-Color', b: 'Inner' }),
+                P('Press', 'Cover Press', { auto: 'pressCover', a: 'Offset 4-Color', b: 'Cover' }),
                 P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Matt Lamination', b: 'Front (Single)' }),
                 P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
                 P('Binding', 'Perfect Glue Binding', { auto: 'copies', a: 'Perfect Binding' }),
@@ -217,8 +216,8 @@
                 P('Paper', 'Cover Board', { auto: 'sheet', ups: 4, waste: 5, flat: true, spread: true, a: 250, b: 'Art Card' }),
                 P('CTP', 'Inner Plates', { auto: 'platesBook', a: 'CTP Thermal', b: 'Inner' }),
                 P('CTP', 'Cover Plates', { auto: 'platesCover', a: 'CTP Thermal', b: 'Cover' }),
-                P('Press', 'Inner Press (Offset)', { auto: 'pressBook', a: 'Offset 4-Color', b: 'Inner' }),
-                P('Press', 'Cover Press (Offset)', { auto: 'pressCover', a: 'Offset 4-Color', b: 'Cover' }),
+                P('Press', 'Inner Press', { auto: 'pressBook', a: 'Offset 4-Color', b: 'Inner' }),
+                P('Press', 'Cover Press', { auto: 'pressCover', a: 'Offset 4-Color', b: 'Cover' }),
                 P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Glossy Lamination', b: 'Front (Single)' }),
                 P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
                 P('Binding', 'Saddle Stitch (Pin)', { auto: 'copies', a: 'Saddle Stitch (Pin)' }),
@@ -231,7 +230,7 @@
                 P('Paper', 'Inner Paper', { auto: 'paperBook', a: 80, b: 'Cream Munken', waste: 5 }),
                 P('Paper', 'Cover Board', { auto: 'sheet', ups: 8, waste: 5, flat: true, spread: true, a: 350, b: 'Grey Board 2.0mm' }),
                 P('CTP', 'Inner Plates', { auto: 'platesBook', a: 'CTP Thermal', b: 'Inner' }),
-                P('Press', 'Inner Press (Offset)', { auto: 'pressBook', a: 'Offset 2-Color', b: 'Inner' }),
+                P('Press', 'Inner Press', { auto: 'pressBook', a: 'Offset 2-Color', b: 'Inner' }),
                 P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Velvet Soft-Touch', b: 'Front (Single)' }),
                 P('Binding', 'Hardcover Binding', { auto: 'copies', a: 'Hardcover / Case' }),
                 P('Other', 'Ribbon Bookmark', { auto: 'copies', a: 'Ribbon Bookmark', b: 'Copy' })
@@ -242,7 +241,7 @@
                 P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
                 P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 170, b: 'Matt Art Paper' }),
                 P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
-                P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+                P('Press', 'Inner Press', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
                 P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Matt Lamination', b: 'Both Sides' }),
                 P('Cutting', 'Creasing & Scoring', { auto: 'copies', a: 'Creasing' }),
                 P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
@@ -253,7 +252,7 @@
                 P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
                 P('Paper', 'Cover Board', { auto: 'sheet', waste: 5, flat: true, a: 300, b: 'Art Card' }),
                 P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
-                P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+                P('Press', 'Inner Press', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
                 P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Matt Lamination', b: 'Both Sides' }),
                 P('Lamination', 'Spot UV Coating', { auto: 'copies', a: 'Spot UV', b: 'Front (Single)', off: true }),
                 P('Cutting', 'Die Cutting', { auto: 'copies', a: 'Die Cut' }),
@@ -265,7 +264,7 @@
                 P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
                 P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 120, b: 'Matt Art Paper' }),
                 P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
-                P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+                P('Press', 'Inner Press', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
                 P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
                 P('Packing', 'Paper Band', { auto: 'per', a: 'Paper Band', b: 'Hundred', off: true })
             ]
@@ -275,7 +274,7 @@
                 P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
                 P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 100, b: 'Art Paper' }),
                 P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
-                P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+                P('Press', 'Inner Press', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
                 P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Glossy Lamination', b: 'Front (Single)', off: true }),
                 P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' })
             ]
@@ -285,7 +284,7 @@
                 P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
                 P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, a: 150, b: 'Matt Art Paper' }),
                 P('CTP', 'Inner Plates', { auto: 'platesLeaf', a: 'CTP Thermal', b: 'Inner' }),
-                P('Press', 'Inner Press (Offset)', { auto: 'pressLeaf', a: 'Offset 4-Color', b: 'Inner' }),
+                P('Press', 'Inner Press', { auto: 'pressLeaf', a: 'Offset 4-Color', b: 'Inner' }),
                 P('Cutting', 'Final 3-Knife Trim', { auto: 'copies', a: '3-Knife Trim' }),
                 P('Binding', 'Spiral Ring', { auto: 'copies', a: 'Spiral Ring' }),
                 P('Packing', 'Poly Bag Wrapping', { auto: 'per', a: 'Poly Bag Wrap', b: 'Copy', off: true })
@@ -296,7 +295,7 @@
                 P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
                 P('Paper', 'Cover Board', { auto: 'sheet', waste: 8, flat: true, a: 350, b: 'Duplex Board' }),
                 P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
-                P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+                P('Press', 'Inner Press', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
                 P('Lamination', 'Cover Lamination', { auto: 'lam', a: 'Matt Lamination', b: 'Front (Single)' }),
                 P('Cutting', 'Die Cutting', { auto: 'copies', a: 'Die Cut' }),
                 P('Binding', 'Pad Pasting', { auto: 'copies', a: 'Pad Pasting' }),
@@ -310,7 +309,7 @@
                 P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, a: 55, b: 'NCR Middle' }),
                 P('Paper', 'Cover Board', { auto: 'sheet', waste: 5, flat: true, a: 200, b: 'Duplex Board' }),
                 P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
-                P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 1-Color', b: 'Inner' }),
+                P('Press', 'Inner Press', { auto: 'pressJob', a: 'Offset 1-Color', b: 'Inner' }),
                 P('Cutting', 'Perforation', { auto: 'copies', a: 'Perforation' }),
                 P('Cutting', 'Numbering', { auto: 'copies', a: 'Numbering' }),
                 P('Binding', 'Pad Pasting', { auto: 'copies', a: 'Pad Pasting' })
@@ -321,7 +320,7 @@
                 P('Design', 'Layout Design', { auto: 'per', a: 'Layout Design', b: 'Job' }),
                 P('Paper', 'Inner Paper', { auto: 'sheet', waste: 5, flat: true, a: 100, b: 'Offset White' }),
                 P('CTP', 'Inner Plates', { auto: 'platesJob', a: 'CTP Thermal', b: 'Inner' }),
-                P('Press', 'Inner Press (Offset)', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
+                P('Press', 'Inner Press', { auto: 'pressJob', a: 'Offset 4-Color', b: 'Inner' }),
                 P('Cutting', 'Die Cutting', { auto: 'copies', a: 'Die Cut' }),
                 P('Binding', 'Pad Pasting', { auto: 'copies', a: 'Pad Pasting' }),
                 P('Packing', 'Master Carton', { auto: 'per', a: 'Master Carton', b: 'Hundred', off: true })
@@ -339,6 +338,13 @@
     };
 
     var TIERS = [250, 500, 1000, 2000, 3000, 5000, 10000];
+
+    // Books, magazines and notebooks are printed in formas (16 / 32 / custom pages per forma);
+    // calendars and memos are not.
+    function isFormaType(type) {
+        var t = TYPES[type] || {};
+        return !!t.pages && !t.noForma;
+    }
 
     var GROUP_AUTO = {
         Design: 'per', Paper: 'sheet', CTP: 'platesJob', Press: 'pressJob',
@@ -453,7 +459,7 @@
     function memKey(r) { return rateKey(r); }
     function sheetPayload(r) {
         var plain = plainLine(r);
-        return { group: r.g, item: String(plain ? r.n : (r.a == null ? '' : r.a)), kind: (!plain && KEY_B[r.g]) ? String(r.b == null ? '' : r.b) : '', rate: num(r.rate) };
+        return { group: r.g, item: String(plain ? r.n : (r.a == null ? '' : r.a)), kind: (!plain && KEY_B[r.g]) ? String(r.b == null ? '' : r.b) : '', rate: round(num(r.rate) * paperUnitFactor(r), 4) };
     }
     function indexSheet(rows) {
         SHEET_ROWS = rows;
@@ -464,13 +470,28 @@
         if (!sheetLoaded && r.g === 'Paper') return PAPER_DEFAULT[[r.a, r.b].join('|').toLowerCase()] || 0;
         return 0;
     }
+    // Saved rates for paper are per ream; a sheet-priced row (cover board) shows that as per sheet.
     function rateFor(r) {
         var s = SHEET[rateKey(r)];
-        if (s) return s.rate;
         var m = readStore('pc-rates')[memKey(r)];
-        return m != null ? m : defaultRate(r);
+        var perReam = s ? s.rate : (m != null ? m : defaultRate(r));
+        return round(perReam / paperUnitFactor(r), 4);
     }
-    function saveRate(r) { store('pc-rates', function (m) { m[memKey(r)] = r.rate; }); }
+    function saveRate(r) { store('pc-rates', function (m) { m[memKey(r)] = round(r.rate * paperUnitFactor(r), 4); }); }
+
+    // Cover-board rates typed before paper could be priced per sheet were saved as "per ream"
+    // numbers (e.g. 18). Drop those once so they cannot be misread as a per-ream price.
+    function migrateRateMemo() {
+        store('pc-rates', function (m) {
+            if (m.__v === 2) return;
+            var cover = VARIANTS.PaperCover.b[1].map(function (o) { return norm(o[0]); });
+            Object.keys(m).forEach(function (k) {
+                var p = k.split('|');
+                if (p[0] === 'paper' && cover.indexOf(p[2]) !== -1) delete m[k];
+            });
+            m.__v = 2;
+        });
+    }
     function saveLast() {
         store('pc-last', function (m) {
             m[state.type] = {
@@ -481,7 +502,6 @@
                 formaSize: $('pcFormaSize') ? $('pcFormaSize').value : '16',
                 colors: $('pcColors').value,
                 sides: $('pcSides').value,
-                plateMethod: $('pcPlateMethod') ? $('pcPlateMethod').value : 'work_and_turn',
                 size: $('pcSize').value,
                 sheet: $('pcSheet').value,
                 overhead: $('pcOverhead').value,
@@ -492,22 +512,12 @@
     }
     function fmtPages(f) { return f % 1 === 0 ? String(f) : String(Math.round(f * 100) / 100); }
 
-    // Forma-size <select> always carries every value we may set, so it can never go blank.
+    // Pages per forma: 16 or 32 normally, any whole number for a custom size.
     function setFormaSize(val) {
-        var sel = $('pcFormaSize');
-        if (!sel) return;
+        var el = $('pcFormaSize');
+        if (!el) return;
         var n = parseInt(val, 10);
-        if (!(n >= 4)) n = 16;
-        var v = String(n);
-        var has = Array.prototype.some.call(sel.options, function (o) { return o.value === v; });
-        if (!has) {
-            var opt = doc.createElement('option');
-            opt.value = v;
-            opt.textContent = v + 'p (Custom)';
-            var before = Array.prototype.filter.call(sel.options, function (o) { return parseInt(o.value, 10) > n; })[0];
-            sel.insertBefore(opt, before || null);
-        }
-        sel.value = v;
+        el.value = String(n >= 2 ? n : 16);
     }
 
     function loadLast(type) {
@@ -533,7 +543,6 @@
         }
         $('pcColors').value = v && v.colors ? v.colors : String(d.colors || 4);
         $('pcSides').value = v && v.sides ? v.sides : '1';
-        if ($('pcPlateMethod')) $('pcPlateMethod').value = v && v.plateMethod ? v.plateMethod : 'sheetwise';
         $('pcOverhead').value = v && v.overhead !== undefined ? v.overhead : '0';
         $('pcProfit').value = v && v.profit !== undefined ? v.profit : '20';
         $('pcRound').value = v && v.round !== undefined ? v.round : '0';
@@ -601,7 +610,7 @@
     // ── Calculations Engine ────────────────────────────────────────────────
     function job(qOverride) {
         var q = Math.max(0, qOverride != null ? qOverride : num($('pcQty').value));
-        var formaSize = $('pcFormaSize') ? (num($('pcFormaSize').value) || 16) : 16;
+        var formaSize = $('pcFormaSize') ? Math.max(2, Math.round(num($('pcFormaSize').value)) || 16) : 16;
         var formasIn = $('pcFormasIn');
         var pagesIn = $('pcPages');
         var pages = pagesIn ? Math.max(0, num(pagesIn.value)) : 0;
@@ -627,7 +636,6 @@
             pages: pages,
             formaSize: formaSize,
             formas: formas,
-            plateMethod: $('pcPlateMethod') ? $('pcPlateMethod').value : 'sheetwise',
             colors: num($('pcColors').value) || 4,
             sides: num($('pcSides').value) || 1,
             size: size,
@@ -657,8 +665,31 @@
         }
     }
 
-    // Sides multiplier for press runs: only sheetwise two-sided work needs a second pass.
-    function pressSides(j) { return (j.plateMethod === 'sheetwise' && j.sides === 2) ? 2 : 1; }
+    // One forma always needs 2 plates per colour (one for each side of the sheet), whatever the
+    // trim size or forma size. Press passes only double for two-sided flat work.
+    var PLATES_PER_FORMA = 2;
+    function pressSides(j) { return j.sides === 2 ? 2 : 1; }
+
+    // Paper is priced per ream by default; cover board / card lines are priced per sheet.
+    var SHEETS_PER_REAM = 500;
+    function paperUnitFactor(r) { return (r.g === 'Paper' && r.unit === 'sheet') ? SHEETS_PER_REAM : 1; }
+    function defaultPaperUnit(r) { return (r.g === 'Paper' && variantKey(r) === 'PaperCover') ? 'sheet' : 'ream'; }
+    // Reams -> the quantity in the row's own unit (whole sheets are never fractional).
+    function paperQty(r, reams) {
+        return r.unit === 'sheet' ? Math.ceil(reams * SHEETS_PER_REAM - 1e-9) : round(reams, 2);
+    }
+    function reamsOf(r) { return num(r.qty) / paperUnitFactor(r); }
+
+    // Pages one whole stock sheet can carry, both sides. A full sheet is cut into two machine
+    // sheets, each carrying one forma. Calibrated default sheets use the calibrated forma size,
+    // any other sheet is worked out from the machine sheet geometry.
+    function pagesPerSheet(size, sheet, formaSize) {
+        var perMachine = CUT_SHEETS[sheet] ? 1 : 2;
+        var def = SIZE_DEFAULTS[size];
+        if (def && def.sheet === sheet && def.formaSize >= 4) return perMachine * def.formaSize;
+        var ups = upsOn(size, machineDims(sheet));
+        return ups ? perMachine * ups * 2 : perMachine * formaSize;
+    }
 
     // Press impressions are billed per 1,000 with a 1,000 minimum per pass (Bangladesh offset standard).
     // Returns the raw count in thousands (before the minimum) for a press row.
@@ -680,7 +711,6 @@
 
     function auto(r, j) {
         var q = j.q;
-        var platesMult = (j.plateMethod === 'sheetwise') ? 2 : 1;
 
         switch (r.auto) {
             case 'one': return 1;
@@ -688,31 +718,30 @@
             case 'per': return perQty(r, j);
             case 'lam': return q * (r.b === 'Both Sides' ? 2 : 1);
             case 'paperBook': {
-                // Book inner paper: a full stock sheet is cut into 2 machine sheets (2 formas);
-                // a machine (cut) sheet prints 1 forma. 500 sheets = 1 ream.
+                // Inner paper: copies x formas / formas-per-sheet, plus waste.
                 if (!j.formas || q <= 0) return 0;
-                var formasPerSheet = CUT_SHEETS[j.sheet] ? 1 : 2;
-                var totalSheets = (j.formas * q / formasPerSheet) * (1 + num(r.waste) / 100);
-                return round(totalSheets / 500, 2);
+                var perSheet = Math.max(1, Math.floor(pagesPerSheet(j.size, j.sheet, j.formaSize) / j.formaSize + 1e-9));
+                var bookSheets = (j.formas * q / perSheet) * (1 + num(r.waste) / 100);
+                return paperQty(r, bookSheets / SHEETS_PER_REAM);
             }
             case 'sheet': {
                 // Cover board / flat stock: copies x leaves / ups, plus waste.
                 var mult = (!r.flat && j.pages > 0 && TYPES[state.type].pages) ? j.pages : 1;
                 var sheets = (q * mult / sheetUps(r, j)) * (1 + num(r.waste) / 100);
-                return round(sheets / 500, 2);
+                return paperQty(r, sheets / SHEETS_PER_REAM);
             }
             case 'platesBook':
-                return Math.ceil(j.formas) * j.colors * platesMult;
+                return Math.ceil(j.formas) * j.colors * PLATES_PER_FORMA;
             case 'platesLeaf':
-                return leafLayouts(j) * j.colors * (j.sides === 2 ? platesMult : 1);
+                return leafLayouts(j) * j.colors * (j.sides === 2 ? PLATES_PER_FORMA : 1);
             case 'platesCover':
-                // Book cover is standard CMYK; 2 sides doubles it.
+                // Book cover is standard CMYK; "Outside + inside" doubles it.
                 return 4 * ((r.b === 'Both Sides' || j.sides === 2) ? 2 : 1);
             case 'platesJob':
-                return j.colors * (j.sides === 2 ? platesMult : 1);
+                return j.colors * (j.sides === 2 ? PLATES_PER_FORMA : 1);
             case 'pressBook':
                 if (q <= 0) return 0;
-                return round(Math.ceil(j.formas) * Math.max(1, pressRaw(r, j)) * pressSides(j), 3);
+                return round(Math.ceil(j.formas) * Math.max(1, pressRaw(r, j)), 3);
             case 'pressLeaf':
                 if (q <= 0) return 0;
                 return round(leafLayouts(j) * Math.max(1, pressRaw(r, j)) * pressSides(j), 3);
@@ -730,6 +759,12 @@
     ['one', 'copies', 'per', 'lam', 'paperBook', 'sheet', 'platesBook', 'platesLeaf', 'platesCover', 'platesJob',
         'pressBook', 'pressLeaf', 'pressCover', 'pressJob'].forEach(function (k) { VALID_AUTO[k] = 1; });
 
+    // Lines whose own name would only repeat their first dropdown show no name box: the name is
+    // that dropdown's value (Layout Design, 3-Knife Trim, Perfect Binding, ...).
+    var DERIVED_NAME = { Design: 1, Cutting: 1, Binding: 1, Packing: 1, Transport: 1 };
+    function isDerived(r) { return !!DERIVED_NAME[r.g] && !!variants(r).a; }
+    function syncName(r) { if (isDerived(r) && r.a != null && r.a !== '') r.n = String(r.a); }
+
     function newRow(spec) {
         var d = GROUP_DEFAULT[spec.g] || {};
         var r = {
@@ -738,6 +773,8 @@
             flat: !!spec.flat, noSize: !!spec.noSize, spread: !!spec.spread, machineLocked: false,
             a: spec.a !== undefined ? spec.a : d.a, b: spec.b !== undefined ? spec.b : d.b
         };
+        r.unit = spec.unit || defaultPaperUnit(r);
+        syncName(r);
         r.rate = rateFor(r);
         r.touched = false;
         return r;
@@ -749,7 +786,7 @@
             return {
                 g: r.g, n: r.n, on: r.on, auto: r.auto, manual: r.manual, qty: r.manual ? r.qty : undefined,
                 rate: r.rate, touched: r.touched, ups: r.ups, upsManual: r.upsManual, waste: r.waste,
-                flat: r.flat, spread: r.spread, noSize: r.noSize, a: r.a, b: r.b, machineLocked: r.machineLocked
+                flat: r.flat, spread: r.spread, noSize: r.noSize, a: r.a, b: r.b, machineLocked: r.machineLocked, unit: r.unit
             };
         });
     }
@@ -758,11 +795,14 @@
         return list.filter(function (x) { return x && GROUPS.indexOf(x.g) !== -1; }).map(function (x) {
             var r = newRow({
                 g: x.g, n: String(x.n == null ? '' : x.n).slice(0, 80), auto: VALID_AUTO[x.auto] ? x.auto : undefined,
-                a: x.a, b: x.b, waste: x.waste, ups: x.ups, flat: x.flat, spread: x.spread, noSize: x.noSize, off: x.on === false
+                a: x.a, b: x.b, waste: x.waste, ups: x.ups, flat: x.flat, spread: x.spread, noSize: x.noSize, off: x.on === false,
+                // Lines saved before paper had a unit were all priced per ream: keep them exactly as priced.
+                unit: x.unit === 'sheet' ? 'sheet' : 'ream'
             });
             r.upsManual = !!x.upsManual;
             r.machineLocked = !!x.machineLocked;
             if (x.manual && x.qty != null) { r.manual = true; r.qty = num(x.qty); }
+            r.rate = rateFor(r);
             if (x.touched) { r.touched = true; r.rate = num(x.rate); }   // typed rates stay; the rest follow today's rate sheet
             return r;
         });
@@ -810,6 +850,13 @@
         $('pcPagesWrap').hidden = !t.pages;
         if ($('pcFormasField')) $('pcFormasField').hidden = !t.pages || !!t.noForma;
         if ($('pcPagesLbl')) $('pcPagesLbl').textContent = t.leaf ? 'Leaves' : 'Pages';
+        // For a book "Sides" really asks how the cover is printed; flat work prints 1 or 2 sides.
+        if ($('pcSidesLbl') && $('pcSides')) {
+            var cover = isFormaType(type);
+            $('pcSidesLbl').textContent = cover ? 'Cover print' : 'Sides';
+            $('pcSides').options[0].textContent = cover ? 'Outside only (4+0)' : '1 Side';
+            $('pcSides').options[1].textContent = cover ? 'Outside + inside (4+4)' : '2 Sides';
+        }
         var jobCard = $('pcTitleIn') ? $('pcTitleIn').closest('.pc-job') : null;
         if (jobCard) jobCard.classList.toggle('pc-job-no-pages', !t.pages);
         if (!keepJob) {
@@ -901,46 +948,53 @@
             + opts.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(current) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>';
     }
 
+    // The second line of an item: only controls that add information. Lines whose name would just
+    // repeat a dropdown have no name box at all (see isDerived), and paper has one stock box
+    // instead of the same GSM / type three times.
     function specHtml(r) {
         var v = variants(r);
+        var wrap = function (inner) { return '<div class="d-flex align-items-center gap-1.5 flex-wrap w-100 pc-spec-row">' + inner + '</div>'; };
+        var sel = function (cls, spec, cur, flex) { return spec ? '<div style="flex: ' + flex + ';">' + select(cls, spec[0], spec, cur) + '</div>' : ''; };
+
         if (r.g === 'Paper') {
             var list = variantKey(r) === 'PaperCover' ? 'Cover' : 'Inner';
-            var gsmOptsHtml = gsmsFor(r).map(function (g) {
-                return '<option value="' + esc(g) + '"' + (String(g) === String(r.a) ? ' selected' : '') + '>' + esc(g) + ' GSM</option>';
-            }).join('');
-            var typeOptsHtml = kindsFor(r).map(function (k) {
-                return '<option value="' + esc(k) + '"' + (String(k) === String(r.b) ? ' selected' : '') + '>' + esc(k) + '</option>';
-            }).join('');
-
-            return '<div class="d-flex align-items-center gap-1.5 flex-wrap w-100 pc-spec-row">'
-                + '<input class="form-control form-control-sm pc-stock font-monospace" list="pcPaper' + list + '" value="' + esc(stockText(r)) + '" title="Paper" style="flex: 2 1 160px; min-width: 140px;">'
-                + (r.auto === 'sheet' ? '<div class="input-group input-group-sm pc-spec-mini" style="width: 82px;" title="Ups per sheet"><span class="input-group-text px-1 text-muted" style="font-size: 10px;">Ups</span><input type="number" class="form-control form-control-sm pc-ups text-end font-monospace px-1" min="1" step="1" value="' + esc(r.ups) + '"></div>' : '')
-                + '<div class="input-group input-group-sm pc-spec-mini" style="width: 88px;" title="Waste Percentage"><span class="input-group-text px-1 text-muted" style="font-size: 10px;">W%</span><input type="number" class="form-control form-control-sm pc-waste text-end font-monospace px-1" min="0" step="1" value="' + esc(r.waste) + '"></div>'
-                + '<select class="form-select form-select-sm pc-var pc-paper-select pc-a font-monospace" style="width: 95px;" aria-label="GSM" title="GSM">' + gsmOptsHtml + '</select>'
-                + '<select class="form-select form-select-sm pc-var pc-paper-select pc-b" style="flex: 1 1 120px; min-width: 110px;" aria-label="Type" title="Type">' + typeOptsHtml + '</select>'
-                + '</div>';
+            return wrap(
+                '<input class="form-control form-control-sm pc-stock font-monospace" list="pcPaper' + list + '" value="' + esc(stockText(r)) + '" title="GSM and paper kind, e.g. 80 GSM Offwhite" aria-label="Paper" placeholder="e.g. 80 GSM Offwhite" style="flex: 2 1 170px; min-width: 150px;">'
+                + (r.auto === 'sheet' ? '<div class="input-group input-group-sm pc-spec-mini" style="width: 82px;" title="Pieces that fit on one sheet"><span class="input-group-text px-1 text-muted" style="font-size: 10px;">Ups</span><input type="number" class="form-control form-control-sm pc-ups text-end font-monospace px-1" min="1" step="1" value="' + esc(r.ups) + '"></div>' : '')
+                + '<div class="input-group input-group-sm pc-spec-mini" style="width: 88px;" title="Waste percentage"><span class="input-group-text px-1 text-muted" style="font-size: 10px;">W%</span><input type="number" class="form-control form-control-sm pc-waste text-end font-monospace px-1" min="0" step="1" value="' + esc(r.waste) + '"></div>'
+                + '<select class="form-select form-select-sm pc-punit" style="width: 96px;" aria-label="Priced per" title="Quantity and rate are per ream or per sheet">'
+                + '<option value="ream"' + (r.unit === 'sheet' ? '' : ' selected') + '>Ream</option><option value="sheet"' + (r.unit === 'sheet' ? ' selected' : '') + '>Sheet</option></select>'
+            );
         }
-
-        if (r.g === 'Design') {
-            return '<div class="d-flex align-items-center gap-1.5 flex-wrap w-100 pc-spec-row">'
-                + '<div style="flex: 2 1 180px; min-width: 140px;">' + select('pc-a', v.a ? v.a[0] : 'Work', v.a, r.a) + '</div>'
-                + '<div style="flex: 1 1 110px; min-width: 90px;">' + select('pc-b', v.b ? v.b[0] : 'Basis', v.b, r.b) + '</div>'
-                + '</div>';
+        if (r.g === 'Design' || r.g === 'Packing' || r.g === 'Transport') {
+            return wrap(sel('pc-a', v.a, r.a, '2 1 180px') + sel('pc-b', v.b, r.b, '1 1 110px'));
         }
-
-        if (r.g === 'CTP' || r.g === 'Press' || r.g === 'Lamination' || r.g === 'Packing' || r.g === 'Transport') {
-            return '<div class="d-flex align-items-center gap-1.5 flex-wrap w-100 pc-spec-row">'
-                + (v.a ? '<div style="flex: 2 1 180px; min-width: 140px;">' + select('pc-a', v.a[0], v.a, r.a) + '</div>' : '')
-                + (v.b ? '<div style="flex: 1 1 140px; min-width: 100px;">' + select('pc-b', v.b[0], v.b, r.b) + '</div>' : '')
-                + '</div>';
-        }
-
         if (r.g === 'Cutting' || r.g === 'Binding') {
-            return '<div class="d-flex align-items-center gap-1.5 flex-wrap w-100 pc-spec-row">'
-                + (v.a ? '<div style="flex: 1 1 200px; min-width: 150px;">' + select('pc-a', v.a[0], v.a, r.a) + '</div>' : '')
-                + '</div>';
+            return wrap(sel('pc-a', v.a, r.a, '1 1 200px'));
         }
+        if (r.g === 'CTP' || r.g === 'Press') {
+            // Inner / Cover is already in the line name, so only the plate kind / machine is asked.
+            return wrap(sel('pc-a', v.a, r.a, '1 1 200px'));
+        }
+        if (r.g === 'Lamination') {
+            return wrap(sel('pc-a', v.a, r.a, '2 1 180px') + sel('pc-b', v.b, r.b, '1 1 140px'));
+        }
+        return '';
+    }
 
+    // What one rate buys, shown under the rate so nobody types a per-sheet price into a per-ream line.
+    function rateUnitText(r) {
+        switch (r.g) {
+            case 'Paper': return r.unit === 'sheet' ? 'per sheet' : 'per ream';
+            case 'CTP': return 'per plate';
+            case 'Press': return 'per 1,000';
+            case 'Design': return r.b === 'Page' ? 'per page' : 'per job';
+            case 'Packing':
+            case 'Transport': return r.b ? 'per ' + String(r.b).toLowerCase() : '';
+            case 'Lamination':
+            case 'Cutting':
+            case 'Binding': return 'per copy';
+        }
         return '';
     }
 
@@ -963,9 +1017,9 @@
             + '<select class="form-select form-select-sm pc-group-select pc-g" data-id="' + r.id + '" aria-label="Type">' + groupOpts + '</select>'
             + '</td>'
             + '<td class="align-top py-2 col-item-spec">'
-            + '<div class="pc-item-row mb-1.5">'
-            + '<input class="form-control form-control-sm pc-name fw-semibold text-dark" list="pcNames' + r.g + '" value="' + esc(r.n) + '" maxlength="80" aria-label="Item">'
-            + '</div>'
+            + (isDerived(r) ? '' : '<div class="pc-item-row' + (spec ? ' mb-1.5' : '') + '">'
+                + '<input class="form-control form-control-sm pc-name fw-semibold text-dark" list="pcNames' + r.g + '" value="' + esc(r.n) + '" maxlength="80" aria-label="Item">'
+                + '</div>')
             + (spec ? '<div class="pc-spec-wrap">' + spec + '</div>' : '')
             + '</td>'
             + '<td class="text-end align-top pt-2 col-qty">'
@@ -977,7 +1031,7 @@
             + '</td>'
             + '<td class="text-end align-top pt-2 col-rate">'
             + '<input type="number" class="form-control form-control-sm pc-rate text-end font-monospace fw-bold' + (!num(r.rate) && r.on && num(r.qty) > 0 ? ' is-invalid border-danger' : '') + '" min="0" step="any" value="' + (r.rate || '') + '" aria-label="Rate">'
-            + '<div class="d-flex justify-content-end align-items-center mt-1" style="height: 18px;"><button type="button" class="btn btn-xs btn-outline-secondary pc-pin px-1.5 py-0 rounded" style="font-size: 10px; line-height: 16px;" title="Save" hidden>Pin</button></div>'
+            + '<div class="d-flex justify-content-end align-items-center gap-1 mt-1" style="min-height: 18px;"><span class="pc-rate-unit text-muted" style="font-size: 11px; line-height: 18px;">' + rateUnitText(r) + '</span><button type="button" class="btn btn-xs btn-outline-secondary pc-pin px-1.5 py-0 rounded" style="font-size: 10px; line-height: 16px;" title="Save this rate to the rate sheet" hidden>Save</button></div>'
             + '</td>'
             + '<td class="text-end align-top pt-2 col-total pe-2">'
             + '<div class="font-monospace fw-bold fs-6 pc-total text-dark pt-1">' + money(lineTotal(r)) + '</div>'
@@ -998,7 +1052,7 @@
         state.rows.forEach(function (r) {
             if (!r.on) return;
             var q = num(r.qty);
-            if (r.g === 'Paper') t.reams += q;
+            if (r.g === 'Paper') t.reams += reamsOf(r);
             else if (r.g === 'CTP') { t.plates += q; if (/cover/i.test(r.n)) t.coverPlates += q; else t.innerPlates += q; }
             else if (r.g === 'Press') t.imp += q;
         });
@@ -1009,14 +1063,17 @@
     function qtyNote(r, j) {
         var q = num(r.qty);
         if (r.g === 'Paper') {
-            var rm = Math.floor(q + 1e-9);
-            var dis = Math.round((q - rm) * 20);
+            // Always show the other unit too: sheets for a ream line, reams/dista for a sheet line.
+            var reams = reamsOf(r);
+            var rm = Math.floor(reams + 1e-9);
+            var dis = Math.round((reams - rm) * 20);
             var parts = [];
             if (rm > 0) parts.push(rm + ' Ream' + (rm > 1 ? 's' : ''));
             if (dis > 0) parts.push(dis + ' Dista');
-            return fmtInt(q * 500) + ' Sheets' + (parts.length ? '\n' + parts.join(', ') : '');
+            if (r.unit === 'sheet') return parts.length ? '= ' + parts.join(', ') : '';
+            return fmtInt(q * SHEETS_PER_REAM) + ' Sheets' + (parts.length ? '\n' + parts.join(', ') : '');
         }
-        var pm = j.plateMethod === 'sheetwise' ? 2 : 1;
+        var pm = PLATES_PER_FORMA;
         switch (r.auto) {
             case 'platesBook': return Math.ceil(j.formas) + ' formas × ' + j.colors + ' col × ' + pm;
             case 'platesLeaf': return leafLayouts(j) + ' layouts × ' + j.colors + ' col' + (j.sides === 2 ? ' × ' + pm : '');
@@ -1060,6 +1117,9 @@
             var rate = rowEl.querySelector('.pc-rate');
             if (rate && doc.activeElement !== rate) rate.value = r.rate || '';
 
+            var ru = rowEl.querySelector('.pc-rate-unit');
+            if (ru) ru.textContent = rateUnitText(r);
+
             var autoBtn = rowEl.querySelector('.pc-auto');
             if (autoBtn) autoBtn.hidden = !(r.manual && r.auto);
 
@@ -1092,16 +1152,12 @@
         var tot = totals();
         var isPaged = !!TYPES[state.type].pages;
         var formasStr = j.formas ? fmtPages(Math.round(j.formas * 100) / 100) : '0';
-        $('pcFormas').textContent = formasStr;
         // Pages and Formas always mirror each other; fill the quiet one in (never while it is being typed).
         if (isPaged && j.formas > 0) {
             if ($('pcFormasIn') && doc.activeElement !== $('pcFormasIn') && state.geoSrc !== 'formas') $('pcFormasIn').value = formasStr;
             if ($('pcPages') && doc.activeElement !== $('pcPages') && state.geoSrc === 'formas') $('pcPages').value = j.pages || '';
         }
-        $('pcFormasWrap').hidden = !(isPaged && j.pages);
 
-        $('pcUpsWrap').hidden = !(j.ups > 0 && !isPaged);
-        $('pcUps').textContent = String(j.ups);
 
         // Live production strip
         if ($('pcKpiStrip')) {
@@ -1117,7 +1173,7 @@
             var paperRow = state.rows.filter(function (r) { return r.g === 'Paper' && r.on; })[0];
             if ($('pcKpiPaperWaste')) $('pcKpiPaperWaste').textContent = (paperRow ? num(paperRow.waste) : 5) + '% Waste';
 
-            var perForma = j.plateMethod === 'sheetwise' ? 2 : 1;
+            var perForma = PLATES_PER_FORMA;
             if (isPaged && state.type !== 'calendar' && state.type !== 'memo') {
                 if ($('pcKpiFormasLbl')) $('pcKpiFormasLbl').textContent = 'Formas';
                 if ($('pcKpiFormas')) $('pcKpiFormas').textContent = formasStr + ' Formas';
@@ -1185,12 +1241,22 @@
     function byId(id) { return state.rows.filter(function (r) { return String(r.id) === String(id); })[0]; }
 
     // ── Live Specification Generator ────────────────────────────────────────
+    function basisOf(r) {
+        if (r.g === 'Paper') return r.unit === 'sheet' ? 'Sheets' : 'Reams';
+        return BASIS_BN[r.g] || BASIS[r.g];
+    }
+
+    // "Name (detail, detail)", never repeating something the name already says.
     function label(r) {
         var v = variants(r);
         var bits = [];
-        if (v.a && r.a !== undefined && r.a !== '') bits.push(typeof r.a === 'number' ? r.a + ' GSM' : r.a);
-        if (v.b && r.b !== undefined && r.b !== '' && ['Per'].indexOf(v.b[0]) === -1 && ['Side', 'Sides'].indexOf(v.b[0]) === -1) bits.push(r.b);
-        if (r.g === 'Lamination' && r.b === 'Both Sides') bits.push('Both Sides');
+        var add = function (s) {
+            s = String(s);
+            if (s && r.n.toLowerCase().indexOf(s.toLowerCase()) === -1 && bits.indexOf(s) === -1) bits.push(s);
+        };
+        if (v.a && r.a !== undefined && r.a !== '') add(typeof r.a === 'number' ? r.a + ' GSM' : r.a);
+        if (v.b && r.b !== undefined && r.b !== '' && ['Per'].indexOf(v.b[0]) === -1 && ['Side', 'Sides'].indexOf(v.b[0]) === -1) add(r.b);
+        if (r.g === 'Lamination' && r.b === 'Both Sides') add('Both Sides');
         return r.n + (bits.length ? ' (' + bits.join(', ') + ')' : '');
     }
 
@@ -1205,10 +1271,13 @@
             else if (state.type === 'calendar') parts.push('Pages: ' + j.pages);
             else parts.push('Pages: ' + j.pages + ' (' + fmtPages(Math.round(j.formas * 100) / 100) + ' Formas | ' + j.formaSize + 'p Forma, ' + (j.formaSize / 2) + 'p/Plate)');
         }
-        parts.push('Print: ' + j.colors + (j.colors === 1 ? ' Color' : ' Colors') + (j.sides === 2 ? ' (Both Sides)' : ' (1 Side)'));
+        if (isFormaType(state.type)) {
+            parts.push('Inner: ' + j.colors + (j.colors === 1 ? ' Color' : ' Colors') + ' | Cover: 4 Colors' + (j.sides === 2 ? ' (outside + inside)' : ''));
+        } else {
+            parts.push('Print: ' + j.colors + (j.colors === 1 ? ' Color' : ' Colors') + (j.sides === 2 ? ' (Both Sides)' : ' (1 Side)'));
+        }
         var t = totals();
-        var sheetwise = j.plateMethod === 'sheetwise';
-        var pm = sheetwise ? '2 Plates/Forma, Sheetwise' : '1 Plate/Forma, Work & Turn';
+        var pm = PLATES_PER_FORMA + ' Plates/Forma';
         parts.push('Plates: ' + (t.plates > 0 ? fmtInt(t.plates) + ' (' + pm + ')' : pm));
         if (t.imp > 0) parts.push('Press: ' + fmtInt(Math.round(t.imp * 1000)) + ' Impressions');
         return parts;
@@ -1242,7 +1311,7 @@
         GROUPS.forEach(function (g) {
             var items = state.rows.filter(function (r) { return r.g === g && r.on && lineTotal(r) > 0; })
                 .map(function (r) {
-                    var bUnit = BASIS_BN[r.g] || BASIS[r.g];
+                    var bUnit = basisOf(r);
                     return label(r) + ' [' + r.qty + ' ' + bUnit + ' @ ৳' + r.rate + ' = ' + money(lineTotal(r)) + ']';
                 });
             if (items.length) {
@@ -1285,7 +1354,7 @@
                 var gTitle = GROUP_TITLES_BN[g] || g;
                 lines.push('--- ' + gTitle + ' (' + g + ') ---');
                 rows.forEach(function (r) {
-                    var bUnit = BASIS_BN[r.g] || BASIS[r.g];
+                    var bUnit = basisOf(r);
                     lines.push('  • ' + label(r) + ': ' + r.qty + ' ' + bUnit + ' × ৳' + r.rate + ' = ' + money(lineTotal(r)));
                 });
             }
@@ -1354,7 +1423,6 @@
             formaSize: $('pcFormaSize') ? $('pcFormaSize').value : '16',
             colors: $('pcColors') ? $('pcColors').value : '4',
             sides: $('pcSides') ? $('pcSides').value : '1',
-            plateMethod: $('pcPlateMethod') ? $('pcPlateMethod').value : 'work_and_turn',
             size: $('pcSize') ? $('pcSize').value : '',
             sheet: $('pcSheet') ? $('pcSheet').value : '',
             overhead: $('pcOverhead') ? $('pcOverhead').value : '',
@@ -1402,7 +1470,7 @@
         activeRows.forEach(function (r) {
             var gTitle = GROUP_TITLES_BN[r.g] || r.g;
             var itemTitle = jobTitle + ' — ' + gTitle + ': ' + r.n;
-            var specDetail = label(r) + ' (' + r.qty + ' ' + (BASIS_BN[r.g] || BASIS[r.g]) + ' @ ৳' + r.rate + ')';
+            var specDetail = label(r) + ' (' + r.qty + ' ' + basisOf(r) + ' @ ৳' + r.rate + ')';
 
             var itemType = 'Printing & Binding';
             if (r.g === 'Paper') itemType = 'Paper / Raw Materials';
@@ -1486,7 +1554,7 @@
         var s = SHEET[rateKey(r)];
         if (!sheetLoaded || !num(r.rate)) { btn.hidden = true; return; }
         btn.hidden = false;
-        var same = s && Math.abs(s.rate - num(r.rate)) < 0.005;
+        var same = s && Math.abs(s.rate - num(r.rate) * paperUnitFactor(r)) < 0.005;
         btn.textContent = !s ? 'Save' : (same ? 'Saved' : 'Update');
         btn.classList.toggle('btn-success', !!same);
         btn.classList.toggle('btn-outline-secondary', !same);
@@ -1680,6 +1748,9 @@
             syncBookGeometry('formas');
         } else if (t.id === 'pcPages') {
             syncBookGeometry('pages');
+        } else if (t.id === 'pcFormaSize') {
+            syncBookGeometry('formaSize');
+
         }
 
         recalcAuto();
@@ -1714,6 +1785,8 @@
             r.a = (GROUP_DEFAULT[r.g] || {}).a;
             r.b = (GROUP_DEFAULT[r.g] || {}).b;
             r.auto = GROUP_AUTO[r.g];
+            syncName(r);
+            r.unit = defaultPaperUnit(r);
             r.spread = false;
             r.machineLocked = false;
             if (r.g === 'Paper' && state.type === 'book' && /inner/i.test(r.n)) {
@@ -1730,6 +1803,7 @@
             r.n = t.value;
             if (variantKey(r) !== r.vk) {
                 r.a = (GROUP_DEFAULT[r.g] || {}).a;
+                r.unit = defaultPaperUnit(r);
                 r.b = (GROUP_DEFAULT[r.g] || {}).b;
                 r.rate = rateFor(r);
                 r.touched = false;
@@ -1757,10 +1831,20 @@
             }
             return;
         }
+        if (t.classList.contains('pc-punit')) {
+            r.unit = t.value === 'sheet' ? 'sheet' : 'ream';
+            r.rate = rateFor(r);
+            r.touched = false;
+            r.manual = false;
+            render();
+            if (!num(r.rate)) focusRate(r);
+            return;
+        }
         if (t.classList.contains('pc-a') || t.classList.contains('pc-b')) {
             var raw = t.value;
             var key = t.classList.contains('pc-a') ? 'a' : 'b';
             r[key] = (key === 'a' && /^\d+(\.\d+)?$/.test(raw)) ? parseFloat(raw) : raw;
+            if (key === 'a') syncName(r);
             r.rate = rateFor(r);
             r.touched = false;
             r.manual = false;
@@ -1877,13 +1961,6 @@
             }).join('');
         }
 
-        // Forma sizes (pages per forma); setFormaSize() adds any computed custom size on demand.
-        if ($('pcFormaSize')) {
-            $('pcFormaSize').innerHTML = FORMA_SIZES.map(function (n) {
-                return '<option value="' + n + '">' + FORMA_LABELS[n] + '</option>';
-            }).join('');
-        }
-
         // Populate Job Types tab buttons
         if (el.types) {
             el.types.innerHTML = Object.keys(TYPES).map(function (k) {
@@ -1971,6 +2048,7 @@
             if (target && target.focus) target.focus({ preventScroll: true });
         });
 
+        migrateRateMemo();
         buildPaperLists();
         applyType('book');
         loadSheet();
@@ -2061,7 +2139,6 @@
             if (snapshot.sheet !== undefined) setIfOption('pcSheet', snapshot.sheet);
             if (snapshot.colors !== undefined) setIfOption('pcColors', snapshot.colors);
             if (snapshot.sides !== undefined) setIfOption('pcSides', snapshot.sides);
-            if (snapshot.plateMethod !== undefined) setIfOption('pcPlateMethod', snapshot.plateMethod);
             if (snapshot.overhead !== undefined) $('pcOverhead').value = snapshot.overhead;
             if (snapshot.profit !== undefined) $('pcProfit').value = snapshot.profit;
             if (snapshot.round !== undefined) setIfOption('pcRound', snapshot.round);

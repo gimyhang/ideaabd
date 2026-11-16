@@ -194,11 +194,11 @@
 }
 
 #printCostCalculatorModal .pc-f-colors {
-    grid-column: span 3;
+    grid-column: span 6;
 }
 
 #printCostCalculatorModal .pc-f-sides {
-    grid-column: span 3;
+    grid-column: span 6;
 }
 
 #printCostCalculatorModal .pc-f-plates {
