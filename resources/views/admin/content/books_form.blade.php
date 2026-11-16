@@ -705,7 +705,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                         </select>
                     </div>
                     <div class="col-12 col-md-8">
-                        <select id="f-author_link_id" name="author_ids[]" required 
+                        <select id="f-author_link_id" @if($primaryAuthorRole === 'author') name="author_ids[]" @endif required 
                                 class="form-select form-select-md fw-semibold border-primary-subtle shadow-2xs @error('author_names') is-invalid @enderror" 
                                 onchange="onPrimaryAuthorDropdownChange(this)">
                             <option value="">— Select Author / Editor * —</option>
@@ -721,8 +721,8 @@ body.dark-mode .adm-mobile-sticky-bar {
                     </div>
                 </div>
                 <input type="hidden" name="{{ $primaryAuthorRole === 'editor' ? 'editor_names[]' : ($primaryAuthorRole === 'translator' ? 'translator_names[]' : 'author_names[]') }}" id="f-primary_author_name" value="{{ $primaryAuthName }}">
-                <input type="hidden" name="author_names_en[]" id="f-primary_author_name_en" value="{{ $primaryAuthEn }}">
-                <input type="hidden" name="author_link_id" id="f-author_link_id_backup" value="{{ $primaryAuthId }}">
+                <input type="hidden" @if($primaryAuthorRole === 'author') name="author_names_en[]" @endif id="f-primary_author_name_en" value="{{ $primaryAuthEn }}">
+                <input type="hidden" @if($primaryAuthorRole === 'author') name="author_link_id" @endif id="f-author_link_id_backup" value="{{ $primaryAuthId }}">
                 @error('author_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 @error('author_ids')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
@@ -1951,9 +1951,22 @@ body.dark-mode .adm-mobile-sticky-bar {
 
     window.onPrimaryRoleChange = function(select) {
         const primaryName = document.getElementById('f-primary_author_name');
-        if (!primaryName) return;
+        const primaryNameEn = document.getElementById('f-primary_author_name_en');
+        const primarySelect = document.getElementById('f-author_link_id');
+        const primaryBackup = document.getElementById('f-author_link_id_backup');
         const role = select.value;
-        primaryName.name = role === 'editor' ? 'editor_names[]' : (role === 'translator' ? 'translator_names[]' : 'author_names[]');
+
+        if (role === 'author') {
+            if (primarySelect) primarySelect.name = 'author_ids[]';
+            if (primaryName) primaryName.name = 'author_names[]';
+            if (primaryNameEn) primaryNameEn.name = 'author_names_en[]';
+            if (primaryBackup) primaryBackup.name = 'author_link_id';
+        } else {
+            if (primarySelect) primarySelect.removeAttribute('name');
+            if (primaryNameEn) primaryNameEn.removeAttribute('name');
+            if (primaryBackup) primaryBackup.removeAttribute('name');
+            if (primaryName) primaryName.name = role === 'editor' ? 'editor_names[]' : 'translator_names[]';
+        }
         updateContributorSummary();
     };
 
@@ -1962,7 +1975,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         if (!row) return;
         const role = select.value;
         const dirSelect = row.querySelector('.author-directory-select');
-        const bnInput = row.querySelector('input[type="text"]:first-of-type') || row.querySelector('.contributor-col-bn input');
+        const bnInput = row.querySelector('.contributor-col-bn input');
         const enInput = row.querySelector('.contributor-col-en input');
 
         row.classList.remove('author-field-row', 'translator-field-row', 'editor-field-row', 'rewriter-field-row', 'cover-field-row');
