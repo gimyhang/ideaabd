@@ -56,7 +56,9 @@
 /* ── Table polish ── */
 .adm-books-table thead th { text-transform: uppercase; letter-spacing: .04em; font-size: 11px !important; }
 .adm-books-table tbody tr:nth-child(even) td { background: #fbfdff; }
-.adm-books-table tbody td { padding-top: 12px; padding-bottom: 12px; }
+.adm-books-table tbody tr:hover td,
+.adm-books-table tbody tr:hover td.adm-sticky-action-col { background: #f8fafc !important; }
+.adm-books-table tbody td { padding-top: 10px; padding-bottom: 10px; }
 .adm-books-table .btn-sm.btn-primary { min-height: 34px; padding: .25rem .9rem; }
 .adm-books-table .adm-icon-action-btn { width: 34px !important; height: 34px !important; }
 

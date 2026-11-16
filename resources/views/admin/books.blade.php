@@ -115,15 +115,15 @@
             <div class="bk-chips" role="group" aria-label="Quick filters">
                 @php
                     $chips = [
-                        ['All',      [],                                          !request()->hasAny(['stock', 'discount_only', 'is_active', 'mod_status', 'publisher_id'])],
-                        ['Live',     ['is_active' => '1'],                        request('is_active') === '1'],
-                        ['Draft',    ['is_active' => '0'],                        request('is_active') === '0'],
-                        ['Pending',  ['mod_status' => 'pending'],                 request('mod_status') === 'pending'],
-                        ['Low',      ['stock' => 'low'],                          request('stock') === 'low'],
-                        ['Out',      ['stock' => 'out'],                          request('stock') === 'out'],
-                        ['Discount', ['discount_only' => '1'],                    request()->boolean('discount_only')],
+                        ['All',      [],                          !request()->hasAny(['stock', 'discount_only', 'is_active', 'mod_status'])],
+                        ['Live',     ['is_active' => '1'],        request('is_active') === '1'],
+                        ['Draft',    ['is_active' => '0'],        request('is_active') === '0'],
+                        ['Pending',  ['mod_status' => 'pending'], request('mod_status') === 'pending'],
+                        ['Low',      ['stock' => 'low'],          request('stock') === 'low'],
+                        ['Out',      ['stock' => 'out'],          request('stock') === 'out'],
+                        ['Discount', ['discount_only' => '1'],    request()->boolean('discount_only')],
                     ];
-                    $chipKeep = request()->only(['search', 'sort', 'per_page']);
+                    $chipKeep = request()->only(['search', 'sort', 'per_page', 'category_id', 'author_id', 'publisher_id']);
                 @endphp
                 @foreach($chips as [$cLabel, $cParams, $cActive])
                     <a href="{{ route('admin.books', array_merge($chipKeep, $cParams)) }}" class="bk-chip {{ $cActive ? 'is-active' : '' }}">{{ $cLabel }}</a>
@@ -468,21 +468,21 @@
         </div>
 
         <div class="adm-books-table-wrapper" id="adminBooksTableWrapper">
-            <table class="table adm-books-table align-middle mb-0" id="adminBooksTable" style="min-width: 1160px;">
+            <table class="table adm-books-table align-middle mb-0" id="adminBooksTable" style="width: 100%; min-width: 980px;">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-3" style="width: 40px;">#</th>
-                        <th style="min-width: 195px;">Book</th>
-                        <th style="min-width: 90px;">Edition</th>
-                        <th style="min-width: 125px;">Author</th>
-                        <th style="min-width: 85px;">Category</th>
-                        <th class="text-end" style="min-width: 82px;">Paper</th>
-                        <th class="text-end" style="min-width: 82px;">Hard</th>
-                        <th class="text-end" style="min-width: 85px;">Cost</th>
-                        <th class="text-center" style="min-width: 75px;">Stock</th>
-                        <th class="text-center" style="min-width: 110px;">Review</th>
-                        <th class="text-center" style="min-width: 55px;">Live</th>
-                        <th class="text-end pe-3 adm-sticky-action-col" style="min-width: 175px;">Actions</th>
+                        <th class="ps-3" style="width: 42px;">#</th>
+                        <th style="min-width: 220px;">Book</th>
+                        <th style="width: 110px;">Edition</th>
+                        <th style="min-width: 150px;">Author</th>
+                        <th style="width: 110px;">Category</th>
+                        <th class="text-end" style="width: 88px;">Paper</th>
+                        <th class="text-end" style="width: 88px;">Hard</th>
+                        <th class="text-end" style="width: 88px;">Cost</th>
+                        <th class="text-center" style="width: 86px;">Stock</th>
+                        <th class="text-center" style="width: 120px;">Review</th>
+                        <th class="text-center" style="width: 60px;">Live</th>
+                        <th class="text-end pe-3 adm-sticky-action-col" style="width: 195px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -559,7 +559,7 @@
                                             <i class="fa-solid fa-camera"></i>
                                         </span>
                                     </div>
-                                    <div class="overflow-hidden" style="max-width: 210px;">
+                                    <div class="overflow-hidden" style="min-width: 0; flex: 1; max-width: 260px;">
                                         <a href="{{ route('admin.content.edit', ['type' => 'books', 'id' => $book->id]) }}" 
                                            class="fw-bold text-dark text-decoration-none hover-primary d-block text-truncate mb-0.5" title="{{ $book->title }}" id="bookTitleDisplay_{{ $book->id }}">
                                             {{ $book->title }}
@@ -600,7 +600,7 @@
                             </td>
 
                             <td>
-                                <div class="fw-semibold text-dark small mb-0.5 text-truncate" style="max-width: 140px;">
+                                <div class="fw-semibold text-dark small mb-0.5 text-truncate" style="max-width: 180px;">
                                     @if($book->authorLink)
                                         <a href="{{ route('admin.books', ['author_id' => $book->authorLink->id]) }}" class="text-decoration-none text-primary hover-underline">
                                             {{ $book->authorLink->name }}
@@ -615,7 +615,7 @@
                                         <span class="text-dark">{{ $book->author_name ?? '—' }}</span>
                                     @endif
                                 </div>
-                                <div class="small text-muted text-truncate" style="font-size: 11px; max-width: 140px;">
+                                <div class="small text-muted text-truncate" style="font-size: 11px; max-width: 180px;">
                                     @if($book->publisher)
                                         <a href="{{ route('admin.publishers.show', $book->publisher->id) }}" class="text-decoration-none text-dark fw-semibold hover-primary" title="View Publisher: {{ $book->publisher->name }}">
                                             {{ $book->publisher->name }}
@@ -748,7 +748,7 @@
                                 @else
                                     <div class="dropdown d-inline-block">
                                         <button type="button" class="btn btn-sm btn-light border border-success-subtle text-success rounded-pill px-2.5 py-0.5 fw-semibold dropdown-toggle shadow-2xs" 
-                                                data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 11px;">
+                                                data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" style="font-size: 11px;">
                                             <i class="fa-solid fa-circle-check text-success me-1"></i> Approved
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 py-1" style="font-size: 12px; min-width: 165px;">
@@ -771,28 +771,6 @@
 
                             <td class="text-end pe-3 adm-sticky-action-col">
                                 <div class="d-inline-flex align-items-center justify-content-end gap-1.5" id="bookActionBtns_{{ $book->id }}">
-                                    {{-- Registered Publisher / Contributor Book Approval Actions --}}
-                                    @if($book->mod_status === 'pending')
-                                        <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1 shadow-sm fw-bold btn-approve-action" 
-                                                style="font-size: 11.5px; background: linear-gradient(135deg, #10b981, #059669); border: none;"
-                                                onclick="ajaxApproveBook({{ $book->id }})" title="Approve Book & Make Live in Shop">
-                                            <i class="fa-solid fa-circle-check"></i>
-                                            <span>Approve</span>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-light border border-danger-subtle text-danger rounded-circle shadow-xs btn-reject-action" 
-                                                style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
-                                                onclick="openBookRejectModal({{ $book->id }})" title="Reject / Request Revision">
-                                            <i class="fa-solid fa-xmark" style="font-size: 11px;"></i>
-                                        </button>
-                                    @elseif($book->mod_status === 'rejected')
-                                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2 py-1 d-inline-flex align-items-center gap-1 shadow-xs fw-semibold btn-approve-action" 
-                                                style="font-size: 11px;"
-                                                onclick="ajaxApproveBook({{ $book->id }})" title="Re-approve Book">
-                                            <i class="fa-solid fa-circle-check"></i>
-                                            <span>Approve</span>
-                                        </button>
-                                    @endif
-
                                     {{-- Primary Action: Quick Edit --}}
                                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1 shadow-xs fw-semibold adm-action-btn" 
                                             style="background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; font-size: 11.5px;"
@@ -802,8 +780,7 @@
 
                                     {{-- Full Details Edit (Page) --}}
                                     <a href="{{ route('admin.content.edit', ['type' => 'books', 'id' => $book->id]) }}" 
-                                       class="btn btn-sm btn-light border rounded-circle shadow-xs adm-icon-action-btn" 
-                                       style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" 
+                                       class="btn btn-sm btn-light border rounded-circle shadow-xs adm-icon-action-btn d-inline-flex align-items-center justify-content-center p-0" 
                                        title="Full Details Edit">
                                         <i class="fa-solid fa-pen-to-square" style="font-size: 11px;"></i>
                                     </a>
@@ -811,23 +788,20 @@
                                     {{-- View on Live Store --}}
                                     @if($book->slug)
                                         <a href="{{ route('book.show', $book->slug) }}" target="_blank" rel="noopener" 
-                                           class="btn btn-sm btn-light border text-info rounded-circle shadow-xs adm-icon-action-btn" 
-                                           style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" 
+                                           class="btn btn-sm btn-light border text-info rounded-circle shadow-xs adm-icon-action-btn d-inline-flex align-items-center justify-content-center p-0" 
                                            title="View Live in Shop">
                                             <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px;"></i>
                                         </a>
                                     @endif
 
                                     {{-- Barcode & QR Code Action --}}
-                                    <button type="button" class="btn btn-sm btn-light border text-dark rounded-circle shadow-xs adm-icon-action-btn" 
-                                            style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" 
+                                    <button type="button" class="btn btn-sm btn-light border text-dark rounded-circle shadow-xs adm-icon-action-btn d-inline-flex align-items-center justify-content-center p-0" 
                                             onclick="openBarcodeModal({{ $book->id }})" title="View Barcode & QR Code">
                                         <i class="fa-solid fa-barcode" style="font-size: 11px;"></i>
                                     </button>
 
                                     {{-- Delete Action --}}
-                                    <button type="button" class="btn btn-sm btn-light border text-danger rounded-circle shadow-xs adm-icon-action-btn btn-delete-book" 
-                                            style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" 
+                                    <button type="button" class="btn btn-sm btn-light border text-danger rounded-circle shadow-xs adm-icon-action-btn btn-delete-book d-inline-flex align-items-center justify-content-center p-0" 
                                             onclick="confirmDeleteBook({{ $book->id }})" 
                                             title="Delete Book">
                                         <i class="fa-solid fa-trash-can" style="font-size: 11px;"></i>
@@ -863,7 +837,7 @@
 
         {{-- Always-Visible Bottom Horizontal Scroll Sync Bar --}}
         <div class="adm-scroll-sync-bar" id="adminBooksScrollSyncBar" onscroll="syncTableScrollFromBar(this)">
-            <div style="width: 1400px; height: 1px;"></div>
+            <div id="adminBooksScrollSyncInner" style="width: 100%; height: 1px;"></div>
         </div>
 
         {{-- Pagination --}}
@@ -1958,6 +1932,29 @@ function syncTableScrollFromBar(bar) {
         wrapper.scrollLeft = bar.scrollLeft;
     }
 }
+
+function syncAdminBooksScrollBarWidth() {
+    const wrapper = document.getElementById('adminBooksTableWrapper');
+    const table = document.getElementById('adminBooksTable');
+    const bar = document.getElementById('adminBooksScrollSyncBar');
+    const inner = document.getElementById('adminBooksScrollSyncInner');
+    if (!wrapper || !table || !bar || !inner) return;
+    const needsScroll = table.scrollWidth > wrapper.clientWidth + 2;
+    bar.style.display = needsScroll ? 'block' : 'none';
+    inner.style.width = table.scrollWidth + 'px';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const wrapper = document.getElementById('adminBooksTableWrapper');
+    const bar = document.getElementById('adminBooksScrollSyncBar');
+    if (wrapper && bar) {
+        wrapper.addEventListener('scroll', () => { bar.scrollLeft = wrapper.scrollLeft; }, { passive: true });
+        if (typeof ResizeObserver !== 'undefined') {
+            new ResizeObserver(syncAdminBooksScrollBarWidth).observe(wrapper);
+        }
+        syncAdminBooksScrollBarWidth();
+    }
+});
 
 // 1-Click Instant AJAX Book Approval
 async function ajaxApproveBook(bookId) {
