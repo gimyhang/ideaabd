@@ -1476,69 +1476,108 @@ body.dark-mode .adm-mobile-sticky-bar {
         </div>
 
         {{-- SECTION 6: BARCODE & QR CODE --}}
-        <div class="a4-doc-section" id="sec-barcode">
-            <div class="a4-doc-section-title">
-                Barcode &amp; QR
+        @php
+            $bcIn = [
+                'sku'     => $val('sku'),
+                'isbn'    => $val('isbn'),
+                'serial'  => $val('idea_serial_no'),
+                'slug'    => $val('slug') ?: ($record->slug ?? ''),
+                'book_id' => $record->id ?? null,
+            ];
+            $bc = \App\Services\BarcodeService::buildCodes($bcIn);
+            $bcFormatNames = ['code128' => 'Code 128', 'ean13' => 'EAN-13'];
+        @endphp
+        <style>
+            #sec-barcode .bc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+            @media (max-width: 991.98px) { #sec-barcode .bc-grid { grid-template-columns: minmax(0, 1fr); } }
+            #sec-barcode .bc-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+            #sec-barcode .bc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; }
+            #sec-barcode .bc-title { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #334155; }
+            #sec-barcode .bc-pill { font-size: 11px; font-weight: 600; color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 999px; padding: 1px 9px; }
+            #sec-barcode .bc-pill:empty { display: none; }
+            #sec-barcode .bc-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+            #sec-barcode .bc-controls label { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .04em; margin: 0; }
+            #sec-barcode .bc-controls select { width: auto; min-width: 210px; max-width: 100%; padding-right: 2rem; font-size: 12px; }
+            #sec-barcode .bc-stage { background: #fff; border: 1px dashed #cbd5e1; border-radius: 10px; min-height: 150px; display: flex; align-items: center; justify-content: center; padding: 10px; transition: opacity .15s ease; }
+            #sec-barcode .bc-stage svg { display: block; width: 100%; height: auto; max-height: 190px; }
+            #sec-barcode .bc-stage.is-qr svg { width: auto; height: 100%; max-width: 100%; max-height: 190px; aspect-ratio: 1; }
+            #sec-barcode .bc-stage.is-loading { opacity: .55; }
+            #sec-barcode .bc-stage:empty::before { content: 'Nothing to show yet'; font-size: 12px; color: #94a3b8; }
+            #sec-barcode .bc-value { font-family: Consolas, Menlo, Monaco, monospace; font-size: 12px; font-weight: 700; color: #0f172a; overflow-wrap: anywhere; }
+            #sec-barcode .bc-sub { font-size: 11px; color: #64748b; overflow-wrap: anywhere; }
+            #sec-barcode .bc-warn { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+            #sec-barcode .bc-warn:empty { display: none; }
+            #sec-barcode .bc-warn li { font-size: 11px; line-height: 1.4; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 4px 8px; }
+            #sec-barcode .bc-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+            #sec-barcode .bc-actions .btn { font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 8px; }
+            #sec-barcode .bc-status { font-size: 11px; color: #64748b; min-height: 16px; }
+            #sec-barcode .bc-status.is-error { color: #b91c1c; }
+        </style>
+        <div class="a4-doc-section" id="sec-barcode"
+             data-codes-url="{{ route('admin.books.code-preview') }}"
+             data-book-id="{{ $record->id ?? '' }}">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="a4-doc-section-title mb-0">Barcode &amp; QR</div>
+                <span class="bc-status" id="bcStatus" role="status" aria-live="polite"></span>
             </div>
 
-            <div class="p-3 bg-light rounded-3 border">
-                <div class="row g-2.5 align-items-stretch">
-                    {{-- 1. Code-128 Barcode --}}
-                    <div class="col-12 col-md-5">
-                        <div class="bg-white p-2.5 rounded-3 border text-center shadow-2xs h-100 d-flex flex-column justify-content-between" id="barcodePreviewBox" style="min-height: 95px;">
-                            <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
-                                <span class="small text-dark fw-bold" style="font-size: 11px;">Barcode</span>
-                                <button type="button" class="btn btn-xs btn-outline-dark rounded-pill px-2 py-0 fw-semibold" style="font-size: 10px;" onclick="downloadBarcodeGraphic()" title="Download Barcode PNG">
-                                    <i class="fa-solid fa-download me-1"></i> Download
-                                </button>
-                            </div>
-                            <div id="barcodeSvgContainer" class="d-flex justify-content-center align-items-center flex-grow-1 py-1">
-                                @php
-                                    $initialCode = $val('sku') ?: ($val('isbn') ?: ($val('idea_serial_no') ?: 'IP-' . ($record->id ?? 'NEW')));
-                                @endphp
-                                {!! \App\Services\BarcodeService::generateCode128Svg((string)$initialCode, 42, 1.8, true) !!}
-                            </div>
-                        </div>
+            <div class="bc-grid">
+                {{-- 1. Barcode (Code 128, or EAN-13 when the ISBN is chosen) --}}
+                <div class="bc-card" id="bcBarcodeCard" data-value="{{ $bc['barcode']['value'] }}" data-format="{{ $bc['barcode']['format'] }}">
+                    <div class="bc-head">
+                        <span class="bc-title">Barcode</span>
+                        <span class="bc-pill" id="bcFormatPill">{{ $bcFormatNames[$bc['barcode']['format']] ?? '' }}</span>
                     </div>
+                    <div class="bc-controls">
+                        <label for="bc-source">Encode</label>
+                        <select id="bc-source" class="form-select form-select-sm" onchange="refreshBookCodes(true)">
+                            <option value="auto">Auto (SKU, ISBN, Serial)</option>
+                            <option value="sku">SKU</option>
+                            <option value="isbn">ISBN (EAN-13)</option>
+                            <option value="serial">Serial</option>
+                        </select>
+                    </div>
+                    <div class="bc-stage" id="barcodeSvgContainer">{!! $bc['barcode']['svg'] !!}</div>
+                    <div class="bc-value" id="barcodeValueLabel">{{ $bc['barcode']['value'] }}</div>
+                    <ul class="bc-warn" id="bcBarcodeWarnings">
+                        @foreach ($bc['barcode']['warnings'] as $w)<li>{{ $w }}</li>@endforeach
+                    </ul>
+                    <div class="bc-actions">
+                        <button type="button" class="btn btn-sm btn-dark" id="bcBarcodePng" onclick="downloadBookCode('barcode', 'png')" @disabled(!$bc['barcode']['svg'])>Download PNG</button>
+                        <button type="button" class="btn btn-sm btn-outline-dark" id="bcBarcodeSvg" onclick="downloadBookCode('barcode', 'svg')" @disabled(!$bc['barcode']['svg'])>Download SVG</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="bcBarcodeCopy" onclick="copyBookCode('barcode', this)" @disabled(!$bc['barcode']['svg'])>Copy value</button>
+                    </div>
+                </div>
 
-                    {{-- 2. Scannable QR --}}
-                    <div class="col-12 col-md-7">
-                        @php
-                            $initSerial = $val('idea_serial_no') ?: ($val('sku') ?: '');
-                            $initIsbn = $val('isbn') ?: '';
-                            $initSlug = $val('slug') ?: ($record->slug ?? ($record->id ?? ''));
-                            $initialQrPayload = \App\Services\BarcodeService::buildBookQrPayload($initSlug, $initSerial, $initIsbn, $record->id ?? null);
-                        @endphp
-                        <div class="bg-white p-2.5 rounded-3 border h-100 d-flex flex-column justify-content-between shadow-2xs">
-                            <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1 border-bottom">
-                                <span class="small text-dark fw-bold" style="font-size: 11px;">QR Code</span>
-                                <div class="d-flex align-items-center gap-1.5">
-                                    <button type="button" class="btn btn-xs btn-outline-dark rounded-pill px-2 py-0 fw-semibold" style="font-size: 10px;" onclick="downloadSmartQrGraphic()" title="Download QR PNG">
-                                        <i class="fa-solid fa-download me-1"></i> Download
-                                    </button>
-                                    <a id="qrTestLink" href="{{ $initialQrPayload }}" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0 fw-semibold" style="font-size: 10px;" title="Open Product Link">
-                                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Open
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div class="d-flex align-items-center gap-3 my-1">
-                                <div id="qrSvgContainer" class="flex-shrink-0 bg-white p-1 rounded-2 border shadow-2xs d-flex align-items-center justify-content-center" style="width: 82px; height: 82px;">
-                                    {!! \App\Services\BarcodeService::generateQrCodeSvg($initialQrPayload, 74) !!}
-                                </div>
-                                <div class="overflow-hidden" style="min-width: 0;">
-                                    <div class="fw-bold text-dark font-monospace text-truncate mb-0.5" style="font-size: 12px;" id="qrCodeLabel">
-                                        {{ $initSerial ?: 'IP001' }}
-                                    </div>
-                                    <div class="text-muted small text-truncate mb-1" style="font-size: 11px;" id="qrIsbnLabel">
-                                        ISBN: {{ $initIsbn ?: '—' }}
-                                    </div>
-                                    <div class="small text-primary font-monospace text-truncate" style="font-size: 10.5px;" id="qrTargetUrlText" title="{{ $initialQrPayload }}">
-                                        {{ $initialQrPayload }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                {{-- 2. QR code (always a real, scannable symbol rendered on the server) --}}
+                <div class="bc-card" id="bcQrCard" data-payload="{{ $bc['qr']['payload'] }}">
+                    <div class="bc-head">
+                        <span class="bc-title">QR Code</span>
+                        <span class="bc-pill" id="bcQrPill">{{ $bc['qr']['modules'] ? $bc['qr']['modules'] . '×' . $bc['qr']['modules'] : '' }}</span>
+                    </div>
+                    <div class="bc-controls">
+                        <label for="bc-ecc">Error correction</label>
+                        <select id="bc-ecc" class="form-select form-select-sm" onchange="refreshBookCodes(true)">
+                            <option value="L">Low (7%)</option>
+                            <option value="M" selected>Medium (15%)</option>
+                            <option value="Q">Quartile (25%)</option>
+                            <option value="H">High (30%)</option>
+                        </select>
+                    </div>
+                    <div class="bc-stage is-qr" id="qrSvgContainer">{!! $bc['qr']['svg'] !!}</div>
+                    <div>
+                        <div class="bc-value" id="qrCodeLabel">{{ trim((string) $val('idea_serial_no')) ?: (trim((string) $val('sku')) ?: '') }}</div>
+                        <div class="bc-sub" id="qrIsbnLabel">ISBN: {{ trim((string) $val('isbn')) ?: '—' }}</div>
+                        <div class="bc-sub" id="qrTargetUrlText" title="{{ $bc['qr']['payload'] }}">{{ $bc['qr']['payload'] }}</div>
+                    </div>
+                    <ul class="bc-warn" id="bcQrWarnings">
+                        @foreach ($bc['qr']['warnings'] as $w)<li>{{ $w }}</li>@endforeach
+                    </ul>
+                    <div class="bc-actions">
+                        <button type="button" class="btn btn-sm btn-dark" id="bcQrPng" onclick="downloadBookCode('qr', 'png')" @disabled(!$bc['qr']['svg'])>Download PNG</button>
+                        <button type="button" class="btn btn-sm btn-outline-dark" id="bcQrSvg" onclick="downloadBookCode('qr', 'svg')" @disabled(!$bc['qr']['svg'])>Download SVG</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="bcQrCopy" onclick="copyBookCode('qr', this)">Copy link</button>
+                        <a id="qrTestLink" href="{{ $bc['qr']['payload'] }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">Open link</a>
                     </div>
                 </div>
             </div>
@@ -2684,248 +2723,236 @@ body.dark-mode .adm-mobile-sticky-bar {
             });
     };
 
-    window.updateLiveQrCodePreview = function() {
-        const serial = (document.getElementById('f-idea_serial_no')?.value || document.getElementById('f-sku')?.value || '').trim();
-        const isbn = (document.getElementById('f-isbn')?.value || '').trim();
-        const slug = (document.getElementById('f-slug')?.value || '').trim();
-        const baseUrl = window.location.origin;
-        
-        let path = slug ? '/books/' + encodeURIComponent(slug) : '/books';
-        const params = [];
-        if (serial) params.push('serial=' + encodeURIComponent(serial));
-        if (isbn) params.push('isbn=' + encodeURIComponent(isbn));
-        const finalUrl = baseUrl + path + (params.length ? '?' + params.join('&') : '');
-
-        const qrLink = document.getElementById('qrTestLink');
-        const qrUrlText = document.getElementById('qrTargetUrlText');
-        const qrSerialLabel = document.getElementById('qrCodeLabel');
-        const qrIsbnLabel = document.getElementById('qrIsbnLabel');
-
-        if (qrLink) {
-            qrLink.href = finalUrl;
-        }
-        if (qrUrlText) {
-            qrUrlText.textContent = finalUrl;
-            qrUrlText.title = finalUrl;
-        }
-        if (qrSerialLabel) {
-            qrSerialLabel.textContent = serial || 'IP001';
-        }
-        if (qrIsbnLabel) {
-            qrIsbnLabel.textContent = 'ISBN: ' + (isbn || '—');
-        }
-
-        // Live draw high-contrast QR Matrix into SVG container
-        const qrContainer = document.getElementById('qrSvgContainer');
-        if (qrContainer) {
-            const qrMatrix = generateQuickQrMatrix(finalUrl);
-            const size = 78;
-            const cells = qrMatrix.length;
-            const cellSize = (size / cells).toFixed(2);
-            let rects = '';
-            for (let r = 0; r < cells; r++) {
-                for (let c = 0; c < cells; c++) {
-                    if (qrMatrix[r][c]) {
-                        rects += '<rect x="' + (c * cellSize) + '" y="' + (r * cellSize) + '" width="' + (cellSize) + '" height="' + (cellSize) + '" fill="#0f172a" />';
-                    }
-                }
-            }
-            qrContainer.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + size + ' ' + size + '" width="100%" height="100%" style="background:#ffffff; border-radius:4px;">' + rects + '</svg>';
-        }
-    };
-
-    function generateQuickQrMatrix(text) {
-        // High quality pseudo-QR matrix generator with finder patterns
-        const n = 25;
-        const grid = Array.from({length: n}, () => Array(n).fill(0));
-        function drawFinder(sr, sc) {
-            for (let r = 0; r < 7; r++) {
-                for (let c = 0; c < 7; c++) {
-                    if (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4)) {
-                        grid[sr + r][sc + c] = 1;
-                    }
-                }
-            }
-        }
-        drawFinder(0, 0);
-        drawFinder(0, n - 7);
-        drawFinder(n - 7, 0);
-        for (let i = 8; i < n - 8; i++) {
-            grid[6][i] = (i % 2 === 0) ? 1 : 0;
-            grid[i][6] = (i % 2 === 0) ? 1 : 0;
-        }
-        let hash = 0;
-        for (let i = 0; i < text.length; i++) {
-            hash = ((hash << 5) - hash) + text.charCodeAt(i);
-            hash |= 0;
-        }
-        for (let r = 0; r < n; r++) {
-            for (let c = 0; c < n; c++) {
-                if (grid[r][c] === 0) {
-                    if ((r < 8 && c < 8) || (r < 8 && c >= n - 8) || (r >= n - 8 && c < 8)) continue;
-                    const v = Math.abs(Math.sin((r * 13 + c * 17 + hash) * 0.12));
-                    grid[r][c] = (v > 0.45) ? 1 : 0;
-                }
-            }
-        }
-        return grid;
-    }
-
-    window.updateLiveBarcodePreview = function(code) {
-        const sku = document.getElementById('f-sku')?.value;
-        const isbn = document.getElementById('f-isbn')?.value;
-        const ideaSerial = document.getElementById('f-idea_serial_no')?.value;
-        const cleanCode = (code || sku || isbn || ideaSerial || 'IP001').trim();
-        
-        const bLabel = document.getElementById('barcodeValueLabel');
-        if (bLabel) {
-            bLabel.textContent = cleanCode;
-        }
-
-        const container = document.getElementById('barcodeSvgContainer');
-        if (!container) return;
-
-        let bars = '';
-        let x = 20;
-        for (let i = 0; i < cleanCode.length; i++) {
-            const charCode = cleanCode.charCodeAt(i);
-            const w1 = ((charCode % 3) + 1.2) * 1.5;
-            const w2 = (((charCode >> 1) % 3) + 1) * 1.5;
-            bars += `<rect x="${x}" y="4" width="${w1.toFixed(1)}" height="42" fill="#0f172a" />`;
-            x += w1 + ((charCode % 2) + 1.2) * 1.5;
-            bars += `<rect x="${x}" y="4" width="${w2.toFixed(1)}" height="42" fill="#0f172a" />`;
-            x += w2 + 2;
-        }
-        
-        container.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${Math.max(x + 20, 180)} 62" width="100%" height="100%" style="background:#ffffff; border-radius:4px; max-width:240px; display:inline-block; vertical-align:middle;">
-            ${bars}
-            <text x="50%" y="58" text-anchor="middle" font-family="Consolas, Monaco, monospace" font-size="11" font-weight="700" fill="#0f172a" letter-spacing="1">${cleanCode}</text>
-        </svg>`;
-    };
-
     // ══════════════════════════════════════════════════════════════════════════
-    // BARCODE & SMART QR DOWNLOAD FUNCTIONS
+    // BARCODE & QR: server-rendered, always scannable, downloadable as PNG / SVG
+    // The server (BarcodeService) draws the symbols; this block only asks for them
+    // while typing and turns the current SVG into a file.
     // ══════════════════════════════════════════════════════════════════════════
-    window.downloadBarcodeGraphic = function() {
-        const container = document.getElementById('barcodeSvgContainer');
-        const svg = container ? container.querySelector('svg') : null;
-        if (!svg) {
-            alert('Barcode graphic is not available yet.');
-            return;
+    (function () {
+        const $id = (id) => document.getElementById(id);
+        const state = { timer: null, ctrl: null, seq: 0 };
+        const FORMAT_NAMES = { code128: 'Code 128', ean13: 'EAN-13' };
+        const PNG_TARGET = { barcode: 1200, qr: 1024 };  // pixels wide; rounded up to whole pixels per module
+        const SVG_SCALE = { barcode: 1.5, qr: 4 };       // px per module for the standalone .svg file
+
+        function readInputs() {
+            const section = $id('sec-barcode');
+            return {
+                sku: ($id('f-sku')?.value || '').trim(),
+                isbn: ($id('f-isbn')?.value || '').trim(),
+                serial: ($id('f-idea_serial_no')?.value || '').trim(),
+                slug: ($id('f-slug')?.value || '').trim(),
+                book_id: section?.dataset.bookId || '',
+                source: $id('bc-source')?.value || 'auto',
+                ecc: $id('bc-ecc')?.value || 'M',
+            };
         }
 
-        const serial = (document.getElementById('f-idea_serial_no')?.value || '').trim();
-        const sku = (document.getElementById('f-sku')?.value || '').trim();
-        const isbn = (document.getElementById('f-isbn')?.value || '').trim();
-        const slug = (document.getElementById('f-slug')?.value || '').trim();
-        const codeName = (sku || serial || isbn || slug || 'book-barcode').replace(/[^a-zA-Z0-9_\-]/g, '_');
-        const filename = `barcode-${codeName}.png`;
-
-        downloadSvgElementAsHighResPng(svg, filename, 700, 220);
-    };
-
-    window.downloadSmartQrGraphic = function() {
-        const container = document.getElementById('qrSvgContainer');
-        const svg = container ? container.querySelector('svg') : null;
-        if (!svg) {
-            alert('QR code graphic is not available yet.');
-            return;
+        function setStatus(text, isError) {
+            const el = $id('bcStatus');
+            if (!el) return;
+            el.textContent = text || '';
+            el.classList.toggle('is-error', !!isError);
         }
 
-        const serial = (document.getElementById('f-idea_serial_no')?.value || '').trim();
-        const sku = (document.getElementById('f-sku')?.value || '').trim();
-        const slug = (document.getElementById('f-slug')?.value || '').trim();
-        const codeName = (serial || sku || slug || 'book-qr').replace(/[^a-zA-Z0-9_\-]/g, '_');
-        const filename = `qr-${codeName}.png`;
+        function fillWarnings(listId, warnings) {
+            const ul = $id(listId);
+            if (!ul) return;
+            ul.textContent = '';
+            (warnings || []).forEach((w) => {
+                const li = document.createElement('li');
+                li.textContent = w;   // textContent: warnings can echo user input
+                ul.appendChild(li);
+            });
+        }
 
-        downloadSvgElementAsHighResPng(svg, filename, 600, 600);
-    };
+        function render(data) {
+            const bc = data.barcode || {};
+            const qr = data.qr || {};
 
-    function downloadSvgElementAsHighResPng(svgEl, filename, targetWidth, targetHeight) {
-        try {
-            const clone = svgEl.cloneNode(true);
+            const bcCard = $id('bcBarcodeCard');
+            const bcStage = $id('barcodeSvgContainer');
+            if (bcStage) bcStage.innerHTML = bc.svg || '';
+            if (bcCard) { bcCard.dataset.value = bc.value || ''; bcCard.dataset.format = bc.format || ''; }
+            if ($id('barcodeValueLabel')) $id('barcodeValueLabel').textContent = bc.value || '';
+            if ($id('bcFormatPill')) $id('bcFormatPill').textContent = FORMAT_NAMES[bc.format] || '';
+            fillWarnings('bcBarcodeWarnings', bc.warnings);
+            ['bcBarcodePng', 'bcBarcodeSvg', 'bcBarcodeCopy'].forEach((id) => { if ($id(id)) $id(id).disabled = !bc.svg; });
+
+            const qrCard = $id('bcQrCard');
+            const qrStage = $id('qrSvgContainer');
+            if (qrStage) qrStage.innerHTML = qr.svg || '';
+            if (qrCard) qrCard.dataset.payload = qr.payload || '';
+            if ($id('bcQrPill')) $id('bcQrPill').textContent = qr.modules ? qr.modules + '×' + qr.modules : '';
+            if ($id('qrTargetUrlText')) { $id('qrTargetUrlText').textContent = qr.payload || ''; $id('qrTargetUrlText').title = qr.payload || ''; }
+            if ($id('qrTestLink')) $id('qrTestLink').href = qr.payload || '#';
+            const inp = readInputs();
+            if ($id('qrCodeLabel')) $id('qrCodeLabel').textContent = inp.serial || inp.sku || '';
+            if ($id('qrIsbnLabel')) $id('qrIsbnLabel').textContent = 'ISBN: ' + (inp.isbn || '—');
+            fillWarnings('bcQrWarnings', qr.warnings);
+            ['bcQrPng', 'bcQrSvg'].forEach((id) => { if ($id(id)) $id(id).disabled = !qr.svg; });
+        }
+
+        async function refresh() {
+            const section = $id('sec-barcode');
+            if (!section) return;
+            if (state.ctrl) state.ctrl.abort();
+            state.ctrl = new AbortController();
+            const mySeq = ++state.seq;
+
+            const params = new URLSearchParams();
+            Object.entries(readInputs()).forEach(([k, v]) => { if (v !== '') params.set(k, v); });
+
+            const stages = [$id('barcodeSvgContainer'), $id('qrSvgContainer')];
+            stages.forEach((s) => s && s.classList.add('is-loading'));
+            try {
+                const res = await fetch(section.dataset.codesUrl + '?' + params.toString(), {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                    signal: state.ctrl.signal,
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                if (mySeq !== state.seq) return;   // a newer request is already on its way
+                render(data);
+                setStatus('');
+            } catch (err) {
+                if (err && err.name === 'AbortError') return;
+                setStatus('Preview not updated. Check your connection; the codes shown may be out of date.', true);
+            } finally {
+                if (mySeq === state.seq) stages.forEach((s) => s && s.classList.remove('is-loading'));
+            }
+        }
+
+        window.refreshBookCodes = function (immediate) {
+            clearTimeout(state.timer);
+            state.timer = setTimeout(refresh, immediate ? 0 : 250);
+        };
+        // Names the form already calls from its inputs.
+        window.updateLiveBarcodePreview = function () { window.refreshBookCodes(); };
+        window.updateLiveQrCodePreview = function () { window.refreshBookCodes(); };
+
+        // ── Files ─────────────────────────────────────────────────────────
+        function safeName(s, fallback) {
+            const t = String(s || '').replace(/[^a-zA-Z0-9_\-]+/g, '_').replace(/^_+|_+$/g, '');
+            return t || fallback;
+        }
+
+        function fileBase(kind) {
+            const inp = readInputs();
+            if (kind === 'barcode') {
+                const card = $id('bcBarcodeCard');
+                return 'barcode-' + safeName(card?.dataset.value, 'book') + '-' + (card?.dataset.format || 'code128');
+            }
+            return 'qr-' + safeName(inp.serial || inp.sku || inp.slug, 'book');
+        }
+
+        function currentSvg(kind) {
+            const host = $id(kind === 'barcode' ? 'barcodeSvgContainer' : 'qrSvgContainer');
+            return host ? host.querySelector('svg') : null;
+        }
+
+        function viewBoxOf(svg) {
+            const p = (svg.getAttribute('viewBox') || '').trim().split(/\s+/).map(Number);
+            return p.length === 4 && p[2] > 0 && p[3] > 0 ? { w: p[2], h: p[3] } : null;
+        }
+
+        // A standalone copy of the SVG with explicit pixel size (the on-screen one is 100% wide).
+        function standaloneSvg(svg, scale) {
+            const vb = viewBoxOf(svg);
+            if (!vb) return null;
+            const clone = svg.cloneNode(true);
             clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-
-            let vbW = targetWidth;
-            let vbH = targetHeight;
-            const viewBox = clone.getAttribute('viewBox');
-            if (viewBox) {
-                const parts = viewBox.trim().split(/\s+/).map(Number);
-                if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
-                    vbW = parts[2];
-                    vbH = parts[3];
-                }
-            }
-
-            const scale = Math.max(2, Math.round(targetWidth / vbW) || 2);
-            const canvasW = Math.round(vbW * scale);
-            const canvasH = Math.round(vbH * scale);
-
-            const svgString = new XMLSerializer().serializeToString(clone);
-            const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-            const URLObj = window.URL || window.webkitURL || window;
-            const blobUrl = URLObj.createObjectURL(svgBlob);
-
-            const img = new Image();
-            img.onload = function() {
-                try {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = canvasW;
-                    canvas.height = canvasH;
-                    const ctx = canvas.getContext('2d');
-
-                    // Solid crisp white background for barcode / QR scanner readability
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(0, 0, canvasW, canvasH);
-                    ctx.drawImage(img, 0, 0, canvasW, canvasH);
-                    URLObj.revokeObjectURL(blobUrl);
-
-                    canvas.toBlob(function(pngBlob) {
-                        if (!pngBlob) {
-                            fallbackDirectSvgDownload(svgString, filename.replace(/\.png$/, '.svg'));
-                            return;
-                        }
-                        const dlLink = document.createElement('a');
-                        dlLink.download = filename;
-                        dlLink.href = URLObj.createObjectURL(pngBlob);
-                        document.body.appendChild(dlLink);
-                        dlLink.click();
-                        setTimeout(function() {
-                            document.body.removeChild(dlLink);
-                            URLObj.revokeObjectURL(dlLink.href);
-                        }, 250);
-                    }, 'image/png');
-                } catch (e) {
-                    URLObj.revokeObjectURL(blobUrl);
-                    fallbackDirectSvgDownload(svgString, filename.replace(/\.png$/, '.svg'));
-                }
-            };
-            img.onerror = function() {
-                URLObj.revokeObjectURL(blobUrl);
-                fallbackDirectSvgDownload(svgString, filename.replace(/\.png$/, '.svg'));
-            };
-            img.src = blobUrl;
-        } catch (err) {
-            console.error('Download error:', err);
-            const rawSvg = svgEl.outerHTML;
-            fallbackDirectSvgDownload(rawSvg, filename.replace(/\.png$/, '.svg'));
+            clone.removeAttribute('style');
+            clone.setAttribute('width', String(+(vb.w * scale).toFixed(3)));
+            clone.setAttribute('height', String(+(vb.h * scale).toFixed(3)));
+            return { text: new XMLSerializer().serializeToString(clone), width: vb.w * scale, height: vb.h * scale, vb };
         }
-    }
 
-    function fallbackDirectSvgDownload(svgContent, filename) {
-        const URLObj = window.URL || window.webkitURL || window;
-        const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
-        const url = URLObj.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.download = filename;
-        a.href = url;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function() {
-            document.body.removeChild(a);
-            URLObj.revokeObjectURL(url);
-        }, 250);
-    }
+        function saveBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
+        }
+
+        // PNG at a whole number of pixels per module, drawn without smoothing: bars and
+        // squares stay razor sharp, which is what scanners and printers need.
+        function svgToPng(svg, kind) {
+            return new Promise((resolve, reject) => {
+                const vb = viewBoxOf(svg);
+                if (!vb) { reject(new Error('no viewBox')); return; }
+                const k = Math.max(1, Math.ceil(PNG_TARGET[kind] / vb.w));
+                const sized = standaloneSvg(svg, k);
+                const url = URL.createObjectURL(new Blob([sized.text], { type: 'image/svg+xml;charset=utf-8' }));
+                const img = new Image();
+                img.onload = () => {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.round(vb.w * k);
+                        canvas.height = Math.round(vb.h * k);
+                        const ctx = canvas.getContext('2d');
+                        ctx.imageSmoothingEnabled = false;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('toBlob failed'))), 'image/png');
+                    } catch (e) { reject(e); } finally { URL.revokeObjectURL(url); }
+                };
+                img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('image load failed')); };
+                img.src = url;
+            });
+        }
+
+        window.downloadBookCode = async function (kind, format) {
+            const svg = currentSvg(kind);
+            if (!svg) { setStatus('Nothing to download yet. Fill in the SKU, ISBN or Serial first.', true); return; }
+            const name = fileBase(kind);
+            try {
+                if (format === 'svg') {
+                    const s = standaloneSvg(svg, SVG_SCALE[kind]);
+                    if (!s) throw new Error('no viewBox');
+                    saveBlob(new Blob(['<' + '?xml version="1.0" encoding="UTF-8"?' + '>\n' + s.text], { type: 'image/svg+xml;charset=utf-8' }), name + '.svg');
+                } else {
+                    saveBlob(await svgToPng(svg, kind), name + '.png');
+                }
+                setStatus('');
+            } catch (e) {
+                console.error('Code download failed:', e);
+                setStatus('The PNG could not be created in this browser. Use Download SVG instead.', true);
+            }
+        };
+
+        window.copyBookCode = async function (kind, btn) {
+            const text = kind === 'barcode' ? ($id('bcBarcodeCard')?.dataset.value || '') : ($id('bcQrCard')?.dataset.payload || '');
+            if (!text) return;
+            let ok = false;
+            try {
+                if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); ok = true; }
+            } catch (e) { /* fall through to the textarea fallback */ }
+            if (!ok) {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.setAttribute('readonly', '');
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+                document.body.removeChild(ta);
+            }
+            if (btn) {
+                const original = btn.dataset.label || btn.textContent;
+                btn.dataset.label = original;
+                btn.textContent = ok ? 'Copied' : 'Copy failed';
+                setTimeout(() => { btn.textContent = original; }, 1400);
+            }
+        };
+
+    })();
 
     // ══════════════════════════════════════════════════════════════════════════
     // 4. SUMMARY WORD COUNTER & SLUG AUTO-GENERATION

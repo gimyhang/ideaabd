@@ -507,7 +507,7 @@
 }
 
 #printCostCalculatorModal .col-qty {
-    width: 92px !important;
+    width: 128px !important;
 }
 
 #printCostCalculatorModal .col-rate {
@@ -1154,7 +1154,14 @@ body.dark-mode #printCostCalculatorModal .pc-var {
     font-size: var(--pc-fs-fig) !important;
     font-weight: 700 !important;
 }
-#printCostCalculatorModal .pc-qty-note { font-size: var(--pc-fs-cap) !important; height: 16px !important; line-height: 16px !important; }
+#printCostCalculatorModal .pc-qty-note {
+    display: block;
+    font-size: var(--pc-fs-cap) !important;
+    line-height: 1.3 !important;
+    white-space: pre-line;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
 
 /* Summary rows: label left, figure right, same rhythm */
 #printCostCalculatorModal .pc-sum dd { font-size: var(--pc-fs-body); }
@@ -1192,3 +1199,117 @@ body.dark-mode #printCostCalculatorModal .pc-var {
     #printCostCalculatorModal .pc-comp-table { min-width: 600px !important; }
     #printCostCalculatorModal .pc-card { padding: 0.75rem; }
 }
+
+/* Collapsible spec preview (header toggles .is-collapsed) */
+#printCostCalculatorModal .pc-spec-preview .pc-group-chevron {
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+#printCostCalculatorModal .pc-spec-preview.is-collapsed .pc-group-chevron {
+    transform: rotate(-90deg);
+}
+
+#printCostCalculatorModal .pc-spec-preview.is-collapsed > .table-responsive {
+    display: none !important;
+}
+
+#printCostCalculatorModal .pc-spec-preview.is-collapsed > .pc-group-head {
+    border-bottom: 0 !important;
+}
+
+/* Sheet / Formas label rows carry a small live badge (Ups / Auto). Keep that badge out of the
+   flow so every field in the row has the same label height and the controls line up. */
+#printCostCalculatorModal .pc-f-sheet > .d-flex,
+#printCostCalculatorModal .pc-f-formas > .d-flex {
+    position: relative;
+    display: block !important;
+    margin-bottom: 0.35rem;
+}
+
+#printCostCalculatorModal .pc-f-sheet > .d-flex > span:not(.pc-label),
+#printCostCalculatorModal .pc-f-formas > .d-flex > span:not(.pc-label) {
+    position: absolute;
+    right: 0;
+    top: 0;
+    line-height: 1.3;
+}
+
+/* Calendar / Memo have no formas: Pages takes the freed space. */
+#printCostCalculatorModal .pc-job:has(#pcFormasField[hidden]) .pc-f-pages {
+    grid-column: span 6;
+}
+
+/* ── Production stat tiles (replace the old colored badge strip) ───────────── */
+#printCostCalculatorModal .pc-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.6rem;
+    margin-top: 1rem;
+}
+
+#printCostCalculatorModal .pc-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+    padding: 0.6rem 0.8rem;
+    background: #f8fafc;
+    border: 1px solid var(--pc-line);
+    border-radius: var(--pc-r);
+}
+
+#printCostCalculatorModal .pc-stat-label {
+    font-size: var(--pc-fs-cap);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--pc-mute);
+}
+
+#printCostCalculatorModal .pc-stat-val {
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--pc-ink);
+    font-variant-numeric: tabular-nums;
+}
+
+#printCostCalculatorModal .pc-stat-sub {
+    font-size: var(--pc-fs-cap);
+    line-height: 1.35;
+    color: var(--pc-mute);
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 991.98px) {
+    #printCostCalculatorModal .pc-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* CSS-drawn chevron for the collapsible preview (no glyph) */
+#printCostCalculatorModal .pc-spec-preview .pc-group-chevron {
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid var(--pc-mute);
+    border-bottom: 2px solid var(--pc-mute);
+    transform: rotate(45deg);
+    margin: -3px 4px 0 2px;
+}
+
+#printCostCalculatorModal .pc-spec-preview.is-collapsed .pc-group-chevron {
+    transform: rotate(-45deg);
+    margin-top: 0;
+}
+
+/* Rate flag that replaced the arrow glyph */
+#printCostCalculatorModal #pcRoundedNote {
+    margin-left: 0.35rem;
+    font-size: var(--pc-fs-cap);
+    letter-spacing: 0;
+    text-transform: none;
+    opacity: 0.85;
+}
+
+/* Header: calmer, text-only actions */
+#printCostCalculatorModal .modal-header { padding: 0.75rem 1.25rem; }
+#printCostCalculatorModal .modal-title { font-size: 1.05rem; }

@@ -1346,6 +1346,25 @@ class AdminController extends Controller
     }
 
     /**
+     * Live Barcode + QR preview for the book form. One server-side generator feeds both the
+     * first page render and every keystroke update, so what is shown is exactly what is downloaded.
+     */
+    public function bookCodePreview(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $data = $request->validate([
+            'sku'     => 'nullable|string|max:120',
+            'isbn'    => 'nullable|string|max:40',
+            'serial'  => 'nullable|string|max:120',
+            'slug'    => 'nullable|string|max:255',
+            'book_id' => 'nullable|integer|min:1',
+            'source'  => 'nullable|in:auto,sku,isbn,serial',
+            'ecc'     => 'nullable|in:L,M,Q,H',
+        ]);
+
+        return response()->json(\App\Services\BarcodeService::buildCodes($data));
+    }
+
+    /**
      * Batch assign missing serial numbers to all books in database
      */
     public function syncBookSerials(Request $request): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse

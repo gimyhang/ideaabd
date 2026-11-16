@@ -241,6 +241,27 @@ class IdeaInvoiceItemService
     /**
      * Process and sanitize invoice items before saving to database.
      */
+    /**
+     * The calculator posts its snapshot as a JSON string. Keep it only when it decodes to a
+     * non-empty array of sane size; anything else is dropped rather than stored.
+     */
+    private static function sanitizeCalcData(mixed $raw): ?array
+    {
+        if (is_string($raw)) {
+            $raw = trim($raw);
+            if ($raw === '' || strlen($raw) > 60000) {
+                return null;
+            }
+            $raw = json_decode($raw, true);
+        }
+
+        if (!is_array($raw) || $raw === []) {
+            return null;
+        }
+
+        return strlen((string) json_encode($raw)) > 60000 ? null : $raw;
+    }
+
     public static function processItems(array $rawItems, string $salesCategory = 'books', bool $autoCreateBooks = false): array
     {
         $processed = [];
@@ -289,7 +310,7 @@ class IdeaInvoiceItemService
 
             $unit = !empty($item['unit']) ? trim((string)$item['unit']) : self::getDefaultUnit($itemType, $salesCategory);
 
-            $processed[] = [
+            $line = [
                 'title'            => $title,
                 'author_name'      => !empty($item['author_name']) ? trim((string)$item['author_name']) : null,
                 'item_type'        => $itemType ?: ($isBook ? self::TYPE_BOOK_PAPERBACK : self::TYPE_PRODUCT),
@@ -301,6 +322,14 @@ class IdeaInvoiceItemService
                 'unit_price'       => $price,
                 'subtotal'         => $lineTotal,
             ];
+
+            // Print-cost calculator snapshot: lets "recalculate" reopen the exact job after saving.
+            $calc = self::sanitizeCalcData($item['calc_data'] ?? null);
+            if ($calc !== null) {
+                $line['calc_data'] = $calc;
+            }
+
+            $processed[] = $line;
         }
 
         return [
