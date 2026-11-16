@@ -1387,7 +1387,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                     @error('publisher_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
-                {{-- Pages, Weight, Size, Idea Serial --}}
+                {{-- Pages, Weight, Dimensions, Serial --}}
                 <div class="col-6 col-md-3">
                     <label for="f-page_count" class="a4-field-label">
                         <span>Pages</span>
@@ -1401,24 +1401,25 @@ body.dark-mode .adm-mobile-sticky-bar {
                     <label for="f-weight" class="a4-field-label">
                         <span>Weight</span>
                     </label>
-                    <input type="number" id="f-weight" name="weight" value="{{ $val('weight') }}" min="0"
-                           class="form-control form-control-sm @error('weight') is-invalid @enderror">
-                    @error('weight')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="input-group input-group-sm">
+                        <input type="number" id="f-weight" name="weight" value="{{ $val('weight') }}" min="0"
+                               class="form-control @error('weight') is-invalid @enderror">
+                        <span class="input-group-text bg-white text-muted">gm</span>
+                    </div>
+                    @error('weight')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-6 col-md-3">
                     <label class="a4-field-label">
                         <span>Dimensions</span>
                     </label>
-                    <div class="row g-1">
-                        <div class="col-6">
-                            <input type="number" step="0.1" min="0" id="f-book_height_cm" name="book_height_cm" 
-                                   value="{{ $val('book_height_cm') }}" class="form-control form-control-sm" oninput="syncBookSizeCombined()">
-                        </div>
-                        <div class="col-6">
-                            <input type="number" step="0.1" min="0" id="f-book_width_cm" name="book_width_cm" 
-                                   value="{{ $val('book_width_cm') }}" class="form-control form-control-sm" oninput="syncBookSizeCombined()">
-                        </div>
+                    <div class="input-group input-group-sm">
+                        <input type="number" step="0.1" min="0" id="f-book_height_cm" name="book_height_cm" 
+                               value="{{ $val('book_height_cm') }}" class="form-control text-center" title="Height (cm)" oninput="syncBookSizeCombined()">
+                        <span class="input-group-text bg-light px-1.5 text-muted">&times;</span>
+                        <input type="number" step="0.1" min="0" id="f-book_width_cm" name="book_width_cm" 
+                               value="{{ $val('book_width_cm') }}" class="form-control text-center" title="Width (cm)" oninput="syncBookSizeCombined()">
+                        <span class="input-group-text bg-white px-1.5 text-muted">cm</span>
                     </div>
                     <input type="hidden" id="f-book_size" name="book_size" value="{{ $val('book_size') }}">
                 </div>
@@ -1434,7 +1435,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                     </div>
                     <input type="text" id="f-idea_serial_no" name="idea_serial_no" value="{{ $val('idea_serial_no') }}" 
                            class="form-control form-control-sm font-monospace fw-bold bg-warning-subtle bg-opacity-25 border-warning @error('idea_serial_no') is-invalid @enderror"
-                           oninput="updateLiveBarcodePreview(this.value)">
+                           oninput="updateLiveBarcodePreview(); updateLiveQrCodePreview();">
                     @error('idea_serial_no')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
 
@@ -1448,7 +1449,8 @@ body.dark-mode .adm-mobile-sticky-bar {
                         </button>
                     </div>
                     <input type="text" id="f-sku" name="sku" value="{{ $val('sku') }}" 
-                           class="form-control form-control-sm font-monospace fw-semibold @error('sku') is-invalid @enderror">
+                           class="form-control form-control-sm font-monospace fw-semibold @error('sku') is-invalid @enderror"
+                           oninput="updateLiveBarcodePreview(); updateLiveQrCodePreview();">
                     @error('sku')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
 
@@ -1457,7 +1459,8 @@ body.dark-mode .adm-mobile-sticky-bar {
                         <span>ISBN</span>
                     </label>
                     <input type="text" id="f-isbn" name="isbn" value="{{ $val('isbn') }}"
-                           class="form-control form-control-sm @error('isbn') is-invalid @enderror">
+                           class="form-control form-control-sm @error('isbn') is-invalid @enderror"
+                           oninput="updateLiveBarcodePreview(); updateLiveQrCodePreview();">
                     @error('isbn')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
@@ -1472,34 +1475,33 @@ body.dark-mode .adm-mobile-sticky-bar {
             </div>
         </div>
 
-        {{-- SECTION 6: BARCODE & QR CODE ENGINE --}}
+        {{-- SECTION 6: BARCODE & QR CODE --}}
         <div class="a4-doc-section" id="sec-barcode">
             <div class="a4-doc-section-title">
-                Barcode & Smart QR
+                Barcode &amp; QR
             </div>
 
             <div class="p-3 bg-light rounded-3 border">
-                <div class="row g-2.5 align-items-center">
+                <div class="row g-2.5 align-items-stretch">
                     {{-- 1. Code-128 Barcode --}}
                     <div class="col-12 col-md-5">
                         <div class="bg-white p-2.5 rounded-3 border text-center shadow-2xs h-100 d-flex flex-column justify-content-between" id="barcodePreviewBox" style="min-height: 95px;">
                             <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
-                                <span class="small text-muted fw-semibold" style="font-size: 11px;">POS Barcode (Code-128)</span>
+                                <span class="small text-dark fw-bold" style="font-size: 11px;">Barcode</span>
                                 <button type="button" class="btn btn-xs btn-outline-dark rounded-pill px-2 py-0 fw-semibold" style="font-size: 10px;" onclick="downloadBarcodeGraphic()" title="Download Barcode PNG">
                                     <i class="fa-solid fa-download me-1"></i> Download
                                 </button>
                             </div>
-                            <div id="barcodeSvgContainer" class="d-flex justify-content-center align-items-center flex-grow-1">
+                            <div id="barcodeSvgContainer" class="d-flex justify-content-center align-items-center flex-grow-1 py-1">
                                 @php
                                     $initialCode = $val('sku') ?: ($val('isbn') ?: ($val('idea_serial_no') ?: 'IP-' . ($record->id ?? 'NEW')));
                                 @endphp
                                 {!! \App\Services\BarcodeService::generateCode128Svg((string)$initialCode, 42, 1.8, true) !!}
                             </div>
-                            <div class="small text-muted font-monospace mt-1" id="barcodeValueLabel" style="font-size: 11px;">{{ $initialCode }}</div>
                         </div>
                     </div>
 
-                    {{-- 2. Scannable Smart QR (Serial + ISBN + Product URL) --}}
+                    {{-- 2. Scannable QR --}}
                     <div class="col-12 col-md-7">
                         @php
                             $initSerial = $val('idea_serial_no') ?: ($val('sku') ?: '');
@@ -1507,24 +1509,22 @@ body.dark-mode .adm-mobile-sticky-bar {
                             $initSlug = $val('slug') ?: ($record->slug ?? ($record->id ?? ''));
                             $initialQrPayload = \App\Services\BarcodeService::buildBookQrPayload($initSlug, $initSerial, $initIsbn, $record->id ?? null);
                         @endphp
-                        <div class="bg-white p-3 rounded-3 border h-100 d-flex flex-column justify-content-between shadow-2xs">
+                        <div class="bg-white p-2.5 rounded-3 border h-100 d-flex flex-column justify-content-between shadow-2xs">
                             <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1 border-bottom">
-                                <span class="small text-dark fw-bold" style="font-size: 11.5px;">
-                                    <i class="fa-solid fa-mobile-screen-button text-primary me-1"></i> Product QR
-                                </span>
+                                <span class="small text-dark fw-bold" style="font-size: 11px;">QR Code</span>
                                 <div class="d-flex align-items-center gap-1.5">
-                                    <button type="button" class="btn btn-xs btn-outline-dark rounded-pill px-2 py-0 fw-semibold" style="font-size: 10px;" onclick="downloadSmartQrGraphic()" title="Download Smart QR PNG">
+                                    <button type="button" class="btn btn-xs btn-outline-dark rounded-pill px-2 py-0 fw-semibold" style="font-size: 10px;" onclick="downloadSmartQrGraphic()" title="Download QR PNG">
                                         <i class="fa-solid fa-download me-1"></i> Download
                                     </button>
-                                    <a id="qrTestLink" href="{{ $initialQrPayload }}" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-0 fw-semibold" style="font-size: 10px;" title="Test Product Link">
-                                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Test Link
+                                    <a id="qrTestLink" href="{{ $initialQrPayload }}" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0 fw-semibold" style="font-size: 10px;" title="Open Product Link">
+                                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Open
                                     </a>
                                 </div>
                             </div>
 
-                            <div class="d-flex align-items-center gap-3 my-2">
-                                <div id="qrSvgContainer" class="flex-shrink-0 bg-white p-1 rounded-2 border shadow-2xs d-flex align-items-center justify-content-center" style="width: 86px; height: 86px;">
-                                    {!! \App\Services\BarcodeService::generateQrCodeSvg($initialQrPayload, 78) !!}
+                            <div class="d-flex align-items-center gap-3 my-1">
+                                <div id="qrSvgContainer" class="flex-shrink-0 bg-white p-1 rounded-2 border shadow-2xs d-flex align-items-center justify-content-center" style="width: 82px; height: 82px;">
+                                    {!! \App\Services\BarcodeService::generateQrCodeSvg($initialQrPayload, 74) !!}
                                 </div>
                                 <div class="overflow-hidden" style="min-width: 0;">
                                     <div class="fw-bold text-dark font-monospace text-truncate mb-0.5" style="font-size: 12px;" id="qrCodeLabel">
@@ -1533,15 +1533,10 @@ body.dark-mode .adm-mobile-sticky-bar {
                                     <div class="text-muted small text-truncate mb-1" style="font-size: 11px;" id="qrIsbnLabel">
                                         ISBN: {{ $initIsbn ?: '—' }}
                                     </div>
-                                    <div class="small text-primary font-monospace text-truncate" style="font-size: 10px;" id="qrTargetUrlText" title="{{ $initialQrPayload }}">
+                                    <div class="small text-primary font-monospace text-truncate" style="font-size: 10.5px;" id="qrTargetUrlText" title="{{ $initialQrPayload }}">
                                         {{ $initialQrPayload }}
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="pt-1.5 border-top text-muted small d-flex align-items-center gap-1.5" style="font-size: 10.5px;">
-                                <i class="fa-solid fa-camera text-success"></i>
-                                <span>Scan QR with mobile camera to view product</span>
                             </div>
                         </div>
                     </div>
@@ -1549,7 +1544,7 @@ body.dark-mode .adm-mobile-sticky-bar {
             </div>
         </div>
 
-        {{-- SECTION 7: SUMMARY & FLAP DESCRIPTION --}}
+        {{-- SECTION 7: SUMMARY --}}
         <div class="a4-doc-section" id="sec-summary">
             <div class="d-flex align-items-center justify-content-between mb-1.5">
                 <div class="a4-doc-section-title mb-0">
@@ -1559,9 +1554,10 @@ body.dark-mode .adm-mobile-sticky-bar {
                     Words: <span id="summaryWordCount">0</span> / 1000
                 </div>
             </div>
-            <textarea id="f-summary" name="summary" rows="4"
+            <textarea id="f-summary" name="summary" rows="3"
                       class="form-control @error('summary') is-invalid @enderror"
-                      oninput="updateGenericWordCount(this, 1000, 'summaryWordCount', 'summaryWordBadge', 'summaryProgressBar', 'summaryWarning')">{{ $val('summary') }}</textarea>
+                      style="min-height: 92px; resize: vertical; overflow-y: hidden;"
+                      oninput="updateGenericWordCount(this, 1000, 'summaryWordCount', 'summaryWordBadge', 'summaryProgressBar', 'summaryWarning'); this.style.height='auto'; this.style.height=Math.max(92, this.scrollHeight)+'px';">{{ $val('summary') }}</textarea>
             <div class="word-counter-progress mt-1.5">
                 <div class="word-counter-progress__bar" id="summaryProgressBar"></div>
             </div>
@@ -2677,6 +2673,8 @@ body.dark-mode .adm-mobile-sticky-bar {
                     if (skuInput) {
                         skuInput.value = data.general_sku || data.serial;
                     }
+                    updateLiveBarcodePreview();
+                    updateLiveQrCodePreview();
                 }
             })
             .catch(() => {
