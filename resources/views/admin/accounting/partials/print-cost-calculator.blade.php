@@ -170,7 +170,7 @@
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="dropdown">
                                         <button class="btn btn-primary btn-sm rounded-2 px-3 fw-semibold dropdown-toggle" type="button" id="pcAddDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 12px; height: 32px;">
-                                            + Add Item
+                                            Add
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="pcAddDropdown" style="font-size: 12px;">
                                             @foreach (['Design', 'Paper', 'CTP', 'Press', 'Lamination', 'Cutting', 'Binding', 'Packing', 'Transport', 'Other'] as $g)
@@ -196,7 +196,7 @@
                                         <tr>
                                             <th class="text-center" style="width: 36px;" title="Include">✓</th>
                                             <th style="width: 112px;">Type</th>
-                                            <th>Item &amp; Specification</th>
+                                            <th>Item</th>
                                             <th style="width: 92px;" class="text-end">Qty</th>
                                             <th style="width: 102px;" class="text-end">Rate</th>
                                             <th style="width: 102px;" class="text-end">Total</th>
@@ -218,16 +218,14 @@
                             <header class="pc-group-head d-flex align-items-center justify-content-between px-3 py-2 cursor-pointer user-select-none bg-light border-bottom">
                                 <div class="d-flex align-items-center gap-2">
                                     <span class="pc-group-chevron text-muted" style="font-size: 11px;">▾</span>
-                                    <h6 class="pc-h m-0 text-dark fw-bold" style="font-size: 12px;">Quote Spec Preview</h6>
+                                    <h6 class="pc-h m-0 text-dark fw-bold" style="font-size: 12px;">Preview</h6>
                                 </div>
                                 <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted small" id="pcRefreshSpec" title="Refresh">Refresh</button>
                             </header>
                             <div class="p-3 border-top table-responsive">
-                                <textarea id="pcSpecTextarea" class="form-control font-monospace" rows="3" style="font-size: 12px; line-height: 1.5; resize: vertical;" 
-                                          placeholder="Specifications will be generated automatically..."></textarea>
-                                <div class="d-flex align-items-center justify-content-between mt-2 text-muted small" style="font-size: 11px;">
-                                    <span>Included in quotation details.</span>
-                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-2 px-2.5 py-1" id="pcCopySpecBtn">Copy Specs</button>
+                                <textarea id="pcSpecTextarea" class="form-control font-monospace" rows="3" style="font-size: 12px; line-height: 1.5; resize: vertical;"></textarea>
+                                <div class="d-flex align-items-center justify-content-end mt-2 text-muted small" style="font-size: 11px;">
+                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-2 px-2.5 py-1" id="pcCopySpecBtn">Copy</button>
                                 </div>
                             </div>
                         </section>
@@ -252,7 +250,7 @@
 
                                 <div class="pc-sum-input py-1 border-bottom border-light">
                                     <div class="d-flex align-items-center justify-content-between">
-                                        <dt class="small text-muted fw-bold mb-0"><label for="pcOverhead">Overhead %</label></dt>
+                                        <dt class="small text-muted fw-bold mb-0"><label for="pcOverhead">Overhead</label></dt>
                                         <dd class="mb-0 d-flex align-items-center gap-1.5">
                                             <input id="pcOverhead" type="number" min="0" max="100" step="0.5" class="form-control form-control-sm text-end font-monospace rounded-2" style="width: 65px;">
                                             <b id="pcOverheadAmt" class="font-monospace text-muted" style="min-width: 65px; text-align: right;">৳0.00</b>
@@ -267,7 +265,7 @@
 
                                 <div class="pc-sum-input py-1 border-bottom border-light">
                                     <div class="d-flex align-items-center justify-content-between">
-                                        <dt class="small text-muted fw-bold mb-0"><label for="pcProfit">Profit %</label></dt>
+                                        <dt class="small text-muted fw-bold mb-0"><label for="pcProfit">Profit</label></dt>
                                         <dd class="mb-0 d-flex align-items-center gap-1.5">
                                             <input id="pcProfit" type="number" min="0" max="500" step="0.5" class="form-control form-control-sm text-end font-monospace fw-bold text-success rounded-2" style="width: 65px;">
                                             <b id="pcProfitAmt" class="font-monospace text-success" style="min-width: 65px; text-align: right;">৳0.00</b>
@@ -300,7 +298,7 @@
 
                                 <div class="pc-unitbox rounded-2 text-white text-center shadow-xs">
                                     <div class="small fw-semibold opacity-75 mb-0.5 text-uppercase" style="font-size: 10.5px; letter-spacing: 0.04em;">
-                                        Unit Price <small id="pcRoundedNote" hidden title="Rounded Up">↑</small>
+                                        Rate <small id="pcRoundedNote" hidden title="Rounded Up">↑</small>
                                     </div>
                                     <div class="fs-3 fw-bold font-monospace" id="pcUnit2">৳0.00</div>
                                 </div>
@@ -344,12 +342,12 @@
                                     </div>
                                     <div class="col-md-3 col-6">
                                         <label for="prItem" class="form-label small mb-1">Item</label>
-                                        <input id="prItem" class="form-control form-control-sm rounded-2" list="prItems" maxlength="60" placeholder="e.g. 80">
+                                        <input id="prItem" class="form-control form-control-sm rounded-2" list="prItems" maxlength="60">
                                         <datalist id="prItems"></datalist>
                                     </div>
                                     <div class="col-md-3 col-6">
                                         <label for="prKind" class="form-label small mb-1">Kind</label>
-                                        <input id="prKind" class="form-control form-control-sm rounded-2" list="prKinds" maxlength="60" placeholder="e.g. White">
+                                        <input id="prKind" class="form-control form-control-sm rounded-2" list="prKinds" maxlength="60">
                                         <datalist id="prKinds"></datalist>
                                     </div>
                                     <div class="col-md-3 col-6">

@@ -1020,3 +1020,175 @@ body.dark-mode #printCostCalculatorModal .pc-var {
     border-color: #334155 !important;
     color: #e2e8f0 !important;
 }
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Modern design layer — one type scale, tight rhythm, tabular numbers
+   Scale: 11px caption · 12.5px control · 13.5px body · 15px figure · 20px hero
+   ══════════════════════════════════════════════════════════════════════════ */
+#printCostCalculatorModal {
+    --pc-ink: #0f172a;
+    --pc-mute: #64748b;
+    --pc-line: #e2e8f0;
+    --pc-line-2: #cbd5e1;
+    --pc-brand: #2563eb;
+    --pc-r: 8px;
+    --pc-fs-cap: 0.6875rem;
+    --pc-fs-ctl: 0.78rem;
+    --pc-fs-body: 0.84rem;
+    --pc-fs-fig: 0.94rem;
+}
+
+#printCostCalculatorModal .pc,
+#printCostCalculatorModal .pc * {
+    font-variant-numeric: tabular-nums;
+}
+
+#printCostCalculatorModal .modal-header {
+    padding: 0.7rem 1.25rem;
+}
+#printCostCalculatorModal .modal-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+#printCostCalculatorModal .modal-body {
+    padding: 1rem 1.25rem;
+    background: #f8fafc;
+}
+
+/* Captions: every label, header and section name shares one style */
+#printCostCalculatorModal .pc-label,
+#printCostCalculatorModal .pc-h,
+#printCostCalculatorModal .pc-comp-table th,
+#printCostCalculatorModal .pc-rates-table th,
+#printCostCalculatorModal .pc-sum dt {
+    font-size: var(--pc-fs-cap) !important;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--pc-mute);
+}
+#printCostCalculatorModal .pc-sum dt label {
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+}
+
+/* Cards */
+#printCostCalculatorModal .pc-card {
+    border: 1px solid var(--pc-line);
+    border-radius: var(--pc-r);
+    box-shadow: none;
+    padding: 0.9rem 1rem;
+}
+#printCostCalculatorModal .pc-card.p-0 { padding: 0 !important; }
+
+/* Controls: one height, one size */
+#printCostCalculatorModal .pc-job input.form-control,
+#printCostCalculatorModal .pc-job select.form-select,
+#printCostCalculatorModal .pc-job .input-group-text,
+#printCostCalculatorModal .pc-comp-table .pc-name,
+#printCostCalculatorModal .pc-comp-table .pc-group-select,
+#printCostCalculatorModal .pc-comp-table .pc-qty,
+#printCostCalculatorModal .pc-comp-table .pc-rate {
+    height: 34px;
+    font-size: var(--pc-fs-ctl);
+    border-radius: 6px;
+}
+#printCostCalculatorModal .pc-job #pcQty,
+#printCostCalculatorModal .pc-job #pcPages,
+#printCostCalculatorModal .pc-job #pcFormasIn {
+    font-size: var(--pc-fs-body) !important;
+}
+#printCostCalculatorModal .pc-comp-table .pc-name { font-size: var(--pc-fs-body); }
+#printCostCalculatorModal .pc-comp-table .pc-qty,
+#printCostCalculatorModal .pc-comp-table .pc-rate { font-size: var(--pc-fs-body); }
+#printCostCalculatorModal .pc-comp-table .pc-stock,
+#printCostCalculatorModal .pc-var,
+#printCostCalculatorModal .pc-spec-mini,
+#printCostCalculatorModal .pc-spec-mini .form-control,
+#printCostCalculatorModal .pc-spec-mini .input-group-text {
+    height: 32px !important;
+    font-size: var(--pc-fs-ctl) !important;
+}
+
+/* Product tabs */
+#printCostCalculatorModal .pc-types {
+    padding: 4px;
+    min-height: 0;
+    gap: 4px;
+    background: #f1f5f9;
+    border-color: var(--pc-line);
+}
+#printCostCalculatorModal .pc-type {
+    min-height: 30px;
+    padding: 0.25rem 0.8rem;
+    font-size: var(--pc-fs-ctl);
+    font-weight: 600;
+    box-shadow: none;
+    background: transparent;
+    color: #475569;
+}
+#printCostCalculatorModal .pc-type:hover { background: #e2e8f0; box-shadow: none; }
+#printCostCalculatorModal .pc-type.is-active {
+    background: var(--pc-brand);
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.35);
+}
+
+/* KPI badges */
+#printCostCalculatorModal .pc-kpi-badge {
+    font-size: var(--pc-fs-cap) !important;
+    font-weight: 600;
+    padding: 0.3rem 0.55rem !important;
+    border-radius: 6px;
+}
+
+/* Items table */
+#printCostCalculatorModal .pc-comp-table th { padding: 0.5rem 0.6rem; }
+#printCostCalculatorModal .pc-comp-table td { padding: 0.5rem 0.6rem; }
+#printCostCalculatorModal tr.pc-row { min-height: 0; }
+#printCostCalculatorModal .pc-total {
+    font-size: var(--pc-fs-fig) !important;
+    font-weight: 700 !important;
+}
+#printCostCalculatorModal .pc-qty-note { font-size: var(--pc-fs-cap) !important; height: 16px !important; line-height: 16px !important; }
+
+/* Summary rows: label left, figure right, same rhythm */
+#printCostCalculatorModal .pc-sum dd { font-size: var(--pc-fs-body); }
+#printCostCalculatorModal .pc-sum-input input,
+#printCostCalculatorModal .pc-sum-input select {
+    height: 30px;
+    font-size: var(--pc-fs-ctl);
+}
+#printCostCalculatorModal #pcTotal { font-size: 1.05rem !important; }
+#printCostCalculatorModal .pc-unitbox .fs-3 { font-size: 1.35rem !important; }
+
+/* Target banner shown when editing an invoice row */
+#printCostCalculatorModal .pc-target {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e3a8a;
+    border-radius: var(--pc-r);
+    padding: 0.4rem 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: var(--pc-fs-ctl);
+}
+
+/* Footer */
+#printCostCalculatorModal .pc-foot { padding: 0.6rem 1.25rem; }
+#printCostCalculatorModal .pc-foot-sum { font-size: var(--pc-fs-cap); }
+#printCostCalculatorModal .pc-foot-sum b { font-size: 1.05rem; }
+#printCostCalculatorModal .pc-foot-actions .btn {
+    height: 34px;
+    font-size: var(--pc-fs-ctl);
+    font-weight: 600;
+}
+
+/* Phones: the item column stacks controls instead of clipping them */
+@media (max-width: 767.98px) {
+    #printCostCalculatorModal .pc-comp-table { min-width: 600px !important; }
+    #printCostCalculatorModal .pc-card { padding: 0.75rem; }
+}

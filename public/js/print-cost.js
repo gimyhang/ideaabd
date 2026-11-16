@@ -765,7 +765,7 @@
     function render() {
         recalcAuto();
         var html = state.rows.map(rowHtml).join('');
-        el.groups.innerHTML = html || '<tr><td colspan="7" class="text-center text-muted py-4">No items added. Click "+ Add Item" above.</td></tr>';
+        el.groups.innerHTML = html || '<tr><td colspan="7" class="text-center text-muted py-4">Empty</td></tr>';
         if ($('pcRowCountBadge')) $('pcRowCountBadge').textContent = state.rows.length;
         paint();
     }
@@ -791,7 +791,7 @@
             }).join('');
 
             return '<div class="d-flex align-items-center gap-1.5 flex-wrap w-100 pc-spec-row">'
-                + '<input class="form-control form-control-sm pc-stock font-monospace" list="pcPaper' + list + '" value="' + esc(stockText(r)) + '" placeholder="e.g. 80 GSM Offwhite" title="GSM & Paper Type" style="flex: 2 1 160px; min-width: 140px;">'
+                + '<input class="form-control form-control-sm pc-stock font-monospace" list="pcPaper' + list + '" value="' + esc(stockText(r)) + '" title="Paper" style="flex: 2 1 160px; min-width: 140px;">'
                 + (r.auto === 'sheet' ? '<div class="input-group input-group-sm pc-spec-mini" style="width: 82px;" title="Ups per sheet"><span class="input-group-text px-1 text-muted" style="font-size: 10px;">Ups</span><input type="number" class="form-control form-control-sm pc-ups text-end font-monospace px-1" min="1" step="1" value="' + esc(r.ups) + '"></div>' : '')
                 + '<div class="input-group input-group-sm pc-spec-mini" style="width: 88px;" title="Waste Percentage"><span class="input-group-text px-1 text-muted" style="font-size: 10px;">W%</span><input type="number" class="form-control form-control-sm pc-waste text-end font-monospace px-1" min="0" step="1" value="' + esc(r.waste) + '"></div>'
                 + '<select class="form-select form-select-sm pc-var pc-paper-select pc-a font-monospace" style="width: 95px;" aria-label="GSM" title="GSM">' + gsmOptsHtml + '</select>'
@@ -842,16 +842,16 @@
             + '</td>'
             + '<td class="align-top py-2 col-item-spec">'
             + '<div class="pc-item-row mb-1.5">'
-            + '<input class="form-control form-control-sm pc-name fw-semibold text-dark" list="pcNames' + r.g + '" value="' + esc(r.n) + '" maxlength="80" aria-label="Item" placeholder="Item name">'
+            + '<input class="form-control form-control-sm pc-name fw-semibold text-dark" list="pcNames' + r.g + '" value="' + esc(r.n) + '" maxlength="80" aria-label="Item">'
             + '</div>'
             + (spec ? '<div class="pc-spec-wrap">' + spec + '</div>' : '')
             + '</td>'
             + '<td class="text-end align-top pt-2 col-qty">'
-            + '<input type="number" class="form-control form-control-sm pc-qty text-end font-monospace fw-bold" min="0" step="any" value="' + esc(r.qty) + '" aria-label="Quantity" placeholder="0">'
+            + '<input type="number" class="form-control form-control-sm pc-qty text-end font-monospace fw-bold" min="0" step="any" value="' + esc(r.qty) + '" aria-label="Quantity">'
             + '<div class="pc-qty-note text-muted font-monospace text-end pe-1 mt-1" style="font-size: 11px; height: 18px; line-height: 18px;"></div>'
             + '</td>'
             + '<td class="text-end align-top pt-2 col-rate">'
-            + '<input type="number" class="form-control form-control-sm pc-rate text-end font-monospace fw-bold' + (!num(r.rate) && r.on && num(r.qty) > 0 ? ' is-invalid border-danger' : '') + '" min="0" step="any" value="' + (r.rate || '') + '" aria-label="Rate" placeholder="0.00">'
+            + '<input type="number" class="form-control form-control-sm pc-rate text-end font-monospace fw-bold' + (!num(r.rate) && r.on && num(r.qty) > 0 ? ' is-invalid border-danger' : '') + '" min="0" step="any" value="' + (r.rate || '') + '" aria-label="Rate">'
             + '<div class="d-flex justify-content-end align-items-center mt-1" style="height: 18px;"><button type="button" class="btn btn-xs btn-outline-secondary pc-pin px-1.5 py-0 rounded" style="font-size: 10px; line-height: 16px;" title="Save" hidden>Pin</button></div>'
             + '</td>'
             + '<td class="text-end align-top pt-2 col-total pe-2">'
@@ -1868,21 +1868,21 @@
 
         if (rowInfo && rowInfo.rowIndex !== undefined && rowInfo.rowIndex !== null) {
             var rowNum = parseInt(rowInfo.rowIndex) + 1;
-            alertBox.className = 'alert alert-warning py-1.5 px-3 mb-2 small d-flex align-items-center justify-content-between rounded-3 border-warning shadow-2xs';
-            alertBox.innerHTML = '<div><i class="fa-solid fa-calculator text-warning me-1.5"></i><strong>আইটেম #' + rowNum + ' (' + (rowInfo.title || 'আইটেম') + ') রিক্যালকুলেট ও এডিট করছেন</strong></div>' +
-                '<button type="button" class="btn btn-xs btn-outline-dark rounded-pill py-0.5 px-2" onclick="window.currentCalcTargetRowIndex=null; var ab=document.getElementById(\'pcItemTargetAlert\'); if(ab) ab.style.display=\'none\'; var pb=document.getElementById(\'pcAdd\'); if(pb){pb.innerHTML=\'<i class=\\\'fa-solid fa-plus me-1\\\'></i> Add to Quotation\'; pb.classList.remove(\'btn-success\'); pb.classList.add(\'btn-primary\');}">' +
-                'নতুন আইটেম করুন</button>';
+            alertBox.className = 'pc-target d-flex align-items-center justify-content-between';
+            alertBox.innerHTML = '<div><i class="fa-solid fa-pen-to-square me-1.5"></i><strong>Item #' + rowNum + '</strong></div>' +
+                '<button type="button" class="btn btn-xs btn-outline-dark rounded-pill py-0.5 px-2" onclick="window.currentCalcTargetRowIndex=null; var ab=document.getElementById(\'pcItemTargetAlert\'); if(ab) ab.style.display=\'none\'; var pb=document.getElementById(\'pcAdd\'); if(pb){pb.innerHTML=\'Insert\'; pb.classList.remove(\'btn-success\'); pb.classList.add(\'btn-primary\');}">' +
+                'New</button>';
             alertBox.style.display = '';
 
             if ($('pcAdd')) {
-                $('pcAdd').innerHTML = '<i class="fa-solid fa-check me-1"></i> আপডেট করুন (আইটেম #' + rowNum + ')';
+                $('pcAdd').innerHTML = 'Update';
                 $('pcAdd').classList.remove('btn-primary');
                 $('pcAdd').classList.add('btn-success');
             }
         } else {
             alertBox.style.display = 'none';
             if ($('pcAdd')) {
-                $('pcAdd').innerHTML = '<i class="fa-solid fa-plus me-1"></i> Add to Quotation';
+                $('pcAdd').innerHTML = 'Insert';
                 $('pcAdd').classList.remove('btn-success');
                 $('pcAdd').classList.add('btn-primary');
             }
