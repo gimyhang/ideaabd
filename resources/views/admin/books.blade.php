@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Book Management & Inventory Engine')
+@section('title', 'Books')
 @section('heading', 'Books')
 
 @push('styles')
@@ -88,7 +88,7 @@
                 <div class="bk-search">
                     <input type="search" name="search" id="bookSearchInput" value="{{ request('search') }}"
                            class="form-control bk-search__input" enterkeyhint="search" autocomplete="off" inputmode="search"
-                           placeholder="খুঁজুন: নাম, লেখক, ISBN, SKU…  ( / )" aria-label="Search books">
+                           placeholder="Search books..." aria-label="Search books">
                     <button type="button" class="bk-search__clear {{ request('search') ? '' : 'd-none' }}" id="bookSearchClear" aria-label="Clear search">&times;</button>
                     <button type="submit" class="btn btn-primary bk-search__go" id="bookSearchBtn">Search</button>
                 </div>
@@ -329,16 +329,24 @@
             letter-spacing: 0.3px;
             color: #475569;
             background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 13px 14px;
+            border-bottom: 1px solid #cbd5e1;
+            border-right: 1px solid #e2e8f0;
+            padding: 10px 12px;
             white-space: nowrap;
             vertical-align: middle;
         }
+        .adm-books-table thead th:last-child {
+            border-right: none;
+        }
         .adm-books-table tbody td {
-            padding: 13px 14px;
-            border-bottom: 1px solid #f1f5f9;
+            padding: 10px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #f1f5f9;
             font-size: 12.5px;
             vertical-align: middle;
+        }
+        .adm-books-table tbody td:last-child {
+            border-right: none;
         }
         .adm-books-table tbody tr:hover td {
             background-color: #f8fafc;
@@ -448,8 +456,7 @@
     </style>
 
     <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4">
-        <div class="d-flex align-items-center justify-content-between px-3 py-2.5 bg-light border-bottom" style="font-size: 12px;">
-            <span class="text-muted">Swipe to see more columns</span>
+        <div class="d-flex align-items-center justify-content-end px-3 py-2 bg-light border-bottom">
             <div class="d-flex align-items-center gap-1">
                 <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="scrollAdminBooksTable(-300)" title="Scroll Left">
                     <i class="fa-solid fa-chevron-left"></i>
@@ -842,8 +849,7 @@
                                     <div class="rounded-circle bg-light d-inline-flex p-4 mb-3">
                                         <i class="fa-solid fa-book-open fs-1 text-muted"></i>
                                     </div>
-                                    <h5 class="fw-bold text-dark mb-1">No Books Found</h5>
-                                    <p class="text-muted small mb-3">Adjust your search criteria or add new books to the catalog.</p>
+                                    <h5 class="fw-bold text-dark mb-3">No Books Found</h5>
                                     <a href="{{ route('admin.books') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                         Clear
                                     </a>
@@ -880,8 +886,8 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header text-white py-3" style="background: linear-gradient(135deg, #10b981, #059669);">
-                <h5 class="modal-title fw-bold text-white mb-0" id="quickAddBookModalLabel" style="font-size: 1.05rem;">
-                    Quick
+                <h5 class="modal-title fw-bold text-white mb-0 fs-6" id="quickAddBookModalLabel">
+                    <i class="fa-solid fa-bolt me-1.5"></i> Quick Add Book
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -989,49 +995,45 @@
                                 </div>
                             </div>
 
-                            {{-- 3. Pricing Box --}}
-                            <div class="p-2.5 bg-light rounded-3 mb-2.5 border">
-                                <div class="row g-2 mb-2">
-                                    <div class="col-4">
-                                        <label class="form-label small fw-bold text-dark mb-1">
-                                            MRP <span class="text-danger">*</span>
-                                        </label>
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text bg-white">৳</span>
-                                            <input type="number" id="qaPrice" name="price" min="0" step="1" class="form-control fw-bold" required oninput="recalcQaPricingFromMrp()">
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark mb-1">Discount</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="number" id="qaSaleCommission" min="0" max="100" step="0.5" class="form-control text-center text-danger fw-bold" oninput="recalcQaSalePriceFromCommission()">
-                                            <span class="input-group-text bg-white">%</span>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark mb-1">Price</label>
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text bg-white">৳</span>
-                                            <input type="number" id="qaDiscountPrice" name="discount_price" min="0" step="1" class="form-control text-primary fw-bold" oninput="recalcQaSaleCommissionFromPrice()">
-                                        </div>
+                            {{-- 3. Clean Pricing Table --}}
+                            <div class="table-responsive mb-2.5">
+                                <table class="table table-sm table-bordered align-middle mb-0 bg-white">
+                                    <thead class="table-light">
+                                        <tr style="font-size: 11px;">
+                                            <th class="py-1.5 px-2 text-dark">MRP (৳) <span class="text-danger">*</span></th>
+                                            <th class="py-1.5 px-2 text-dark">Discount (%)</th>
+                                            <th class="py-1.5 px-2 text-dark">Sale Price (৳)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="p-1">
+                                                <input type="number" id="qaPrice" name="price" min="0" step="1" class="form-control form-control-sm fw-bold" required oninput="recalcQaPricingFromMrp()">
+                                            </td>
+                                            <td class="p-1">
+                                                <input type="number" id="qaSaleCommission" min="0" max="100" step="0.5" class="form-control form-control-sm text-center text-danger fw-bold" oninput="recalcQaSalePriceFromCommission()">
+                                            </td>
+                                            <td class="p-1">
+                                                <input type="number" id="qaDiscountPrice" name="discount_price" min="0" step="1" class="form-control form-control-sm text-primary fw-bold" oninput="recalcQaSaleCommissionFromPrice()">
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="row g-2 mb-2.5">
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-dark mb-1">Buy Commission (%)</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" id="qaBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-semibold" oninput="recalcQaCostPriceFromCommission()">
+                                        <span class="input-group-text bg-white">%</span>
                                     </div>
                                 </div>
-
-                                {{-- Wholesale Price --}}
-                                <div class="row g-2 align-items-center pt-2 border-top">
-                                    <div class="col-6">
-                                        <label class="form-label small text-muted mb-0" style="font-size: 11px;">Wholesale</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="number" id="qaBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-semibold" oninput="recalcQaCostPriceFromCommission()">
-                                            <span class="input-group-text bg-white">%</span>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label small text-muted mb-0" style="font-size: 11px;">Cost</label>
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text bg-white">৳</span>
-                                            <input type="number" id="qaCostPrice" name="cost_price" min="0" step="1" class="form-control text-success fw-bold" oninput="recalcQaBuyCommissionFromPrice()">
-                                        </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-dark mb-1">Cost Price (৳)</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white">৳</span>
+                                        <input type="number" id="qaCostPrice" name="cost_price" min="0" step="1" class="form-control text-success fw-bold" oninput="recalcQaBuyCommissionFromPrice()">
                                     </div>
                                 </div>
                             </div>
@@ -1250,14 +1252,8 @@
 <div class="modal fade" id="bookBarcodeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header bg-dark text-white py-3">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="p-2 bg-primary rounded-circle text-white"><i class="fa-solid fa-barcode"></i></span>
-                    <div>
-                        <h6 class="modal-title fw-bold mb-0 text-white">Product Barcode & QR Code</h6>
-                        <small class="text-white-50" style="font-size: 11px;">মোবাইল ক্যামেরা ও বারকোড রিডার কম্প্যাটিবল</small>
-                    </div>
-                </div>
+            <div class="modal-header bg-dark text-white py-2.5">
+                <h6 class="modal-title fw-bold mb-0 text-white"><i class="fa-solid fa-barcode me-1.5"></i> Barcode &amp; QR</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4 bg-light">
@@ -1276,7 +1272,7 @@
 
                 {{-- Barcode (Code 128) Container --}}
                 <div class="bg-white p-3 rounded-3 border mb-3 text-center">
-                    <small class="text-muted d-block mb-2 fw-semibold text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">Vector Barcode (Code 128)</small>
+                    <small class="text-muted d-block mb-2 fw-semibold text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">Barcode</small>
                     <div id="barcodeModalSvgBox" class="d-flex justify-content-center align-items-center" style="min-height: 70px;">
                         <!-- SVG injected here -->
                     </div>
@@ -1284,11 +1280,10 @@
 
                 {{-- QR Code Container --}}
                 <div class="bg-white p-3 rounded-3 border text-center">
-                    <small class="text-muted d-block mb-2 fw-semibold text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">Smartphone Scannable QR Code</small>
+                    <small class="text-muted d-block mb-2 fw-semibold text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">QR Code</small>
                     <div id="barcodeModalQrBox" class="d-flex justify-content-center align-items-center" style="min-height: 110px;">
                         <!-- SVG injected here -->
                     </div>
-                    <small class="text-muted d-block mt-2" style="font-size: 11px;">যেকোনো মোবাইল ক্যামেরা দিয়ে স্ক্যান করলে বইটির পেজ ও চেকআউট চলে আসবে</small>
                 </div>
             </div>
             <div class="modal-footer bg-white py-2.5 d-flex justify-content-between">
@@ -1312,9 +1307,9 @@
 <div class="modal fade" id="rejectBookModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header bg-danger text-white py-3">
+            <div class="modal-header bg-danger text-white py-2.5">
                 <h5 class="modal-title fs-6 fw-bold">
-                    <i class="fa-solid fa-triangle-exclamation me-1.5"></i> Reject or Request Revision
+                    <i class="fa-solid fa-triangle-exclamation me-1.5"></i> Reject Book
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1324,8 +1319,8 @@
                     Book: <strong class="text-dark" id="rejectBookTitle"></strong>
                 </p>
                 <div class="mb-3">
-                    <label class="form-label small fw-bold text-dark">Rejection Reason / Required Revisions:</label>
-                    <textarea id="rejectBookReason" class="form-control rounded-3" rows="3" placeholder="e.g. Low cover resolution, incorrect page count, incomplete ISBN..."></textarea>
+                    <label class="form-label small fw-bold text-dark">Reason:</label>
+                    <textarea id="rejectBookReason" class="form-control rounded-3" rows="3"></textarea>
                 </div>
             </div>
             <div class="modal-footer bg-light py-2">
