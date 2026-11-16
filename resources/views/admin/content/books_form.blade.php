@@ -680,30 +680,47 @@ body.dark-mode .adm-mobile-sticky-bar {
                 }
             @endphp
 
-            {{-- 1. PRIMARY AUTHOR (REQUIRED DROPDOWN) --}}
+            @php
+                $primaryAuthorRole = old('author_role', $record->author_role ?? 'author');
+                if (!in_array($primaryAuthorRole, ['author', 'editor', 'translator'], true)) {
+                    $primaryAuthorRole = 'author';
+                }
+            @endphp
+            {{-- 1. PRIMARY CONTRIBUTOR (ROLE + DIRECTORY DROPDOWN) --}}
             <div class="p-3 bg-light rounded-3 border mb-3">
                 <div class="d-flex align-items-center justify-content-between mb-1.5">
                     <label for="f-author_link_id" class="a4-field-label mb-0 fs-6">
-                        <span class="text-dark fw-bold">Author <span class="text-danger">*</span></span>
+                        <span class="text-dark fw-bold">Primary Author / Contributor <span class="text-danger">*</span></span>
                     </label>
                     <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-3 py-1 fw-bold shadow-2xs" data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" title="Add author into directory">
                         + New Author
                     </button>
                 </div>
-                <select id="f-author_link_id" name="author_ids[]" required 
-                        class="form-select form-select-md fw-semibold border-primary-subtle shadow-2xs @error('author_names') is-invalid @enderror" 
-                        onchange="onPrimaryAuthorDropdownChange(this)">
-                    <option value="">— Select Author * —</option>
-                    @foreach (($lookups['authors_details'] ?? []) as $aId => $aDet)
-                        <option value="{{ $aId }}" 
-                                data-name-bn="{{ $aDet['name_bn'] ?: $aDet['name'] }}" 
-                                data-name-en="{{ $aDet['name_en'] ?? '' }}"
-                                @selected((string)$primaryAuthId === (string)$aId)>
-                            {{ $aDet['name'] }} @if(!empty($aDet['name_en'])) ({{ $aDet['name_en'] }}) @endif
-                        </option>
-                    @endforeach
-                </select>
-                <input type="hidden" name="author_names[]" id="f-primary_author_name" value="{{ $primaryAuthName }}">
+                <div class="row g-2">
+                    <div class="col-12 col-md-4">
+                        <select id="f-author_role" name="author_role" class="form-select form-select-md fw-semibold border-primary-subtle shadow-2xs" onchange="onPrimaryRoleChange(this)">
+                            <option value="author" @selected($primaryAuthorRole === 'author')>Author (লেখক)</option>
+                            <option value="editor" @selected($primaryAuthorRole === 'editor')>Editor (সম্পাদক)</option>
+                            <option value="translator" @selected($primaryAuthorRole === 'translator')>Translator (অনুবাদক)</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-8">
+                        <select id="f-author_link_id" name="author_ids[]" required 
+                                class="form-select form-select-md fw-semibold border-primary-subtle shadow-2xs @error('author_names') is-invalid @enderror" 
+                                onchange="onPrimaryAuthorDropdownChange(this)">
+                            <option value="">— Select Author / Editor * —</option>
+                            @foreach (($lookups['authors_details'] ?? []) as $aId => $aDet)
+                                <option value="{{ $aId }}" 
+                                        data-name-bn="{{ $aDet['name_bn'] ?: $aDet['name'] }}" 
+                                        data-name-en="{{ $aDet['name_en'] ?? '' }}"
+                                        @selected((string)$primaryAuthId === (string)$aId)>
+                                    {{ $aDet['name'] }} @if(!empty($aDet['name_en'])) ({{ $aDet['name_en'] }}) @endif
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <input type="hidden" name="{{ $primaryAuthorRole === 'editor' ? 'editor_names[]' : ($primaryAuthorRole === 'translator' ? 'translator_names[]' : 'author_names[]') }}" id="f-primary_author_name" value="{{ $primaryAuthName }}">
                 <input type="hidden" name="author_names_en[]" id="f-primary_author_name_en" value="{{ $primaryAuthEn }}">
                 <input type="hidden" name="author_link_id" id="f-author_link_id_backup" value="{{ $primaryAuthId }}">
                 @error('author_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -1314,7 +1331,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                     </label>
                     <select id="f-genre_category" name="genre_category" class="form-select form-select-sm" onchange="syncGenre(this.value)">
                         <option value="">— Genre —</option>
-                        @include('partials.genre-options', ['selected' => old('genre_category', $record->genre_category ?? ''), 'lang' => 'en'])
+                        @include('partials.genre-options', ['selected' => old('genre_category', $record->genre_category ?? ''), 'lang' => 'both'])
                     </select>
                 </div>
 
@@ -1920,6 +1937,54 @@ body.dark-mode .adm-mobile-sticky-bar {
         return optionsHtml;
     }
 
+    function buildContributorRoleSelectHtml(selectedRole) {
+        return `
+            <select class="form-select form-select-sm contributor-role-select fw-semibold" onchange="onContributorRoleChange(this)">
+                <option value="author" ${selectedRole === 'author' ? 'selected' : ''}>Author</option>
+                <option value="translator" ${selectedRole === 'translator' ? 'selected' : ''}>Translator</option>
+                <option value="editor" ${selectedRole === 'editor' ? 'selected' : ''}>Editor</option>
+                <option value="rewriter" ${selectedRole === 'rewriter' ? 'selected' : ''}>Adapter</option>
+                <option value="cover" ${selectedRole === 'cover' ? 'selected' : ''}>Artist</option>
+            </select>
+        `;
+    }
+
+    window.onPrimaryRoleChange = function(select) {
+        const primaryName = document.getElementById('f-primary_author_name');
+        if (!primaryName) return;
+        const role = select.value;
+        primaryName.name = role === 'editor' ? 'editor_names[]' : (role === 'translator' ? 'translator_names[]' : 'author_names[]');
+        updateContributorSummary();
+    };
+
+    window.onContributorRoleChange = function(select) {
+        const row = select.closest('tr');
+        if (!row) return;
+        const role = select.value;
+        const dirSelect = row.querySelector('.author-directory-select');
+        const bnInput = row.querySelector('input[type="text"]:first-of-type') || row.querySelector('.contributor-col-bn input');
+        const enInput = row.querySelector('.contributor-col-en input');
+
+        row.classList.remove('author-field-row', 'translator-field-row', 'editor-field-row', 'rewriter-field-row', 'cover-field-row');
+        if (role === 'author') {
+            row.classList.add('author-field-row');
+            if (dirSelect) dirSelect.name = 'author_ids[]';
+            if (bnInput) bnInput.name = 'author_names[]';
+            if (enInput) enInput.name = 'author_names_en[]';
+        } else {
+            row.classList.add(role + '-field-row');
+            if (dirSelect) dirSelect.removeAttribute('name');
+            if (enInput) enInput.removeAttribute('name');
+            if (bnInput) {
+                bnInput.name = role === 'translator' ? 'translator_names[]'
+                    : (role === 'editor' ? 'editor_names[]'
+                    : (role === 'rewriter' ? 'rewriter_names[]' : 'cover_artists[]'));
+            }
+        }
+        updateContributorSummary();
+        updateLiveMockupCard();
+    };
+
     window.addAuthorField = function() {
         const tbody = document.getElementById('authorshipCreditsTableBody');
         if (!tbody) return;
@@ -1928,9 +1993,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         tr.className = 'author-field-row contributor-matrix-row';
         tr.innerHTML = `
             <td class="contributor-col-role ps-3 align-middle">
-                <span class="badge role-badge-author px-2 py-1 rounded-pill small fw-semibold">
-                    Author
-                </span>
+                ${buildContributorRoleSelectHtml('author')}
             </td>
             <td class="contributor-col-dir align-middle">
                 <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
@@ -1967,9 +2030,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         tr.className = 'translator-field-row contributor-matrix-row';
         tr.innerHTML = `
             <td class="contributor-col-role ps-3 align-middle">
-                <span class="badge role-badge-translator px-2 py-1 rounded-pill small fw-semibold">
-                    Translator
-                </span>
+                ${buildContributorRoleSelectHtml('translator')}
             </td>
             <td class="contributor-col-dir align-middle">
                 <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
@@ -2006,9 +2067,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         tr.className = 'editor-field-row contributor-matrix-row';
         tr.innerHTML = `
             <td class="contributor-col-role ps-3 align-middle">
-                <span class="badge role-badge-editor px-2 py-1 rounded-pill small fw-semibold">
-                    Editor
-                </span>
+                ${buildContributorRoleSelectHtml('editor')}
             </td>
             <td class="contributor-col-dir align-middle">
                 <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
@@ -2045,9 +2104,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         tr.className = 'rewriter-field-row contributor-matrix-row';
         tr.innerHTML = `
             <td class="contributor-col-role ps-3 align-middle">
-                <span class="badge role-badge-rewriter px-2 py-1 rounded-pill small fw-semibold">
-                    Adapter
-                </span>
+                ${buildContributorRoleSelectHtml('rewriter')}
             </td>
             <td class="contributor-col-dir align-middle">
                 <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
@@ -2084,9 +2141,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         tr.className = 'cover-artist-field-row contributor-matrix-row';
         tr.innerHTML = `
             <td class="contributor-col-role ps-3 align-middle">
-                <span class="badge role-badge-cover px-2 py-1 rounded-pill small fw-semibold">
-                    Artist
-                </span>
+                ${buildContributorRoleSelectHtml('cover')}
             </td>
             <td class="contributor-col-dir align-middle">
                 <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
@@ -2485,14 +2540,44 @@ body.dark-mode .adm-mobile-sticky-bar {
         if (main && main.value !== val) main.value = val;
     };
 
-    window.syncGenre = function(val) {
+    const CATEGORY_GENRE_RULES = [
+        { slug: 'novel', keywords: ['উপন্যাস', 'novel'] },
+        { slug: 'story', keywords: ['গল্প', 'ছোটগল্প', 'story', 'stories'] },
+        { slug: 'poetry', keywords: ['কবিতা', 'কাব্য', 'ছড়া', 'poetry', 'poem'] },
+        { slug: 'essay_research', keywords: ['প্রবন্ধ', 'গবেষণা', 'essay', 'research'] },
+        { slug: 'history_liberation', keywords: ['মুক্তিযুদ্ধ', 'ইতিহাস', 'history', 'liberation'] },
+        { slug: 'islamic', keywords: ['ইসলামিক', 'ইসলামি', 'ধর্ম', 'islamic', 'religion'] },
+        { slug: 'juvenile_comics', keywords: ['শিশু', 'কিশোর', 'কমিক্স', 'juvenile', 'comics', 'kids'] },
+        { slug: 'scifi_thriller', keywords: ['সায়েন্স', 'সাইন্স', 'থ্রিলার', 'রহস্য', 'গোয়েন্দা', 'sci-fi', 'thriller'] },
+        { slug: 'motivation_selfhelp', keywords: ['আত্মউন্নয়ন', 'মোটিভেশন', 'self-help', 'motivation'] },
+        { slug: 'translated', keywords: ['অনুবাদ', 'translation', 'translated'] }
+    ];
+
+    window.syncGenre = function(val, skipCatMatch = false) {
+        const main = document.getElementById('f-genre_category');
+        if (main && main.value !== val) main.value = val;
         const side = document.getElementById('f-genre_category_sidebar');
         if (side && side.value !== val) side.value = val;
+
+        if (!skipCatMatch && val) {
+            const catSel = document.getElementById('f-category_id');
+            const rule = CATEGORY_GENRE_RULES.find(r => r.slug === val);
+            if (catSel && rule) {
+                const matchOpt = Array.from(catSel.options).find(opt => {
+                    if (!opt.value) return false;
+                    const txt = opt.textContent.toLowerCase();
+                    return rule.keywords.some(k => txt.includes(k));
+                });
+                if (matchOpt && catSel.value !== matchOpt.value) {
+                    catSel.value = matchOpt.value;
+                    syncCategorySelects(matchOpt.value, true);
+                }
+            }
+        }
     };
 
     window.syncGenreSidebar = function(val) {
-        const main = document.getElementById('f-genre_category');
-        if (main && main.value !== val) main.value = val;
+        syncGenre(val);
     };
 
     window.syncBoimelaMain = function(val) {
@@ -2512,11 +2597,22 @@ body.dark-mode .adm-mobile-sticky-bar {
         if (main && main.value !== val) main.value = val;
     };
 
-    window.syncCategorySelects = function(val) {
+    window.syncCategorySelects = function(val, skipGenreMatch = false) {
         const catMain = document.getElementById('f-category_id');
         const catSide = document.getElementById('f-category_id_sidebar');
         if (catMain && catMain.value !== val) catMain.value = val;
         if (catSide && catSide.value !== val) catSide.value = val;
+
+        if (!skipGenreMatch && val && catMain && catMain.selectedIndex > 0) {
+            const catText = catMain.options[catMain.selectedIndex].textContent.toLowerCase();
+            const rule = CATEGORY_GENRE_RULES.find(r => r.keywords.some(k => catText.includes(k)));
+            if (rule) {
+                const genreSel = document.getElementById('f-genre_category');
+                if (genreSel && Array.from(genreSel.options).some(o => o.value === rule.slug)) {
+                    syncGenre(rule.slug, true);
+                }
+            }
+        }
     };
 
     window.toggleAdminPreOrderFields = function(stockStatus) {
