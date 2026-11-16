@@ -1076,9 +1076,9 @@
 <div class="modal fade" id="quickBookEditModal" tabindex="-1" aria-labelledby="quickBookEditModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header bg-primary text-white py-3">
-                <h5 class="modal-title fw-bold text-white mb-0" id="quickBookEditModalLabel">
-                    <i class="fa-solid fa-bolt me-1.5"></i> Quick Book Shortcut Editor
+            <div class="modal-header bg-primary text-white py-2.5">
+                <h5 class="modal-title fw-bold text-white mb-0 fs-6" id="quickBookEditModalLabel">
+                    <i class="fa-solid fa-bolt me-1.5"></i> Quick Book Editor
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1086,37 +1086,33 @@
             <form id="quickBookEditForm" onsubmit="handleQuickBookEditSubmit(event)" enctype="multipart/form-data">
                 <input type="hidden" id="qeBookId" name="book_id">
                 
-                <div class="modal-body p-4">
+                <div class="modal-body p-3 p-md-4">
                     <div id="qeAlertBox"></div>
 
-                    <div class="row g-4">
-                        {{-- Left Column: Cover Image & Preview --}}
-                        <div class="col-12 col-md-4 border-end-md text-center">
-                            <label class="form-label small fw-bold text-dark d-block">Cover Image</label>
+                    <div class="row g-3 g-md-4">
+                        {{-- Left Column: Cover Preview & Upload --}}
+                        <div class="col-12 col-md-4 border-end-md text-center d-flex flex-column align-items-center justify-content-center">
                             <div class="position-relative d-inline-block mb-2.5" style="width: 125px; height: 175px;">
                                 <img src="https://placehold.co/120x170/e2e8f0/475569?text=Cover" 
                                      id="qeCoverPreview" 
-                                     alt="Cover Preview"
+                                     alt="Cover"
                                      class="rounded-3 border shadow-sm bg-light" 
                                      style="width: 125px; height: 175px; object-fit: cover; display: block;"
                                      onerror="this.onerror=null;this.src='https://placehold.co/120x170/e2e8f0/475569?text=Cover';">
                             </div>
-                            <div>
-                                <label for="qeCoverInput" class="btn btn-sm btn-outline-primary rounded-pill px-3 cursor-pointer">
-                                    <i class="fa-solid fa-upload me-1"></i> Upload New Cover
-                                </label>
-                                <input type="file" id="qeCoverInput" name="cover_image_file" accept="image/*" class="d-none" onchange="previewSelectedCover(this)">
-                                <div class="small text-muted mt-1" style="font-size: 11px;">JPG, PNG, WebP (Max 5MB)</div>
-                            </div>
+                            <label for="qeCoverInput" class="btn btn-sm btn-outline-primary rounded-pill px-3 cursor-pointer">
+                                <i class="fa-solid fa-upload me-1"></i> Upload Cover
+                            </label>
+                            <input type="file" id="qeCoverInput" name="cover_image_file" accept="image/*" class="d-none" onchange="previewSelectedCover(this)">
                         </div>
 
-                        {{-- Right Column: Dynamic Price, Commissions, Edition, Stock --}}
+                        {{-- Right Column: Clean Dynamic Fields & Tables --}}
                         <div class="col-12 col-md-8">
                             
                             {{-- Title & Edition --}}
                             <div class="row g-2 mb-2.5">
                                 <div class="col-8">
-                                    <label class="form-label small fw-bold text-dark mb-1">Book Title <span class="text-danger">*</span></label>
+                                    <label class="form-label small fw-bold text-dark mb-1">Title <span class="text-danger">*</span></label>
                                     <input type="text" id="qeTitle" name="title" class="form-control form-control-sm fw-bold" required>
                                 </div>
                                 <div class="col-4">
@@ -1125,157 +1121,112 @@
                                 </div>
                             </div>
 
-                            {{-- Cover Type Selection Tabs in Modal --}}
-                            <div class="mb-2.5 pb-2 border-bottom">
-                                <label class="form-label small fw-bold text-dark d-block mb-1">
-                                    <i class="fa-solid fa-layer-group text-primary me-1"></i> Cover & Binding Format <span class="text-danger">*</span>
-                                </label>
+                            {{-- Binding Format --}}
+                            <div class="mb-2.5">
+                                <label class="form-label small fw-bold text-dark d-block mb-1">Format <span class="text-danger">*</span></label>
                                 <div class="btn-group w-100" role="group">
                                     <input type="radio" class="btn-check" name="cover_type" id="qeCoverType_paperback" value="paperback" onchange="onQeCoverTypeChange()">
-                                    <label class="btn btn-outline-primary btn-sm py-1 fw-semibold" for="qeCoverType_paperback">
-                                        <i class="fa-solid fa-book-open me-1 text-info"></i> Paperback
-                                    </label>
+                                    <label class="btn btn-outline-primary btn-sm py-1 fw-semibold" for="qeCoverType_paperback">Paperback</label>
 
                                     <input type="radio" class="btn-check" name="cover_type" id="qeCoverType_hardcover" value="hardcover" onchange="onQeCoverTypeChange()">
-                                    <label class="btn btn-outline-primary btn-sm py-1 fw-semibold" for="qeCoverType_hardcover">
-                                        <i class="fa-solid fa-gem me-1 text-warning"></i> Hardcover
-                                    </label>
+                                    <label class="btn btn-outline-primary btn-sm py-1 fw-semibold" for="qeCoverType_hardcover">Hardcover</label>
 
                                     <input type="radio" class="btn-check" name="cover_type" id="qeCoverType_both" value="both" onchange="onQeCoverTypeChange()">
-                                    <label class="btn btn-outline-primary btn-sm py-1 fw-semibold" for="qeCoverType_both">
-                                        <i class="fa-solid fa-layer-group me-1 text-success"></i> Both Formats
-                                    </label>
+                                    <label class="btn btn-outline-primary btn-sm py-1 fw-semibold" for="qeCoverType_both">Both</label>
                                 </div>
                             </div>
 
-                            {{-- Pricing & Commissions Calculator --}}
-                            <div class="p-2.5 bg-light rounded-3 mb-3 border">
-                                
-                                {{-- 1. Paperback Pricing Block --}}
-                                <div id="qePaperbackPriceBlock" class="mb-2">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <span class="badge bg-light text-dark border px-2 py-0.5 small fw-bold" style="font-size: 11px;">
-                                            <i class="fa-solid fa-book-open text-primary me-1"></i> Paperback Pricing
-                                        </span>
-                                    </div>
-                                    <div class="row g-2">
-                                        <div class="col-4">
-                                            <label class="form-label small fw-bold text-dark mb-1">Printed Price (MRP)</label>
-                                            <div class="input-group input-group-sm">
-                                                <span class="input-group-text bg-white">৳</span>
-                                                <input type="number" id="qePrice" name="price" min="0" step="1" class="form-control fw-bold" placeholder="0" oninput="recalcPricingFromMrp()">
-                                            </div>
-                                        </div>
-                                        <div class="col-4">
-                                            <label class="form-label small fw-semibold text-dark mb-1">Sale Discount</label>
-                                            <div class="input-group input-group-sm">
-                                                <input type="number" id="qeSaleCommission" min="0" max="100" step="0.5" class="form-control text-center text-danger fw-bold" placeholder="0" oninput="recalcSalePriceFromCommission()">
-                                                <span class="input-group-text bg-white">%</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-4">
-                                            <label class="form-label small fw-semibold text-dark mb-1">Sale Price</label>
-                                            <div class="input-group input-group-sm">
-                                                <span class="input-group-text bg-white">৳</span>
-                                                <input type="number" id="qeDiscountPrice" name="discount_price" min="0" step="1" class="form-control text-primary fw-bold" placeholder="0" oninput="recalcSaleCommissionFromPrice()">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- 2. Hardcover Pricing Block --}}
-                                <div id="qeHardcoverPriceBlock" class="mb-2">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-0.5 small fw-bold" style="font-size: 11px;">
-                                            <i class="fa-solid fa-gem text-warning me-1"></i> Hardcover Pricing
-                                        </span>
-                                    </div>
-                                    <div class="row g-2">
-                                        <div class="col-4">
-                                            <label class="form-label small fw-bold text-dark mb-1">Hardcover MRP</label>
-                                            <div class="input-group input-group-sm">
-                                                <span class="input-group-text bg-white">৳</span>
-                                                <input type="number" id="qeHardcoverPrice" name="hardcover_price" min="0" step="1" class="form-control fw-bold" placeholder="0" oninput="recalcHardcoverPricingFromMrp()">
-                                            </div>
-                                        </div>
-                                        <div class="col-4">
-                                            <label class="form-label small fw-semibold text-dark mb-1">Hardcover Discount</label>
-                                            <div class="input-group input-group-sm">
-                                                <input type="number" id="qeHardcoverSaleCommission" min="0" max="100" step="0.5" class="form-control text-center text-danger fw-bold" placeholder="0" oninput="recalcHardcoverSalePriceFromCommission()">
-                                                <span class="input-group-text bg-white">%</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-4">
-                                            <label class="form-label small fw-semibold text-dark mb-1">Hardcover Sale Price</label>
-                                            <div class="input-group input-group-sm">
-                                                <span class="input-group-text bg-white">৳</span>
-                                                <input type="number" id="qeHardcoverDiscountPrice" name="hardcover_discount_price" min="0" step="1" class="form-control text-primary fw-bold" placeholder="0" oninput="recalcHardcoverSaleCommissionFromPrice()">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- 3. Wholesale Buy Commission & Cost Price --}}
-                                <div class="pt-2 border-top">
-                                    <div class="row g-2 align-items-center">
-                                        <div class="col-6">
-                                            <label class="form-label small fw-bold text-dark mb-1">
-                                                <i class="fa-solid fa-hand-holding-dollar text-success me-1"></i> Wholesale Buy Commission (%)
-                                            </label>
-                                            <div class="input-group input-group-sm">
-                                                <input type="number" id="qeBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-bold" placeholder="40" oninput="recalcCostPriceFromCommission()">
-                                                <span class="input-group-text bg-white">%</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="form-label small fw-bold text-dark mb-1">
-                                                <i class="fa-solid fa-money-bill-wave text-success me-1"></i> Wholesale Cost Price (৳)
-                                            </label>
-                                            <div class="input-group input-group-sm">
-                                                <span class="input-group-text bg-white">৳</span>
-                                                <input type="number" id="qeCostPrice" name="cost_price" min="0" step="1" class="form-control text-success fw-bold" placeholder="0" oninput="recalcBuyCommissionFromPrice()">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
+                            {{-- Clean Dynamic Pricing Table --}}
+                            <div class="table-responsive mb-2.5">
+                                <table class="table table-sm table-bordered align-middle mb-0 bg-white">
+                                    <thead class="table-light">
+                                        <tr style="font-size: 11px;">
+                                            <th class="py-1.5 px-2 text-muted">Format</th>
+                                            <th class="py-1.5 px-2 text-dark">MRP (৳)</th>
+                                            <th class="py-1.5 px-2 text-dark">Discount (%)</th>
+                                            <th class="py-1.5 px-2 text-dark">Sale Price (৳)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr id="qePaperbackPriceBlock">
+                                            <td class="px-2 fw-semibold small text-dark text-nowrap">Paperback</td>
+                                            <td class="p-1">
+                                                <input type="number" id="qePrice" name="price" min="0" step="1" class="form-control form-control-sm fw-bold" oninput="recalcPricingFromMrp()">
+                                            </td>
+                                            <td class="p-1">
+                                                <input type="number" id="qeSaleCommission" min="0" max="100" step="0.5" class="form-control form-control-sm text-center text-danger fw-bold" oninput="recalcSalePriceFromCommission()">
+                                            </td>
+                                            <td class="p-1">
+                                                <input type="number" id="qeDiscountPrice" name="discount_price" min="0" step="1" class="form-control form-control-sm text-primary fw-bold" oninput="recalcSaleCommissionFromPrice()">
+                                            </td>
+                                        </tr>
+                                        <tr id="qeHardcoverPriceBlock">
+                                            <td class="px-2 fw-semibold small text-dark text-nowrap">Hardcover</td>
+                                            <td class="p-1">
+                                                <input type="number" id="qeHardcoverPrice" name="hardcover_price" min="0" step="1" class="form-control form-control-sm fw-bold" oninput="recalcHardcoverPricingFromMrp()">
+                                            </td>
+                                            <td class="p-1">
+                                                <input type="number" id="qeHardcoverSaleCommission" min="0" max="100" step="0.5" class="form-control form-control-sm text-center text-danger fw-bold" oninput="recalcHardcoverSalePriceFromCommission()">
+                                            </td>
+                                            <td class="p-1">
+                                                <input type="number" id="qeHardcoverDiscountPrice" name="hardcover_discount_price" min="0" step="1" class="form-control form-control-sm text-primary fw-bold" oninput="recalcHardcoverSaleCommissionFromPrice()">
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
 
-                            {{-- Inventory, Moderation & Live Status --}}
-                            <div class="row g-2 align-items-center">
-                                <div class="col-6 col-md-3">
-                                    <label class="form-label small fw-bold text-dark mb-1">Inventory Stock <span class="text-danger">*</span></label>
+                            {{-- Wholesale Buy Commission & Cost Price --}}
+                            <div class="row g-2 mb-2.5">
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-dark mb-1">Buy Commission (%)</label>
                                     <div class="input-group input-group-sm">
-                                        <input type="number" id="qeStockQuantity" name="stock_quantity" min="0" max="100000" class="form-control fw-bold" required>
+                                        <input type="number" id="qeBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-bold" oninput="recalcCostPriceFromCommission()">
+                                        <span class="input-group-text bg-white">%</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-dark mb-1">Cost Price (৳)</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white">৳</span>
+                                        <input type="number" id="qeCostPrice" name="cost_price" min="0" step="1" class="form-control text-success fw-bold" oninput="recalcBuyCommissionFromPrice()">
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Stock, Status, Review & Active --}}
+                            <div class="row g-2 align-items-end">
+                                <div class="col-6 col-sm-3">
+                                    <label class="form-label small fw-bold text-dark mb-1">Stock <span class="text-danger">*</span></label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" id="qeStockQuantity" name="stock_quantity" min="0" max="100000" class="form-control fw-bold" required oninput="onQeStockQtyChange()">
                                         <span class="input-group-text">pcs</span>
                                     </div>
                                 </div>
 
-                                <div class="col-6 col-md-3">
-                                    <label class="form-label small fw-bold text-dark mb-1">Stock Status</label>
+                                <div class="col-6 col-sm-3">
+                                    <label class="form-label small fw-bold text-dark mb-1">Status</label>
                                     <select id="qeStockStatus" name="stock_status" class="form-select form-select-sm">
-                                        <option value="in_stock">🟢 In Stock</option>
-                                        <option value="low">🟡 Low Stock</option>
-                                        <option value="out">🔴 Out of Stock</option>
-                                        <option value="pre_order">⏳ Pre-Order Active</option>
+                                        <option value="in_stock">In Stock</option>
+                                        <option value="low">Low Stock</option>
+                                        <option value="out">Out of Stock</option>
+                                        <option value="pre_order">Pre-Order</option>
                                     </select>
                                 </div>
 
-                                <div class="col-6 col-md-3">
-                                    <label class="form-label small fw-bold text-dark mb-1">Review & Moderation</label>
+                                <div class="col-6 col-sm-3">
+                                    <label class="form-label small fw-bold text-dark mb-1">Review</label>
                                     <select id="qeModStatus" name="mod_status" class="form-select form-select-sm">
-                                        <option value="approved">✅ Approved & Live</option>
-                                        <option value="pending">⏳ Pending Review</option>
-                                        <option value="rejected">❌ Rejected</option>
+                                        <option value="approved">Approved</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="rejected">Rejected</option>
                                     </select>
                                 </div>
 
-                                <div class="col-6 col-md-3 pt-3">
+                                <div class="col-6 col-sm-3 pb-1">
                                     <div class="form-check form-switch mb-0">
                                         <input class="form-check-input" type="checkbox" role="switch" id="qeIsActive" name="is_active" value="1">
-                                        <label class="form-check-label small fw-bold text-dark" for="qeIsActive">
-                                            Active in Store
-                                        </label>
+                                        <label class="form-check-label small fw-bold text-dark" for="qeIsActive">Active</label>
                                     </div>
                                 </div>
                             </div>
@@ -1532,14 +1483,36 @@ function onQeCoverTypeChange() {
     const hardBlock = document.getElementById('qeHardcoverPriceBlock');
 
     if (isBoth) {
-        if (paperBlock) paperBlock.style.display = 'block';
-        if (hardBlock) hardBlock.style.display = 'block';
+        if (paperBlock) paperBlock.style.display = '';
+        if (hardBlock) hardBlock.style.display = '';
     } else if (isHardcover) {
         if (paperBlock) paperBlock.style.display = 'none';
-        if (hardBlock) hardBlock.style.display = 'block';
+        if (hardBlock) hardBlock.style.display = '';
     } else {
-        if (paperBlock) paperBlock.style.display = 'block';
+        if (paperBlock) paperBlock.style.display = '';
         if (hardBlock) hardBlock.style.display = 'none';
+    }
+
+    const buyComm = parseFloat(document.getElementById('qeBuyCommission')?.value) || 0;
+    const costPrice = parseFloat(document.getElementById('qeCostPrice')?.value) || 0;
+    if (buyComm > 0) {
+        recalcCostPriceFromCommission();
+    } else if (costPrice > 0) {
+        recalcBuyCommissionFromPrice();
+    }
+}
+
+function onQeStockQtyChange() {
+    const qtyEl = document.getElementById('qeStockQuantity');
+    const statusEl = document.getElementById('qeStockStatus');
+    if (!qtyEl || !statusEl) return;
+    const qty = parseInt(qtyEl.value, 10);
+    if (!isNaN(qty)) {
+        if (qty <= 0) {
+            statusEl.value = 'out';
+        } else if (statusEl.value === 'out') {
+            statusEl.value = 'in_stock';
+        }
     }
 }
 
@@ -1681,9 +1654,12 @@ function recalcPricingFromMrp() {
 function recalcSalePriceFromCommission() {
     const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
     const comm = parseFloat(document.getElementById('qeSaleCommission').value) || 0;
+    const target = document.getElementById('qeDiscountPrice');
+    if (!target) return;
     if (mrp > 0 && comm > 0) {
-        const salePrice = mrp * (1 - (comm / 100));
-        document.getElementById('qeDiscountPrice').value = Math.round(salePrice);
+        target.value = Math.round(mrp * (1 - (comm / 100)));
+    } else if (comm <= 0) {
+        target.value = '';
     }
 }
 
@@ -1725,9 +1701,12 @@ function recalcHardcoverPricingFromMrp() {
 function recalcHardcoverSalePriceFromCommission() {
     const mrp = parseFloat(document.getElementById('qeHardcoverPrice').value) || 0;
     const comm = parseFloat(document.getElementById('qeHardcoverSaleCommission').value) || 0;
+    const target = document.getElementById('qeHardcoverDiscountPrice');
+    if (!target) return;
     if (mrp > 0 && comm > 0) {
-        const salePrice = mrp * (1 - (comm / 100));
-        document.getElementById('qeHardcoverDiscountPrice').value = Math.round(salePrice);
+        target.value = Math.round(mrp * (1 - (comm / 100)));
+    } else if (comm <= 0) {
+        target.value = '';
     }
 }
 
@@ -1753,9 +1732,12 @@ function getEffectiveMrpForCost() {
 function recalcCostPriceFromCommission() {
     const mrp = getEffectiveMrpForCost();
     const comm = parseFloat(document.getElementById('qeBuyCommission').value) || 0;
+    const target = document.getElementById('qeCostPrice');
+    if (!target) return;
     if (mrp > 0 && comm > 0) {
-        const costPrice = mrp * (1 - (comm / 100));
-        document.getElementById('qeCostPrice').value = Math.round(costPrice);
+        target.value = Math.round(mrp * (1 - (comm / 100)));
+    } else if (comm <= 0) {
+        target.value = '';
     }
 }
 
@@ -2829,6 +2811,7 @@ window.quickSaveNewCat = quickSaveNewCat;
 window.openQuickEditModal = openQuickEditModal;
 window.handleQuickBookEditSubmit = handleQuickBookEditSubmit;
 window.onQeCoverTypeChange = onQeCoverTypeChange;
+window.onQeStockQtyChange = onQeStockQtyChange;
 window.recalcPricingFromMrp = recalcPricingFromMrp;
 window.recalcSalePriceFromCommission = recalcSalePriceFromCommission;
 window.recalcSaleCommissionFromPrice = recalcSaleCommissionFromPrice;
