@@ -136,9 +136,11 @@ class ContentController extends Controller
 
         $attributes = $this->attributesFrom($request, $spec, $data, $record);
 
+        // An address typed in the Slug field wins; otherwise it is made from the title (books then get
+        // their number added after saving, see below).
         $attributes['slug'] = $this->uniqueSlug(
             $spec,
-            $data[$spec['slugFrom']] ?? $spec['label'],
+            $request->filled('slug') ? (string) $request->input('slug') : (string) ($data[$spec['slugFrom']] ?? $spec['label']),
             null
         );
 
@@ -245,6 +247,13 @@ class ContentController extends Controller
 
         try {
             $record->forceFill($attributes)->save();
+            if ($type === 'books' && !$request->filled('slug')) {
+                // "450-book-name": the number is the book's own, assigned here once it exists.
+                $numbered = $record->numberedSlug();
+                if ($numbered !== $record->slug && !$this->slugTaken($spec, $numbered, $record)) {
+                    $record->forceFill(['slug' => $numbered])->saveQuietly();
+                }
+            }
             if ($type === 'books') {
                 $resolved = $this->resolveBookAuthors($request);
                 $authorIds = $resolved['ids'];
@@ -426,6 +435,13 @@ class ContentController extends Controller
 
         try {
             $record->forceFill($attributes)->save();
+            if ($type === 'books' && !$request->filled('slug')) {
+                // "450-book-name": the number is the book's own, assigned here once it exists.
+                $numbered = $record->numberedSlug();
+                if ($numbered !== $record->slug && !$this->slugTaken($spec, $numbered, $record)) {
+                    $record->forceFill(['slug' => $numbered])->saveQuietly();
+                }
+            }
             if ($type === 'books') {
                 $resolved = $this->resolveBookAuthors($request);
                 $authorIds = $resolved['ids'];
@@ -627,6 +643,16 @@ class ContentController extends Controller
 
         if (($spec['key'] ?? null) === 'books') {
             $rules['category_id'] = ['required', 'integer', 'exists:categories,id'];
+
+            // SKU and Idea serial are printed on barcodes and labels: two books must never share one.
+            foreach (['sku' => 'SKU', 'idea_serial_no' => 'Serial'] as $col => $label) {
+                $unique = Rule::unique('books', $col);
+                if ($this->softDeletes($spec['model'])) {
+                    $unique->withoutTrashed();
+                }
+                $rules[$col]      = ['nullable', 'string', 'max:50', $record ? $unique->ignore($record->getKey()) : $unique];
+                $attributes[$col] = $label;
+            }
             $rules['price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
             $rules['hardcover_price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
             $rules['cost_price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
@@ -1095,6 +1121,10 @@ class ContentController extends Controller
                     $attributes[$classField] = $value !== '' ? $value : null;
                 }
             }
+            // The serial shown on the form's barcode is the one that gets saved. Blank: the model assigns the next IP number.
+            if ($request->filled('idea_serial_no')) {
+                $attributes['idea_serial_no'] = trim((string) $request->input('idea_serial_no'));
+            }
             if ($request->filled('look_inside_type')) {
                 $attributes['look_inside_type'] = $request->input('look_inside_type');
             }
@@ -1113,8 +1143,12 @@ class ContentController extends Controller
 
             if (($spec['key'] ?? '') === 'books' || ($spec['key'] ?? '') === 'ebooks') {
                 if (empty($attributes['publisher_id'])) {
-                    $ideaPubId = \Illuminate\Support\Facades\DB::table('publishers')->where('name', 'LIKE', '%আইডিয়া প্রকাশন%')->orWhere('slug', 'ideaprokashon')->value('id') ?: 2;
-                    $attributes['publisher_id'] = $ideaPubId;
+                    $ideaPubId = \Illuminate\Support\Facades\DB::table('publishers')->where('name', 'LIKE', '%আইডিয়া প্রকাশন%')->orWhere('slug', 'ideaprokashon')->value('id')
+                        ?: (\Illuminate\Support\Facades\DB::table('publishers')->where('id', 2)->exists() ? 2 : null);
+                    // Never point at a publisher that does not exist: that used to fail the whole save with a raw SQL error.
+                    if ($ideaPubId) {
+                        $attributes['publisher_id'] = $ideaPubId;
+                    }
                 }
             }
         }
@@ -1349,10 +1383,7 @@ class ContentController extends Controller
 
     private function bengaliToEnglish(string $text): string
     {
-        $bengali = ['অ','আ','ই','ঈ','উ','ঊ','ঋ','এ','ঐ','ও','ঔ','ক','খ','গ','ঘ','ঙ','চ','ছ','জ','ঝ','ঞ','ট','ঠ','ড','ঢ','ণ','ত','থ','দ','ধ','ন','প','ফ','ব','ভ','ম','য','র','ল','শ','ষ','স','হ','ড়','ঢ়','য়','ৎ','ং','ঃ','ঁ','া','ি','ী','ু','ূ','ৃ','ে','ৈ','ো','ৌ','্'];
-        $english = ['a','a','i','i','u','u','ri','e','oi','o','ou','k','kh','g','gh','ng','ch','ch','j','jh','n','t','th','d','dh','n','t','th','d','dh','n','p','f','b','bh','m','z','r','l','sh','sh','s','h','r','rh','y','t','ng','h','n','a','i','i','u','u','ri','e','oi','o','ou',''];
-        $text = str_replace($bengali, $english, $text);
-        return Str::slug($text, '-', null);
+        return \App\Support\Slugger::fromText($text, 0);
     }
 
     private function slugTaken(array $spec, string $slug, ?Model $ignore): bool

@@ -70,12 +70,12 @@
     <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4">
         <h6 class="fw-bold mb-3">Add genre</h6>
         <form id="genreAdd" class="row g-2 align-items-end">
-            <div class="col-md-3"><label class="form-label small fw-bold">Slug</label><input type="text" name="slug" class="form-control" placeholder="crime_thriller" pattern="[a-z0-9_]+" maxlength="100" required></div>
-            <div class="col-md-4"><label class="form-label small fw-bold">English</label><input type="text" name="name_en" class="form-control" maxlength="150" required></div>
-            <div class="col-md-3"><label class="form-label small fw-bold">Bangla</label><input type="text" name="name_bn" class="form-control" maxlength="150"></div>
+            <div class="col-md-3"><label class="form-label small fw-bold">Slug <span class="text-muted fw-normal">(optional)</span></label><input type="text" name="slug" class="form-control" placeholder="made automatically" pattern="[a-z0-9_]+" maxlength="100"></div>
+            <div class="col-md-4"><label class="form-label small fw-bold">English</label><input type="text" name="name_en" class="form-control" maxlength="150" placeholder="optional if Bangla is given"></div>
+            <div class="col-md-3"><label class="form-label small fw-bold">Bangla</label><input type="text" name="name_bn" class="form-control" maxlength="150" placeholder="optional if English is given"></div>
             <div class="col-md-2"><button class="btn btn-primary w-100 fw-bold"><i class="fa-solid fa-plus me-1"></i> Add</button></div>
         </form>
-        <div class="small text-muted mt-2">The slug is permanent (books store it). Lowercase letters, numbers and underscores only.</div>
+        <div class="small text-muted mt-2">Type the name in Bangla or English (or both); the slug is made for you. It is permanent (books store it).</div>
     </div>
 </div>
 @endsection
@@ -130,7 +130,7 @@
     // add
     document.getElementById('genreAdd').addEventListener('submit', function (e) {
         e.preventDefault();
-        var f = e.target, body = { slug: f.slug.value.trim(), name_en: f.name_en.value.trim(), name_bn: f.name_bn.value.trim() || null };
+        var f = e.target, body = { slug: f.slug.value.trim() || null, name_en: f.name_en.value.trim() || null, name_bn: f.name_bn.value.trim() || null };
         call('POST', root.dataset.store, body).then(function (d) { toast(d.message); setTimeout(function () { location.reload(); }, 500); })
             .catch(function (err) { toast(err.message, true); });
     });

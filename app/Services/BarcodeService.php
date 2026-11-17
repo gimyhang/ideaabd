@@ -552,6 +552,11 @@ class BarcodeService
      */
     public static function buildBookQrPayload(?string $slug = null, ?string $serial = null, ?string $isbn = null, $bookId = null): string
     {
+        // A saved book is always addressed by its number: /books/450 (the page redirects to the name-based address).
+        if ($bookId) {
+            return url('/books/' . (int) $bookId);
+        }
+
         $slug = trim((string) $slug);
         $path = $slug !== '' ? ('/books/' . rawurlencode($slug)) : ($bookId ? ('/books/' . $bookId) : '/books');
         $params = [];
@@ -758,15 +763,20 @@ class BarcodeService
             }
         }
 
-        // ── QR ─────────────────────────────────────────────────────────────
-        $serial = trim((string) ($in['serial'] ?? '')) ?: trim((string) ($in['sku'] ?? ''));
-        $slug = trim((string) ($in['slug'] ?? ''));
-        $bookId = $in['book_id'] ?? null;
-        $payload = self::buildBookQrPayload($slug, $serial, $isbnRaw, $bookId);
-        $qr = ['payload' => $payload, 'ecc' => $ecc, 'svg' => null, 'modules' => null, 'warnings' => []];
+        // ── QR ───────────────────────────────────────────────────────
+        // The QR carries only the book's number: https://www.ideaabd.com/books/450. That address never changes,
+        // even if the title or slug is edited later; the page redirects to the book's name-based address.
+        $bookId = (int) ($in['book_id'] ?? 0);
+        $provisional = $bookId <= 0;
+        if ($provisional) {
+            // Not saved yet: show the number the book is expected to get, but never let it be downloaded as final.
+            $bookId = (int) (Book::withTrashed()->max('id') ?? 0) + 1;
+        }
+        $payload = url('/books/' . $bookId);
+        $qr = ['payload' => $payload, 'number' => $bookId, 'provisional' => $provisional, 'ecc' => $ecc, 'svg' => null, 'modules' => null, 'warnings' => []];
 
-        if ($slug === '' && !$bookId) {
-            $qr['warnings'][] = 'This book has no slug yet, so the QR opens the book catalogue. Save the book (or fill the Slug) to link its own page.';
+        if ($provisional) {
+            $qr['warnings'][] = "Preview only: the book number is assigned when you save (expected {$bookId}). Download the QR after saving.";
         }
 
         try {

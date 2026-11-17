@@ -562,19 +562,28 @@ body.dark-mode .adm-mobile-sticky-bar {
                     @error('product_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
-                <div class="col-12 col-md-6">
+                <div class="col-6 col-md-3">
                     <label for="f-stock_status" class="a4-field-label">
                         <span>Stock <span class="text-danger">*</span></span>
                     </label>
+                    @php $rawStock = (string) $val('stock_status', 'in_stock'); $currentStock = \Modules\Book\Models\Book::STOCK_STATUS_ALIASES[$rawStock] ?? $rawStock; @endphp
                     <select id="f-stock_status" name="stock_status" class="form-select form-select-sm fw-semibold @error('stock_status') is-invalid @enderror" onchange="toggleAdminPreOrderFields(this.value)">
-                        <option value="in_stock" @selected($val('stock_status', 'in_stock') === 'in_stock')>Buy Now</option>
-                        <option value="pre_order" @selected($val('stock_status') === 'pre_order')>Pre-Order</option>
-                        <option value="out_of_stock" @selected($val('stock_status') === 'out_of_stock')>Out of Stock</option>
-                        <option value="upcoming" @selected($val('stock_status') === 'upcoming')>Upcoming</option>
+                        @foreach(\Modules\Book\Models\Book::STOCK_STATUSES as $statusValue => $statusLabel)
+                            <option value="{{ $statusValue }}" @selected($currentStock === $statusValue)>{{ $statusLabel }}</option>
+                        @endforeach
                     </select>
                     @error('stock_status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
+                <div class="col-6 col-md-3">
+                    <label for="f-stock_quantity" class="a4-field-label">
+                        <span>Quantity</span>
+                    </label>
+                    <input type="number" min="0" step="1" id="f-stock_quantity" name="stock_quantity" inputmode="numeric"
+                           value="{{ $val('stock_quantity', $record ? null : 0) }}"
+                           class="form-control form-control-sm text-end font-monospace @error('stock_quantity') is-invalid @enderror">
+                    @error('stock_quantity')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
                 {{-- Dynamic Pre-Order Fields --}}
                 <div id="adminPreOrderContainer" class="col-12 {{ $val('stock_status') === 'pre_order' ? '' : 'd-none' }}">
                     <div class="p-3 bg-warning-subtle rounded-3 border border-warning-subtle">
@@ -1326,13 +1335,23 @@ body.dark-mode .adm-mobile-sticky-bar {
 
                 {{-- 2. Genre, Event, Audience Classifications --}}
                 <div class="col-12 col-md-4">
-                    <label for="f-genre_category" class="a4-field-label mb-1">
-                        <span>Genre</span>
-                    </label>
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label for="f-genre_category" class="a4-field-label mb-0">
+                            <span>Genre</span>
+                        </label>
+                        <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0 fw-semibold" style="font-size: 10px;" onclick="toggleNewGenre()" aria-controls="newGenreBox" aria-expanded="false" id="newGenreToggle">New</button>
+                    </div>
                     <select id="f-genre_category" name="genre_category" class="form-select form-select-sm" onchange="syncGenre(this.value)">
                         <option value="">— Genre —</option>
                         @include('partials.genre-options', ['selected' => old('genre_category', $record->genre_category ?? ''), 'lang' => 'both'])
                     </select>
+                    <div id="newGenreBox" class="mt-1" hidden data-url="{{ route('admin.genres.store') }}">
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="newGenreName" class="form-control" maxlength="150" placeholder="New genre name (Bangla or English)" autocomplete="off" onkeydown="if (event.key === 'Enter') { event.preventDefault(); saveNewGenre(); }">
+                            <button type="button" class="btn btn-primary" id="newGenreSave" onclick="saveNewGenre()">Add</button>
+                        </div>
+                        <div class="small mt-1" id="newGenreMsg" role="status" aria-live="polite"></div>
+                    </div>
                 </div>
 
                 <div class="col-12 col-md-4">
@@ -1566,7 +1585,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                     </div>
                     <div class="bc-stage is-qr" id="qrSvgContainer">{!! $bc['qr']['svg'] !!}</div>
                     <div>
-                        <div class="bc-value" id="qrCodeLabel">{{ trim((string) $val('idea_serial_no')) ?: (trim((string) $val('sku')) ?: '') }}</div>
+                        <div class="bc-value" id="qrCodeLabel">{{ $bc['qr']['provisional'] ? 'Expected Book No. ' : 'Book No. ' }}{{ $bc['qr']['number'] }}</div>
                         <div class="bc-sub" id="qrIsbnLabel">ISBN: {{ trim((string) $val('isbn')) ?: '—' }}</div>
                         <div class="bc-sub" id="qrTargetUrlText" title="{{ $bc['qr']['payload'] }}">{{ $bc['qr']['payload'] }}</div>
                     </div>
@@ -1574,10 +1593,10 @@ body.dark-mode .adm-mobile-sticky-bar {
                         @foreach ($bc['qr']['warnings'] as $w)<li>{{ $w }}</li>@endforeach
                     </ul>
                     <div class="bc-actions">
-                        <button type="button" class="btn btn-sm btn-dark" id="bcQrPng" onclick="downloadBookCode('qr', 'png')" @disabled(!$bc['qr']['svg'])>Download PNG</button>
-                        <button type="button" class="btn btn-sm btn-outline-dark" id="bcQrSvg" onclick="downloadBookCode('qr', 'svg')" @disabled(!$bc['qr']['svg'])>Download SVG</button>
+                        <button type="button" class="btn btn-sm btn-dark" id="bcQrPng" onclick="downloadBookCode('qr', 'png')" @disabled(!$bc['qr']['svg'] || $bc['qr']['provisional'])>Download PNG</button>
+                        <button type="button" class="btn btn-sm btn-outline-dark" id="bcQrSvg" onclick="downloadBookCode('qr', 'svg')" @disabled(!$bc['qr']['svg'] || $bc['qr']['provisional'])>Download SVG</button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" id="bcQrCopy" onclick="copyBookCode('qr', this)">Copy link</button>
-                        <a id="qrTestLink" href="{{ $bc['qr']['payload'] }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">Open link</a>
+                        <a id="qrTestLink" href="{{ $bc['qr']['payload'] }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary{{ $bc['qr']['provisional'] ? ' disabled' : '' }}" @if($bc['qr']['provisional']) aria-disabled="true" tabindex="-1" @endif>Open link</a>
                     </div>
                 </div>
             </div>
@@ -2628,6 +2647,60 @@ body.dark-mode .adm-mobile-sticky-bar {
         syncGenre(val);
     };
 
+    // Add a brand-new genre without leaving the book form: saved on the server, then added to the list and selected.
+    window.toggleNewGenre = function() {
+        const box = document.getElementById('newGenreBox');
+        const btn = document.getElementById('newGenreToggle');
+        if (!box) return;
+        box.hidden = !box.hidden;
+        if (btn) btn.setAttribute('aria-expanded', String(!box.hidden));
+        if (!box.hidden) document.getElementById('newGenreName')?.focus();
+    };
+
+    window.saveNewGenre = async function() {
+        const box = document.getElementById('newGenreBox');
+        const input = document.getElementById('newGenreName');
+        const msg = document.getElementById('newGenreMsg');
+        const btn = document.getElementById('newGenreSave');
+        if (!box || !input) return;
+        const name = input.value.trim();
+        const say = (text, ok) => { msg.textContent = text; msg.className = 'small mt-1 ' + (ok ? 'text-success' : 'text-danger'); };
+        if (!name) { say('Enter the genre name.', false); return; }
+
+        const isBengali = /[ঀ-৿]/.test(name);
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+        btn.disabled = true;
+        try {
+            const res = await fetch(box.dataset.url, {
+                method: 'POST', credentials: 'same-origin',
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify(isBengali ? { name_bn: name } : { name_en: name }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.genre) {
+                const first = data.errors ? Object.values(data.errors).flat()[0] : null;
+                throw new Error(first || data.message || 'Could not add the genre.');
+            }
+            const g = data.genre;
+            const label = g.name_bn ? (g.name_bn + ' (' + g.name_en + ')') : g.name_en;
+            document.querySelectorAll('#f-genre_category, #f-genre_category_sidebar').forEach(sel => {
+                if (![...sel.options].some(o => o.value === g.slug)) {
+                    const opt = document.createElement('option');
+                    opt.value = g.slug;
+                    opt.textContent = label;
+                    sel.appendChild(opt);
+                }
+            });
+            syncGenre(g.slug, true);
+            input.value = '';
+            say('Added and selected.', true);
+        } catch (err) {
+            say(err.message, false);
+        } finally {
+            btn.disabled = false;
+        }
+    };
+
     window.syncBoimelaMain = function(val) {
         const hidden = document.getElementById('f-ekushey_category');
         if (hidden) hidden.value = val;
@@ -2787,10 +2860,11 @@ body.dark-mode .adm-mobile-sticky-bar {
             if ($id('qrTargetUrlText')) { $id('qrTargetUrlText').textContent = qr.payload || ''; $id('qrTargetUrlText').title = qr.payload || ''; }
             if ($id('qrTestLink')) $id('qrTestLink').href = qr.payload || '#';
             const inp = readInputs();
-            if ($id('qrCodeLabel')) $id('qrCodeLabel').textContent = inp.serial || inp.sku || '';
+            if ($id('qrCodeLabel')) $id('qrCodeLabel').textContent = (qr.provisional ? 'Expected Book No. ' : 'Book No. ') + (qr.number || '');
+            if ($id('qrTestLink')) { $id('qrTestLink').classList.toggle('disabled', !!qr.provisional); if (qr.provisional) { $id('qrTestLink').setAttribute('aria-disabled', 'true'); $id('qrTestLink').tabIndex = -1; } else { $id('qrTestLink').removeAttribute('aria-disabled'); $id('qrTestLink').removeAttribute('tabindex'); } }
             if ($id('qrIsbnLabel')) $id('qrIsbnLabel').textContent = 'ISBN: ' + (inp.isbn || '—');
             fillWarnings('bcQrWarnings', qr.warnings);
-            ['bcQrPng', 'bcQrSvg'].forEach((id) => { if ($id(id)) $id(id).disabled = !qr.svg; });
+            ['bcQrPng', 'bcQrSvg'].forEach((id) => { if ($id(id)) $id(id).disabled = !qr.svg || !!qr.provisional; });
         }
 
         async function refresh() {
@@ -2844,7 +2918,8 @@ body.dark-mode .adm-mobile-sticky-bar {
                 const card = $id('bcBarcodeCard');
                 return 'barcode-' + safeName(card?.dataset.value, 'book') + '-' + (card?.dataset.format || 'code128');
             }
-            return 'qr-' + safeName(inp.serial || inp.sku || inp.slug, 'book');
+            // qr-book-450.png: named by the number the QR carries
+            return 'qr-book-' + safeName((($id('bcQrCard')?.dataset.payload || '').split('/books/')[1] || '').split(/[?#]/)[0], 'book');
         }
 
         function currentSvg(kind) {

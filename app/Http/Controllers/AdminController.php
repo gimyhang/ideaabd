@@ -1159,6 +1159,7 @@ class AdminController extends Controller
                     $q->whereIn('category_id', $allIds);
                 }
             })
+            ->when($request->filled('genre'), fn ($q) => $q->where('genre_category', (string) $request->input('genre')))
             ->when($stockFilter === 'pre_order', fn ($q) => $q->where('stock_status', 'pre_order'))
             ->when($stockFilter === 'low', fn ($q) => $q->where('stock_quantity', '<=', 5)->where('stock_quantity', '>', 0))
             ->when($stockFilter === 'out', fn ($q) => $q->where('stock_quantity', '<=', 0))
@@ -1222,7 +1223,7 @@ class AdminController extends Controller
             'discount'            => \Modules\Book\Models\Book::whereNotNull('discount_price')->where('discount_price', '>', 0)->whereColumn('discount_price', '<', 'price')->count(),
         ];
 
-        return view('admin.books', compact('books', 'categories', 'publishers', 'authors', 'stats', 'sort', 'perPage', 'bibidhId'));
+        return view('admin.books', array_merge(compact('books', 'categories', 'publishers', 'authors', 'stats', 'sort', 'perPage', 'bibidhId'), ['genres' => \Modules\Book\Models\Genre::everything()]));
     }
 
     public function toggleBookStatus(Request $request, int $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
@@ -1399,7 +1400,7 @@ class AdminController extends Controller
 
         $code = !empty($book->idea_serial_no) ? $book->idea_serial_no : (!empty($book->sku) ? $book->sku : (!empty($book->isbn) ? $book->isbn : 'IDEA-' . $book->id));
         $barcodeSvg = \App\Services\BarcodeService::generateCode128Svg($code, 50, 2.0, true);
-        $qrSvg = \App\Services\BarcodeService::generateQrCodeSvg(url('/books/' . ($book->slug ?: $book->id)), 140);
+        $qrSvg = \App\Services\BarcodeService::generateQrCodeSvg($book->shortUrl(), 140);
 
         return response()->json([
             'success'          => true,
@@ -1416,7 +1417,7 @@ class AdminController extends Controller
             'is_idea'          => $book->is_idea_prokashon,
             'barcode_svg'      => $barcodeSvg,
             'qr_svg'           => $qrSvg,
-            'store_url'        => url('/books/' . ($book->slug ?: $book->id)),
+            'store_url'        => $book->shortUrl(),
         ]);
     }
 
@@ -3216,7 +3217,7 @@ class AdminController extends Controller
                 'hardcover_discount_price' => 'nullable|numeric|min:0',
                 'edition'                  => 'nullable|string|max:100',
                 'stock_quantity'           => 'nullable|integer|min:0',
-                'stock_status'             => 'nullable|string|in:in_stock,low,out,pre_order',
+                'stock_status'             => 'nullable|string|in:in_stock,low,out,out_of_stock,pre_order,upcoming,backorder',
                 'is_active'                => 'nullable',
                 'mod_status'               => 'nullable|string|in:pending,approved,rejected',
                 'cover_image_file'         => 'nullable|image|max:5120',
@@ -3266,6 +3267,18 @@ class AdminController extends Controller
                 $updates['stock_status'] = $request->input('stock_status');
             }
 
+            // The binding decides which prices exist: a paperback has no hardcover price and a hardcover-only book
+            // has no paperback price. Without this a hidden, old price kept the book "both" forever.
+            if ($request->filled('cover_type')) {
+                if ($request->input('cover_type') === 'paperback') {
+                    $updates['hardcover_price'] = null;
+                    $updates['hardcover_discount_price'] = null;
+                } elseif ($request->input('cover_type') === 'hardcover') {
+                    $updates['price'] = 0;
+                    $updates['discount_price'] = null;
+                }
+            }
+
             // Moderation & Live Visibility Status Handling
             if ($request->filled('mod_status')) {
                 $modStatus = $request->input('mod_status');
@@ -3275,7 +3288,8 @@ class AdminController extends Controller
                     $updates['reviewed_by'] = auth()->id();
                     $updates['reviewed_at'] = now();
                     $updates['rejection_reason'] = null;
-                    $updates['is_active'] = $request->boolean('is_active', true);
+                    // The modal always sends is_active (0 or 1). Only when it is missing entirely keep the current state.
+                    $updates['is_active'] = $request->has('is_active') ? $request->boolean('is_active') : (bool) $book->is_active;
                 } elseif ($modStatus === 'rejected') {
                     $updates['is_active'] = false;
                     $updates['reviewed_by'] = auth()->id();
@@ -3384,7 +3398,7 @@ class AdminController extends Controller
                 'hardcover_discount_price' => 'nullable|numeric|min:0',
                 'edition'                  => 'nullable|string|max:100',
                 'stock_quantity'           => 'nullable|integer|min:0',
-                'stock_status'             => 'nullable|string|in:in_stock,low,out,pre_order',
+                'stock_status'             => 'nullable|string|in:in_stock,low,out,out_of_stock,pre_order,upcoming,backorder',
                 'is_active'                => 'nullable',
                 'isbn'                     => 'nullable|string|max:50',
                 'cover_theme'              => 'nullable|string|max:50',
@@ -3511,8 +3525,15 @@ class AdminController extends Controller
                 'reviewed_at'              => now(),
             ]);
 
+            // Same address style as the full form: "450-book-name" (the QR carries just /books/450).
+            $numbered = $book->numberedSlug();
+            if ($numbered !== $book->slug && !\Modules\Book\Models\Book::withTrashed()->where('slug', $numbered)->where('id', '!=', $book->id)->exists()) {
+                $book->slug = $numbered;
+                $book->saveQuietly();
+            }
+
             if ($this->accessService) {
-                $this->accessService->log('book_quick_created', "নতুন বই '{$book->title}' (ID: {$book->id}) দ্রুত আপলোড করা হয়েছে");
+                $this->accessService->log('book_quick_created',"নতুন বই '{$book->title}' (ID: {$book->id}) দ্রুত আপলোড করা হয়েছে");
             }
 
             $coverUrl = asset('storage/' . ltrim($coverPath, '/'));

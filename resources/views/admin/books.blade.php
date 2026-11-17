@@ -14,6 +14,7 @@
 @section('actions')
     <div class="bk-actions">
         <a href="{{ route('admin.content.create', 'books') }}" class="btn btn-primary bk-btn-main">Add</a>
+        <button type="button" class="btn btn-outline-primary bk-btn-main" data-bs-toggle="modal" data-bs-target="#genreManagerModal" title="Add or edit genres">Genres</button>
         <button type="button" class="btn btn-success bk-btn-main" onclick="openQuickAddBookModal()" title="দ্রুত বই যোগ করুন">Quick</button>
         <a href="{{ route('admin.books', ['mod_status' => 'pending', 'publisher_id' => 'registered']) }}" class="btn btn-warning bk-btn-main text-dark" title="পাবলিশার রিভিউ কিউ">
             Review
@@ -191,6 +192,15 @@
                             <option value="paperback" @selected(request('cover_type') === 'paperback')>Paperback</option>
                             <option value="hardcover" @selected(request('cover_type') === 'hardcover')>Hardcover</option>
                             <option value="both" @selected(request('cover_type') === 'both')>Both</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="bk-label" for="fGenre">Genre</label>
+                        <select name="genre" id="fGenre" class="form-select" onchange="submitFilterForm()">
+                            <option value="">All</option>
+                            @foreach ($genres ?? [] as $g)
+                                <option value="{{ $g['slug'] }}" @selected(request('genre') === $g['slug'])>{{ \Modules\Book\Models\Genre::label($g, 'bn') }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="col-6 col-lg-3">
@@ -643,6 +653,11 @@
                                         </span>
                                     </a>
                                 @endif
+                                @if($book->genre_category)
+                                    <a href="{{ route('admin.books', ['genre' => $book->genre_category]) }}" class="text-decoration-none d-block mt-1">
+                                        <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5" style="font-size: 10.5px;">{{ \Modules\Book\Models\Genre::nameFor($book->genre_category, 'bn') }}</span>
+                                    </a>
+                                @endif
                             </td>
 
                             <td class="text-end">
@@ -1046,6 +1061,115 @@
     </div>
 </div>
 
+{{-- ═══════════════════════════════════════════════════════════════════════════ --}}
+{{-- GENRE MANAGER: add a genre (Bangla and/or English) or hide/show one, without leaving the list --}}
+{{-- ═══════════════════════════════════════════════════════════════════════════ --}}
+@php
+    $genreRows = \Modules\Book\Models\Genre::query()->orderBy('sort_order')->orderBy('id')->get(['id', 'slug', 'name_en', 'name_bn', 'is_active']);
+@endphp
+<div class="modal fade" id="genreManagerModal" tabindex="-1" aria-labelledby="genreManagerLabel" aria-hidden="true"
+     data-store="{{ route('admin.genres.store') }}" data-update="{{ url('admin/genres') }}">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title fs-6 fw-bold" id="genreManagerLabel">Genres</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="genreQuickAdd" class="row g-2 mb-2" autocomplete="off" novalidate>
+                    <div class="col-sm-5">
+                        <label class="form-label small fw-semibold mb-1" for="gmNameBn">Name (Bangla)</label>
+                        <input id="gmNameBn" name="name_bn" type="text" class="form-control form-control-sm" maxlength="150">
+                    </div>
+                    <div class="col-sm-5">
+                        <label class="form-label small fw-semibold mb-1" for="gmNameEn">Name (English)</label>
+                        <input id="gmNameEn" name="name_en" type="text" class="form-control form-control-sm" maxlength="150" placeholder="optional">
+                    </div>
+                    <div class="col-sm-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary btn-sm w-100" id="gmAddBtn">Add</button>
+                    </div>
+                </form>
+                <div class="small text-muted mb-2">One name is enough; the other and the address code are made for you.</div>
+                <div id="gmAlert" role="status" aria-live="polite"></div>
+
+                <ul class="list-group list-group-flush" id="gmList">
+                    @forelse($genreRows as $gr)
+                        <li class="list-group-item d-flex align-items-center justify-content-between gap-2 px-0">
+                            <div class="min-w-0">
+                                <div class="fw-semibold text-truncate">{{ $gr->name_bn ?: $gr->name_en }}</div>
+                                <div class="small text-muted text-truncate">{{ $gr->name_en }} · <code>{{ $gr->slug }}</code></div>
+                            </div>
+                            <div class="form-check form-switch mb-0" title="Show this genre in forms">
+                                <input class="form-check-input gm-active" type="checkbox" role="switch" data-id="{{ $gr->id }}" @checked($gr->is_active) aria-label="Show {{ $gr->name_en }}">
+                            </div>
+                        </li>
+                    @empty
+                        <li class="list-group-item px-0 text-muted small">No genres yet.</li>
+                    @endforelse
+                </ul>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <a href="{{ route('admin.genres.index') }}" class="small fw-semibold text-decoration-none">Full genre manager (rename, order)</a>
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    const modal = document.getElementById('genreManagerModal');
+    if (!modal) return;
+    const alertBox = document.getElementById('gmAlert');
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+
+    function say(text, ok) {
+        alertBox.textContent = '';
+        const d = document.createElement('div');
+        d.className = 'alert py-2 small mb-2 ' + (ok ? 'alert-success' : 'alert-danger');
+        d.textContent = text;   // textContent: server messages are never parsed as HTML
+        alertBox.appendChild(d);
+    }
+    async function call(method, url, body) {
+        const res = await fetch(url, {
+            method, credentials: 'same-origin',
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' },
+            body: body ? JSON.stringify(body) : undefined,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            const first = data.errors ? Object.values(data.errors).flat()[0] : null;
+            throw new Error(first || data.message || 'Could not save. Please try again.');
+        }
+        return data;
+    }
+
+    document.getElementById('genreQuickAdd').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const f = e.target, btn = document.getElementById('gmAddBtn');
+        const nameBn = f.name_bn.value.trim(), nameEn = f.name_en.value.trim();
+        if (!nameBn && !nameEn) { say('Enter the genre name in Bangla or English.', false); return; }
+        btn.disabled = true;
+        try {
+            const data = await call('POST', modal.dataset.store, { name_bn: nameBn || null, name_en: nameEn || null });
+            say(data.message || 'Genre added.', true);
+            setTimeout(() => location.reload(), 500);   // the filter and every form pick it up on reload
+        } catch (err) { say(err.message, false); }
+        finally { btn.disabled = false; }
+    });
+
+    modal.addEventListener('change', async function (e) {
+        const sw = e.target.closest('.gm-active');
+        if (!sw) return;
+        sw.disabled = true;
+        try {
+            await call('PUT', modal.dataset.update + '/' + sw.dataset.id, { is_active: sw.checked });
+            say(sw.checked ? 'Shown in forms.' : 'Hidden from forms (books keep it).', true);
+        } catch (err) { sw.checked = !sw.checked; say(err.message, false); }
+        finally { sw.disabled = false; }
+    });
+})();
+</script>
+
 {{-- ========================================================================= --}}
 {{-- UNIFIED QUICK BOOK SHORTCUT UPDATE MODAL                                   --}}
 {{-- ========================================================================= --}}
@@ -1185,8 +1309,10 @@
                                     <select id="qeStockStatus" name="stock_status" class="form-select form-select-sm">
                                         <option value="in_stock">In Stock</option>
                                         <option value="low">Low Stock</option>
-                                        <option value="out">Out of Stock</option>
+                                        <option value="out_of_stock">Out of Stock</option>
                                         <option value="pre_order">Pre-Order</option>
+                                        <option value="upcoming">Upcoming</option>
+                                        <option value="backorder">Backorder</option>
                                     </select>
                                 </div>
 
@@ -1201,6 +1327,7 @@
 
                                 <div class="col-6 col-sm-3 pb-1">
                                     <div class="form-check form-switch mb-0">
+                                        <input type="hidden" name="is_active" value="0">
                                         <input class="form-check-input" type="checkbox" role="switch" id="qeIsActive" name="is_active" value="1">
                                         <label class="form-check-label small fw-bold text-dark" for="qeIsActive">Active</label>
                                     </div>
@@ -1478,8 +1605,8 @@ function onQeStockQtyChange() {
     const qty = parseInt(qtyEl.value, 10);
     if (!isNaN(qty)) {
         if (qty <= 0) {
-            statusEl.value = 'out';
-        } else if (statusEl.value === 'out') {
+            statusEl.value = 'out_of_stock';
+        } else if (statusEl.value === 'out_of_stock') {
             statusEl.value = 'in_stock';
         }
     }

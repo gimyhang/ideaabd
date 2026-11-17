@@ -493,9 +493,21 @@ class BookController extends Controller
     /**
      * একক বইয়ের ডিটেইলস ও ক্রস-সেলিং (Frequently Bought Together)
      */
-    public function show(Request $request, string $slug): View
+    public function show(Request $request, string $slug): View|\Illuminate\Http\RedirectResponse
     {
         $decoded = urldecode($slug);
+
+        // The QR code and short links carry only the book's number (/books/450). Send those, and any
+        // "450-old-title" address, to the book's own name-based address, which is the one Google indexes.
+        if (preg_match('/^(\d+)(?:-.+)?$/u', $decoded, $m) && !Book::where('slug', $decoded)->exists()) {
+            $numbered = Book::find((int) $m[1], ['id', 'slug', 'is_active']);
+            $mayView = $numbered && ($numbered->is_active || (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSubAdmin())));
+            if ($mayView && $numbered->slug && $numbered->slug !== $decoded) {
+                $query = $request->getQueryString();
+
+                return redirect(route('book.show', $numbered->slug) . ($query ? '?' . $query : ''), 301);
+            }
+        }
         $book = Book::query()
             ->with(['category', 'authors', 'publisher', 'reviews.user'])
             ->withAvg('reviews', 'rating')
@@ -526,6 +538,19 @@ class BookController extends Controller
                     }
                 })
                 ->first();
+        }
+
+        // An address the book used to have (old QR codes, search results, shared links): send it to the
+        // current address. Printed QR codes of the older "?serial=…&isbn=…" kind arrive here too.
+        if (!$book && \Illuminate\Support\Facades\Schema::hasTable('book_slug_redirects')) {
+            $old = \Modules\Book\Models\BookSlugRedirect::where('old_slug', $decoded)->orWhere('old_slug', $slug)->first();
+            $target = $old ? Book::find($old->book_id, ['id', 'slug', 'is_active']) : null;
+            $mayView = $target && ($target->is_active || (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSubAdmin())));
+            if ($mayView && $target->slug && $target->slug !== $decoded) {
+                $query = $request->getQueryString();
+
+                return redirect(route('book.show', $target->slug) . ($query ? '?' . $query : ''), 301);
+            }
         }
 
         // Fuzzy fallback for translated/hyphenated slug

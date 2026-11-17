@@ -49,7 +49,8 @@ class BookCodesTest extends TestCase
 
         $this->assertStringContainsString('data-format="code128"', $html);
         $this->assertStringContainsString('data-value="BK-00042"', $html);
-        $this->assertStringContainsString('/books/' . $book->slug . '?serial=IP042&amp;isbn=978-0-306-40615-7', $html);
+        $this->assertStringContainsString(url('/books/' . $book->id), $html, 'the QR carries the book number, not its slug');
+        $this->assertStringContainsString('Book No. ' . $book->id, $html);
         $this->assertStringContainsString('shape-rendering="crispEdges"', $html);
     }
 
@@ -62,7 +63,8 @@ class BookCodesTest extends TestCase
         $this->assertSame('ean13', $json['barcode']['format']);
         $this->assertSame('9780306406157', $json['barcode']['value']);
         $this->assertStringContainsString('EAN-13 barcode 9780306406157', $json['barcode']['svg']);
-        $this->assertStringContainsString('/books/a%20b?serial=BK-1&isbn=0-306-40615-2', $json['qr']['payload']);
+        $this->assertSame(url('/books/1'), $json['qr']['payload'], 'an unsaved book previews the number it is expected to get');
+        $this->assertTrue($json['qr']['provisional']);
         $this->assertTrue($json['isbn']['valid']);
     }
 

@@ -25,6 +25,51 @@ class Book extends Model
     use HasFactory, Moderatable, SoftDeletes, HasSeo;
 
     /**
+     * The one list of stock statuses every screen uses. "out" was written by the quick tools while the
+     * full form wrote "out_of_stock": both now mean out_of_stock (see setStockStatusAttribute).
+     */
+    public const STOCK_STATUSES = [
+        'in_stock'     => 'Buy Now',
+        'low'          => 'Low Stock',
+        'out_of_stock' => 'Out of Stock',
+        'pre_order'    => 'Pre-Order',
+        'upcoming'     => 'Upcoming',
+        'backorder'    => 'Backorder',
+    ];
+
+    /** Old spelling -> canonical value. */
+    public const STOCK_STATUS_ALIASES = ['out' => 'out_of_stock'];
+
+    public function setStockStatusAttribute($value): void
+    {
+        $value = is_string($value) ? trim($value) : $value;
+        $this->attributes['stock_status'] = self::STOCK_STATUS_ALIASES[$value] ?? $value;
+    }
+
+    public function getStockStatusAttribute($value)
+    {
+        return self::STOCK_STATUS_ALIASES[$value] ?? $value;
+    }
+
+    /**
+     * The short, permanent public address of this book: /books/{id}. It is what the QR code carries;
+     * the page then redirects to the book's own name-based address (see BookController::show).
+     */
+    public function shortUrl(): string
+    {
+        return url('/books/' . $this->getKey());
+    }
+
+    /** "450-book-name": the book number followed by its name, so the address itself tells Google what the page is. */
+    public function numberedSlug(): string
+    {
+        $name = trim((string) ($this->title_en ?: $this->title));
+        $slug = \App\Support\Slugger::fromText($name, 70);
+
+        return $slug === '' ? (string) $this->getKey() : $this->getKey() . '-' . $slug;
+    }
+
+    /**
      * Mass assignable attributes.
      *
      * @var array<int, string>
@@ -117,6 +162,20 @@ class Book extends Model
 
     protected static function booted()
     {
+        // Whenever a book's address changes, keep the old one so existing links, QR codes and search
+        // results still reach it (see BookSlugRedirect / BookController::show).
+        static::updating(function ($book) {
+            if ($book->isDirty('slug')) {
+                \App\Services\BookAddressSeo::moved((int) $book->getKey(), $book->getOriginal('slug'), $book->slug);
+            }
+        });
+        static::saved(function ($book) {
+            // The address a book uses now is never also an "old" address of another book.
+            if ($book->slug && \Illuminate\Support\Facades\Schema::hasTable('book_slug_redirects')) {
+                BookSlugRedirect::where('old_slug', $book->slug)->delete();
+            }
+        });
+
         static::saving(function ($book) {
             $book->assertCatalogEntryIsUnique();
 

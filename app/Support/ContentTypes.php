@@ -75,8 +75,8 @@ final class ContentTypes
                     // --- 3. Publishing & Stock Status ---
                     'published_at'            => ['label' => 'Publication Date / Year', 'type' => 'date',            'rules' => 'nullable|date',                                              'col' => 4],
                     'edition'                 => ['label' => 'Edition / Print',    'type' => 'text',             'placeholder' => 'e.g. 1st Edition 2026 / Revised', 'rules' => 'nullable|string|max:100', 'col' => 4],
-                    'stock_status'            => ['label' => 'Order & Stock Type','type' => 'select',           'default' => 'in_stock',   'rules' => 'nullable|in:in_stock,pre_order,out_of_stock,upcoming,backorder', 'col' => 4,
-                                                  'options' => ['in_stock' => 'Buy Now', 'pre_order' => 'Pre-Order', 'out_of_stock' => 'Out of Stock', 'upcoming' => 'Upcoming', 'backorder' => 'Backorder']],
+                    'stock_status'            => ['label' => 'Order & Stock Type','type' => 'select',           'default' => 'in_stock',   'rules' => 'nullable|in:in_stock,low,out,out_of_stock,pre_order,upcoming,backorder', 'col' => 4,
+                                                  'options' => \Modules\Book\Models\Book::STOCK_STATUSES],
                     'pre_order_release_date'  => ['label' => 'Pre-Order Estimated Delivery Date', 'type' => 'date', 'rules' => 'nullable|date', 'col' => 6],
                     'pre_order_note'          => ['label' => 'Pre-Order Special Note / Gift Offer', 'type' => 'textarea', 'placeholder' => 'e.g. Includes author signature and exclusive bookmark...', 'rules' => 'nullable|string|max:1000', 'col' => 6],
                     'stock_quantity'          => ['label' => 'Stock Quantity (Units)', 'type' => 'number',         'default' => 10,           'rules' => 'nullable|integer|min:0|max:1000000',    'col' => 4],

@@ -41,12 +41,25 @@ class GenreAdminController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'slug'    => ['required', 'string', 'max:100', 'regex:/^[a-z0-9_]+$/', Rule::unique('genres', 'slug')],
-            'name_en' => ['required', 'string', 'max:150'],
+            'slug'    => ['nullable', 'string', 'max:100', 'regex:/^[a-z0-9_]+$/', Rule::unique('genres', 'slug')],
+            'name_en' => ['nullable', 'string', 'max:150'],
             'name_bn' => ['nullable', 'string', 'max:150'],
         ]);
 
-        $genre = Genre::create($data + [
+        $nameBn = trim((string) ($data['name_bn'] ?? ''));
+        $nameEn = trim((string) ($data['name_en'] ?? ''));
+        if ($nameBn === '' && $nameEn === '') {
+            throw \Illuminate\Validation\ValidationException::withMessages(['name_bn' => 'Enter the genre name (Bangla or English).']);
+        }
+
+        // Only one name is needed: the other is made from it, and the permanent slug is generated.
+        $latin = $nameEn !== '' ? $nameEn : \Illuminate\Support\Str::title(str_replace('-', ' ', \App\Support\Slugger::fromText($nameBn, 60)));
+        $slug = $data['slug'] ?? $this->uniqueSlug($latin !== '' ? $latin : $nameBn);
+
+        $genre = Genre::create([
+            'slug'       => $slug,
+            'name_en'    => $latin !== '' ? $latin : $nameBn,
+            'name_bn'    => $nameBn !== '' ? $nameBn : null,
             'is_active'  => true,
             'sort_order' => ((int) Genre::max('sort_order')) + 10,
         ]);
@@ -55,6 +68,19 @@ class GenreAdminController extends Controller
         return response()->json(['success' => true, 'message' => 'Genre added.', 'genre' => $this->payload($genre)]);
     }
 
+    /** snake_case slug from a name, unique among genres (novel, novel_2, ...). */
+    private function uniqueSlug(string $name): string
+    {
+        $base = str_replace('-', '_', \App\Support\Slugger::fromText($name, 60));
+        $base = $base !== '' ? $base : 'genre';
+        $slug = $base;
+        $n = 1;
+        while (Genre::where('slug', $slug)->exists()) {
+            $slug = $base . '_' . (++$n);
+        }
+
+        return $slug;
+    }
     public function update(Request $request, Genre $genre): JsonResponse
     {
         $data = $request->validate([

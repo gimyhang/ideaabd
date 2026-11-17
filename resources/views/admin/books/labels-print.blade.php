@@ -231,7 +231,7 @@
                 $price = (float)($book->discount_price > 0 && $book->discount_price < $book->price ? $book->discount_price : $book->price);
                 $hasDiscount = $book->discount_price > 0 && $book->discount_price < $book->price;
                 $barcodeSvg = \App\Services\BarcodeService::generateCode128Svg($serial, 36, 1.5, false);
-                $qrSvg = \App\Services\BarcodeService::generateQrCodeSvg(url('/books/' . ($book->slug ?: $book->id)), 46);
+                $qrSvg = \App\Services\BarcodeService::generateQrCodeSvg($book->shortUrl(), 46);
             @endphp
 
             @for($c = 0; $c < $copies; $c++)

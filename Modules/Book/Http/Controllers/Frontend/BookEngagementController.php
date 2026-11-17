@@ -36,7 +36,17 @@ class BookEngagementController extends Controller
     /** 1200x630 link-preview picture for Facebook / WhatsApp (see ShareCardService); falls back to the plain cover. */
     public function shareCard(string $slug, \Modules\Book\Services\ShareCardService $cards)
     {
-        $book = Book::query()->where('is_active', true)->where(fn ($q) => $q->where('slug', $slug)->orWhere('id', ctype_digit($slug) ? (int) $slug : 0))->firstOrFail();
+        $book = Book::query()->where('is_active', true)->where(fn ($q) => $q->where('slug', $slug)->orWhere('id', ctype_digit($slug) ? (int) $slug : 0))->first();
+
+        // A preview image link cached before the book's address changed: send it to the current one.
+        if (!$book && \Illuminate\Support\Facades\Schema::hasTable('book_slug_redirects')) {
+            $old = \Modules\Book\Models\BookSlugRedirect::where('old_slug', $slug)->first();
+            $current = $old ? Book::query()->where('is_active', true)->find($old->book_id, ['id', 'slug']) : null;
+            if ($current && $current->slug && $current->slug !== $slug) {
+                return redirect(route('book.share-card', $current->slug), 301);
+            }
+        }
+        abort_unless($book, 404);
         $path = $cards->path($book);
         abort_unless($path, 404);
 
