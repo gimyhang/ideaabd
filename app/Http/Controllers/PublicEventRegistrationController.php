@@ -35,7 +35,7 @@ class PublicEventRegistrationController extends Controller
             default                  => null,
         };
         if ($closed) {
-            return view('frontend.events.inactive', ['campaign' => $campaign, 'message' => $closed]);
+            return view('frontend.events.inactive', ['campaign' => $campaign, 'message' => $closed, 'reason' => $campaign->closedReason()]);
         }
 
         $user = auth()->user();
@@ -445,7 +445,7 @@ class PublicEventRegistrationController extends Controller
             $this->rememberRegistration($campaign, $existingRegistration);
 
             return redirect()->route('event.success', $campaign->slug)
-                ->with('info', "মোবাইল নম্বরে ইতোমধ্যে নিবন্ধন সম্পন্ন হয়েছে! রেজিস্ট্রেশন রোল: #{$existingRegistration->registration_number}");
+                ->with('info', $this->alreadyRegisteredMessage($campaign, $existingRegistration->registration_number));
         }
         // Custom field answers & auto-optimized photo processing
         $customFieldAnswers = [];
@@ -584,7 +584,7 @@ class PublicEventRegistrationController extends Controller
         if ($already) {
             $this->rememberRegistration($campaign, $already);
             return redirect()->route('event.success', $campaign->slug)
-                ->with('info', "মোবাইল নম্বরে ইতোমধ্যে নিবন্ধন সম্পন্ন হয়েছে! রেজিস্ট্রেশন রোল: #{$already->registration_number}");
+                ->with('info', $this->alreadyRegisteredMessage($campaign, $already->registration_number));
         }
 
         // Check max participant limit if configured
@@ -602,7 +602,7 @@ class PublicEventRegistrationController extends Controller
         try {
             $phoneLock->block(5);
         } catch (\Illuminate\Contracts\Cache\LockTimeoutException) {
-            return back()->withInput()->with('error', 'একটি নিবন্ধন প্রক্রিয়াধীন রয়েছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন।');
+            return back()->withInput()->with('error', $this->text($campaign, 'Your application is already being processed. Please wait a moment.', 'একটি নিবন্ধন প্রক্রিয়াধীন রয়েছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন।'));
         }
 
         $registration = null;
@@ -612,7 +612,7 @@ class PublicEventRegistrationController extends Controller
             if ($already) {
                 $this->rememberRegistration($campaign, $already);
                 return redirect()->route('event.success', $campaign->slug)
-                    ->with('info', "মোবাইল নম্বরে ইতোমধ্যে নিবন্ধন সম্পন্ন হয়েছে! রেজিস্ট্রেশন রোল: #{$already->registration_number}");
+                    ->with('info', $this->alreadyRegisteredMessage($campaign, $already->registration_number));
             }
 
             // Retry loop (up to 3 attempts) to generate unique sequence without table-wide locks
@@ -653,7 +653,7 @@ class PublicEventRegistrationController extends Controller
         }
 
         if (!$registration) {
-            return back()->withInput()->with('error', 'নিবন্ধন সম্পন্ন করা সম্ভব হয়নি। অনুগ্রহ করে পুনরায় চেষ্টা করুন।');
+            return back()->withInput()->with('error', $this->text($campaign, 'We could not complete your application. Please try again.', 'নিবন্ধন সম্পন্ন করা সম্ভব হয়নি। অনুগ্রহ করে পুনরায় চেষ্টা করুন।'));
         }
 
         // Lost the race to an identical submission: show that registration instead of a second one.
@@ -661,7 +661,7 @@ class PublicEventRegistrationController extends Controller
             $this->rememberRegistration($campaign, $registration);
 
             return redirect()->route('event.success', $campaign->slug)
-                ->with('info', "মোবাইল নম্বরে ইতোমধ্যে নিবন্ধন সম্পন্ন হয়েছে! রেজিস্ট্রেশন রোল: #{$registration->registration_number}");
+                ->with('info', $this->alreadyRegisteredMessage($campaign, $registration->registration_number));
         }
 
         // Confirmation SMS with Direct Card Link (Admin Approval required if applicable)
@@ -673,6 +673,11 @@ class PublicEventRegistrationController extends Controller
                 } else {
                     $smsText = "আইডিয়া প্রকাশন — আপনার পাঠাগারের নিবন্ধন সফল হয়েছে! Reg No: #{$regNumber}। স্লিপ ডাউনলোড: {$downloadUrl} । www.ideaabd.com";
                 }
+            } elseif ($isScholarship) {
+                // Scholarship messages are English only
+                $smsText = $requiresApproval
+                    ? "Idea Prokashon - Your application for '{$campaign->title}' has been received (Application No: #{$regNumber}). We will message you when it is reviewed. www.ideaabd.com"
+                    : "Idea Prokashon - Your application for '{$campaign->title}' was successful! Application No: #{$regNumber}. Download your form: {$downloadUrl} www.ideaabd.com";
             } elseif ($requiresApproval) {
                 $smsText = "আইডিয়া প্রকাশন — '{$campaign->title}'-এ আপনার তথ্য সফলভাবে জমা হয়েছে (Reg: #{$regNumber})। এডমিন অনুমোদন দিলে আপনাকে মেসেজে কার্ডের লিংক পাঠানো হবে। www.ideaabd.com";
             } else {
@@ -702,6 +707,21 @@ class PublicEventRegistrationController extends Controller
 
         return redirect()->route('event.success', $campaign->slug)
             ->with('success', $successNotice);
+    }
+
+    /** Scholarship pages are English only; every other campaign keeps its Bengali wording. */
+    protected function text(EventCampaign $campaign, string $english, string $bengali): string
+    {
+        return $campaign->isScholarship() ? $english : $bengali;
+    }
+
+    protected function alreadyRegisteredMessage(EventCampaign $campaign, string $registrationNumber): string
+    {
+        return $this->text(
+            $campaign,
+            "You have already applied with this mobile number. Application No: #{$registrationNumber}",
+            "মোবাইল নম্বরে ইতোমধ্যে নিবন্ধন সম্পন্ন হয়েছে! রেজিস্ট্রেশন রোল: #{$registrationNumber}"
+        );
     }
 
     /** What the "thank you" page shows. Tied to its campaign, so another campaign's page never displays it. */
@@ -849,6 +869,29 @@ class PublicEventRegistrationController extends Controller
     {
         return redirect('/' . $campaign->slug . '#get-form')
             ->with('error', 'This link has expired or is not valid. Enter your name and mobile number under "Get my form" to open your application again.');
+    }
+
+    /**
+     * The picture a shared link shows (og:image) for any campaign state: a 1200x630 card built from the
+     * campaign's own banner, so the link never previews the site's main banner.
+     */
+    public function shareImage(string $slug)
+    {
+        $campaign = EventCampaign::resolve($slug);
+        abort_unless($campaign, 404);
+
+        $path = app(\App\Services\EventShareCard::class)->path($campaign);
+        if ($path === null) {
+            // No image library: the campaign banner itself is still better than the site banner.
+            return $campaign->banner_image
+                ? redirect(asset('storage/' . $campaign->banner_image))
+                : redirect(asset('images/og-banner.jpg'));
+        }
+
+        return response()->file($path, [
+            'Content-Type'  => 'image/jpeg',
+            'Cache-Control' => 'public, max-age=604800',
+        ]);
     }
 
     /**

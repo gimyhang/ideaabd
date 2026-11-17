@@ -1118,6 +1118,7 @@ Route::controller(\App\Http\Controllers\PublicEventRegistrationController::class
     Route::get('/rsu/verify/{registrationNumber}', 'verifyAttendance');
     Route::get('/v/{registrationNumber}', 'verifyAttendance')->name('event.attendance.short');
 
+    Route::get('/event-share/{slug}.jpg', 'shareImage')->name('event.share-image')->where('slug', '[a-zA-Z0-9\-_]+');
     Route::get('/event-confirmed/{slug}', 'success')->name('event.success');
     Route::post('/event-lookup/{slug}', 'lookup')->middleware('throttle:12,1')->name('event.lookup')->where('slug', '[a-zA-Z0-9\-_]+');
     Route::get('/{slug}', 'show')->name('event.show')->where('slug', '[a-zA-Z0-9\-_]+');

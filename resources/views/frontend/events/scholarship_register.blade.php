@@ -3,7 +3,7 @@
 @php
     $eventTitle = $campaign->title ?: 'Scholarship Application Form 2026';
     $eventDesc  = $campaign->short_description ?: 'Idea Prokashon and Books of Idea scholarship application form.';
-    $eventCover = $campaign->banner_image ? asset('storage/' . $campaign->banner_image) : asset('images/og-banner.jpg');
+    $eventCover = $campaign->shareImageUrl();
     $wizardFields = [
         0 => ['name', 'gender', 'father_name', 'mother_name', 'religion', 'nationality', 'birth_date', 'phone', 'marital_status', 'annual_income', 'father_income', 'mother_income', 'guardian_income', 'guardian_name', 'guardian_phone'],
         1 => ['group', 'admission_roll', 'merit_position', 'college_code', 'college_name', 'assigned_subject', 'scholarship_degree', 'admission_fee', 'monthly_fee', 'hostel_cost', 'ssc_roll', 'ssc_board', 'ssc_institute', 'ssc_year', 'ssc_gpa', 'hsc_roll', 'hsc_board', 'hsc_institute', 'hsc_year', 'hsc_gpa', 'grad_roll', 'grad_board', 'grad_institute', 'grad_year', 'grad_cgpa', 'other_roll', 'other_board', 'other_institute', 'other_year', 'other_cgpa'],
@@ -50,7 +50,7 @@
 @section('og_title', $eventTitle . ' | Idea Prokashon')
 @section('og_description', Str::limit(strip_tags($eventDesc), 180))
 @section('og_image', $eventCover)
-@section('og_url', url('/scholarship'))
+@section('og_url', $campaign->shareUrl())
 
 @section('schema_json')
 @php

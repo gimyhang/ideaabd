@@ -5,7 +5,7 @@
     $themeColor        = $campaign->theme_color ?: '#0f172a';
     $customFields      = $campaign->custom_fields ?? [];
     $eventDesc         = $campaign->short_description ?: strip_tags($campaign->description ?: 'লেখকদের অংশগ্রহণ ও ডেলিগেট কার্ড নিবন্ধন ফরম — আইডিয়া প্রকাশন।');
-    $eventCover        = $campaign->banner_image ? asset('storage/' . $campaign->banner_image) : asset('images/og-banner.jpg');
+    $eventCover        = $campaign->shareImageUrl();
 @endphp
 
 @section('title', $campaign->title . ' — লেখকদের অংশগ্রহণ ফরম')
@@ -15,7 +15,7 @@
 @section('og_title', $campaign->title . ' — লেখকদের অংশগ্রহণ ফরম | আইডিয়া প্রকাশন')
 @section('og_description', Str::limit(strip_tags($eventDesc), 180))
 @section('og_image', $eventCover)
-@section('og_url', url('/rsu-writer-2026'))
+@section('og_url', $campaign->shareUrl())
 
 @section('schema_json')
 @php

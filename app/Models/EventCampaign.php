@@ -106,6 +106,42 @@ class EventCampaign extends Model
         ];
     }
 
+    /**
+     * Why the public form is closed right now: 'inactive' | 'expired' | 'full', or null while it is open.
+     */
+    public function closedReason(): ?string
+    {
+        return match (true) {
+            !$this->is_active  => 'inactive',
+            $this->isExpired() => 'expired',
+            $this->isFull()    => 'full',
+            default            => null,
+        };
+    }
+
+    /** Changes whenever something that is drawn on the share picture changes, so crawlers refetch it. */
+    public function shareImageVersion(): string
+    {
+        return substr(md5(implode('|', [
+            $this->banner_image, $this->title, $this->theme_color, $this->updated_at?->timestamp, 'v2',
+        ])), 0, 10);
+    }
+
+    /**
+     * Picture shown when the campaign's link is shared (Facebook, WhatsApp, ...): always a 1200x630 card
+     * made from this campaign's own banner, never the site's main banner.
+     */
+    public function shareImageUrl(): string
+    {
+        return route('event.share-image', ['slug' => $this->slug, 'v' => $this->shareImageVersion()]);
+    }
+
+    /** The address people share: the campaign's own slug (not an old fixed address). */
+    public function shareUrl(): string
+    {
+        return route('event.show', ['slug' => $this->slug]);
+    }
+
     public function canAcceptRegistrations(): bool
     {
         return $this->is_active && !$this->isExpired() && !$this->isFull();

@@ -3,7 +3,7 @@
 @php
     $libTitle = 'বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন ২০২৬';
     $libDesc  = 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচির আওতায় পাঠাগার ও শিক্ষা প্রতিষ্ঠানে বই অনুদান নিবন্ধন ফরম।';
-    $libCover = asset('images/og-banner.jpg');
+    $libCover = $campaign->shareImageUrl();
 @endphp
 
 @section('title', 'আইডিয়া পাঠাগার — বই অনুদান আবেদন ফরম ২০২৬')
@@ -13,7 +13,7 @@
 @section('og_title', $libTitle . ' | আইডিয়া প্রকাশন')
 @section('og_description', Str::limit(strip_tags($libDesc), 180))
 @section('og_image', $libCover)
-@section('og_url', url('/pathagar'))
+@section('og_url', $campaign->shareUrl())
 
 @section('schema_json')
 @php

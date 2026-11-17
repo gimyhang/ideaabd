@@ -5,7 +5,7 @@
     $themeColor        = $campaign->theme_color ?: '#0f172a';
     $customFields      = $campaign->custom_fields ?? [];
     $eventDesc         = $campaign->short_description ?: strip_tags($campaign->description ?: 'অংশগ্রহণ ও ডেলিগেট কার্ড নিবন্ধন ফরম — আইডিয়া প্রকাশন।');
-    $eventCover        = $campaign->banner_image ? asset('storage/' . $campaign->banner_image) : asset('images/og-banner.jpg');
+    $eventCover        = $campaign->shareImageUrl();
     
     $fSettings         = $campaign->form_settings['fields'] ?? [];
     $emailEnabled      = $fSettings['email']['enabled'] ?? true;
@@ -21,7 +21,7 @@
 @section('og_title', $campaign->title . ' — নিবন্ধন ফরম | আইডিয়া প্রকাশন')
 @section('og_description', Str::limit(strip_tags($eventDesc), 180))
 @section('og_image', $eventCover)
-@section('og_url', url('/' . $campaign->slug))
+@section('og_url', $campaign->shareUrl())
 
 @push('styles')
     <link rel="preconnect" href="https://fonts.googleapis.com">
