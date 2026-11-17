@@ -9,9 +9,22 @@ use Modules\Book\Models\Book;
 class BookProductionEvent extends Model
 {
     public const STAGES = [
-        'printed'  => 'Printed',
-        'bound'    => 'Bound',
-        'received' => 'Received',
+        'printed'      => 'Printed',
+        'bound'        => 'Bound',
+        'received'     => 'Received',
+        'press_waste'  => 'Press waste',
+        'binder_waste' => 'Binding waste',
+    ];
+
+    /** Stages that move copies forward (the waste stages only take copies out). */
+    public const FLOW_STAGES = ['printed', 'bound', 'received'];
+
+    public const STAGES_BN = [
+        'printed'      => 'ছাপা',
+        'bound'        => 'বাঁধাই',
+        'received'     => 'স্টোরে গ্রহণ',
+        'press_waste'  => 'নষ্ট · প্রেসে',
+        'binder_waste' => 'নষ্ট · বাঁধাইখানায়',
     ];
 
     protected $fillable = ['book_id', 'stage', 'quantity', 'event_date', 'batch_no', 'vendor', 'notes', 'created_by'];

@@ -4,7 +4,7 @@
 .pd-kpi { padding: 1.1rem 1.3rem; display: flex; flex-direction: column; gap: .2rem; margin: 0 !important; border-top: 3px solid var(--tone, #cbd5e1) !important; }
 .pd-kpi span { font-size: .68rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--ac-mute, #94a3b8); }
 .pd-kpi strong { font-size: 1.6rem; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--tone, inherit); }
-.is-blue { --tone: #2563eb; } .is-violet { --tone: #7c3aed; } .is-green { --tone: #059669; } .is-amber { --tone: #d97706; } .is-gray { --tone: #64748b; }
+.is-blue { --tone: #2563eb; } .is-violet { --tone: #7c3aed; } .is-green { --tone: #059669; } .is-amber { --tone: #d97706; } .is-gray { --tone: #64748b; } .is-red { --tone: #e11d48; }
 
 .pd-card { margin: 0 0 1.5rem !important; overflow: hidden; }
 .pd-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; padding: 1.1rem 1.5rem; border-bottom: 1px solid var(--ac-line-2, #eef1f7); }

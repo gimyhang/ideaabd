@@ -116,8 +116,8 @@ class BookProductionController extends Controller
                 'isbn'     => $b->isbn,
                 'author'   => $b->author_name,
                 'stock'    => (int) $b->stock_quantity,
-                'at_press' => max(0, $t['printed'] - $t['bound']),
-                'at_binder' => max(0, $t['bound'] - $t['received']),
+                'at_press'  => $this->service->atPress($t),
+                'at_binder' => $this->service->atBinder($t),
             ];
         })->values());
     }
@@ -132,11 +132,13 @@ class BookProductionController extends Controller
             'batch_no'   => 'nullable|string|max:100',
             'vendor'     => 'nullable|string|max:255',
             'notes'      => 'nullable|string|max:1000',
+            'location_id' => ['nullable', Rule::exists('locations', 'id')->where('type', 'warehouse')],
         ]);
 
         $this->service->record(
             (int) $data['book_id'], $data['stage'], (int) $data['quantity'], $data['event_date'],
-            $data['batch_no'] ?? null, $data['vendor'] ?? null, $data['notes'] ?? null, $request->user()?->id
+            $data['batch_no'] ?? null, $data['vendor'] ?? null, $data['notes'] ?? null, $request->user()?->id,
+            $data['stage'] === 'received' && !empty($data['location_id']) ? (int) $data['location_id'] : null
         );
 
         return back()->with('success', BookProductionEvent::STAGES[$data['stage']] . ' saved.');

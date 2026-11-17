@@ -15,8 +15,9 @@
 
 @section('actions')
     @foreach ($stages as $key => $label)
-        <button type="button" class="btn {{ $key === 'printed' ? 'btn-primary' : 'btn-outline-primary' }} btn-sm" data-stage="{{ $key }}" data-bs-toggle="modal" data-bs-target="#stageModal">{{ $label }}</button>
+        <button type="button" class="btn {{ $key === 'printed' ? 'btn-primary' : (str_ends_with($key, '_waste') ? 'btn-outline-danger' : 'btn-outline-primary') }} btn-sm" data-stage="{{ $key }}" data-bs-toggle="modal" data-bs-target="#stageModal">{{ $label }}</button>
     @endforeach
+    <a href="{{ route('admin.inventory.index') }}" class="btn btn-light btn-sm">Lifecycle</a>
 @endsection
 
 @section('content')
@@ -103,7 +104,7 @@
                     <tr>
                         <td class="text-nowrap">{{ $e->event_date->format('d M Y') }}</td>
                         <td class="fw-semibold">{{ $e->book?->title ?? '—' }}@if ($e->notes)<div class="pd-sub">{{ $e->notes }}</div>@endif</td>
-                        <td><span class="pd-chip is-{{ ['printed' => 'blue', 'bound' => 'violet', 'received' => 'green'][$e->stage] ?? 'gray' }}">{{ $stages[$e->stage] ?? $e->stage }}</span></td>
+                        <td><span class="pd-chip is-{{ ['printed' => 'blue', 'bound' => 'violet', 'received' => 'green', 'press_waste' => 'red', 'binder_waste' => 'red'][$e->stage] ?? 'gray' }}">{{ $stages[$e->stage] ?? $e->stage }}</span></td>
                         <td class="text-end fw-bold">{{ number_format($e->quantity) }}</td>
                         <td class="text-muted">{{ $e->batch_no ?: '—' }}</td>
                         <td class="text-muted">{{ $e->vendor ?: '—' }}</td>

@@ -2,7 +2,7 @@
 (function () {
     'use strict';
     var doc = document;
-    var LABELS = { printed: ['Printed', 'Press'], bound: ['Bound', 'Binder'], received: ['Received', 'Binder'] };
+    var LABELS = { printed: ['Printed', 'Press'], bound: ['Bound', 'Binder'], received: ['Received', 'Binder'], press_waste: ['Press waste', 'Press'], binder_waste: ['Binding waste', 'Binder'] };
     var timer;
 
     function esc(s) {
