@@ -432,6 +432,14 @@ class AdminController extends Controller
     }
 
     /**
+     * Real "visitors right now" number for the dashboard badge (distinct IPs in the last 5 minutes).
+     */
+    public function dashboardLiveVisitors(): \Illuminate\Http\JsonResponse
+    {
+        return response()->json(['count' => $this->dashboard->liveOnlineCount()]);
+    }
+
+    /**
      * AJAX endpoint to fetch full pending records data dynamically.
      */
     public function dashboardPendingData(Request $request): \Illuminate\Http\JsonResponse

@@ -514,6 +514,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::post('/dashboard/quick-action', [AdminController::class, 'dashboardQuickAction'])->name('dashboard.quick-action');
     Route::get('/dashboard/pending-data', [AdminController::class, 'dashboardPendingData'])->name('dashboard.pending-data');
+    Route::get('/dashboard/live-visitors', [AdminController::class, 'dashboardLiveVisitors'])->middleware('throttle:30,1')->name('dashboard.live-visitors');
     Route::post('/settings/toggle-verification', [AdminController::class, 'toggleVerificationSetting'])->name('settings.toggle-verification');
 
     // E-Book Sales Report, Royalty Management & Payouts (KDP Engine)

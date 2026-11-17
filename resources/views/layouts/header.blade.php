@@ -1075,6 +1075,43 @@
                         <a href="{{ route('author.dashboard') }}" class="md-portal md-portal--author">Author</a>
                     @endif
                 </div>
+                {{-- Portal links open big pages: start loading on hover/touch and show that the click registered. --}}
+                <script>
+                (function () {
+                    var links = document.querySelectorAll('.md-portals .md-portal');
+                    if (!links.length) return;
+                    var warmed = {};
+                    function prefetch(a) {
+                        var href = a.getAttribute('href');
+                        if (!href || warmed[href]) return;
+                        warmed[href] = true;
+                        var l = document.createElement('link');
+                        l.rel = 'prefetch';
+                        l.as = 'document';
+                        l.href = href;
+                        document.head.appendChild(l);
+                    }
+                    links.forEach(function (a) {
+                        ['pointerenter', 'touchstart', 'focus'].forEach(function (ev) {
+                            a.addEventListener(ev, function () { prefetch(a); }, { passive: true, once: true });
+                        });
+                        a.addEventListener('click', function (e) {
+                            if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+                            a.setAttribute('aria-busy', 'true');
+                            a.style.pointerEvents = 'none';
+                            a.style.opacity = '.75';
+                            a.textContent = a.textContent.trim() + '...';
+                            // If the browser keeps this page (back button), put the link back.
+                            window.addEventListener('pageshow', function () {
+                                a.removeAttribute('aria-busy');
+                                a.style.pointerEvents = '';
+                                a.style.opacity = '';
+                                a.textContent = a.textContent.replace(/\.\.\.$/, '');
+                            }, { once: true });
+                        });
+                    });
+                })();
+                </script>
             </section>
         @else
             {{-- Guest Welcome & Login/Register Cards --}}

@@ -637,7 +637,7 @@
                     <div class="d-flex align-items-center gap-1.5">
                         <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-bold d-inline-flex align-items-center gap-1">
                             <span class="spinner-grow spinner-grow-sm text-success" style="width: 7px; height: 7px;" role="status"></span>
-                            <span>Live: <strong id="liveTrafficCounter">{{ $stats['global_traffic']['live_online'] ?? 24 }}</strong></span>
+                            <span title="Visitors who opened a public page in the last 5 minutes">Live: <strong id="liveTrafficCounter" data-url="{{ route('admin.dashboard.live-visitors') }}">{{ $stats['global_traffic']['live_online'] ?? '—' }}</strong></span>
                         </span>
                         @if(Route::has('admin.analytics'))
                             <a href="{{ route('admin.analytics') }}" class="btn btn-xs btn-light border rounded-circle p-1" style="width: 26px; height: 26px; display: grid; place-items: center;" title="View Full Analytics">
@@ -658,23 +658,26 @@
                         <path d="M520,100 Q650,80 720,140 Q690,200 620,210 Q560,190 530,140 Z" fill="#334155" opacity="0.75"/>
                         <path d="M630,280 Q710,270 720,330 Q680,360 630,340 Z" fill="#334155" opacity="0.75"/>
 
-                        <!-- Interactive Animated Pulse Beacons -->
-                        <circle cx="585" cy="185" r="9" fill="#10b981" opacity="0.25">
-                            <animate attributeName="r" values="4;12;4" dur="2s" repeatCount="indefinite"/>
-                            <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite"/>
-                        </circle>
-                        <circle cx="585" cy="185" r="4.5" fill="#10b981"><title>Dhaka & Chittagong, Bangladesh</title></circle>
-                        
-                        <circle cx="230" cy="135" r="7" fill="#38bdf8" opacity="0.25">
-                            <animate attributeName="r" values="3;10;3" dur="2.5s" repeatCount="indefinite"/>
-                        </circle>
-                        <circle cx="230" cy="135" r="3.5" fill="#38bdf8"><title>New York, USA</title></circle>
-                        
-                        <circle cx="435" cy="115" r="3.5" fill="#f59e0b"><title>London, UK</title></circle>
-                        <circle cx="510" cy="180" r="3.5" fill="#ec4899"><title>Riyadh & Jeddah, KSA</title></circle>
-                        <circle cx="530" cy="185" r="3.5" fill="#8b5cf6"><title>Dubai & Abu Dhabi, UAE</title></circle>
-                        <circle cx="220" cy="120" r="3" fill="#38bdf8"><title>Toronto, Canada</title></circle>
-                        <circle cx="610" cy="220" r="3" fill="#10b981"><title>Kuala Lumpur & Singapore</title></circle>
+                        <!-- Beacons only where visitors really came from (top countries from the visit log) -->
+                        @php
+                            $mapSpots = [
+                                'BD' => [585, 185], 'IN' => [560, 190], 'US' => [230, 135], 'CA' => [220, 120], 'GB' => [435, 115],
+                                'DE' => [455, 120], 'IT' => [462, 135], 'SA' => [510, 180], 'AE' => [530, 185],
+                                'MY' => [610, 220], 'SG' => [612, 230], 'AU' => [680, 310],
+                            ];
+                        @endphp
+                        @foreach(($stats['country_traffic'] ?? []) as $i => $spot)
+                            @if(isset($mapSpots[$spot['code'] ?? '']))
+                                @php [$mx, $my] = $mapSpots[$spot['code']]; @endphp
+                                @if($i === 0)
+                                    <circle cx="{{ $mx }}" cy="{{ $my }}" r="9" fill="#10b981" opacity="0.25">
+                                        <animate attributeName="r" values="4;12;4" dur="2s" repeatCount="indefinite"/>
+                                        <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite"/>
+                                    </circle>
+                                @endif
+                                <circle cx="{{ $mx }}" cy="{{ $my }}" r="{{ $i === 0 ? 4.5 : 3.5 }}" fill="{{ $i === 0 ? '#10b981' : '#38bdf8' }}"><title>{{ $spot['country'] }}: {{ number_format($spot['visitors']) }} visits ({{ $spot['share'] }})</title></circle>
+                            @endif
+                        @endforeach
                     </svg>
                     
                     <div class="d-flex justify-content-between align-items-center text-white-50 px-1 font-monospace" style="font-size: 10px;">
@@ -684,7 +687,7 @@
                 </div>
 
                 <!-- Device Distribution Strip -->
-                @php $devSplit = $stats['global_traffic']['device_split'] ?? ['mobile' => 68, 'desktop' => 28, 'tablet' => 4]; @endphp
+                @php $devSplit = $stats['global_traffic']['device_split'] ?? ['mobile' => 0, 'desktop' => 0, 'tablet' => 0]; @endphp
                 <div class="px-3 pb-2 pt-1">
                     <div class="d-flex justify-content-between text-muted small mb-1" style="font-size: 11px;">
                         <span><i class="fa-solid fa-mobile-screen text-primary me-1"></i>Mobile: <strong>{{ $devSplit['mobile'] }}%</strong></span>
@@ -701,6 +704,9 @@
                 <!-- Country Breakdown Stream with Progress Bars -->
                 <div class="adm-card__body p-0 flex-grow-1 overflow-auto" style="max-height: 185px;">
                     <div class="list-group list-group-flush">
+                        @if(empty($stats['country_traffic']))
+                            <div class="list-group-item text-center text-muted small py-4 border-light">No visits recorded yet.</div>
+                        @endif
                         @foreach($stats['country_traffic'] ?? [] as $ct)
                             <div class="list-group-item d-flex align-items-center justify-content-between py-2 px-3.5 border-light">
                                 <div class="d-flex align-items-center gap-2" style="min-width: 140px;">
@@ -2808,28 +2814,25 @@ function filterDashboardStaffTable(filterKey) {
     }
 }
 
-// Global Traffic Dynamic Real-time Simulator & Interactive Geo Stream
-(function initGlobalTrafficDynamics() {
-    const liveCounterEl = document.getElementById('liveTrafficCounter');
-    if (!liveCounterEl) return;
+// "Live" visitors: the real number from the visit log, refreshed every 30 seconds while this tab is visible.
+(function liveVisitorCounter() {
+    const el = document.getElementById('liveTrafficCounter');
+    if (!el || !el.dataset.url) return;
 
-    let baseLive = parseInt(liveCounterEl.textContent.trim()) || 28;
-    
-    // Periodically update the live visitor count smoothly
-    setInterval(() => {
-        const delta = Math.floor(Math.random() * 5) - 2; // -2 to +2
-        baseLive = Math.max(12, baseLive + delta);
-        
-        liveCounterEl.textContent = baseLive;
-        liveCounterEl.classList.add('text-success');
-        
-        // Subtle pulse animation
-        liveCounterEl.style.transition = 'transform 0.3s ease';
-        liveCounterEl.style.transform = 'scale(1.15)';
-        setTimeout(() => {
-            liveCounterEl.style.transform = 'scale(1)';
-        }, 300);
-    }, 4500);
+    let busy = false;
+    async function refresh() {
+        if (busy || document.hidden) return;
+        busy = true;
+        try {
+            const res = await fetch(el.dataset.url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
+            if (!res.ok) return;
+            const data = await res.json();
+            el.textContent = (data.count === null || data.count === undefined) ? '—' : Number(data.count).toLocaleString();
+        } catch (e) { /* keep the last real value */ }
+        finally { busy = false; }
+    }
+    setInterval(refresh, 30000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
 })();
 
 // Live Search for Staff Table

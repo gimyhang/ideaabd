@@ -15,3 +15,10 @@ Illuminate\Support\Facades\Schedule::command('backup:run --scheduled')
 
 // Shows on /admin/backup whether the server cron is running the scheduler at all
 Illuminate\Support\Facades\Schedule::call(fn () => Illuminate\Support\Facades\Cache::put('backup:scheduler_heartbeat', time(), 3600))->everyMinute()->name('backup-scheduler-heartbeat');
+
+// Keeps the admin dashboard's cached figures warm, so the first click on "Admin" never waits for dozens
+// of queries (needs the same server cron as above).
+Illuminate\Support\Facades\Schedule::command('dashboard:warm')
+    ->everyThreeMinutes()
+    ->withoutOverlapping(10)
+    ->runInBackground();

@@ -1162,28 +1162,36 @@ class AdminDashboardService
         return $this->swr('admin_dash_getGlobalTrafficData', 30, fn () => $this->getGlobalTrafficDataUncached($precomputedTotal));
     }
 
+    /**
+     * Visitors on the site right now: distinct IPs that loaded a public page in the last 5 minutes
+     * (TrackVisitor records those; admin pages and background requests are not counted).
+     * null when visits are not being recorded at all, so the dashboard can say so instead of guessing.
+     */
+    public function liveOnlineCount(): ?int
+    {
+        if (!\App\Support\SchemaCache::has('visitor_logs')) {
+            return null;
+        }
+
+        return Cache::remember('admin_dash_live_online', 20, function () {
+            return $this->safe(
+                fn () => (int) \App\Models\VisitorLog::where('visited_at', '>=', now()->subMinutes(5))->distinct('ip_address')->count('ip_address'),
+                null
+            );
+        });
+    }
+
     protected function getGlobalTrafficDataUncached(?int $precomputedTotal = null): array
     {
         $hasLogs = \App\Support\SchemaCache::has('visitor_logs');
-        $liveOnlineCount = $this->safe(function () use ($hasLogs) {
-            if (!$hasLogs) return rand(14, 28);
-            $fiveMinAgo = now()->subMinutes(5);
-            $count = \App\Models\VisitorLog::where('visited_at', '>=', $fiveMinAgo)->distinct('ip_address')->count('ip_address');
-            return $count > 0 ? $count : rand(14, 28);
-        }, rand(14, 28));
+        $liveOnlineCount = $this->liveOnlineCount();
 
         $totalVisitorsCount = $precomputedTotal ?? ($hasLogs ? (int) $this->safe(fn () => \App\Models\VisitorLog::count(), 0) : 0);
 
+        // Real numbers only: with no recorded visits the lists are simply empty.
         $countryTraffic = $this->safe(function () use ($hasLogs, $totalVisitorsCount) {
             if (!$hasLogs || $totalVisitorsCount === 0) {
-                return [
-                    ['country' => 'Bangladesh', 'code' => 'BD', 'flag' => '🇧🇩', 'visitors' => 1420, 'share' => '78.5%', 'trend' => '+14%'],
-                    ['country' => 'United States', 'code' => 'US', 'flag' => '🇺🇸', 'visitors' => 165, 'share' => '9.1%', 'trend' => '+6%'],
-                    ['country' => 'United Kingdom', 'code' => 'GB', 'flag' => '🇬🇧', 'visitors' => 84, 'share' => '4.6%', 'trend' => '+3%'],
-                    ['country' => 'Saudi Arabia', 'code' => 'SA', 'flag' => '🇸🇦', 'visitors' => 62, 'share' => '3.4%', 'trend' => '+8%'],
-                    ['country' => 'United Arab Emirates', 'code' => 'AE', 'flag' => '🇦🇪', 'visitors' => 45, 'share' => '2.5%', 'trend' => '+5%'],
-                    ['country' => 'Canada', 'code' => 'CA', 'flag' => '🇨🇦', 'visitors' => 33, 'share' => '1.8%', 'trend' => '+2%'],
-                ];
+                return [];
             }
 
             $total = max(1, $totalVisitorsCount);
@@ -1194,53 +1202,39 @@ class AdminDashboardService
                 ->limit(6)
                 ->get();
 
-            if ($records->isEmpty()) {
-                return [
-                    ['country' => 'Bangladesh', 'code' => 'BD', 'flag' => '🇧🇩', 'visitors' => $total, 'share' => '100%', 'trend' => '+10%'],
-                ];
-            }
-
             $flagEmojis = [
-                'BD' => '🇧🇩', 'US' => '🇺🇸', 'GB' => '🇬🇧', 'SA' => '🇸🇦', 'AE' => '🇦🇪', 
+                'BD' => '🇧🇩', 'US' => '🇺🇸', 'GB' => '🇬🇧', 'SA' => '🇸🇦', 'AE' => '🇦🇪',
                 'CA' => '🇨🇦', 'IN' => '🇮🇳', 'AU' => '🇦🇺', 'MY' => '🇲🇾', 'SG' => '🇸🇬', 'DE' => '🇩🇪', 'IT' => '🇮🇹'
             ];
 
             return $records->map(function ($row) use ($total, $flagEmojis) {
                 $code = strtoupper((string) ($row->country_code ?: 'BD'));
-                $flag = $flagEmojis[$code] ?? '🌐';
-                $pct = round(($row->total / $total) * 100, 1);
+
                 return [
-                    'country'  => $row->country ?: 'Bangladesh',
+                    'country'  => $row->country ?: $code,
                     'code'     => $code,
-                    'flag'     => $flag,
+                    'flag'     => $flagEmojis[$code] ?? '🌐',
                     'visitors' => (int) $row->total,
-                    'share'    => $pct . '%',
-                    'trend'    => '+' . rand(3, 15) . '%',
+                    'share'    => round(($row->total / $total) * 100, 1) . '%',
                 ];
             })->all();
         }, []);
 
         $deviceSplit = $this->safe(function () use ($hasLogs, $totalVisitorsCount) {
             if (!$hasLogs || $totalVisitorsCount === 0) {
-                return [
-                    'mobile'  => 68,
-                    'desktop' => 28,
-                    'tablet'  => 4,
-                ];
+                return ['mobile' => 0, 'desktop' => 0, 'tablet' => 0];
             }
-            $total = max(1, $totalVisitorsCount);
             $byDevice = \App\Models\VisitorLog::select('device', DB::raw('COUNT(*) as c'))
                 ->groupBy('device')
                 ->pluck('c', 'device');
-            $mobile = (int) ($byDevice['mobile'] ?? 0);
-            $desktop = (int) ($byDevice['desktop'] ?? 0);
-            $tablet = (int) ($byDevice['tablet'] ?? 0);
+            $counted = max(1, (int) ($byDevice['mobile'] ?? 0) + (int) ($byDevice['desktop'] ?? 0) + (int) ($byDevice['tablet'] ?? 0));
+
             return [
-                'mobile'  => round(($mobile / $total) * 100),
-                'desktop' => round(($desktop / $total) * 100),
-                'tablet'  => round(($tablet / $total) * 100),
+                'mobile'  => (int) round(((int) ($byDevice['mobile'] ?? 0) / $counted) * 100),
+                'desktop' => (int) round(((int) ($byDevice['desktop'] ?? 0) / $counted) * 100),
+                'tablet'  => (int) round(((int) ($byDevice['tablet'] ?? 0) / $counted) * 100),
             ];
-        }, ['mobile' => 68, 'desktop' => 28, 'tablet' => 4]);
+        }, ['mobile' => 0, 'desktop' => 0, 'tablet' => 0]);
 
         return [
             'live_online'    => $liveOnlineCount,
@@ -1248,7 +1242,7 @@ class AdminDashboardService
             'device_split'   => $deviceSplit,
         ];
     }
- 
+
     private static array $tableCache = [];
 
     private static array $tableCountsMemo = [];
