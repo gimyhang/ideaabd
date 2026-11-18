@@ -472,9 +472,46 @@ class Book extends Model
      */
     public function getHasHardcoverAttribute(): bool
     {
-        return in_array($this->cover_type, ['hardcover', 'both'], true)
-            || ($this->hardcover_price && (float) $this->hardcover_price > 0)
-            || $this->format === 'hardcover';
+        return in_array('hardcover', $this->bindings(), true);
+    }
+
+    public function getHasPaperbackAttribute(): bool
+    {
+        return in_array('paperback', $this->bindings(), true);
+    }
+
+    /**
+     * The bindings this book is sold in. The binding chosen on the form decides; the prices do not
+     * (the form used to copy one binding's price into the other, so most books carry both prices).
+     * Only books with no binding set fall back to the prices, and then a hardcover price that merely
+     * repeats the paperback price does not count as a second binding.
+     *
+     * @return string[] e.g. ['paperback'], ['hardcover'] or ['paperback', 'hardcover']
+     */
+    public function bindings(): array
+    {
+        $type = strtolower(trim((string) $this->cover_type));
+        if ($type === 'paperback') {
+            return ['paperback'];
+        }
+        if ($type === 'hardcover') {
+            return ['hardcover'];
+        }
+        if ($type === 'both') {
+            return ['paperback', 'hardcover'];
+        }
+
+        $pb = (float) $this->price;
+        $hc = (float) $this->hardcover_price;
+        $out = [];
+        if ($pb > 0 || $hc <= 0) {
+            $out[] = 'paperback';
+        }
+        if (($hc > 0 && abs($hc - $pb) > 0.004) || $this->format === 'hardcover') {
+            $out[] = 'hardcover';
+        }
+
+        return $out;
     }
 
     /**

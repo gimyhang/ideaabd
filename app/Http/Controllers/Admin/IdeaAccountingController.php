@@ -1832,8 +1832,8 @@ class IdeaAccountingController extends Controller
                 $hcSell = ($hcDisc > 0 && $hcDisc < $hcReg) ? $hcDisc : ($pbSell ?: $hcReg);
                 $hcDiscPct = ($hcReg > 0 && $hcSell < $hcReg) ? round((($hcReg - $hcSell) / $hcReg) * 100, 1) : 0;
 
-                $hasHardcover = ($book->hardcover_price > 0 || in_array($book->cover_type, ['hardcover', 'both']));
-                $hasPaperback = ($book->price > 0 || in_array($book->cover_type, ['paperback', 'both']) || !$hasHardcover);
+                $hasHardcover = $book->has_hardcover; // binding decides (Book::bindings()), not leftover prices
+                $hasPaperback = $book->has_paperback;
 
                 return [
                     'id'                       => $book->id,

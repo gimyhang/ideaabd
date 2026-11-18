@@ -122,19 +122,17 @@
     $finalHardcoverPrice = $hasHardcoverDisc ? $hardcoverDisc : $hardcoverPrice;
     $hardcoverDiscPct = ($hasHardcoverDisc && $hardcoverPrice > 0) ? round((($hardcoverPrice - $hardcoverDisc) / $hardcoverPrice) * 100) : 0;
 
-    // Smart Format & Option Determination
-    if ($hardcoverPrice > 0 && $paperbackPrice > 0) {
-        $hasHardcoverOption = true;
-        $activeFormat = ($book->cover_type === 'paperback') ? 'paperback' : 'hardcover';
-    } elseif ($hardcoverPrice > 0) {
-        $hasHardcoverOption = false;
+    // Which bindings are on sale comes from the binding chosen for the book (see Book::bindings()),
+    // not from which price columns happen to be filled.
+    $bindings = $book->bindings();
+    // Both buttons only for a book sold in both bindings; one binding shows its own price, no choice.
+    $hasHardcoverOption = count($bindings) > 1 && $paperbackPrice > 0 && $hardcoverPrice > 0;
+    if ($bindings === ['hardcover']) {
         $activeFormat = 'hardcover';
-    } elseif ($paperbackPrice > 0) {
-        $hasHardcoverOption = false;
+    } elseif ($bindings === ['paperback']) {
         $activeFormat = 'paperback';
     } else {
-        $hasHardcoverOption = false;
-        $activeFormat = ($book->cover_type === 'hardcover') ? 'hardcover' : 'paperback';
+        $activeFormat = $hardcoverPrice > 0 ? 'hardcover' : 'paperback';
     }
 
     if ($activeFormat === 'hardcover') {
@@ -465,9 +463,9 @@
                                             <tr class="border-bottom">
                                                 <th class="bg-light text-muted py-2 px-3 fw-semibold">বাঁধাই ও কভার</th>
                                                 <td class="text-dark py-2 px-3">
-                                                    @if($book->cover_type === 'hardcover' || ($book->has_hardcover && $book->cover_type !== 'both'))
+                                                    @if($bindings === ['hardcover'])
                                                         <span class="badge bg-dark-subtle text-dark border">হার্ডকভার প্রিন্ট (Hardcover)</span>
-                                                    @elseif($book->cover_type === 'both')
+                                                    @elseif(count($bindings) > 1)
                                                         <span class="badge bg-primary-subtle text-primary border">হার্ডকভার ও পেপারব্যাক উভয় সংস্করণ উপলব্ধ</span>
                                                     @else
                                                         <span class="badge bg-secondary-subtle text-secondary border">পেপারব্যাক প্রিন্ট (Paperback)</span>

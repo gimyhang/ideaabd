@@ -832,18 +832,32 @@ class ContentController extends Controller
                 continue;
             }
 
+            // Editing: a field the form did not send is left as it is. Writing it anyway reset values the
+            // form has no input for (e.g. preview_pages → 0) every time a book was opened and saved.
+            if ($record->exists && !$request->exists($name)) {
+                continue;
+            }
+
             $value = $data[$name] ?? null;
 
             if ($name === 'category_id' && $request->filled('sub_category_name')) {
                 $mainCategoryId = $data['category_id'] ?? null;
                 $subCatName = trim((string) $request->input('sub_category_name'));
-                
+
                 if ($subCatName !== '') {
-                    $existingSubCat = DB::table('categories')
+                    $selected = $mainCategoryId ? DB::table('categories')->where('id', $mainCategoryId)->first() : null;
+                    // The selected category may already be this sub-category (the form re-selects it on edit),
+                    // or a sibling of it. Re-use those instead of nesting a new copy under it on every save.
+                    $existingSubCat = ($selected && $selected->name === $subCatName) ? $selected : null;
+                    $existingSubCat ??= DB::table('categories')
                         ->where('name', $subCatName)
-                        ->when($mainCategoryId, fn($q) => $q->where('parent_id', $mainCategoryId))
+                        ->when($mainCategoryId, fn($q) => $q->whereIn('parent_id', array_filter([$mainCategoryId, $selected->parent_id ?? null])))
                         ->first();
-                        
+                    // A new sub-category goes under the top-level category, never under another sub-category.
+                    if ($selected && $selected->parent_id) {
+                        $mainCategoryId = $selected->parent_id;
+                    }
+
                     if ($existingSubCat) {
                         $attributes['category_id'] = $existingSubCat->id;
                     } else {
@@ -1024,39 +1038,82 @@ class ContentController extends Controller
                 $attributes['description'] = $attributes['summary'];
             }
 
-            // Sync price and hardcover_price
-            $p = $request->input('price');
-            $hp = $request->input('hardcover_price');
-            if ($p !== null && $p !== '' && ($hp === null || $hp === '')) {
-                $attributes['hardcover_price'] = (float)$p;
-            } elseif ($hp !== null && $hp !== '' && ($p === null || $p === '')) {
-                $attributes['price'] = (float)$hp;
-            }
+            // Prices follow the binding. Copying one binding's price into the other made every saved book
+            // look like it came in both paperback and hardcover.
+            if ($request->has('price') || $request->has('hardcover_price') || $request->has('cover_type')) {
+                $cover = (string) ($attributes['cover_type'] ?? $record->cover_type ?? 'paperback');
+                $num = fn ($v) => ($v === null || $v === '') ? null : round((float) $v, 2);
+                $p = $num($request->input('price'));
+                $hp = $num($request->input('hardcover_price'));
+                // The offer price the form shows is what gets saved; the % only fills it when it is missing.
+                $offer = function (?float $base, $explicit, $pct) use ($num) {
+                    $explicit = $num($explicit);
+                    if ($explicit !== null) {
+                        return ($base !== null && $explicit < $base) ? $explicit : null;
+                    }
+                    $pct = (float) $pct;
 
-            // Auto calculate discount_price if sold_percent is given
-            if ($request->filled('sold_percent') && ($p || $hp)) {
-                $basePrice = (float)($p ?: $hp);
-                $soldPct = (float)$request->input('sold_percent');
-                if ($soldPct > 0 && $soldPct <= 100) {
-                    $attributes['discount_price'] = round($basePrice * (1 - $soldPct / 100), 2);
-                }
-            }
+                    return ($base !== null && $pct > 0 && $pct <= 100) ? round($base * (1 - $pct / 100), 2) : null;
+                };
+                $d = $offer($p, $request->input('discount_price'), $request->input('sold_percent'));
+                $hd = $offer($hp, $request->input('hardcover_discount_price'), $request->input('hardcover_sold_percent'));
 
-            // Auto calculate hardcover_discount_price if hardcover_sold_percent is given
-            if ($request->filled('hardcover_sold_percent') && ($hp || $p)) {
-                $baseHp = (float)($hp ?: $p);
-                $hcSoldPct = (float)$request->input('hardcover_sold_percent');
-                if ($hcSoldPct > 0 && $hcSoldPct <= 100) {
-                    $attributes['hardcover_discount_price'] = round($baseHp * (1 - $hcSoldPct / 100), 2);
+                if ($cover === 'hardcover') {
+                    if ($hp === null) {
+                        // Hardcover block left empty: take the price that was entered in the other block.
+                        $hp = $p;
+                        $hd = $d;
+                    }
+                    // `price` cannot be empty in the database: it mirrors the hardcover price for lists, carts and sorting.
+                    $attributes['hardcover_price'] = $hp;
+                    $attributes['hardcover_discount_price'] = $hd;
+                    $attributes['price'] = $hp ?? 0;
+                    $attributes['discount_price'] = $hd;
+                } elseif ($cover === 'both') {
+                    $attributes['price'] = $p ?? $hp ?? 0;
+                    $attributes['discount_price'] = $d;
+                    $attributes['hardcover_price'] = $hp;
+                    $attributes['hardcover_discount_price'] = $hd;
+                } else {
+                    $attributes['price'] = $p ?? $hp ?? 0;
+                    $attributes['discount_price'] = $p !== null ? $d : $hd;
+                    $attributes['hardcover_price'] = null;
+                    $attributes['hardcover_discount_price'] = null;
                 }
-            } elseif ($request->filled('hardcover_discount_price')) {
-                $attributes['hardcover_discount_price'] = (float)$request->input('hardcover_discount_price');
+
+                // Each binding block has its own cost box; save the one that belongs to the chosen binding.
+                if ($request->has('hardcover_cost_price') || $request->has('cost_price')) {
+                    $pbCost = $num($request->input('cost_price'));
+                    $hcCost = $num($request->input('hardcover_cost_price'));
+                    $attributes['cost_price'] = $cover === 'hardcover' ? ($hcCost ?? $pbCost) : ($pbCost ?? $hcCost);
+                }
             }
 
             // Handle Multiple Authors & Unified Author Directory Sync
             $resolvedAuthors = $this->resolveBookAuthors($request);
             $allAuthorIds = $resolvedAuthors['ids'];
             $allAuthorNames = $resolvedAuthors['names'];
+
+            if (!empty($allAuthorNames) && $record->exists && $record->author_name) {
+                // The form shows directory authors by their Bangla name. When the book already names the same
+                // author in the other spelling (English / Bangla), keep the book's spelling instead of switching it.
+                $stored = array_map('trim', explode(',', (string) $record->author_name));
+                foreach ($allAuthorIds as $i => $aid) {
+                    $a = DB::table('authors')->where('id', $aid)->first(['name', 'name_bn', 'name_en']);
+                    if (!$a || !isset($allAuthorNames[$i])) {
+                        continue;
+                    }
+                    $variants = array_values(array_filter([$a->name, $a->name_bn, $a->name_en]));
+                    if (in_array($allAuthorNames[$i], $variants, true)) {
+                        foreach ($stored as $s) {
+                            if (in_array($s, $variants, true)) {
+                                $allAuthorNames[$i] = $s;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
 
             if (!empty($allAuthorNames)) {
                 $attributes['author_name'] = implode(', ', $allAuthorNames);
@@ -1100,10 +1157,12 @@ class ContentController extends Controller
 
             // Handle Height and Width (cm)
             if ($request->filled('book_height_cm') || $request->filled('book_width_cm')) {
-                $h = $request->input('book_height_cm');
-                $w = $request->input('book_width_cm');
-                $attributes['book_height_cm'] = $h ? (float)$h : null;
-                $attributes['book_width_cm'] = $w ? (float)$w : null;
+                // "22.00" → "22", "21.60" → "21.6" so the size text does not change just by saving.
+                $cm = fn ($v) => ($v === null || $v === '' || (float) $v == 0) ? null : rtrim(rtrim(number_format((float) $v, 2, '.', ''), '0'), '.');
+                $h = $cm($request->input('book_height_cm'));
+                $w = $cm($request->input('book_width_cm'));
+                $attributes['book_height_cm'] = $h !== null ? (float) $h : null;
+                $attributes['book_width_cm'] = $w !== null ? (float) $w : null;
                 if ($h && $w) {
                     $attributes['book_size'] = "{$h} cm × {$w} cm";
                 } elseif ($h) {

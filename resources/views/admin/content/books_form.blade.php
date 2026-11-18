@@ -516,6 +516,161 @@ body.dark-mode .adm-mobile-sticky-bar {
     background: rgba(17, 24, 39, 0.94);
     border-top-color: #1f2937;
 }
+
+/* ═══ Uniform fields: every box on the form has the same height, border, radius and text size ═══
+   One set of tokens; overrides the mixed -sm / -md / theme sizes and the older contributor sizes. */
+.a4-doc-sheet {
+    --f-h: 38px;          /* one height for every input, select, date and input-group */
+    --f-fs: 13.5px;       /* one text size inside boxes */
+    --f-px: 11px;         /* inner left/right padding */
+    --f-radius: 8px;
+    --f-border: #d5dbe5;
+    --f-focus: #2563eb;
+    --f-bg: #ffffff;
+    --f-addon-bg: #f6f8fb;
+    --f-ink: #0f172a;
+    --f-mute: #64748b;
+}
+body.dark-mode .a4-doc-sheet {
+    --f-border: #334155;
+    --f-bg: #0f172a;
+    --f-addon-bg: #1e293b;
+    --f-ink: #e2e8f0;
+    --f-mute: #94a3b8;
+}
+
+/* Boxes */
+.a4-doc-sheet .form-control:not(textarea):not([type="file"]):not([type="color"]):not([type="range"]),
+.a4-doc-sheet .form-select,
+.a4-doc-sheet .contributor-input,
+.a4-doc-sheet .contributor-select {
+    height: var(--f-h) !important;
+    min-height: var(--f-h) !important;
+    padding: 0 var(--f-px) !important;
+    font-size: var(--f-fs) !important;
+    font-weight: 500 !important;
+    line-height: calc(var(--f-h) - 2px) !important;
+    color: var(--f-ink) !important;
+    background-color: var(--f-bg) !important;
+    border: 1px solid var(--f-border) !important;
+    border-radius: var(--f-radius) !important;
+    box-shadow: none !important;
+}
+.a4-doc-sheet .form-select,
+.a4-doc-sheet .contributor-select {
+    padding-right: 30px !important;
+    background-position: right 10px center !important;
+    background-size: 12px 9px !important;
+}
+.a4-doc-sheet textarea.form-control {
+    padding: 8px var(--f-px) !important;
+    font-size: var(--f-fs) !important;
+    line-height: 1.55 !important;
+    color: var(--f-ink) !important;
+    background-color: var(--f-bg) !important;
+    border: 1px solid var(--f-border) !important;
+    border-radius: var(--f-radius) !important;
+    box-shadow: none !important;
+}
+.a4-doc-sheet .form-control:focus,
+.a4-doc-sheet .form-select:focus,
+.a4-doc-sheet .contributor-input:focus,
+.a4-doc-sheet .contributor-select:focus {
+    border-color: var(--f-focus) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .14) !important;
+    outline: 0;
+}
+.a4-doc-sheet .form-control::placeholder { color: #a0aec0; font-weight: 400; }
+.a4-doc-sheet .form-control[readonly],
+.a4-doc-sheet .form-control:disabled,
+.a4-doc-sheet .form-select:disabled { background-color: var(--f-addon-bg) !important; }
+.a4-doc-sheet .is-invalid { border-color: #e11d48 !important; }
+
+/* Input groups (৳ … %, gm, cm, × …): same height, joined edges, quiet add-ons */
+.a4-doc-sheet .input-group { flex-wrap: nowrap; }
+.a4-doc-sheet .input-group > .form-control,
+.a4-doc-sheet .input-group > .form-select { min-width: 0; }
+.a4-doc-sheet .input-group-text {
+    height: var(--f-h) !important;
+    padding: 0 10px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    color: var(--f-mute) !important;
+    background: var(--f-addon-bg) !important;
+    border: 1px solid var(--f-border) !important;
+    border-radius: var(--f-radius);
+}
+.a4-doc-sheet .input-group > :not(:first-child):not(.dropdown-menu) { border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important; margin-left: -1px; }
+.a4-doc-sheet .input-group > :not(:last-child):not(.dropdown-toggle):not(.dropdown-menu) { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+.a4-doc-sheet .input-group > .btn { height: var(--f-h); display: inline-flex; align-items: center; font-size: 12.5px; }
+
+/* Labels: one size, one height, so boxes in a row always line up — even when a label carries a button */
+.a4-doc-sheet .a4-field-label,
+.a4-doc-sheet .form-label {
+    min-height: 22px;
+    margin-bottom: 4px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--f-mute);
+    letter-spacing: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+.a4-doc-sheet .a4-field-label > span:first-child { color: #334155; }
+body.dark-mode .a4-doc-sheet .a4-field-label > span:first-child { color: #cbd5e1; }
+.a4-doc-sheet .a4-field-label .btn,
+.a4-doc-sheet .a4-field-label .badge {
+    font-size: 10.5px !important;
+    line-height: 1 !important;
+    padding: 4px 8px !important;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    transform: none !important;
+}
+
+/* A label row that also holds a small button (+ Category, New, Auto …) keeps the plain label height */
+.a4-doc-sheet .a4-doc-section div:has(> .a4-field-label):not(.row):not([class*="col"]) {
+    height: 22px;
+    margin-bottom: 4px !important;
+    align-items: center;
+}
+.a4-doc-sheet .a4-doc-section div:has(> .a4-field-label):not(.row):not([class*="col"]) > .a4-field-label { margin-bottom: 0 !important; }
+.a4-doc-sheet .a4-doc-section div:has(> .a4-field-label):not(.row):not([class*="col"]) > .btn,
+.a4-doc-sheet .a4-doc-section div:has(> .a4-field-label):not(.row):not([class*="col"]) > .badge {
+    height: 20px !important;
+    padding: 0 8px !important;
+    font-size: 10.5px !important;
+    line-height: 1 !important;
+    display: inline-flex !important;
+    align-items: center;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* Grid: the same gap everywhere */
+.a4-doc-sheet .a4-doc-section .row { --bs-gutter-x: 14px; --bs-gutter-y: 12px; }
+
+/* Sub-panels (pre-order, pricing): neutral, no colour fill */
+.a4-doc-sheet .a4-subpanel,
+.a4-doc-sheet .a4-pricing-card {
+    padding: 12px;
+    background: var(--f-addon-bg);
+    border: 1px solid var(--f-border);
+    border-radius: 10px;
+}
+
+/* Contributor table cells follow the same rhythm */
+.a4-doc-sheet .contributor-matrix-table { border: 1px solid var(--f-border); box-shadow: none; border-radius: 10px; }
+.a4-doc-sheet .contributor-matrix-table thead th { font-size: 11.5px; padding: 9px 12px; border-bottom: 1px solid var(--f-border); }
+.a4-doc-sheet .contributor-matrix-row td { padding: 8px 10px; }
+
+@media (max-width: 767.98px) {
+    .a4-doc-sheet { --f-h: 40px; --f-fs: 14px; } /* a little taller for thumbs; still one size */
+    .a4-doc-sheet .contributor-input, .a4-doc-sheet .contributor-select { height: var(--f-h) !important; }
+}
 </style>
 
 {{-- LEFT COLUMN: A4 SHEET FORM GRID & SPECIFICATIONS --}}
@@ -586,7 +741,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                 </div>
                 {{-- Dynamic Pre-Order Fields --}}
                 <div id="adminPreOrderContainer" class="col-12 {{ $val('stock_status') === 'pre_order' ? '' : 'd-none' }}">
-                    <div class="p-3 bg-warning-subtle rounded-3 border border-warning-subtle">
+                    <div class="a4-subpanel">
                         <div class="row g-2">
                             <div class="col-12 col-md-6">
                                 <label for="f-pre_order_release_date" class="a4-field-label">
@@ -698,7 +853,7 @@ body.dark-mode .adm-mobile-sticky-bar {
             {{-- 1. PRIMARY CONTRIBUTOR (ROLE + DIRECTORY DROPDOWN) --}}
             <div class="p-3 bg-light rounded-3 border mb-3">
                 <div class="d-flex align-items-center justify-content-between mb-1.5">
-                    <label for="f-author_link_id" class="a4-field-label mb-0 fs-6">
+                    <label for="f-author_link_id" class="a4-field-label mb-0">
                         <span class="text-dark fw-bold">Primary Author / Contributor <span class="text-danger">*</span></span>
                     </label>
                     <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-3 py-1 fw-bold shadow-2xs" data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" title="Add author into directory">
@@ -707,7 +862,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                 </div>
                 <div class="row g-2">
                     <div class="col-12 col-md-4">
-                        <select id="f-author_role" name="author_role" class="form-select form-select-md fw-semibold border-primary-subtle shadow-2xs" onchange="onPrimaryRoleChange(this)">
+                        <select id="f-author_role" name="author_role" class="form-select form-select-sm fw-semibold" onchange="onPrimaryRoleChange(this)">
                             <option value="author" @selected($primaryAuthorRole === 'author')>Author (লেখক)</option>
                             <option value="editor" @selected($primaryAuthorRole === 'editor')>Editor (সম্পাদক)</option>
                             <option value="translator" @selected($primaryAuthorRole === 'translator')>Translator (অনুবাদক)</option>
@@ -715,7 +870,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                     </div>
                     <div class="col-12 col-md-8">
                         <select id="f-author_link_id" @if($primaryAuthorRole === 'author') name="author_ids[]" @endif required 
-                                class="form-select form-select-md fw-semibold border-primary-subtle shadow-2xs @error('author_names') is-invalid @enderror" 
+                                class="form-select form-select-sm fw-semibold @error('author_names') is-invalid @enderror" 
                                 onchange="onPrimaryAuthorDropdownChange(this)">
                             <option value="">— Select Author / Editor * —</option>
                             @foreach (($lookups['authors_details'] ?? []) as $aId => $aDet)
@@ -1065,7 +1220,20 @@ body.dark-mode .adm-mobile-sticky-bar {
                     <label for="f-paper_type" class="a4-field-label">
                         <span>Paper</span>
                     </label>
+                    @php
+                        $paperNow = trim((string) $val('paper_type', ''));
+                        // "NN GSM Offset" is the old name of "NN GSM Off-white" and is matched below; anything else
+                        // that is not in the list is kept as its own option instead of silently becoming another paper.
+                        $paperKnown = $paperNow === ''
+                            || preg_match('/^(50|55|60|65|70|80|100|120) GSM (Off-white|Offset)$/', $paperNow)
+                            || preg_match('/^(50|55|60|70) GSM Newsprint$/', $paperNow)
+                            || preg_match('/^(100|120|130|150|170|200|250|300) GSM Glossy Paper$/', $paperNow)
+                            || in_array($paperNow, ['100 GSM Cream Paper', 'Other'], true);
+                    @endphp
                     <select id="f-paper_type" name="paper_type" class="form-select form-select-sm @error('paper_type') is-invalid @enderror">
+                        @if (!$paperKnown)
+                            <option value="{{ $paperNow }}" selected>{{ $paperNow }}</option>
+                        @endif
                         <optgroup label="── Off-white ──">
                             <option value="50 GSM Off-white" @selected($val('paper_type') === '50 GSM Off-white' || $val('paper_type') === '50 GSM Offset')>50 GSM Off-white</option>
                             <option value="55 GSM Off-white" @selected($val('paper_type') === '55 GSM Off-white' || $val('paper_type') === '55 GSM Offset')>55 GSM Off-white</option>
@@ -1117,6 +1285,19 @@ body.dark-mode .adm-mobile-sticky-bar {
         </div>
 
         {{-- SECTION 4: PRICING MATRIX & MARGIN CALCULATOR --}}
+        @php
+            // "Sale %" is not stored, only the offer price is. Show the % that the saved offer price means,
+            // so opening the form never recalculates (and wipes) an existing discount.
+            $offPct = function ($price, $offer) {
+                $price = (float) $price;
+                $offer = (float) $offer;
+                if ($price <= 0 || $offer <= 0 || $offer >= $price) {
+                    return '';
+                }
+
+                return rtrim(rtrim(number_format(($price - $offer) / $price * 100, 2, '.', ''), '0'), '.');
+            };
+        @endphp
         <div class="a4-doc-section" id="sec-pricing">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <div class="a4-doc-section-title mb-0">
@@ -1180,8 +1361,8 @@ body.dark-mode .adm-mobile-sticky-bar {
                                 <span>Sale</span>
                             </label>
                             <div class="input-group input-group-sm">
-                                <input type="number" step="0.5" min="0" max="100" id="f-sold_percent" name="sold_percent" 
-                                       value="{{ $val('sold_percent') }}"
+                                <input type="number" step="any" min="0" max="100" id="f-sold_percent" name="sold_percent" 
+                                       value="{{ $val('sold_percent') ?? $offPct($val('price'), $val('discount_price')) }}"
                                        class="form-control form-control-sm" oninput="onPaperbackSoldPercentChange()">
                                 <span class="input-group-text bg-light text-muted fw-bold">%</span>
                             </div>
@@ -1248,7 +1429,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                             </label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light text-dark fw-bold">৳</span>
-                                <input type="number" step="0.01" min="0" id="f-hardcover_cost_price" name="cost_price" 
+                                <input type="number" step="0.01" min="0" id="f-hardcover_cost_price" name="hardcover_cost_price" 
                                        value="{{ $val('hardcover_cost_price') ?: (($val('cover_type') === 'hardcover') ? $val('cost_price') : '') }}"
                                        class="form-control form-control-sm" oninput="onHardcoverCostChange()">
                             </div>
@@ -1259,8 +1440,8 @@ body.dark-mode .adm-mobile-sticky-bar {
                                 <span>Sale</span>
                             </label>
                             <div class="input-group input-group-sm">
-                                <input type="number" step="0.5" min="0" max="100" id="f-hardcover_sold_percent" name="hardcover_sold_percent"
-                                       value="{{ $val('hardcover_sold_percent') }}"
+                                <input type="number" step="any" min="0" max="100" id="f-hardcover_sold_percent" name="hardcover_sold_percent"
+                                       value="{{ $val('hardcover_sold_percent') ?? $offPct($val('hardcover_price'), $val('hardcover_discount_price')) }}"
                                        class="form-control form-control-sm" oninput="onHardcoverSoldPercentChange()">
                                 <span class="input-group-text bg-light text-muted fw-bold">%</span>
                             </div>
@@ -1360,6 +1541,10 @@ body.dark-mode .adm-mobile-sticky-bar {
                     </label>
                     <select id="f-ekushey_category" name="ekushey_category" class="form-select form-select-sm">
                         <option value="">— Event —</option>
+                        @if ($isCustomBoimela)
+                            {{-- A value saved earlier that is not in the list below: keep it instead of clearing it on save. --}}
+                            <option value="{{ $currentBoimelaVal }}" selected>{{ $currentBoimelaVal }}</option>
+                        @endif
                         <optgroup label="── Boimela ──">
                             @foreach($boimelaYears as $bYear)
                                 <option value="boimela_{{ $bYear }}" @selected($currentBoimelaVal === "boimela_{$bYear}")>Boimela {{ $bYear }}</option>
@@ -1377,12 +1562,19 @@ body.dark-mode .adm-mobile-sticky-bar {
                         <span>Audience</span>
                     </label>
                     <select id="f-audience_category" name="audience_category" class="form-select form-select-sm" onchange="syncAudience(this.value)">
+                        @php
+                            $audienceOptions = ['general' => 'General', 'children_5_12' => 'Children (5-12 yrs)', 'teen_13_18' => 'Youth (13-18 yrs)', 'adult' => 'Adult', 'academic' => 'Academic'];
+                            $audienceNow = trim((string) old('audience_category', $record->audience_category ?? ''));
+                            // Older entries were saved as "General", "Adult" …: match key or label, ignoring case.
+                            $audienceKey = collect($audienceOptions)->search(fn ($label, $key) => strcasecmp($key, $audienceNow) === 0 || strcasecmp($label, $audienceNow) === 0);
+                        @endphp
                         <option value="">— Audience —</option>
-                        <option value="general" @selected(old('audience_category', $record->audience_category ?? '') === 'general')>General</option>
-                        <option value="children_5_12" @selected(old('audience_category', $record->audience_category ?? '') === 'children_5_12')>Children (5-12 yrs)</option>
-                        <option value="teen_13_18" @selected(old('audience_category', $record->audience_category ?? '') === 'teen_13_18')>Youth (13-18 yrs)</option>
-                        <option value="adult" @selected(old('audience_category', $record->audience_category ?? '') === 'adult')>Adult</option>
-                        <option value="academic" @selected(old('audience_category', $record->audience_category ?? '') === 'academic')>Academic</option>
+                        @foreach ($audienceOptions as $key => $label)
+                            <option value="{{ $key }}" @selected($audienceKey === $key)>{{ $label }}</option>
+                        @endforeach
+                        @if ($audienceNow !== '' && $audienceKey === false)
+                            <option value="{{ $audienceNow }}" selected>{{ $audienceNow }}</option>
+                        @endif
                     </select>
                 </div>
 
@@ -1453,7 +1645,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                         </button>
                     </div>
                     <input type="text" id="f-idea_serial_no" name="idea_serial_no" value="{{ $val('idea_serial_no') }}" 
-                           class="form-control form-control-sm font-monospace fw-bold bg-warning-subtle bg-opacity-25 border-warning @error('idea_serial_no') is-invalid @enderror"
+                           class="form-control form-control-sm font-monospace fw-semibold @error('idea_serial_no') is-invalid @enderror"
                            oninput="updateLiveBarcodePreview(); updateLiveQrCodePreview();">
                     @error('idea_serial_no')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
@@ -2469,8 +2661,14 @@ body.dark-mode .adm-mobile-sticky-bar {
         if (price > 0 && soldPct > 0 && soldPct <= 100) {
             offerPrice = Math.round(price * (1 - soldPct / 100) * 100) / 100;
         }
+        // Until the price or % is changed, keep the saved offer price exactly (the % shown is rounded).
+        const pbPriceEl = document.getElementById('f-price'), pbPctEl = document.getElementById('f-sold_percent');
+        const pbUntouched = pbPriceEl && pbPctEl && pbPriceEl.value === pbPriceEl.defaultValue && pbPctEl.value === pbPctEl.defaultValue;
+        if (pbUntouched && discHidden && discHidden.defaultValue !== '') {
+            offerPrice = parseFloat(discHidden.defaultValue) || offerPrice;
+        }
         if (discHidden) {
-            discHidden.value = (offerPrice < price) ? offerPrice : '';
+            discHidden.value = pbUntouched ? discHidden.defaultValue : ((offerPrice < price) ? offerPrice : '');
         }
 
         if (offerEl) {
@@ -2559,8 +2757,13 @@ body.dark-mode .adm-mobile-sticky-bar {
         if (price > 0 && soldPct > 0 && soldPct <= 100) {
             offerPrice = Math.round(price * (1 - soldPct / 100) * 100) / 100;
         }
+        const hcPriceEl = document.getElementById('f-hardcover_price'), hcPctEl = document.getElementById('f-hardcover_sold_percent');
+        const hcUntouched = hcPriceEl && hcPctEl && hcPriceEl.value === hcPriceEl.defaultValue && hcPctEl.value === hcPctEl.defaultValue;
+        if (hcUntouched && discHidden && discHidden.defaultValue !== '') {
+            offerPrice = parseFloat(discHidden.defaultValue) || offerPrice;
+        }
         if (discHidden) {
-            discHidden.value = (offerPrice < price) ? offerPrice : '';
+            discHidden.value = hcUntouched ? discHidden.defaultValue : ((offerPrice < price) ? offerPrice : '');
         }
 
         if (offerEl) {
