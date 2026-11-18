@@ -2347,6 +2347,10 @@ class IdeaAccountingController extends Controller
             'valid_until'          => ($isProposal ? 'required' : 'nullable') . '|date|after_or_equal:invoice_date',
             'discount'             => 'nullable|numeric|min:0',
             'tax'                  => 'nullable|numeric|min:0',
+            'tax_mode'             => 'nullable|in:none,exclusive,inclusive,manual',
+            'vat_rate'             => 'nullable|numeric|min:0|max:100',
+            'tax_rate'             => 'nullable|numeric|min:0|max:100',
+            'vat_note'             => 'nullable|string|max:500',
             'previous_due'         => 'nullable|numeric|min:0',
             'paid_amount'          => 'nullable|numeric|min:0',
             'payment_method'       => 'required|string|max:50',
@@ -2383,7 +2387,6 @@ class IdeaAccountingController extends Controller
         $itemResult = IdeaInvoiceItemService::processItems($validated['items'], $salesCategory, false);
         $subtotal = round((float) $itemResult['subtotal'], 2);
         $discount = round((float) ($validated['discount'] ?? 0), 2);
-        $tax = round((float) ($validated['tax'] ?? 0), 2);
         $previousDue = round((float) ($validated['previous_due'] ?? 0), 2);
 
         if ($discount > $subtotal + 0.004) {
@@ -2392,13 +2395,83 @@ class IdeaAccountingController extends Controller
             ]);
         }
 
+        $vat = self::vatTax(
+            max(0, $subtotal - $discount),
+            $validated['tax_mode'] ?? null,
+            (float) ($validated['vat_rate'] ?? 0),
+            (float) ($validated['tax_rate'] ?? 0),
+            (float) ($validated['tax'] ?? 0)
+        );
+
+        // Printed VAT note: keep it only when it differs from the automatic text,
+        // so an untouched note keeps following the mode and rates.
+        $note = trim((string) ($validated['vat_note'] ?? ''));
+        $m = $vat['meta'];
+        $auto = IdeaInvoice::autoVatNote($m['mode'] ?? 'none', (float) ($m['vat_rate'] ?? 0), (float) ($m['tax_rate'] ?? 0), $vat['total']);
+        if ($note !== '' && $note !== $auto) {
+            $vat['meta'] = ($m ?? ['mode' => 'none', 'vat_rate' => 0, 'tax_rate' => 0, 'vat_amount' => 0, 'tax_amount' => 0, 'net' => round(max(0, $subtotal - $discount), 2)]) + ['note' => $note];
+        }
+
         return [
             'items'        => $itemResult['items'],
             'subtotal'     => $subtotal,
             'discount'     => $discount,
-            'tax'          => $tax,
+            'tax'          => $vat['total'],
+            'tax_meta'     => $vat['meta'],
             'previous_due' => $previousDue,
-            'grand'        => round(max(0, $subtotal - $discount + $tax + $previousDue), 2),
+            // Included VAT/Tax is already inside the item prices, so only "added" tax raises the total.
+            'grand'        => round(max(0, $subtotal - $discount + $vat['added'] + $previousDue), 2),
+        ];
+    }
+
+    /**
+     * VAT / Tax on the taxable base (subtotal − discount).
+     *  none      — no VAT/Tax
+     *  exclusive — rates are added on top of the base
+     *  inclusive — the base already contains VAT/Tax; it is only split out (grand total unchanged)
+     *  manual    — a fixed amount added on top (the behaviour of older invoices)
+     *
+     * @return array{total: float, added: float, meta: array|null}
+     */
+    public static function vatTax(float $base, ?string $mode, float $vatRate, float $taxRate, float $manualAmount = 0): array
+    {
+        $vatRate = min(100, max(0, $vatRate));
+        $taxRate = min(100, max(0, $taxRate));
+        $mode = in_array($mode, ['none', 'exclusive', 'inclusive', 'manual'], true)
+            ? $mode
+            : ($manualAmount > 0 ? 'manual' : 'none');
+
+        $vat = $tax = 0.0;
+        $net = $base;
+
+        if ($mode === 'exclusive') {
+            $vat = round($base * $vatRate / 100, 2);
+            $tax = round($base * $taxRate / 100, 2);
+        } elseif ($mode === 'inclusive') {
+            $n = ($vatRate + $taxRate) > 0 ? $base * 100 / (100 + $vatRate + $taxRate) : $base;
+            $vat = round($n * $vatRate / 100, 2);
+            $tax = round($n * $taxRate / 100, 2);
+            $net = round($base - $vat - $tax, 2);
+        } elseif ($mode === 'manual') {
+            $tax = round(max(0, $manualAmount), 2);
+        }
+
+        $total = round($vat + $tax, 2);
+        if ($mode === 'none' || ($mode !== 'manual' && $total <= 0 && $vatRate + $taxRate <= 0)) {
+            return ['total' => 0.0, 'added' => 0.0, 'meta' => $mode === 'none' ? null : ['mode' => $mode, 'vat_rate' => 0, 'tax_rate' => 0, 'vat_amount' => 0, 'tax_amount' => 0, 'net' => round($base, 2)]];
+        }
+
+        return [
+            'total' => $total,
+            'added' => $mode === 'inclusive' ? 0.0 : $total,
+            'meta'  => [
+                'mode'       => $mode,
+                'vat_rate'   => $mode === 'manual' ? 0 : $vatRate,
+                'tax_rate'   => $mode === 'manual' ? 0 : $taxRate,
+                'vat_amount' => $vat,
+                'tax_amount' => $tax,
+                'net'        => round($net, 2),
+            ],
         ];
     }
 
@@ -2457,6 +2530,7 @@ class IdeaAccountingController extends Controller
                     'subtotal'             => $totals['subtotal'],
                     'discount'             => $totals['discount'],
                     'tax'                  => $totals['tax'],
+                    'tax_meta'             => $totals['tax_meta'],
                     'previous_due'         => $totals['previous_due'],
                     'grand_total'          => $totals['grand'],
                     'paid_amount'          => 0,
@@ -2597,6 +2671,7 @@ class IdeaAccountingController extends Controller
                     'subtotal'             => $totals['subtotal'],
                     'discount'             => $totals['discount'],
                     'tax'                  => $totals['tax'],
+                    'tax_meta'             => $totals['tax_meta'],
                     'previous_due'         => $totals['previous_due'],
                     'grand_total'          => $totals['grand'],
                     'payment_method'       => $validated['payment_method'],

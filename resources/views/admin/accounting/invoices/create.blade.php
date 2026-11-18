@@ -733,16 +733,8 @@
                             <td class="text-end font-monospace fw-bold text-warning" id="displayPreviousDue">+৳{{ number_format(old('previous_due', 0), 2) }}</td>
                         </tr>
 
-                        {{-- Tax / VAT Row --}}
-                        <tr>
-                            <td class="text-muted fw-semibold py-1">VAT / Tax (৳):</td>
-                            <td class="text-end py-1">
-                                <div class="input-group input-group-sm ms-auto" style="width: 100px;">
-                                    <span class="input-group-text p-1 text-muted" style="font-size: 10px;">৳</span>
-                                    <input type="number" step="0.01" name="tax" id="taxInput" class="form-control form-control-sm font-monospace text-end p-1" value="{{ old('tax', 0) }}" min="0" oninput="calcTotals()" style="height: 28px; font-size: 11px;">
-                                </div>
-                            </td>
-                        </tr>
+                        {{-- VAT / Tax (dynamic: none / added / included / fixed) --}}
+                        @include('admin.accounting.invoices._tax', ['invoice' => $invoice ?? null])
 
                         {{-- Grand Total --}}
                         <tr class="border-top border-bottom">
@@ -2032,7 +2024,7 @@
         });
 
         const discount = parseFloat(document.getElementById('discountInput')?.value) || 0;
-        const tax = parseFloat(document.getElementById('taxInput')?.value) || 0;
+        const tax = window.invoiceTax ? window.invoiceTax(subtotal - discount).added : (parseFloat(document.getElementById('taxInput')?.value) || 0);
         const previousDue = parseFloat(document.getElementById('previousDueInput')?.value) || 0;
         const grandTotal = Math.max(0, subtotal - discount + tax + previousDue);
 
@@ -2372,7 +2364,7 @@
             subtotal += (qty * price);
         });
         const discount = parseFloat(document.getElementById('discountInput')?.value) || 0;
-        const tax = parseFloat(document.getElementById('taxInput')?.value) || 0;
+        const tax = window.invoiceTax ? window.invoiceTax(subtotal - discount).added : (parseFloat(document.getElementById('taxInput')?.value) || 0);
         const previousDue = parseFloat(document.getElementById('previousDueInput')?.value) || 0;
         const grandTotal = Math.max(0, subtotal - discount + tax + previousDue);
         const paidInput = document.getElementById('paidInput');

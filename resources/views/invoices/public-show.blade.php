@@ -1122,12 +1122,7 @@
                                                 <td class="text-end text-danger fw-semibold font-monospace">- ৳{{ number_format($invoice->discount, 2) }}</td>
                                             </tr>
                                         @endif
-                                        @if($invoice->tax > 0)
-                                            <tr class="border-bottom border-light">
-                                                <td class="text-muted fw-semibold">VAT / Tax:</td>
-                                                <td class="text-end text-muted fw-semibold font-monospace">+ ৳{{ number_format($invoice->tax, 2) }}</td>
-                                            </tr>
-                                        @endif
+                                        @include('admin.accounting.invoices._tax_lines')
                                         <tr class="bg-primary bg-opacity-10 border-top border-primary-subtle">
                                             <td class="fw-bold text-dark" style="font-size: 11px;">Grand Total:</td>
                                             <td class="text-end fw-bold text-primary font-monospace" style="font-size: 11.5px;">৳{{ number_format($invoice->grand_total, 2) }}</td>
@@ -1155,7 +1150,7 @@
 
                 {{-- Note at end right before signature --}}
                 <div class="invoice-note-box bg-light rounded-2 text-muted mb-3 border">
-                    <strong class="text-dark"><i class="fas fa-circle-info me-1 text-primary"></i>(Note):</strong> 1. VAT not included unless specified.
+                    <strong class="text-dark"><i class="fas fa-circle-info me-1 text-primary"></i>(Note):</strong> {{ $invoice->vat_note }}
                     @if($invoice->notes)
                         · {{ $invoice->notes }}
                     @endif

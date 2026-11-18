@@ -32,6 +32,7 @@ class IdeaInvoice extends Model
         'subtotal',
         'discount',
         'tax',
+        'tax_meta',
         'previous_due',
         'grand_total',
         'paid_amount',
@@ -46,6 +47,36 @@ class IdeaInvoice extends Model
         'email_logs',
         'created_by',
     ];
+
+    /** First line of the printed note, matching how VAT/Tax was applied on this document. */
+    public function getVatNoteAttribute(): string
+    {
+        $m = $this->tax_meta ?? null;
+        $custom = trim((string) ($m['note'] ?? ''));
+        if ($custom !== '') {
+            return $custom;
+        }
+        $mode = $m['mode'] ?? ((float) $this->tax > 0 ? 'manual' : 'none');
+
+        return self::autoVatNote($mode, (float) ($m['vat_rate'] ?? 0), (float) ($m['tax_rate'] ?? 0), (float) $this->tax);
+    }
+
+    /** Suggested note for a VAT mode. Kept in step with autoNote() in invoices/_tax.blade.php. */
+    public static function autoVatNote(string $mode, float $vatRate, float $taxRate, float $amount = 0): string
+    {
+        $pct = fn ($v) => rtrim(rtrim(number_format((float) $v, 2, '.', ''), '0'), '.');
+        $rates = collect([
+            $vatRate > 0 ? 'VAT ' . $pct($vatRate) . '%' : null,
+            $taxRate > 0 ? 'Tax ' . $pct($taxRate) . '%' : null,
+        ])->filter()->implode(', ');
+
+        return match (true) {
+            $mode === 'inclusive' && $rates !== '' => "1. Prices are inclusive of {$rates}.",
+            $mode === 'exclusive' && $rates !== '' => "1. {$rates} added as shown.",
+            $mode === 'manual' && $amount > 0 => '1. VAT / Tax added as shown.',
+            default => '1. VAT not included unless specified.',
+        };
+    }
 
     public function getCategoryLabelAttribute(): string
     {
@@ -71,6 +102,7 @@ class IdeaInvoice extends Model
 
     protected $casts = [
         'items'        => 'array',
+        'tax_meta'     => 'array',
         'email_logs'   => 'array',
         'invoice_date' => 'date',
         'due_date'     => 'date',
@@ -102,6 +134,9 @@ class IdeaInvoice extends Model
                 \Illuminate\Support\Facades\Schema::table('idea_invoices', function (\Illuminate\Database\Schema\Blueprint $table) use ($existing) {
                     if (!isset($existing['due_date'])) {
                         $table->date('due_date')->nullable();
+                    }
+                    if (!isset($existing['tax_meta'])) {
+                        $table->json('tax_meta')->nullable();
                     }
                     if (!isset($existing['installment_count'])) {
                         $table->integer('installment_count')->nullable()->default(1);
