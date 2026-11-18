@@ -28,8 +28,11 @@ class SecurityHeaders
         // Referrer policy — never leak the full admin URL to third parties
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-        // Permissions Policy (formerly Feature-Policy) — restrict features
-        $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=()');
+        // Permissions Policy (formerly Feature-Policy) — restrict features.
+        // Staff pages may use the camera (taking a book-cover photo); only this site, never embedded third parties.
+        // camera=() here used to block the camera on every page, so "take photo" could never open it.
+        $camera = $request->is('admin', 'admin/*', 'seller', 'seller/*', 'subadmin/*', 'publisher/*', 'author/*') ? 'camera=(self)' : 'camera=()';
+        $response->headers->set('Permissions-Policy', "geolocation=(), microphone=(), {$camera}, payment=(), usb=()");
 
         // Admin pages must never be cached by a shared proxy or the back button.
         if ($request->is('admin', 'admin/*', 'seller/*')) {

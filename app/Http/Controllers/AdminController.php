@@ -3247,7 +3247,7 @@ class AdminController extends Controller
                 'stock_status'             => 'nullable|string|in:in_stock,low,out,out_of_stock,pre_order,upcoming,backorder',
                 'is_active'                => 'nullable',
                 'mod_status'               => 'nullable|string|in:pending,approved,rejected',
-                'cover_image_file'         => 'nullable|image|max:5120',
+                'cover_image_file'         => 'nullable|image|max:15360',
             ]);
 
             $book = \Modules\Book\Models\Book::findOrFail($validated['book_id']);
@@ -3429,7 +3429,7 @@ class AdminController extends Controller
                 'is_active'                => 'nullable',
                 'isbn'                     => 'nullable|string|max:50',
                 'cover_theme'              => 'nullable|string|max:50',
-                'cover_image_file'         => 'nullable|image|max:5120',
+                'cover_image_file'         => 'nullable|image|max:15360',
                 'auto_cover_base64'        => 'nullable|string',
             ]);
 

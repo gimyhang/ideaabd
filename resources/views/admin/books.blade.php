@@ -919,10 +919,13 @@
 
                             {{-- Manual Upload Option --}}
                             <div>
-                                <label for="qaCoverInput" class="btn btn-xs btn-outline-secondary rounded-pill px-3 cursor-pointer">
-                                    Upload
+                                <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-3" onclick="CoverCamera.take(document.getElementById('qaCoverInput'))">
+                                    <i class="fa-solid fa-camera me-1"></i>ছবি তুলুন
+                                </button>
+                                <label for="qaCoverInput" class="btn btn-xs btn-outline-secondary rounded-pill px-3 cursor-pointer mb-0">
+                                    গ্যালারি
                                 </label>
-                                <input type="file" id="qaCoverInput" name="cover_image_file" accept="image/*" class="d-none" onchange="previewQaSelectedCover(this)">
+                                <input type="file" id="qaCoverInput" name="cover_image_file" accept="image/*" class="d-none" data-cover-camera onchange="previewQaSelectedCover(this)">
                                 <button type="button" id="qaResetAutoCoverBtn" class="btn btn-xs btn-link text-muted d-none text-decoration-none mt-1" onclick="resetToQaAutoCover()" style="font-size: 11px;">
                                     Reset
                                 </button>
@@ -1200,10 +1203,16 @@
                                      style="width: 125px; height: 175px; object-fit: cover; display: block;"
                                      onerror="this.onerror=null;this.src='https://placehold.co/120x170/e2e8f0/475569?text=Cover';">
                             </div>
-                            <label for="qeCoverInput" class="btn btn-sm btn-outline-primary rounded-pill px-3 cursor-pointer">
-                                <i class="fa-solid fa-upload me-1"></i> Upload Cover
-                            </label>
-                            <input type="file" id="qeCoverInput" name="cover_image_file" accept="image/*" class="d-none" onchange="previewSelectedCover(this)">
+                            <div class="d-flex flex-wrap justify-content-center gap-1.5" id="qeCoverButtons">
+                                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" onclick="CoverCamera.take(document.getElementById('qeCoverInput'))">
+                                    <i class="fa-solid fa-camera me-1"></i> ছবি তুলুন
+                                </button>
+                                <label for="qeCoverInput" class="btn btn-sm btn-outline-primary rounded-pill px-3 cursor-pointer mb-0">
+                                    <i class="fa-regular fa-image me-1"></i> গ্যালারি
+                                </label>
+                            </div>
+                            <div class="text-muted mt-1" style="font-size: 11px;">ছবি স্বয়ংক্রিয়ভাবে ছোট করে আপলোড হবে</div>
+                            <input type="file" id="qeCoverInput" name="cover_image_file" accept="image/*" class="d-none" data-cover-camera onchange="previewSelectedCover(this)">
                         </div>
 
                         {{-- Right Column: Clean Dynamic Fields & Tables --}}
@@ -1436,6 +1445,7 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('js/cover-camera.js') }}?v={{ @filemtime(public_path('js/cover-camera.js')) ?: 1 }}"></script>
 <script>
 // Easy search: "/" focuses, Esc clears, auto-search 700ms after typing stops, one-tap clear
 (function () {
@@ -1721,7 +1731,14 @@ function openQuickEditModal(bookId, focusTab = 'all') {
         } else if (focusTab === 'stock') {
             document.getElementById('qeStockQuantity')?.focus();
         } else if (focusTab === 'cover') {
-            document.getElementById('qeCoverInput')?.click();
+            // Browsers (phones especially) ignore a file/camera picker opened by code after loading,
+            // so point at the buttons instead: one tap on "ছবি তুলুন" opens the camera directly.
+            const btns = document.getElementById('qeCoverButtons');
+            if (btns) {
+                btns.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                btns.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.08)' }, { transform: 'scale(1)' }], { duration: 450, iterations: 2 });
+                btns.querySelector('button')?.focus({ preventScroll: true });
+            }
         }
     }, 400);
 }
@@ -1864,6 +1881,11 @@ function handleQuickBookEditSubmit(e) {
     const alertBox = document.getElementById('qeAlertBox');
     const form = document.getElementById('quickBookEditForm');
     const formData = new FormData(form);
+    // The resized camera/gallery photo (older browsers cannot put it back into the file input).
+    const qeCover = document.getElementById('qeCoverInput');
+    if (qeCover && qeCover._ccBlob) {
+        formData.set('cover_image_file', qeCover._ccBlob, qeCover._ccBlob.name || 'cover.jpg');
+    }
 
     if (btn) {
         btn.disabled = true;
@@ -2849,7 +2871,10 @@ function handleQuickAddBookSubmit(e) {
     const formData = new FormData(form);
 
     const fileInput = document.getElementById('qaCoverInput');
-    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+    if (fileInput && fileInput._ccBlob) {
+        formData.set('cover_image_file', fileInput._ccBlob, fileInput._ccBlob.name || 'cover.jpg');
+    }
+    if (!fileInput || ((!fileInput.files || fileInput.files.length === 0) && !fileInput._ccBlob)) {
         const canvas = document.getElementById('qaCoverCanvas');
         if (canvas) {
             formData.set('auto_cover_base64', canvas.toDataURL('image/png', 0.92));
