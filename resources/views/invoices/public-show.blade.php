@@ -6,7 +6,42 @@
     <meta name="googlebot" content="notranslate">
     <meta http-equiv="Content-Language" content="en">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>{{ ucfirst($invoice->type) }} #{{ $invoice->invoice_no }} — {{ $settings['business_name'] ?? 'Idea Publication' }}</title>
+    @php
+        // Link preview for WhatsApp / Messenger / Facebook / Telegram.
+        $ogSettings = $invoiceSettings ?? \App\Http\Controllers\Admin\IdeaAccountingController::getInvoiceSettings();
+        $ogBiz = $ogSettings['business_name'] ?? 'Idea Publication';
+        $ogDoc = $ogSettings[$invoice->type . '_title_bn'] ?? ucfirst($invoice->type);
+        $ogTitle = $ogDoc . ' #' . $invoice->invoice_no . ' — ' . $ogBiz;
+        $ogDesc = collect([
+            $invoice->customer_org ?: $invoice->customer_name,
+            in_array($invoice->type, ['quotation', 'tender'], true) ? $invoice->subject : null,
+            'মোট ৳' . number_format((float) $invoice->grand_total, 2),
+            in_array($invoice->type, ['invoice', 'challan'], true) && (float) $invoice->due_amount > 0 ? 'বকেয়া ৳' . number_format((float) $invoice->due_amount, 2) : null,
+            $invoice->invoice_date ? 'তারিখ ' . $invoice->invoice_date->format('d M Y') : null,
+        ])->filter()->implode(' · ');
+        $ogImage = route('invoices.public.og', $invoice->access_token ?: $invoice->invoice_no) . '?v=' . \App\Services\InvoiceOgImage::version($invoice);
+        $ogUrl = route('invoices.public.show', $invoice->access_token ?: $invoice->invoice_no);
+    @endphp
+    <title>{{ $ogTitle }}</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="{{ $ogDesc }}">
+    <link rel="canonical" href="{{ $ogUrl }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ $ogBiz }}">
+    <meta property="og:title" content="{{ $ogTitle }}">
+    <meta property="og:description" content="{{ $ogDesc }}">
+    <meta property="og:url" content="{{ $ogUrl }}">
+    <meta property="og:image" content="{{ $ogImage }}">
+    <meta property="og:image:secure_url" content="{{ str_replace('http://', 'https://', $ogImage) }}">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="{{ \App\Services\InvoiceOgImage::W }}">
+    <meta property="og:image:height" content="{{ \App\Services\InvoiceOgImage::H }}">
+    <meta property="og:image:alt" content="{{ $ogTitle }}">
+    <meta property="og:locale" content="bn_BD">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $ogTitle }}">
+    <meta name="twitter:description" content="{{ $ogDesc }}">
+    <meta name="twitter:image" content="{{ $ogImage }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

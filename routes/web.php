@@ -231,6 +231,7 @@ Route::get('/storage/{path}', function (string $path) {
 
 // Public / Client Invoice & Delivery Challan Viewer (Link & QR access)
 Route::get('/invoices/view/{token}', [\App\Http\Controllers\Admin\IdeaAccountingController::class, 'publicShow'])->name('invoices.public.show');
+Route::get('/invoices/view/{token}/preview.png', [\App\Http\Controllers\Admin\IdeaAccountingController::class, 'publicOgImage'])->name('invoices.public.og');
 
 // হোমপেজ
 Route::get('/', [HomeController::class, 'index'])->name('home');

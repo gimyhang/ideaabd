@@ -4269,6 +4269,29 @@ class IdeaAccountingController extends Controller
         return view('invoices.public-show', compact('invoice', 'invoiceSettings'));
     }
 
+    /** Link-preview image (og:image) for the public document link shared on WhatsApp / Messenger. */
+    public function publicOgImage(string $token)
+    {
+        $invoice = IdeaInvoice::where('access_token', $token)
+            ->orWhere('invoice_no', $token)
+            ->firstOrFail();
+
+        try {
+            $file = \App\Services\InvoiceOgImage::path($invoice);
+        } catch (\Throwable $e) {
+            report($e);
+            $fallback = public_path('images/logo.png');
+            abort_unless(is_file($fallback), 404);
+
+            return response()->file($fallback, ['Cache-Control' => 'public, max-age=600']);
+        }
+
+        return response()->file($file, [
+            'Content-Type'  => 'image/png',
+            'Cache-Control' => 'public, max-age=604800, immutable',
+        ]);
+    }
+
     /**
      * Send Invoice & Delivery Challan to Customer Email (Single or Multiple Recipients).
      */
