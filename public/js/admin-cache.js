@@ -1,568 +1,223 @@
-/**
- * Cache Management & Performance Hub JavaScript
- * Enterprise Grade Frontend Logic - Idea Prokashon
- */
+/* Cache & performance page: actions, live stats, key inspector, image quarantine, console. */
+(function () {
+    'use strict';
+    var app = document.getElementById('ckApp');
+    if (!app) return;
+    var d = app.dataset;
+    var token = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
 
-let autoRefreshTimer = null;
-let terminalCommandRunning = false;
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. Initialize Table Search Filter
-    const searchInput = document.getElementById('cacheKeySearchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', filterCacheKeysTable);
+    function toast(msg, ok) {
+        var box = document.querySelector('.ck-toast-box');
+        if (!box) { box = document.createElement('div'); box.className = 'ck-toast-box'; box.setAttribute('role', 'status'); box.setAttribute('aria-live', 'polite'); document.body.appendChild(box); }
+        var t = document.createElement('div');
+        t.className = 'ck-toast' + (ok === false ? ' is-error' : '');
+        t.textContent = msg;
+        box.appendChild(t);
+        setTimeout(function () { t.style.transition = 'opacity .3s'; t.style.opacity = '0'; setTimeout(function () { t.remove(); }, 320); }, ok === false ? 9000 : 6000);
     }
 
-    // 2. Enable execution only after selecting a server-approved command.
-    const commandSelect = document.getElementById('artisanCommandSelect');
-    const runCommandButton = document.getElementById('runArtisanCommand');
-    if (commandSelect && runCommandButton) {
-        commandSelect.addEventListener('change', function() {
-            runCommandButton.disabled = !commandSelect.value || terminalCommandRunning;
+    function post(url, data) {
+        var body = new FormData();
+        Object.keys(data || {}).forEach(function (k) {
+            var v = data[k];
+            if (Array.isArray(v)) v.forEach(function (x) { body.append(k + '[]', x); }); else body.append(k, v);
+        });
+        return fetch(url, {
+            method: 'POST', body: body, credentials: 'same-origin',
+            headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(function (r) {
+            return r.json().catch(function () { return { success: false, message: 'সার্ভার থেকে অপ্রত্যাশিত উত্তর (' + r.status + ')' }; });
+        }).catch(function () { return { success: false, message: 'সংযোগ পাওয়া যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।' }; });
+    }
+
+    function busy(btn, on, text) {
+        if (!btn) return;
+        if (on) { btn.dataset.label = btn.innerHTML; btn.classList.add('is-busy'); btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>' + esc(text || '…'); }
+        else { btn.classList.remove('is-busy'); btn.disabled = false; if (btn.dataset.label) btn.innerHTML = btn.dataset.label; }
+    }
+
+    // ── Live stats ───────────────────────────────────────────
+    function paintStats(s) {
+        if (!s) return;
+        Object.keys(s).forEach(function (k) {
+            document.querySelectorAll('[data-stat="' + k + '"]').forEach(function (el) { el.textContent = s[k] == null ? '—' : s[k]; });
+            document.querySelectorAll('[data-bar="' + k + '"]').forEach(function (el) { el.style.width = (s[k] || 0) + '%'; });
+        });
+        [['is_route_cached', s.is_route_cached], ['view_files_count', s.view_files_count > 0], ['is_events_cached', s.is_events_cached], ['is_config_cached', s.is_config_cached]]
+            .forEach(function (f) { var el = document.querySelector('[data-flag="' + f[0] + '"]'); if (el) el.classList.toggle('on', !!f[1]); });
+        var states = {
+            views: s.view_files_count + ' ফাইল · ' + s.view_cache_size,
+            app: s.data_files_count + ' ফাইল · ' + s.data_cache_size,
+            config: s.is_config_cached ? 'ক্যাশ করা আছে' : 'ক্যাশ নেই',
+            routes: s.is_route_cached ? 'ক্যাশ করা আছে' : 'ক্যাশ নেই',
+            events: s.is_events_cached ? 'ক্যাশ করা আছে' : 'ক্যাশ নেই',
+            opcache: s.opcache_enabled ? s.opcache_scripts + ' স্ক্রিপ্ট' : 'চালু নেই'
+        };
+        Object.keys(states).forEach(function (k) { var el = document.querySelector('[data-state="' + k + '"]'); if (el) el.textContent = states[k]; });
+        var up = document.getElementById('ckUpdated');
+        if (up) up.textContent = new Date().toLocaleTimeString();
+    }
+
+    function paintKeys(keys) {
+        (keys || []).forEach(function (k) {
+            var row = document.querySelector('tr[data-key="' + k.key + '"] [data-key-state]');
+            if (row) { row.classList.toggle('on', !!k.is_cached); row.textContent = k.is_cached ? 'মেমোরিতে আছে' : 'খালি'; }
         });
     }
 
-    document.querySelectorAll('.terminal-preset-chip[data-command]').forEach(button => {
-        button.addEventListener('click', function() {
-            if (commandSelect) commandSelect.value = button.dataset.command;
-            if (commandSelect && runCommandButton) {
-                runCommandButton.disabled = !commandSelect.value || terminalCommandRunning;
-                runCustomTerminalCommand();
-            }
+    function refresh() {
+        return fetch(d.stats, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin', cache: 'no-store' })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (j) { if (j && j.success) { paintStats(j.stats); paintKeys(j.cachedKeys); } })
+            .catch(function () {});
+    }
+    var refreshBtn = document.getElementById('ckRefresh');
+    if (refreshBtn) refreshBtn.addEventListener('click', function () { busy(refreshBtn, true, 'রিফ্রেশ'); refresh().then(function () { busy(refreshBtn, false); }); });
+
+    // ── Cache actions (data-ck-action) ───────────────────────
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-ck-action]');
+        if (!btn) return;
+        if (btn.dataset.confirm && !confirm(btn.dataset.confirm)) return;
+        busy(btn, true, btn.dataset.busy);
+        post(btn.dataset.ckAction).then(function (j) {
+            busy(btn, false);
+            toast(j.message || (j.success ? 'সম্পন্ন' : 'ব্যর্থ'), !!j.success);
+            if (j.stats) paintStats(j.stats);
+            if (j.batches) paintBatches(j.batches);
+            refresh();
         });
     });
 
-    // 3. Initialize Select All Checkboxes
-    const selectAllModules = document.getElementById('selectAllModulesCb');
-    if (selectAllModules) {
-        selectAllModules.addEventListener('change', function() {
-            document.querySelectorAll('.module-select-cb').forEach(cb => cb.checked = selectAllModules.checked);
-        });
-    }
+    // ── Keys ─────────────────────────────────────────────────
+    var modalEl = document.getElementById('ckKeyModal');
+    function keyOf(el) { var tr = el.closest('tr[data-key]'); return tr ? tr.dataset.key : null; }
 
-    const selectAllKeys = document.getElementById('selectAllKeysCb');
-    if (selectAllKeys) {
-        selectAllKeys.addEventListener('change', function() {
-            document.querySelectorAll('.key-select-cb').forEach(cb => cb.checked = selectAllKeys.checked);
-        });
-    }
-});
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-ck-inspect],[data-ck-warm],[data-ck-delete]');
+        if (!b) return;
+        var key = keyOf(b);
+        if (!key) return;
 
-/**
- * 1. Execute Cache Action via AJAX
- */
-function executeCacheAction(url, loadingMsg, btn) {
-    if (!url) return;
-
-    let originalHtml = '';
-    if (btn) {
-        btn.disabled = true;
-        originalHtml = btn.innerHTML;
-        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin me-1.5"></i> ${loadingMsg || 'Processing...'}`;
-    }
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-                  document.querySelector('input[name="_token"]')?.value || '';
-
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showCacheAlert('success', data.message || 'Cache action completed successfully!');
-            refreshCacheMetrics();
-        } else {
-            showCacheAlert('danger', data.message || 'Action failed.');
-        }
-    })
-    .catch(err => {
-        console.error('Cache Action Error:', err);
-        showCacheAlert('danger', 'Network request failed. Please check connection.');
-    })
-    .finally(() => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = originalHtml;
-        }
-    });
-}
-
-/**
- * 2. Confirm & Run Master Cache Purge
- */
-function confirmMasterPurge(btn) {
-    if (!confirm('আপনি কি নিশ্চিত যে সমস্ত সিস্টেম ক্যাশ, ভিউ, কনফিগারেশন এবং রুট ক্যাশ একসাথে সম্পূর্ণ ক্লিয়ার করতে চান?')) {
-        return;
-    }
-    executeCacheAction('/admin/cache/clear-all', 'Purging All Cache...', btn);
-}
-
-/**
- * 3. Purge Multiple Selected Modules
- */
-function purgeMultipleSelectedModules() {
-    const checked = document.querySelectorAll('.module-select-cb:checked');
-    if (checked.length === 0) {
-        showCacheAlert('info', 'অনুগ্রহ করে অন্তত একটি ক্যাশ মডিউল সিলেক্ট করুন।');
-        return;
-    }
-
-    if (!confirm(`আপনি নির্বাচিত ${checked.length} টি ক্যাশ মডিউল একসাথে ক্লিয়ার করতে চান?`)) {
-        return;
-    }
-
-    let completed = 0;
-    const total = checked.length;
-    showCacheAlert('info', `নির্বাচিত ${total} টি মডিউল প্রসেস হচ্ছে...`);
-
-    checked.forEach(cb => {
-        const route = cb.getAttribute('data-route');
-        if (route) {
-            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-            fetch(route, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': token,
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(r => r.json())
-            .then(() => {
-                completed++;
-                if (completed === total) {
-                    showCacheAlert('success', `সফলভাবে ${total} টি ক্যাশ মডিউল ক্লিয়ার সম্পন্ন হয়েছে!`);
-                    refreshCacheMetrics();
-                }
-            })
-            .catch(() => {
-                completed++;
+        if (b.hasAttribute('data-ck-inspect')) {
+            busy(b, true, '');
+            post(d.inspect, { key: key }).then(function (j) {
+                busy(b, false);
+                if (!j.success) { toast(j.message, false); return; }
+                document.getElementById('ckKeyTitle').textContent = (j.label || key);
+                document.getElementById('ckKeyMeta').textContent = key + ' · ' + (j.exists ? (j.type + ' · ' + j.size) : 'মেমোরিতে নেই');
+                document.getElementById('ckKeyBody').textContent = j.exists ? (j.preview || '(খালি)') : 'এই কি এখন মেমোরিতে নেই। সাইট দরকার হলে নিজেই তৈরি করবে।';
+                if (window.bootstrap && modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
             });
-        }
-    });
-}
-
-/**
- * 4. Run Artisan Console Command
- */
-function runTerminalCommand(cmd) {
-    const commandSelect = document.getElementById('artisanCommandSelect');
-    const runButton = document.getElementById('runArtisanCommand');
-    const allowedCommands = commandSelect ? Array.from(commandSelect.options).map(option => option.value) : [];
-    if (!cmd || !allowedCommands.includes(cmd) || terminalCommandRunning) return;
-
-    terminalCommandRunning = true;
-    if (runButton) {
-        runButton.disabled = true;
-        runButton.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Running...';
-    }
-    document.querySelectorAll('.terminal-preset-chip').forEach(button => button.disabled = true);
-    if (commandSelect) commandSelect.disabled = true;
-
-    appendTerminalLine(`\n$ php artisan ${cmd}\n[RUNNING] Please wait...`);
-    const clock = document.getElementById('terminalClock');
-    const consoleSection = document.getElementById('sectionConsole');
-    const endpoint = consoleSection ? consoleSection.dataset.runUrl : '';
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-    fetch(endpoint, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ command: cmd })
-    })
-    .then(response => response.json().then(data => ({ response, data })))
-    .then(({ response, data }) => {
-        if (response.ok && data.success) {
-            appendTerminalLine(data.output ? data.output.trim() : '[SUCCESS] Command completed successfully.');
-            appendTerminalLine(`--- [DONE at ${data.timestamp || 'now'}] ---`);
-            showCacheAlert('success', `Artisan command "${cmd}" executed successfully!`);
-            refreshCacheMetrics();
+        } else if (b.hasAttribute('data-ck-warm')) {
+            busy(b, true, '');
+            post(d.warm, { key: key }).then(function (j) { busy(b, false); toast(j.message, !!j.success); refresh(); });
         } else {
-            if (data.output) appendTerminalLine(data.output.trim());
-            appendTerminalLine(`[FAILED] ${data.message || 'Execution error.'}`);
-            showCacheAlert('danger', data.message || 'Artisan command execution failed.');
-        }
-    })
-    .catch(err => {
-        console.error('Artisan error:', err);
-        appendTerminalLine(`[NETWORK ERROR] Could not execute $ php artisan ${cmd}`);
-    })
-    .finally(() => {
-        terminalCommandRunning = false;
-        if (runButton) {
-            runButton.innerHTML = '<i class="fa-solid fa-play me-1.5"></i> Run command';
-            runButton.disabled = !commandSelect || !commandSelect.value;
-        }
-        document.querySelectorAll('.terminal-preset-chip').forEach(button => button.disabled = false);
-        if (commandSelect) commandSelect.disabled = false;
-        if (clock) clock.textContent = new Date().toLocaleTimeString();
-    });
-}
-
-function runCustomTerminalCommand() {
-    const select = document.getElementById('artisanCommandSelect');
-    if (!select) return;
-    const cmd = select.value;
-    if (!cmd) return;
-    runTerminalCommand(cmd);
-}
-
-function appendTerminalLine(text) {
-    const term = document.getElementById('terminalOutput');
-    if (!term) return;
-    term.textContent += '\n' + text;
-    term.scrollTop = term.scrollHeight;
-}
-
-function clearTerminalLog() {
-    const term = document.getElementById('terminalOutput');
-    if (term) term.textContent = '// Terminal cleared.\nideaabd-cache-runner@restricted:~$ Ready for approved commands.';
-}
-
-function copyTerminalOutput() {
-    const term = document.getElementById('terminalOutput');
-    if (!term) return;
-    navigator.clipboard.writeText(term.textContent).then(() => {
-        showCacheAlert('success', 'Terminal log copied to clipboard!');
-    });
-}
-
-/**
- * 5. Live AJAX Cache Metrics Refresher
- */
-function refreshCacheMetrics(btn) {
-    const icon = document.getElementById('refreshIcon');
-    const text = document.getElementById('refreshText');
-    if (icon) icon.classList.add('fa-spin');
-    if (text) text.textContent = 'Refreshing...';
-
-    fetch('/admin/cache/stats-json', {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success && data.stats) {
-            const st = data.stats;
-            const vFiles = document.getElementById('statViewFiles');
-            const vSize = document.getElementById('statViewSize');
-            const dSize = document.getElementById('statDataSize');
-            const opHit = document.getElementById('statOpcacheHit');
-            const opMem = document.getElementById('statOpcacheMem');
-            const opBar = document.getElementById('statOpcacheProgressBar');
-            const opLabel = document.getElementById('statOpcachePercentLabel');
-
-            if (vFiles) vFiles.textContent = Number(st.view_files_count).toLocaleString() + ' files';
-            if (vSize) vSize.innerHTML = 'Size: <strong class="text-dark">' + st.view_cache_size + '</strong>';
-            if (dSize) dSize.textContent = st.data_cache_size;
-            if (opHit) opHit.textContent = st.opcache_hit_rate;
-            if (opMem) opMem.innerHTML = 'RAM: <strong class="text-dark">' + st.opcache_memory_used + '</strong>';
-            if (opBar && st.opcache_memory_percent) opBar.style.width = st.opcache_memory_percent + '%';
-            if (opLabel && st.opcache_memory_percent) opLabel.textContent = st.opcache_memory_percent + '%';
-
-            showCacheAlert('info', 'Live metrics updated (' + (data.timestamp || new Date().toLocaleTimeString()) + ')');
-        }
-    })
-    .catch(err => console.error('Refresh stats error:', err))
-    .finally(() => {
-        if (icon) icon.classList.remove('fa-spin');
-        if (text) text.textContent = 'Refresh';
-    });
-}
-
-/**
- * 6. Auto-Refresh Toggle
- */
-function toggleAutoRefresh(cb) {
-    const label = document.getElementById('autoRefreshLabel');
-    if (cb.checked) {
-        label.textContent = 'Live Active (30s)';
-        label.classList.add('text-success');
-        autoRefreshTimer = setInterval(() => refreshCacheMetrics(), 30000);
-        showCacheAlert('info', 'Auto-refresh active (polls every 30 seconds).');
-    } else {
-        label.textContent = 'Auto-Refresh';
-        label.classList.remove('text-success');
-        if (autoRefreshTimer) clearInterval(autoRefreshTimer);
-    }
-}
-
-/**
- * 7. Key Inspector Table Search Filter
- */
-function filterCacheKeysTable() {
-    const query = (document.getElementById('cacheKeySearchInput')?.value || '').toLowerCase().trim();
-    const rows = document.querySelectorAll('#cacheKeysTable tbody tr.cache-key-row');
-    let visibleCount = 0;
-
-    rows.forEach(row => {
-        const key = (row.getAttribute('data-key') || '').toLowerCase();
-        const label = (row.getAttribute('data-label') || '').toLowerCase();
-        if (key.includes(query) || label.includes(query)) {
-            row.style.display = '';
-            visibleCount++;
-        } else {
-            row.style.display = 'none';
+            if (!confirm('এই কি মুছে ফেলবেন? সাইট পরে নিজেই নতুন করে তৈরি করবে।')) return;
+            busy(b, true, '');
+            post(d['delete'], { key: key }).then(function (j) { busy(b, false); toast(j.message, !!j.success); refresh(); });
         }
     });
 
-    const countEl = document.getElementById('cacheKeyVisibleCount');
-    if (countEl) countEl.textContent = visibleCount;
-}
+    var allKeys = document.getElementById('ckAllKeys');
+    var bulkBtn = document.getElementById('ckBulkDelete');
+    function picked() { return Array.prototype.slice.call(document.querySelectorAll('.ck-key-pick:checked')).map(function (c) { return c.value; }); }
+    function syncBulk() { if (bulkBtn) bulkBtn.disabled = picked().length === 0; }
+    if (allKeys) allKeys.addEventListener('change', function () { document.querySelectorAll('.ck-key-pick').forEach(function (c) { c.checked = allKeys.checked; }); syncBulk(); });
+    document.addEventListener('change', function (e) { if (e.target.classList && e.target.classList.contains('ck-key-pick')) syncBulk(); });
+    if (bulkBtn) bulkBtn.addEventListener('click', function () {
+        var keys = picked();
+        if (!keys.length || !confirm(keys.length + 'টি কি মুছে ফেলবেন?')) return;
+        busy(bulkBtn, true, 'মুছছে');
+        post(d.bulk, { keys: keys }).then(function (j) {
+            busy(bulkBtn, false);
+            toast(j.message, !!j.success);
+            document.querySelectorAll('.ck-key-pick').forEach(function (c) { c.checked = false; });
+            if (allKeys) allKeys.checked = false;
+            syncBulk();
+            refresh();
+        });
+    });
 
-/**
- * 8. Inspect Cache Key Payload Modal
- */
-function inspectKeyPayload(keyName) {
-    if (!keyName) return;
+    // ── Unused images ────────────────────────────────────────
+    var scanBtn = document.getElementById('ckScan');
+    var qBtn = document.getElementById('ckQuarantine');
+    var result = document.getElementById('ckScanResult');
 
-    const modalTitle = document.getElementById('keyModalTitle');
-    const modalKey = document.getElementById('keyModalKeyName');
-    const modalPayload = document.getElementById('keyModalPayload');
-    const modalSize = document.getElementById('keyModalSize');
-    const modalTtl = document.getElementById('keyModalTtl');
+    if (scanBtn) scanBtn.addEventListener('click', function () {
+        busy(scanBtn, true, 'স্ক্যান হচ্ছে… (কিছুক্ষণ লাগতে পারে)');
+        qBtn.hidden = true;
+        post(d.scan).then(function (j) {
+            busy(scanBtn, false);
+            result.hidden = false;
+            if (!j.success) { result.innerHTML = '<div class="ck-scan-sum text-danger">' + esc(j.message) + '</div>'; return; }
+            if (!j.count) { result.innerHTML = '<div class="ck-scan-sum">✔ অব্যবহৃত কোনো ছবি নেই।</div>'; return; }
+            var rows = j.items.map(function (i) {
+                return '<div class="ck-scan-row">' + (i.url ? '<img src="' + esc(i.url) + '" alt="" loading="lazy">' : '<span></span>') +
+                    '<code>' + esc(i.rel) + '</code><span class="text-nowrap">' + esc(i.size) + '</span></div>';
+            }).join('');
+            result.innerHTML = '<div class="ck-scan-sum">' + j.count + 'টি অব্যবহৃত ছবি · মোট ' + esc(j.size) +
+                (j.count > j.items.length ? ' (প্রথম ' + j.items.length + 'টি দেখানো হলো)' : '') + '</div><div class="ck-scan-list">' + rows + '</div>';
+            qBtn.hidden = false;
+        });
+    });
 
-    if (modalTitle) modalTitle.textContent = `Payload Inspector — ${keyName}`;
-    if (modalKey) modalKey.textContent = keyName;
-    if (modalPayload) modalPayload.textContent = 'Fetching cached payload from Redis/File storage...';
+    if (qBtn) qBtn.addEventListener('click', function () {
+        if (!confirm('তালিকার ছবিগুলো কোয়ারেন্টাইনে সরানো হবে। দরকার হলে নিচ থেকে ফেরত আনা যাবে। চালিয়ে যাবেন?')) return;
+        busy(qBtn, true, 'সরানো হচ্ছে');
+        post(d.quarantine).then(function (j) {
+            busy(qBtn, false);
+            toast(j.message, !!j.success);
+            if (j.success) { qBtn.hidden = true; result.hidden = true; }
+            if (j.batches) paintBatches(j.batches);
+            if (j.stats) paintStats(j.stats);
+        });
+    });
 
-    const modalEl = document.getElementById('keyInspectorModal');
-    let bsModal = null;
-    if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-        bsModal = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
-        bsModal.show();
+    function paintBatches(list) {
+        var box = document.getElementById('ckBatches');
+        if (!box) return;
+        if (!list.length) { box.innerHTML = '<div class="ck-sub">কোয়ারেন্টাইনে কিছু নেই।</div>'; return; }
+        box.innerHTML = list.map(function (b) {
+            return '<div class="ck-batch" data-batch="' + esc(b.batch) + '"><div><div class="fw-semibold">' + esc(b.created_at) + '</div>' +
+                '<div class="ck-sub">' + b.count + 'টি ছবি · ' + (b.bytes / 1048576).toFixed(1) + ' MB' + (b.by ? ' · ' + esc(b.by) : '') + ' · ' + esc(b.expires) + ' তারিখে স্থায়ীভাবে মুছবে</div></div>' +
+                '<div class="d-flex gap-1"><button type="button" class="btn btn-sm btn-outline-success" data-ck-restore>ফেরত আনুন</button>' +
+                '<button type="button" class="btn btn-sm btn-outline-danger" data-ck-delete-batch>মুছুন</button></div></div>';
+        }).join('');
     }
 
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-    fetch('/admin/cache/inspect-key', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ key: keyName })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            if (modalPayload) {
-                modalPayload.textContent = data.payload ? JSON.stringify(data.payload, null, 2) : '(Empty / Null Value)';
-            }
-            if (modalSize) modalSize.textContent = data.size || 'N/A';
-            if (modalTtl) modalTtl.textContent = data.ttl ? `${data.ttl} sec` : 'Forever / Not Expiring';
-        } else {
-            if (modalPayload) modalPayload.textContent = `Key is currently empty or not in memory: ${data.message || ''}`;
-        }
-    })
-    .catch(err => {
-        if (modalPayload) modalPayload.textContent = `Error inspecting key payload: ${err.message}`;
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-ck-restore],[data-ck-delete-batch]');
+        if (!b) return;
+        var batch = b.closest('[data-batch]').dataset.batch;
+        var restoring = b.hasAttribute('data-ck-restore');
+        if (!confirm(restoring ? 'এই ব্যাচের সব ছবি আগের জায়গায় ফেরত আনবেন?' : 'এই ব্যাচের ছবি স্থায়ীভাবে মুছে ফেলবেন? এটি আর ফেরত আনা যাবে না।')) return;
+        busy(b, true, '');
+        post(restoring ? d.restore : d.deleteBatch, { batch: batch }).then(function (j) {
+            busy(b, false);
+            toast(j.message, !!j.success);
+            if (j.batches) paintBatches(j.batches);
+            if (j.stats) paintStats(j.stats);
+        });
     });
-}
 
-/**
- * 9. Warm / Populate Single Memory Key
- */
-function warmSingleKey(keyName, btn) {
-    if (!keyName) return;
-
-    let originalHtml = '';
-    if (btn) {
-        btn.disabled = true;
-        originalHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-    }
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-    fetch('/admin/cache/warm-key', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ key: keyName })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showCacheAlert('success', data.message || `Key "${keyName}" warmed & cached successfully!`);
-            // Update row badge to Cached
-            const row = document.querySelector(`tr[data-key="${keyName}"]`);
-            if (row) {
-                const statusBadge = row.querySelector('.key-status-badge');
-                if (statusBadge) {
-                    statusBadge.className = 'badge bg-success-subtle text-success key-status-badge rounded-pill px-3 py-1.5 font-monospace fw-bold';
-                    statusBadge.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Cached';
-                }
-            }
-            refreshCacheMetrics();
-        } else {
-            showCacheAlert('danger', data.message || 'Key warmup failed.');
-        }
-    })
-    .catch(err => {
-        console.error('Warm key error:', err);
-        showCacheAlert('danger', 'Network request failed while warming cache key.');
-    })
-    .finally(() => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = originalHtml;
-        }
+    // ── Console ──────────────────────────────────────────────
+    var con = document.getElementById('ckConsole');
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-ck-run]');
+        if (!b || !con) return;
+        var cmd = b.dataset.ckRun;
+        busy(b, true, cmd);
+        con.textContent = '$ php artisan ' + cmd + '\n…';
+        post(d.run, { command: cmd }).then(function (j) {
+            busy(b, false);
+            con.textContent = '$ php artisan ' + cmd + '\n' + (j.output || j.message || '');
+            if (!j.success) toast(j.message || 'ব্যর্থ', false);
+            refresh();
+        });
     });
-}
 
-/**
- * 10. Warm All Memory Registry Keys
- */
-function warmAllMemoryKeys(btn) {
-    let originalHtml = '';
-    if (btn) {
-        btn.disabled = true;
-        originalHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Warming All Keys...';
-    }
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-    fetch('/admin/cache/warmup', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showCacheAlert('success', data.message || 'All memory cache keys successfully warmed!');
-            // Update all row badges to Cached
-            const allBadges = document.querySelectorAll('#cacheKeysTable .key-status-badge');
-            allBadges.forEach(badge => {
-                badge.className = 'badge bg-success-subtle text-success key-status-badge rounded-pill px-3 py-1.5 font-monospace fw-bold';
-                badge.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Cached';
-            });
-            refreshCacheMetrics();
-        } else {
-            showCacheAlert('danger', data.message || 'Failed to warm memory keys.');
-        }
-    })
-    .catch(err => {
-        console.error('Warm all error:', err);
-        showCacheAlert('danger', 'Network request failed.');
-    })
-    .finally(() => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = originalHtml;
-        }
-    });
-}
-
-/**
- * 11. Delete Single Key
- */
-function deleteSingleKey(keyName, btn) {
-    if (!confirm(`Are you sure you want to flush key "${keyName}" from memory?`)) {
-        return;
-    }
-
-    let originalHtml = '';
-    if (btn) {
-        btn.disabled = true;
-        originalHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-    }
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-    fetch('/admin/cache/delete-key', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ key: keyName })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showCacheAlert('success', `Key "${keyName}" flushed successfully!`);
-            // Update row badge
-            const row = document.querySelector(`tr[data-key="${keyName}"]`);
-            if (row) {
-                const statusBadge = row.querySelector('.key-status-badge');
-                if (statusBadge) {
-                    statusBadge.className = 'badge bg-warning-subtle text-warning-emphasis key-status-badge rounded-pill px-2.5 py-1 font-monospace';
-                    statusBadge.innerHTML = '<i class="fa-solid fa-hourglass-half me-1"></i> Empty';
-                }
-            }
-        } else {
-            showCacheAlert('danger', data.message || 'Key flush failed.');
-        }
-    })
-    .catch(err => showCacheAlert('danger', 'Network request failed.'))
-    .finally(() => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = originalHtml;
-        }
-    });
-}
-
-/**
- * 10. Dynamic Floating Toast Alert Display
- */
-function showCacheAlert(type, message) {
-    const container = document.getElementById('dynamicCacheAlert');
-    if (!container) return;
-
-    const iconMap = {
-        'success': 'fa-circle-check text-success',
-        'info': 'fa-circle-info text-primary',
-        'warning': 'fa-triangle-exclamation text-warning',
-        'danger': 'fa-circle-exclamation text-danger'
-    };
-
-    const iconClass = iconMap[type] || 'fa-bell text-primary';
-
-    container.innerHTML = `
-        <div class="alert alert-${type} alert-dismissible fade show d-flex align-items-center mb-3 rounded-4 shadow-sm border-0 border-start border-4 border-${type} bg-white py-3 px-4" role="alert">
-            <i class="fa-solid ${iconClass} fs-4 me-3"></i>
-            <div class="fw-semibold text-dark">${message}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    `;
-
-    setTimeout(() => {
-        const el = container.querySelector('.alert');
-        if (el) {
-            el.classList.remove('show');
-            setTimeout(() => el.remove(), 250);
-        }
-    }, 5000);
-}
+    setInterval(function () { if (!document.hidden) refresh(); }, 60000);
+})();

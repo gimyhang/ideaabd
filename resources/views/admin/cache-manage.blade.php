@@ -1,685 +1,230 @@
 @extends('layouts.admin')
 
-@section('title', 'Cache Management & Performance Hub — ideaabd')
-@section('heading', 'Cache')
+@section('title', 'ক্যাশ ও পারফরম্যান্স')
+@section('heading', 'ক্যাশ ও পারফরম্যান্স')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/admin-cache.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin-cache.css') }}?v={{ @filemtime(public_path('css/admin-cache.css')) ?: 1 }}">
 @endpush
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('admin.system-settings') }}">Settings</a></li>
-    <li class="breadcrumb-item active">Cache & Performance</li>
+    <li class="breadcrumb-item active" aria-current="page">Cache</li>
 @endsection
 
 @section('actions')
-    <div class="d-flex flex-wrap align-items-center gap-2.5">
-        {{-- Auto-refresh Switch --}}
-        <div class="form-check form-switch d-inline-flex align-items-center gap-2 px-3.5 py-2 bg-white border rounded-pill shadow-xs me-1">
-            <input class="form-check-input ms-0 cursor-pointer" type="checkbox" role="switch" id="autoRefreshToggle" onchange="toggleAutoRefresh(this)">
-            <label class="form-check-label small fw-bold text-muted cursor-pointer user-select-none mb-0" for="autoRefreshToggle" style="font-size: 13px;">
-                <span id="autoRefreshLabel">Auto-Refresh</span>
-            </label>
-        </div>
-
-        {{-- Live Refresh Stats Button --}}
-        <button type="button" class="btn btn-white btn-sm rounded-pill px-3.5 py-2 fw-semibold d-inline-flex align-items-center gap-2 shadow-xs border hover-lift" onclick="refreshCacheMetrics(this)">
-            <i class="fa-solid fa-arrows-rotate text-primary" id="refreshIcon"></i>
-            <span id="refreshText">Refresh</span>
-        </button>
-
-        {{-- 1-Click Cache Warmup Engine --}}
-        <button type="button" class="btn btn-cache-action btn-cache-success btn-sm px-4 py-2 fw-bold hover-lift" onclick="executeCacheAction('{{ route('admin.cache.warmup') }}', 'Warming up cache...', this)">
-            <i class="fa-solid fa-rocket"></i>
-            <span>Warm Up</span>
-        </button>
-
-        {{-- 1-Click Production Turbo Optimizer --}}
-        <button type="button" class="btn btn-cache-action btn-cache-primary btn-sm px-4 py-2 fw-bold hover-lift" onclick="executeCacheAction('{{ route('admin.cache.optimize') }}', 'Optimizing system...', this)">
-            <i class="fa-solid fa-bolt-lightning"></i>
-            <span>Turbo Optimize</span>
-        </button>
-
-        {{-- 1-Click Master Purge All Cache --}}
-        <button type="button" class="btn btn-cache-action btn-cache-danger btn-sm px-4 py-2 fw-bold text-white hover-lift" onclick="confirmMasterPurge(this)">
-            <i class="fa-solid fa-trash-can"></i>
-            <span>Purge All</span>
-        </button>
-    </div>
+    <button type="button" class="btn btn-light btn-sm" id="ckRefresh"><i class="fa-solid fa-rotate me-1"></i>রিফ্রেশ</button>
 @endsection
 
 @section('content')
-<div class="cache-hub-container d-flex flex-column gap-4">
+@php
+    $bnBool = fn ($b) => $b ? 'চালু' : 'বন্ধ';
+    $clearCards = [
+        ['views',  'clear-views',  'fa-file-code',        'কম্পাইল করা ভিউ', 'ডিজাইন বা টেমপ্লেট বদলের পর পুরনো চেহারা দেখালে।', $stats['view_files_count'] . ' ফাইল · ' . $stats['view_cache_size']],
+        ['app',    'clear-app',    'fa-database',         'ডেটা ক্যাশ', 'সেটিংস, মেনু, হোমপেজ বা দাম বদলালেও পুরনোটা দেখালে।', $stats['data_files_count'] . ' ফাইল · ' . $stats['data_cache_size']],
+        ['config', 'clear-config', 'fa-sliders',          'কনফিগ ক্যাশ', '.env ফাইল বদলের পর।', $stats['is_config_cached'] ? 'ক্যাশ করা আছে' : 'ক্যাশ নেই'],
+        ['routes', 'clear-routes', 'fa-route',            'রুট ক্যাশ', 'নতুন পেজ/লিংক কাজ না করলে।', $stats['is_route_cached'] ? 'ক্যাশ করা আছে' : 'ক্যাশ নেই'],
+        ['events', 'clear-events', 'fa-bolt',             'ইভেন্ট ক্যাশ', 'কোড আপডেটের পর ইভেন্ট ঠিকমতো না চললে।', $stats['is_events_cached'] ? 'ক্যাশ করা আছে' : 'ক্যাশ নেই'],
+        ['opcache','clear-opcache','fa-microchip',        'PHP OPcache', 'সার্ভারে নতুন কোড আপলোডের পর পুরনো কোড চললে।', $stats['opcache_enabled'] ? ($stats['opcache_scripts'] . ' স্ক্রিপ্ট') : 'চালু নেই'],
+    ];
+@endphp
 
-    {{-- Dynamic Live Floating Alert Container --}}
-    <div id="dynamicCacheAlert" class="floating-alert-anchor"></div>
+<div class="ck" id="ckApp"
+     data-stats="{{ route('admin.cache.stats-json') }}"
+     data-inspect="{{ route('admin.cache.inspect-key') }}"
+     data-warm="{{ route('admin.cache.warm-key') }}"
+     data-delete="{{ route('admin.cache.delete-key') }}"
+     data-bulk="{{ route('admin.cache.bulk-delete-keys') }}"
+     data-scan="{{ route('admin.cache.scan-images') }}"
+     data-quarantine="{{ route('admin.cache.clear-images') }}"
+     data-restore="{{ route('admin.cache.restore-images') }}"
+     data-delete-batch="{{ route('admin.cache.delete-image-batch') }}"
+     data-run="{{ route('admin.cache.run-artisan') }}">
 
-    {{-- ========================================================================= --}}
-    {{-- 0. SUB-NAVIGATION & SYSTEM INFO STRIP                                     --}}
-    {{-- ========================================================================= --}}
-    <div class="cache-section-card p-3">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-            <div class="d-flex align-items-center flex-wrap gap-2">
-                <a href="#sectionMetrics" class="btn btn-sm btn-light rounded-pill px-3.5 py-2 fw-semibold text-dark border">
-                    <i class="fa-solid fa-chart-pie text-primary me-1.5"></i> 1. Diagnostics & Metrics
-                </a>
-                <a href="#sectionModules" class="btn btn-sm btn-light rounded-pill px-3.5 py-2 fw-semibold text-dark border">
-                    <i class="fa-solid fa-sliders text-success me-1.5"></i> 2. Granular Modules
-                </a>
-                <a href="#sectionConsole" class="btn btn-sm btn-light rounded-pill px-3.5 py-2 fw-semibold text-dark border">
-                    <i class="fa-solid fa-terminal text-warning me-1.5"></i> 3. Artisan Console
-                </a>
-                <a href="#sectionRegistry" class="btn btn-sm btn-light rounded-pill px-3.5 py-2 fw-semibold text-dark border">
-                    <i class="fa-solid fa-key text-info me-1.5"></i> 4. Key Registry
-                </a>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-light text-dark border font-monospace px-3 py-2 rounded-pill shadow-xs">
-                    <i class="fa-brands fa-php text-primary me-1.5"></i> PHP {{ $stats['php_version'] }} ({{ $stats['server_os'] }})
-                </span>
-                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 font-monospace px-3 py-2 rounded-pill shadow-xs">
-                    <span class="pulse-live-indicator me-1.5"></span> Live Engine
-                </span>
-            </div>
+    {{-- Status --}}
+    <section class="ck-tiles" aria-label="অবস্থা">
+        <div class="ck-tile">
+            <span class="ck-tile-label"><i class="fa-solid fa-database"></i> ডেটা ক্যাশ</span>
+            <strong data-stat="data_cache_size">{{ $stats['data_cache_size'] }}</strong>
+            <small><span data-stat="data_files_count">{{ $stats['data_files_count'] }}</span> ফাইল · ড্রাইভার {{ $stats['cache_driver'] }}</small>
         </div>
+        <div class="ck-tile">
+            <span class="ck-tile-label"><i class="fa-solid fa-file-code"></i> কম্পাইল করা ভিউ</span>
+            <strong data-stat="view_cache_size">{{ $stats['view_cache_size'] }}</strong>
+            <small><span data-stat="view_files_count">{{ $stats['view_files_count'] }}</span> ফাইল</small>
+        </div>
+        <div class="ck-tile">
+            <span class="ck-tile-label"><i class="fa-solid fa-gauge-high"></i> দ্রুত মোড</span>
+            <div class="ck-pills">
+                <span class="ck-pill {{ $stats['is_route_cached'] ? 'on' : '' }}" data-flag="is_route_cached">রুট</span>
+                <span class="ck-pill {{ $stats['view_files_count'] > 0 ? 'on' : '' }}" data-flag="view_files_count">ভিউ</span>
+                <span class="ck-pill {{ $stats['is_events_cached'] ? 'on' : '' }}" data-flag="is_events_cached">ইভেন্ট</span>
+                <span class="ck-pill warn {{ $stats['is_config_cached'] ? 'on' : '' }}" data-flag="is_config_cached" title="কনফিগ ক্যাশ চালু থাকলে .env সরাসরি পড়া কোড (পেমেন্ট, SMS) খালি মান পায়">কনফিগ</span>
+            </div>
+            <small>সবুজ = আগে থেকে তৈরি</small>
+        </div>
+        <div class="ck-tile">
+            <span class="ck-tile-label"><i class="fa-solid fa-microchip"></i> OPcache</span>
+            @if ($stats['opcache_enabled'])
+                <strong><span data-stat="opcache_hit_rate">{{ $stats['opcache_hit_rate'] ?? '—' }}</span>%</strong>
+                <div class="ck-bar" title="মেমোরি ব্যবহার"><i style="width: {{ $stats['opcache_memory_percent'] }}%" data-bar="opcache_memory_percent"></i></div>
+                <small>হিট রেট · মেমোরি {{ $stats['opcache_memory_used'] }} ব্যবহৃত</small>
+            @else
+                <strong class="text-muted">বন্ধ</strong>
+                <small>এই সার্ভারে OPcache চালু নেই</small>
+            @endif
+        </div>
+        <div class="ck-tile">
+            <span class="ck-tile-label"><i class="fa-solid fa-box-archive"></i> ছবির কোয়ারেন্টাইন</span>
+            <strong data-stat="quarantine_size">{{ $stats['quarantine_size'] }}</strong>
+            <small>PHP {{ $stats['php_version'] }} · Laravel {{ $stats['laravel_version'] }}</small>
+        </div>
+    </section>
+    <div class="ck-updated">সর্বশেষ আপডেট: <span id="ckUpdated">{{ now()->format('h:i:s A') }}</span></div>
+
+    {{-- Main actions --}}
+    <section class="ck-main">
+        <div class="ck-main-item">
+            <div class="ck-main-icon is-blue"><i class="fa-solid fa-gauge-high"></i></div>
+            <div class="ck-main-text">
+                <h3>সাইট দ্রুত করুন</h3>
+                <p>রুট, ভিউ ও ইভেন্ট আগে থেকে তৈরি রাখে। কোড আপডেটের পর একবার চাপুন। কনফিগ ক্যাশ করা হয় না, তাই পেমেন্ট ও SMS নিরাপদ।</p>
+            </div>
+            <button type="button" class="btn btn-primary" data-ck-action="{{ route('admin.cache.optimize') }}" data-busy="দ্রুত করা হচ্ছে…">দ্রুত করুন</button>
+        </div>
+        <div class="ck-main-item">
+            <div class="ck-main-icon is-green"><i class="fa-solid fa-fire"></i></div>
+            <div class="ck-main-text">
+                <h3>ওয়ার্ম-আপ</h3>
+                <p>হোমপেজ, বইয়ের পাতা ও সাইটম্যাপ একবার খুলে ক্যাশ তৈরি করে, যাতে প্রথম ভিজিটরও দ্রুত পেজ পান।</p>
+            </div>
+            <button type="button" class="btn btn-success" data-ck-action="{{ route('admin.cache.warmup') }}" data-busy="পেজ লোড হচ্ছে…">ওয়ার্ম-আপ</button>
+        </div>
+        <div class="ck-main-item">
+            <div class="ck-main-icon is-red"><i class="fa-solid fa-broom"></i></div>
+            <div class="ck-main-text">
+                <h3>সব ক্যাশ পরিষ্কার</h3>
+                <p>কোনো পরিবর্তন সাইটে না দেখালে এটি শেষ উপায়। পরে “দ্রুত করুন” ও “ওয়ার্ম-আপ” চাপলে আবার দ্রুত হবে।</p>
+            </div>
+            <button type="button" class="btn btn-outline-danger" data-ck-action="{{ route('admin.cache.clear-all') }}" data-busy="পরিষ্কার হচ্ছে…" data-confirm="সব ক্যাশ পরিষ্কার করবেন? কিছুক্ষণ সাইট একটু ধীরে চলবে।">সব পরিষ্কার</button>
+        </div>
+    </section>
+
+    {{-- Individual clears --}}
+    <section class="ck-card">
+        <header class="ck-card-head"><h2>আলাদা আলাদা পরিষ্কার</h2><span>যেটি দরকার শুধু সেটি পরিষ্কার করুন</span></header>
+        <div class="ck-grid">
+            @foreach ($clearCards as [$id, $route, $icon, $title, $when, $state])
+                <div class="ck-item">
+                    <div class="ck-item-head"><i class="fa-solid {{ $icon }}"></i><h3>{{ $title }}</h3></div>
+                    <p>{{ $when }}</p>
+                    <div class="ck-item-foot">
+                        <span class="ck-state" data-state="{{ $id }}">{{ $state }}</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-ck-action="{{ route('admin.cache.' . $route) }}" data-busy="…">পরিষ্কার</button>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </section>
+
+    <div class="ck-cols">
+        {{-- Memory keys --}}
+        <section class="ck-card">
+            <header class="ck-card-head">
+                <h2>মেমোরির কি (Cache keys)</h2>
+                <button type="button" class="btn btn-sm btn-outline-danger" id="ckBulkDelete" disabled>নির্বাচিত মুছুন</button>
+            </header>
+            <div class="table-responsive">
+                <table class="table ck-table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width: 30px;"><input type="checkbox" class="form-check-input" id="ckAllKeys" aria-label="সব"></th>
+                            <th>কি</th>
+                            <th>অবস্থা</th>
+                            <th class="text-end">কাজ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($cachedKeys as $k)
+                            <tr data-key="{{ $k['key'] }}">
+                                <td><input type="checkbox" class="form-check-input ck-key-pick" value="{{ $k['key'] }}" aria-label="নির্বাচন"></td>
+                                <td>
+                                    <div class="fw-semibold">{{ $k['label'] }} <span class="ck-type">{{ $k['type'] }}</span></div>
+                                    <div class="ck-sub">{{ $k['description'] }}</div>
+                                    <code class="ck-code">{{ $k['key'] }}</code>
+                                </td>
+                                <td><span class="ck-dot {{ $k['is_cached'] ? 'on' : '' }}" data-key-state>{{ $k['is_cached'] ? 'মেমোরিতে আছে' : 'খালি' }}</span></td>
+                                <td class="text-end text-nowrap">
+                                    <button type="button" class="btn btn-sm btn-light" data-ck-inspect title="দেখুন"><i class="fa-regular fa-eye"></i></button>
+                                    @if ($k['can_warm'])<button type="button" class="btn btn-sm btn-light" data-ck-warm title="নতুন করে তৈরি করুন"><i class="fa-solid fa-rotate"></i></button>@endif
+                                    <button type="button" class="btn btn-sm btn-light text-danger" data-ck-delete title="মুছুন"><i class="fa-regular fa-trash-can"></i></button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <p class="ck-note">মুছে ফেললে ক্ষতি নেই — সাইট পরের বার দরকার হলে নিজেই নতুন করে তৈরি করে। গোপন তথ্য (পাসওয়ার্ড, API কি) দেখার সময় লুকানো থাকে।</p>
+        </section>
+
+        {{-- Unused images --}}
+        <section class="ck-card">
+            <header class="ck-card-head"><h2>অব্যবহৃত ছবি পরিষ্কার</h2></header>
+            <div class="ck-pad">
+                <p class="ck-sub mb-2">
+                    যেসব আপলোড করা ছবি ডাটাবেসের কোথাও (বই, লেখক, ব্লগের লেখা, সেটিংস…) ব্যবহার হয়নি সেগুলো খুঁজে বের করে।
+                    গত {{ $minAgeDays }} দিনের ছবি ধরা হয় না। ছবি মুছে না ফেলে <b>কোয়ারেন্টাইনে</b> সরানো হয় — {{ $retentionDays }} দিন পর্যন্ত এক ক্লিকে ফেরত আনা যায়।
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-sm btn-primary" id="ckScan"><i class="fa-solid fa-magnifying-glass me-1"></i>স্ক্যান করুন</button>
+                    <button type="button" class="btn btn-sm btn-warning" id="ckQuarantine" hidden><i class="fa-solid fa-box-archive me-1"></i>কোয়ারেন্টাইনে সরান</button>
+                </div>
+                <div id="ckScanResult" class="ck-scan" hidden></div>
+            </div>
+            <div class="ck-pad pt-0">
+                <h3 class="ck-h3">কোয়ারেন্টাইন</h3>
+                <div id="ckBatches">
+                    @include('admin.partials.cache-batches', ['batches' => $batches])
+                </div>
+            </div>
+        </section>
     </div>
 
-    {{-- ========================================================================= --}}
-    {{-- 1. DIAGNOSTICS & SYSTEM METRICS (4 CARDS)                                 --}}
-    {{-- ========================================================================= --}}
-    <div id="sectionMetrics" class="row g-4">
-        
-        {{-- Card 1: Blade Views Cache --}}
-        <div class="col-12 col-sm-6 col-xl-3">
-            <div class="cache-kpi-card cache-kpi-views">
-                <div class="d-flex align-items-start justify-content-between mb-2">
-                    <div>
-                        <span class="text-muted small fw-bold text-uppercase font-monospace d-block mb-1">Views Cache</span>
-                        <div class="cache-kpi-value" id="statViewFiles">
-                            {{ number_format($stats['view_files_count']) }} files
-                        </div>
-                    </div>
-                    <div class="cache-kpi-icon">
-                        <i class="fa-solid fa-desktop"></i>
-                    </div>
-                </div>
-                <div class="cache-kpi-footer">
-                    <span class="text-muted font-monospace" id="statViewSize">
-                        Size: <strong class="text-dark">{{ $stats['view_cache_size'] }}</strong>
-                    </span>
-                    <button type="button" class="btn btn-sm btn-outline-primary rounded-circle p-1.5" title="Clear Blade Views" onclick="executeCacheAction('{{ route('admin.cache.clear-views') }}', 'Purging Views...', this)">
-                        <i class="fa-solid fa-rotate"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card 2: Application Data Cache --}}
-        <div class="col-12 col-sm-6 col-xl-3">
-            <div class="cache-kpi-card cache-kpi-data">
-                <div class="d-flex align-items-start justify-content-between mb-2">
-                    <div>
-                        <span class="text-muted small fw-bold text-uppercase font-monospace d-block mb-1">Data & Memory</span>
-                        <div class="cache-kpi-value" id="statDataSize">
-                            {{ $stats['data_cache_size'] }}
-                        </div>
-                    </div>
-                    <div class="cache-kpi-icon">
-                        <i class="fa-solid fa-database"></i>
-                    </div>
-                </div>
-                <div class="cache-kpi-footer">
-                    <span class="text-muted font-monospace">
-                        Driver: <span class="badge bg-light text-dark border">{{ strtoupper($stats['cache_driver']) }}</span>
-                    </span>
-                    <span class="text-info fw-semibold font-monospace">
-                        Session: {{ strtoupper($stats['session_driver']) }}
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card 3: PHP OPcache Engine --}}
-        <div class="col-12 col-sm-6 col-xl-3">
-            <div class="cache-kpi-card cache-kpi-opcache">
-                <div class="d-flex align-items-start justify-content-between mb-2">
-                    <div>
-                        <span class="text-muted small fw-bold text-uppercase font-monospace d-block mb-1">OPcache Engine</span>
-                        <div class="cache-kpi-value d-flex align-items-center gap-2">
-                            @if($stats['opcache_enabled'])
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1 rounded-pill">Active</span>
-                            @else
-                                <span class="badge bg-secondary bg-opacity-10 text-secondary border px-3 py-1 rounded-pill">Disabled</span>
-                            @endif
-                        </div>
-                    </div>
-                    <div class="cache-kpi-icon">
-                        <i class="fa-solid fa-microchip"></i>
-                    </div>
-                </div>
-                <div class="cache-kpi-footer">
-                    <span class="text-muted">Hit Rate: <strong class="text-dark font-monospace" id="statOpcacheHit">{{ $stats['opcache_hit_rate'] }}</strong></span>
-                    <span class="text-muted font-monospace" id="statOpcacheMem">
-                        RAM: <strong class="text-dark">{{ $stats['opcache_memory_used'] }}</strong>
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card 4: Precompiled & Turbo Status --}}
-        <div class="col-12 col-sm-6 col-xl-3">
-            <div class="cache-kpi-card cache-kpi-turbo">
-                <div class="d-flex align-items-start justify-content-between mb-2">
-                    <div>
-                        <span class="text-muted small fw-bold text-uppercase font-monospace d-block mb-1">Turbo Optimizer</span>
-                        <div class="cache-kpi-value text-success">
-                            99% Optimized
-                        </div>
-                    </div>
-                    <div class="cache-kpi-icon">
-                        <i class="fa-solid fa-gauge-high"></i>
-                    </div>
-                </div>
-                <div class="cache-kpi-footer">
-                    <div class="d-flex align-items-center gap-1.5 flex-wrap">
-                        <span class="badge {{ $stats['is_config_cached'] ? 'bg-success text-white' : 'bg-light text-muted border' }} rounded-pill px-2.5 py-0.5 font-monospace">
-                            <i class="fa-solid {{ $stats['is_config_cached'] ? 'fa-check' : 'fa-xmark' }} me-1"></i> Config
-                        </span>
-                        <span class="badge {{ $stats['is_route_cached'] ? 'bg-success text-white' : 'bg-light text-muted border' }} rounded-pill px-2.5 py-0.5 font-monospace">
-                            <i class="fa-solid {{ $stats['is_route_cached'] ? 'fa-check' : 'fa-xmark' }} me-1"></i> Route
-                        </span>
-                        <span class="badge {{ $stats['is_events_cached'] ? 'bg-success text-white' : 'bg-light text-muted border' }} rounded-pill px-2.5 py-0.5 font-monospace">
-                            <i class="fa-solid {{ $stats['is_events_cached'] ? 'fa-check' : 'fa-xmark' }} me-1"></i> Event
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    {{-- ========================================================================= --}}
-    {{-- 2. OPCACHE & MEMORY PROGRESS STRIP                                        --}}
-    {{-- ========================================================================= --}}
-    @if($stats['opcache_enabled'])
-        <div class="cache-section-card p-4">
-            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px;">
-                        <i class="fa-solid fa-microchip fs-3 text-warning"></i>
-                    </div>
-                    <div>
-                        <div class="fw-bold text-dark mb-0.5">OPcache Bytecode Memory Allocation</div>
-                        <div class="text-muted small">
-                            Used: <strong class="text-dark font-monospace">{{ $stats['opcache_memory_used'] }}</strong> / Free: <strong class="text-dark font-monospace">{{ $stats['opcache_memory_free'] }}</strong>
-                            ({{ $stats['opcache_scripts'] }} cached scripts compiled)
-                        </div>
-                    </div>
-                </div>
-                <div class="flex-grow-1 mx-md-4" style="max-width: 420px;">
-                    <div class="d-flex justify-content-between small text-muted font-monospace mb-1.5">
-                        <span>Bytecode RAM Usage</span>
-                        <span id="statOpcachePercentLabel" class="fw-bold text-dark">{{ $stats['opcache_memory_percent'] ?? 0 }}%</span>
-                    </div>
-                    <div class="progress rounded-pill bg-light border" style="height: 10px;">
-                        <div class="progress-bar bg-warning rounded-pill progress-bar-striped progress-bar-animated" role="progressbar" 
-                             style="width: {{ $stats['opcache_memory_percent'] ?? 0 }}%;" 
-                             aria-valuenow="{{ $stats['opcache_memory_percent'] ?? 0 }}" aria-valuemin="0" aria-valuemax="100" id="statOpcacheProgressBar"></div>
-                    </div>
-                </div>
-                <div>
-                    <button type="button" class="btn btn-cache-action btn-cache-danger btn-sm px-4 py-2 fw-semibold" onclick="executeCacheAction('{{ route('admin.cache.clear-opcache') }}', 'Resetting OPcache...', this)">
-                        <i class="fa-solid fa-rotate-left"></i> Reset Bytecode
-                    </button>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    {{-- ========================================================================= --}}
-    {{-- 3. GRANULAR CACHE MODULES (7 TARGETED MODULES)                            --}}
-    {{-- ========================================================================= --}}
-    <div id="sectionModules" class="cache-section-card p-4">
-        <div class="d-flex flex-wrap align-items-center justify-content-between pb-3.5 mb-4 border-bottom gap-3">
-            <div>
-                <h5 class="cache-header-title">
-                    <i class="fa-solid fa-sliders text-primary"></i> Granular Cache Modules
-                </h5>
-                <p class="cache-header-subtitle">Targeted cache purging for instantaneous code, configuration, or template sync without logging users out.</p>
-            </div>
-            <div class="d-flex align-items-center gap-2.5">
-                <div class="form-check me-2">
-                    <input class="form-check-input cursor-pointer" type="checkbox" id="selectAllModulesCb">
-                    <label class="form-check-label small fw-semibold text-muted cursor-pointer user-select-none" for="selectAllModulesCb">Select All</label>
-                </div>
-                <button type="button" class="btn btn-cache-action btn-cache-dark btn-sm px-3.5 py-1.5 fw-semibold" onclick="purgeMultipleSelectedModules()">
-                    <i class="fa-solid fa-broom me-1 text-warning"></i> Purge Selected
-                </button>
-                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2 font-monospace">
-                    7 Active Modules
-                </span>
-            </div>
-        </div>
-
-        <div class="row g-4">
-            
-            {{-- Module 1: Blade View Cache --}}
-            <div class="col-12 col-md-6 col-xl-4">
-                <div class="cache-module-card cache-card-views">
-                    <div>
-                        <div class="cache-module-header">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="cache-module-badge bg-primary">
-                                    <i class="fa-solid fa-desktop"></i>
-                                </div>
-                                <div>
-                                    <h6 class="cache-module-title">Blade Views</h6>
-                                    <span class="badge bg-primary-subtle text-primary font-monospace" style="font-size: 11px;">Templates & UI</span>
-                                </div>
-                            </div>
-                            <input type="checkbox" class="form-check-input module-select-cb cursor-pointer" data-route="{{ route('admin.cache.clear-views') }}" data-name="Blade Views">
-                        </div>
-                        <p class="cache-module-desc">
-                            Purges compiled Blade HTML templates. Run after frontend layout, CSS, or blade changes for immediate reflection.
-                        </p>
-                    </div>
-                    <div class="cache-module-footer">
-                        <button type="button" class="btn btn-cache-action btn-cache-primary w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-views') }}', 'Purging Views...', this)">
-                            <i class="fa-solid fa-broom"></i> Clear Blade Views
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Module 2: Application Data Cache --}}
-            <div class="col-12 col-md-6 col-xl-4">
-                <div class="cache-module-card cache-card-data">
-                    <div>
-                        <div class="cache-module-header">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="cache-module-badge bg-info">
-                                    <i class="fa-solid fa-database"></i>
-                                </div>
-                                <div>
-                                    <h6 class="cache-module-title">App Data</h6>
-                                    <span class="badge bg-info-subtle text-info font-monospace" style="font-size: 11px;">Queries & Models</span>
-                                </div>
-                            </div>
-                            <input type="checkbox" class="form-check-input module-select-cb cursor-pointer" data-route="{{ route('admin.cache.clear-app') }}" data-name="App Data">
-                        </div>
-                        <p class="cache-module-desc">
-                            Flushes database queries, models, and cached application runtime keys from memory.
-                        </p>
-                    </div>
-                    <div class="cache-module-footer">
-                        <button type="button" class="btn btn-cache-action btn-cache-info w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-app') }}', 'Purging Data...', this)">
-                            <i class="fa-solid fa-layer-group"></i> Clear App Data
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Module 3: Config & Env Cache --}}
-            <div class="col-12 col-md-6 col-xl-4">
-                <div class="cache-module-card cache-card-config">
-                    <div>
-                        <div class="cache-module-header">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="cache-module-badge bg-success">
-                                    <i class="fa-solid fa-sliders"></i>
-                                </div>
-                                <div>
-                                    <h6 class="cache-module-title">Config & Env</h6>
-                                    <span class="badge bg-success-subtle text-success font-monospace" style="font-size: 11px;">Environment & .env</span>
-                                </div>
-                            </div>
-                            <input type="checkbox" class="form-check-input module-select-cb cursor-pointer" data-route="{{ route('admin.cache.clear-config') }}" data-name="Config">
-                        </div>
-                        <p class="cache-module-desc">
-                            Clears cached configuration and .env file settings for immediate reflection across the application.
-                        </p>
-                    </div>
-                    <div class="cache-module-footer">
-                        <button type="button" class="btn btn-cache-action btn-cache-success w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-config') }}', 'Purging Config...', this)">
-                            <i class="fa-solid fa-gears"></i> Clear Config Cache
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Module 4: Route Cache --}}
-            <div class="col-12 col-md-6 col-xl-4">
-                <div class="cache-module-card cache-card-routes">
-                    <div>
-                        <div class="cache-module-header">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="cache-module-badge bg-warning text-dark">
-                                    <i class="fa-solid fa-signs-post"></i>
-                                </div>
-                                <div>
-                                    <h6 class="cache-module-title">Routes</h6>
-                                    <span class="badge bg-warning-subtle text-warning-emphasis font-monospace" style="font-size: 11px;">URL Mapping</span>
-                                </div>
-                            </div>
-                            <input type="checkbox" class="form-check-input module-select-cb cursor-pointer" data-route="{{ route('admin.cache.clear-routes') }}" data-name="Routes">
-                        </div>
-                        <p class="cache-module-desc">
-                            Rebuilds route mapping tables. Use when new routes or endpoints return 404 Not Found.
-                        </p>
-                    </div>
-                    <div class="cache-module-footer">
-                        <button type="button" class="btn btn-cache-action btn-cache-warning w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-routes') }}', 'Purging Routes...', this)">
-                            <i class="fa-solid fa-diamond-turn-right"></i> Clear Route Cache
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Module 5: OPcache Reset --}}
-            <div class="col-12 col-md-6 col-xl-4">
-                <div class="cache-module-card cache-card-opcache">
-                    <div>
-                        <div class="cache-module-header">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="cache-module-badge bg-danger">
-                                    <i class="fa-solid fa-microchip"></i>
-                                </div>
-                                <div>
-                                    <h6 class="cache-module-title">OPcache</h6>
-                                    <span class="badge bg-danger-subtle text-danger font-monospace" style="font-size: 11px;">PHP Bytecode</span>
-                                </div>
-                            </div>
-                            <input type="checkbox" class="form-check-input module-select-cb cursor-pointer" data-route="{{ route('admin.cache.clear-opcache') }}" data-name="OPcache">
-                        </div>
-                        <p class="cache-module-desc">
-                            Resets PHP bytecode cache in server memory to recompile updated PHP scripts immediately.
-                        </p>
-                    </div>
-                    <div class="cache-module-footer">
-                        <button type="button" class="btn btn-cache-action btn-cache-danger w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-opcache') }}', 'Resetting OPcache...', this)">
-                            <i class="fa-solid fa-rotate-left"></i> Reset OPcache
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Module 6: Temp Images & Thumbnails --}}
-            <div class="col-12 col-md-6 col-xl-4">
-                <div class="cache-module-card cache-card-images">
-                    <div>
-                        <div class="cache-module-header">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="cache-module-badge bg-purple">
-                                    <i class="fa-solid fa-images"></i>
-                                </div>
-                                <div>
-                                    <h6 class="cache-module-title">Temp Images</h6>
-                                    <span class="badge bg-purple-subtle text-purple font-monospace" style="font-size: 11px;">Media & Thumbnails</span>
-                                </div>
-                            </div>
-                            <input type="checkbox" class="form-check-input module-select-cb cursor-pointer" data-route="{{ route('admin.cache.clear-images') }}" data-name="Temp Images">
-                        </div>
-                        <p class="cache-module-desc">
-                            Deletes auto-generated temporary thumbnails and cached image artifacts to reclaim disk space.
-                        </p>
-                    </div>
-                    <div class="cache-module-footer">
-                        <button type="button" class="btn btn-cache-action btn-cache-purple w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-images') }}', 'Clearing Images...', this)">
-                            <i class="fa-solid fa-trash-can"></i> Clear Temp Images
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Module 7: Event & Listener Cache --}}
-            <div class="col-12 col-md-6 col-xl-4">
-                <div class="cache-module-card cache-card-events">
-                    <div>
-                        <div class="cache-module-header">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="cache-module-badge bg-dark">
-                                    <i class="fa-solid fa-bell"></i>
-                                </div>
-                                <div>
-                                    <h6 class="cache-module-title">Events & Listeners</h6>
-                                    <span class="badge bg-dark-subtle text-dark font-monospace" style="font-size: 11px;">Manifests</span>
-                                </div>
-                            </div>
-                            <input type="checkbox" class="form-check-input module-select-cb cursor-pointer" data-route="{{ route('admin.cache.clear-events') }}" data-name="Events">
-                        </div>
-                        <p class="cache-module-desc">
-                            Purges cached event discovery and listener manifests for background tasks and mail triggers.
-                        </p>
-                    </div>
-                    <div class="cache-module-footer">
-                        <button type="button" class="btn btn-cache-action btn-cache-dark w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-events') }}', 'Purging Events...', this)">
-                            <i class="fa-solid fa-bolt"></i> Clear Event Cache
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    {{-- ========================================================================= --}}
-    {{-- 4. RESTRICTED ARTISAN CONSOLE                                              --}}
-    {{-- ========================================================================= --}}
-    <div id="sectionConsole" class="cache-section-card p-4" data-run-url="{{ route('admin.cache.run-artisan') }}">
-        <div class="d-flex flex-wrap align-items-center justify-content-between pb-3.5 mb-4 border-bottom gap-3">
-            <div>
-                <h5 class="cache-header-title">
-                    <i class="fa-solid fa-terminal text-warning"></i> Restricted Artisan Console
-                </h5>
-                <p class="cache-header-subtitle">Read-only checks and safe cache clears only. Commands that build caches, change data or run a shell are not available here.</p>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                <span class="badge rounded-pill bg-success-subtle border border-success-subtle text-success-emphasis px-3 py-2">
-                    <i class="fa-solid fa-shield-halved me-1"></i> Allowlist protected
-                </span>
-                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 fw-semibold" onclick="copyTerminalOutput()">
-                    <i class="fa-solid fa-copy me-1 text-primary"></i> Copy Log
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1.5 fw-semibold" onclick="clearTerminalLog()">
-                    <i class="fa-solid fa-eraser me-1"></i> Clear
-                </button>
-            </div>
-        </div>
-
-        {{-- Quick actions: one chip per approved command, grouped (config/cache_console.php) --}}
-        @foreach ($consoleGroups as $groupKey => $group)
-            @php $inGroup = collect($artisanCommands)->where('group', $groupKey); @endphp
-            @if ($inGroup->isNotEmpty())
-                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                    <span class="small text-muted fw-bold text-uppercase font-monospace me-1" style="min-width: 74px;"><i class="fa-solid {{ $group['icon'] }} me-1"></i>{{ $group['label'] }}</span>
-                    @foreach ($inGroup as $command => $meta)
-                        <button type="button" class="terminal-preset-chip" data-command="{{ $command }}" title="{{ $meta['desc'] }} — php artisan {{ $command }}">
-                            <i class="fa-solid {{ $meta['icon'] }} text-{{ $meta['tone'] }}"></i> {{ $meta['label'] }}
+    {{-- Console --}}
+    @if (!empty($artisanCommands))
+        <section class="ck-card">
+            <header class="ck-card-head"><h2>নিরাপদ কনসোল</h2><span>শুধু অনুমোদিত কমান্ড</span></header>
+            <div class="ck-pad">
+                <div class="ck-console-btns">
+                    @foreach ($artisanCommands as $cmd => $meta)
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-ck-run="{{ $cmd }}" title="{{ $meta['desc'] ?? '' }} (php artisan {{ $cmd }})">
+                            <i class="fa-solid {{ $meta['icon'] ?? ($consoleGroups[$meta['group'] ?? '']['icon'] ?? 'fa-terminal') }} me-1"></i>{{ $meta['label'] ?? $cmd }}
                         </button>
                     @endforeach
                 </div>
-            @endif
-        @endforeach
-        <div class="mb-3"></div>
-        {{-- Terminal Window --}}
-        <div class="terminal-window mb-3">
-            <div class="terminal-header">
-                <div class="terminal-dots">
-                    <span class="terminal-dot dot-red"></span>
-                    <span class="terminal-dot dot-yellow"></span>
-                    <span class="terminal-dot dot-green"></span>
-                    <span class="ms-2 small text-muted font-monospace">ideaabd · restricted maintenance</span>
-                </div>
-                <div class="small text-muted font-monospace" id="terminalClock">{{ now()->format('h:i:s A') }}</div>
+                <pre class="ck-console" id="ckConsole" aria-live="polite">$ কমান্ড বেছে নিন…</pre>
             </div>
-            <pre class="terminal-screen mb-0" id="terminalOutput">// Ready for Artisan maintenance commands.
-ideaabd-cache-runner@restricted:~$ Choose an approved command below or use a quick action.</pre>
-        </div>
-
-        <div class="terminal-command-bar">
-            <label class="input-group-text bg-dark text-white border-0 font-monospace px-3" for="artisanCommandSelect">$ php artisan</label>
-            <select id="artisanCommandSelect" class="form-select terminal-command-select font-monospace" aria-label="Approved Artisan command">
-                <option value="">Select an approved command...</option>
-                @foreach ($consoleGroups as $groupKey => $group)
-                    @php $inGroup = collect($artisanCommands)->where('group', $groupKey); @endphp
-                    @if ($inGroup->isNotEmpty())
-                        <optgroup label="{{ $group['label'] }}">
-                            @foreach ($inGroup as $command => $meta)
-                                <option value="{{ $command }}">{{ $command }} — {{ $meta['desc'] }}</option>
-                            @endforeach
-                        </optgroup>
-                    @endif
-                @endforeach
-            </select>
-            <button type="button" id="runArtisanCommand" class="btn btn-cache-action btn-cache-primary px-4 fw-bold" onclick="runCustomTerminalCommand()" disabled>
-                <i class="fa-solid fa-play me-1.5"></i> Run command
-            </button>
-        </div>
-        <p class="terminal-security-note mb-0 mt-2"><i class="fa-solid fa-lock me-1"></i> The list is generated from config/cache_console.php, re-checked on the server and limited to 10 requests per minute.</p>
-    </div>
-
-    {{-- ========================================================================= --}}
-    {{-- 5. CACHE KEY INSPECTOR & REGISTRY                                         --}}
-    {{-- ========================================================================= --}}
-    <div id="sectionRegistry" class="cache-section-card p-4">
-        <div class="d-flex flex-wrap align-items-center justify-content-between pb-3.5 mb-4 border-bottom gap-3">
-            <div>
-                <h5 class="cache-header-title">
-                    <i class="fa-solid fa-key text-info"></i> Cache Key Inspector & Memory Registry
-                </h5>
-                <p class="cache-header-subtitle">Monitor, inspect JSON payloads, and flush critical application memory keys.</p>
-            </div>
-            <div class="d-flex flex-wrap align-items-center gap-2.5">
-                <button type="button" class="btn btn-warm-all-keys" onclick="warmAllMemoryKeys(this)">
-                    <i class="fa-solid fa-fire-flame-curved"></i> Warm All Keys
-                </button>
-                <div class="input-group input-group-sm" style="width: 230px;">
-                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                    <input type="text" id="cacheKeySearchInput" class="form-control border-start-0" placeholder="Search cache keys..." onkeyup="filterCacheKeysTable()">
-                </div>
-                <span class="badge bg-light text-dark border rounded-pill px-3 py-2 font-monospace">
-                    <span id="cacheKeyVisibleCount">{{ count($cachedKeys) }}</span> Keys Registered
-                </span>
-            </div>
-        </div>
-
-        <div class="table-responsive">
-            <table class="cache-table" id="cacheKeysTable">
-                <thead>
-                    <tr>
-                        <th style="width: 26%;">Key Identifier</th>
-                        <th style="width: 28%;">Description & Purpose</th>
-                        <th style="width: 13%;">Type / Category</th>
-                        <th style="width: 11%;">Status</th>
-                        <th style="width: 22%;" class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($cachedKeys as $k)
-                        @php
-                            $catType = strtolower($k['type'] ?? 'general');
-                            $typeIcon = match($catType) {
-                                'settings' => 'fa-solid fa-gear text-primary',
-                                'catalog' => 'fa-solid fa-book text-success',
-                                'authors' => 'fa-solid fa-user-pen text-info',
-                                'navigation' => 'fa-solid fa-compass text-warning',
-                                'marketing' => 'fa-solid fa-bullhorn text-danger',
-                                default => 'fa-solid fa-layer-group text-secondary'
-                            };
-                        @endphp
-                        <tr class="cache-key-row" data-key="{{ strtolower($k['key']) }}" data-label="{{ strtolower($k['label']) }}">
-                            <td>
-                                <div class="fw-bold text-dark font-monospace" style="font-size: 0.94rem;">
-                                    <i class="fa-solid fa-key text-muted me-1.5" style="font-size: 0.8rem;"></i>{{ $k['key'] }}
-                                </div>
-                                <div class="text-muted small fs-xs font-monospace mt-0.5">TTL: {{ $k['ttl'] ?? 'Persistent' }}</div>
-                            </td>
-                            <td>
-                                <div class="fw-bold text-dark small">{{ $k['label'] }}</div>
-                                <div class="text-muted small" style="font-size: 0.82rem; line-height: 1.4;">{{ $k['description'] }}</div>
-                            </td>
-                            <td>
-                                <span class="badge bg-light text-dark border font-monospace px-2.5 py-1.5 rounded-pill">
-                                    <i class="{{ $typeIcon }} me-1"></i> {{ $k['type'] ?? 'General' }}
-                                </span>
-                            </td>
-                            <td>
-                                @if(!empty($k['is_cached']))
-                                    <span class="badge bg-success-subtle text-success key-status-badge rounded-pill px-3 py-1.5 font-monospace fw-bold">
-                                        <i class="fa-solid fa-circle-check me-1"></i> Cached
-                                    </span>
-                                @else
-                                    <span class="badge bg-warning-subtle text-warning-emphasis key-status-badge rounded-pill px-3 py-1.5 font-monospace fw-bold">
-                                        <i class="fa-solid fa-circle-pause me-1"></i> Empty
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="text-end">
-                                <div class="d-flex align-items-center justify-content-end gap-1.5">
-                                    <button type="button" class="btn btn-table-action btn-table-warm" title="Warm and populate this cache key" onclick="warmSingleKey('{{ $k['key'] }}', this)">
-                                        <i class="fa-solid fa-fire-flame-curved"></i> Warm
-                                    </button>
-                                    <button type="button" class="btn btn-table-action btn-table-inspect" title="Inspect JSON payload" onclick="inspectKeyPayload('{{ $k['key'] }}')">
-                                        <i class="fa-solid fa-eye"></i> Inspect
-                                    </button>
-                                    <button type="button" class="btn btn-table-action btn-table-flush" title="Flush key from memory" onclick="deleteSingleKey('{{ $k['key'] }}', this)">
-                                        <i class="fa-solid fa-trash-can"></i> Flush
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">
-                                <i class="fa-solid fa-key fs-1 opacity-25 mb-2"></i>
-                                <div>No cache keys registered in inspector.</div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
+        </section>
+    @endif
 </div>
 
-{{-- MODAL: JSON Payload Inspector Modal --}}
-<div class="modal fade" id="keyInspectorModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header border-bottom px-4 py-3 bg-light rounded-top-4">
-                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="keyModalTitle">
-                    <i class="fa-solid fa-code text-info"></i> Payload Inspector
-                </h5>
+{{-- Key inspector --}}
+<div class="modal fade" id="ckKeyModal" tabindex="-1" aria-labelledby="ckKeyTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title" id="ckKeyTitle">কি</h5>
+                    <div class="ck-sub" id="ckKeyMeta"></div>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4">
-                <div class="d-flex align-items-center justify-content-between p-3 bg-light border rounded-3 mb-3 font-monospace small">
-                    <div>Key: <strong class="text-primary" id="keyModalKeyName">-</strong></div>
-                    <div>Size: <strong class="text-dark" id="keyModalSize">-</strong></div>
-                    <div>TTL: <strong class="text-success" id="keyModalTtl">-</strong></div>
-                </div>
-
-                <div class="terminal-window">
-                    <div class="terminal-header">
-                        <span class="small text-muted font-monospace">Payload Content (JSON)</span>
-                        <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-2.5" onclick="navigator.clipboard.writeText(document.getElementById('keyModalPayload').textContent); showCacheAlert('success', 'Payload copied!');">
-                            <i class="fa-solid fa-copy me-1 text-primary"></i> Copy
-                        </button>
-                    </div>
-                    <pre class="terminal-screen mb-0" id="keyModalPayload" style="min-height: 250px; max-height: 400px; color: #38bdf8;">Loading payload from cache storage...</pre>
-                </div>
-            </div>
-            <div class="modal-footer border-top px-4 py-3">
-                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
-            </div>
+            <div class="modal-body p-0"><pre class="ck-console m-0" id="ckKeyBody" style="border-radius: 0; max-height: 60vh;"></pre></div>
         </div>
     </div>
 </div>
-
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/admin-cache.js') }}"></script>
+    <script src="{{ asset('js/admin-cache.js') }}?v={{ @filemtime(public_path('js/admin-cache.js')) ?: 1 }}" defer></script>
 @endpush

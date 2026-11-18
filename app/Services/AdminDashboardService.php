@@ -57,8 +57,11 @@ class AdminDashboardService
     {
         return $this->swr('admin_dash_pending_alerts', 180, function () {
         $countsRow = $this->safe(function () {
+            // `orders` has no deleted_at column: filtering on it made this whole query fail, so every
+            // alert (orders, books, blogs …) silently showed 0 and new orders never lit up the bell.
+            $orderSoftDelete = \App\Support\SchemaCache::hasColumn('orders', 'deleted_at') ? ' AND `deleted_at` IS NULL' : '';
             $parts = [
-                "(SELECT COUNT(*) FROM `orders` WHERE `status` = 'pending' AND `deleted_at` IS NULL) AS `pending_orders`",
+                "(SELECT COUNT(*) FROM `orders` WHERE `status` = 'pending'{$orderSoftDelete}) AS `pending_orders`",
             ];
             if ($this->hasTable('books')) {
                 $parts[] = "(SELECT COUNT(*) FROM `books` WHERE `mod_status` = 'pending' AND `deleted_at` IS NULL) AS `pending_books`";

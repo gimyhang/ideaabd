@@ -6,13 +6,14 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Modules\SEO\Models\SeoRedirect;
-use Illuminate\Support\Facades\Schema;
 
+/**
+ * Applies 301/302 rules to addresses that DO match a route (e.g. an old book slug).
+ * Addresses that match no route never reach this middleware; those are redirected from the
+ * 404 handler in bootstrap/app.php, using the same SeoRedirect::findForPath() lookup.
+ */
 class SeoRedirectMiddleware
 {
-    /**
-     * Handle an incoming request and check if a 301/302 SEO redirect rule applies.
-     */
     public function handle(Request $request, Closure $next): Response
     {
         // Only run for GET and HEAD requests on non-admin / non-api paths
@@ -23,25 +24,9 @@ class SeoRedirectMiddleware
         try {
             // Cached table check: avoids an information_schema query on every page view.
             if (\App\Support\SchemaCache::has('seo_redirects')) {
-                $path = '/' . ltrim($request->path(), '/');
-                $redirect = SeoRedirect::where('is_active', true)
-                    ->where(function ($q) use ($path) {
-                        $q->where('source_url', $path)
-                          ->orWhere('source_url', rtrim($path, '/'))
-                          ->orWhere('source_url', $path . '/');
-                    })
-                    ->first();
-
+                $redirect = SeoRedirect::findForPath('/' . ltrim($request->getPathInfo(), '/'));
                 if ($redirect) {
-                    // Increment hit count
-                    $redirect->increment('hits_count');
-                    $redirect->update(['last_hit_at' => now()]);
-
-                    $target = str_starts_with($redirect->target_url, 'http') 
-                        ? $redirect->target_url 
-                        : url($redirect->target_url);
-
-                    return redirect($target, $redirect->status_code ?: 301);
+                    return $redirect->toResponse($request);
                 }
             }
         } catch (\Throwable $e) {

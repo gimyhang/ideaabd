@@ -17,5 +17,6 @@ Route::get('/redirects', [AdminSeoController::class, 'redirects'])->name('redire
 Route::post('/redirects/store', [AdminSeoController::class, 'storeRedirect'])->name('redirects.store');
 Route::delete('/redirects/{id}', [AdminSeoController::class, 'deleteRedirect'])->name('redirects.delete');
 Route::get('/broken-links', [AdminSeoController::class, 'brokenLinks'])->name('broken-links');
+Route::post('/broken-links/bulk', [AdminSeoController::class, 'bulkBrokenLinks'])->name('broken-links.bulk');
 Route::post('/broken-links/{id}/resolve', [AdminSeoController::class, 'resolveBrokenLink'])->name('broken-links.resolve');
 Route::put('/update/{id}', [AdminSeoController::class, 'update'])->name('update');

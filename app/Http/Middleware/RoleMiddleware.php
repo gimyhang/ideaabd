@@ -41,6 +41,7 @@ class RoleMiddleware
         'admin.orders'                             => 'orders.view',
         'admin.ecommerce-orders'                   => 'orders.view',
         'admin.ecommerce-orders.show'              => 'orders.view',
+        'admin.ecommerce-orders.pulse'             => 'orders.view',
         'admin.ecommerce-orders.update'            => 'orders.manage',
         'admin.ecommerce-orders.status'            => 'orders.manage',
         'admin.ecommerce-orders.destroy'           => 'orders.cancel_refund',
@@ -240,6 +241,7 @@ class RoleMiddleware
         'admin.seo.redirects.delete'               => 'settings.manage',
         'admin.seo.broken-links'                   => 'settings.manage',
         'admin.seo.broken-links.resolve'           => 'settings.manage',
+        'admin.seo.broken-links.bulk'              => 'settings.manage',
         'admin.seo.update'                         => 'settings.manage',
     ];
 

@@ -803,6 +803,14 @@ class AdminController extends Controller
         return view('admin.ecommerce-orders', compact('orders', 'stats', 'status', 'search', 'dateFilter', 'books'));
     }
 
+    /** Polled by every admin page: pending count and orders newer than ?since=<id>. */
+    public function ecommerceOrdersPulse(Request $request): \Illuminate\Http\JsonResponse
+    {
+        return response()
+            ->json(\App\Services\OrderAlertService::pulse($request->filled('since') ? max(0, $request->integer('since')) : null))
+            ->header('Cache-Control', 'no-store');
+    }
+
     public function showEcommerceOrder(\App\Models\Order $order)
     {
         $order->load(['book', 'user', 'affiliate']);
@@ -845,10 +853,15 @@ class AdminController extends Controller
         ]);
 
         $validated['is_gift'] = $request->boolean('is_gift');
+        $statusBefore = $order->status;
         $order->update($validated);
         if ($validated['payment_status'] === 'paid') {
             \App\Services\RoyaltyService::processOrderRoyalties($order);
         }
+        if ($order->status !== $statusBefore && $request->boolean('notify_customer', true)) {
+            \App\Services\OrderAlertService::notifyCustomer($order);
+        }
+        \Illuminate\Support\Facades\Cache::forget('admin_dash_pending_alerts');
 
         $this->accessService->log('order_update', "অর্ডার #{$order->order_number} তথ্য আপডেট করা হয়েছে");
 
@@ -870,20 +883,34 @@ class AdminController extends Controller
         if ($validated['status'] === 'delivered' && $order->payment_status !== 'paid') {
             $validated['payment_status'] = 'paid';
         }
+        // Empty courier / tracking fields from the quick buttons must not wipe what was entered before.
+        foreach (['courier_name', 'tracking_code'] as $k) {
+            if (($validated[$k] ?? null) === null || $validated[$k] === '') {
+                unset($validated[$k]);
+            }
+        }
 
+        $statusBefore = $order->status;
         $order->update($validated);
         $this->accessService->log('order_status_update', "অর্ডার #{$order->order_number} স্ট্যাটাস পরিবর্তন: {$order->status}");
+        \Illuminate\Support\Facades\Cache::forget('admin_dash_pending_alerts');
+
+        // Tell the customer (SMS) unless the admin unticked it. Each status is sent at most once per order.
+        $smsSent = $order->status !== $statusBefore && $request->boolean('notify_customer', true)
+            && \App\Services\OrderAlertService::notifyCustomer($order);
+        $done = "অর্ডার #{$order->order_number}: {$order->status_label}" . ($smsSent ? ' · গ্রাহককে SMS পাঠানো হয়েছে' : '');
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'অর্ডার স্ট্যাটাস সফলভাবে আপডেট করা হয়েছে!',
+                'message' => $done,
                 'status'  => $order->status,
                 'label'   => $order->status_label,
+                'sms'     => $smsSent,
             ]);
         }
 
-        return back()->with('success', "অর্ডার #{$order->order_number} স্ট্যাটাস আপডেট হয়েছে!");
+        return back()->with('success', $done);
     }
 
     public function ecommerceOrderInvoice(\App\Models\Order $order): View

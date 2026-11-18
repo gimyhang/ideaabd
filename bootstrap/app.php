@@ -67,8 +67,24 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Track and log 404 broken links for SEO monitoring & 301 redirection
         $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, $request) {
+            if ($request->is('admin*') || $request->is('api*')) {
+                return null;
+            }
+            // 1. A 301 rule for this address (set from the broken-link monitor or the redirect manager).
+            //    Unknown addresses match no route, so the web-group redirect middleware never sees them:
+            //    the rule has to be applied here, otherwise "Fix" never takes effect.
             try {
-                if (!$request->is('admin*') && !$request->is('api*') && class_exists(\Modules\SEO\Models\SeoBrokenLink::class) && \App\Support\SchemaCache::has('seo_broken_links')) {
+                if ($request->isMethodSafe() && class_exists(\Modules\SEO\Models\SeoRedirect::class) && \App\Support\SchemaCache::has('seo_redirects')) {
+                    $rule = \Modules\SEO\Models\SeoRedirect::findForPath('/' . ltrim($request->getPathInfo(), '/'));
+                    if ($rule) {
+                        return $rule->toResponse($request);
+                    }
+                }
+            } catch (\Throwable) {}
+
+            // 2. Otherwise record the miss for the monitor.
+            try {
+                if (class_exists(\Modules\SEO\Models\SeoBrokenLink::class) && \App\Support\SchemaCache::has('seo_broken_links')) {
                     \Modules\SEO\Models\SeoBrokenLink::logHit(
                         $request->fullUrl(),
                         $request->header('referer'),
@@ -77,5 +93,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     );
                 }
             } catch (\Throwable) {}
+
+            return null;
         });
     })->create();

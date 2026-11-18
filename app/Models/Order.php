@@ -25,6 +25,7 @@ class Order extends Model
         'gift_recipient_address',
         'gift_message',
         'book_id',
+        'items',
         'quantity',
         'unit_price',
         'shipping_cost',
@@ -47,6 +48,7 @@ class Order extends Model
     ];
 
     protected $casts = [
+        'items' => 'array',
         'is_gift' => 'boolean',
         'quantity' => 'integer',
         'unit_price' => 'float',
@@ -70,6 +72,21 @@ class Order extends Model
             }
         });
 
+        // A new order must show up for the admins straight away: refresh the bell count now and
+        // email the shop once the customer's page has been sent (so checkout is not slowed down).
+        static::created(function (Order $order) {
+            try {
+                \Illuminate\Support\Facades\Cache::forget('admin_dash_pending_alerts');
+            } catch (\Throwable) {
+            }
+            if (!app()->runningUnitTests()) {
+                $id = $order->id;
+                dispatch(function () use ($id) {
+                    \App\Services\OrderAlertService::notifyAdmins($id);
+                })->afterResponse();
+            }
+        });
+
         static::saved(function (Order $order) {
             if ($order->payment_status === 'paid' || ((float) $order->total_amount <= 0 && $order->status === 'confirmed')) {
                 \App\Services\RoyaltyService::processOrderRoyalties($order);
@@ -90,6 +107,46 @@ class Order extends Model
         $nextNumber = $maxSeq >= 1001 ? ($maxSeq + 1) : 1001;
 
         return $prefix . str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * What was ordered, one row per item: [title, format, qty, price, type, id].
+     * Orders placed before the `items` column existed are read back from the "অর্ডার আইটেম: …" note.
+     *
+     * @return array<int, array{title:string, format:?string, qty:int, price:?float, type:?string, id:?int}>
+     */
+    public function lineItems(): array
+    {
+        if (is_array($this->items) && $this->items !== []) {
+            return array_map(fn ($i) => [
+                'title'  => (string) ($i['title'] ?? 'পণ্য'),
+                'format' => $i['format'] ?? null,
+                'qty'    => (int) ($i['qty'] ?? 1),
+                'price'  => isset($i['price']) ? (float) $i['price'] : null,
+                'type'   => $i['type'] ?? null,
+                'id'     => isset($i['id']) ? (int) $i['id'] : null,
+            ], $this->items);
+        }
+
+        if (preg_match('/অর্ডার আইটেম:\s*([^|]+)/u', (string) $this->admin_notes, $m)) {
+            $out = [];
+            // Each item ends with "(xN)"; titles themselves may contain commas.
+            preg_match_all('/\s*(.+?)\s*\(x(\d+)\)\s*(?:,|$)/u', trim($m[1]), $parts, PREG_SET_ORDER);
+            foreach ($parts as $part) {
+                $title = trim(preg_replace('/\s*\[EBOOK_ID:\d+\]/u', '', $part[1]));
+                if ($title === '') {
+                    continue;
+                }
+                $out[] = ['title' => $title, 'format' => str_contains($title, 'হার্ডকভার') ? 'hardcover' : null, 'qty' => (int) $part[2], 'price' => null, 'type' => str_contains($title, 'ই-বুক') ? 'ebook' : null, 'id' => null];
+            }
+            if ($out) {
+                return $out;
+            }
+        }
+
+        return $this->book
+            ? [['title' => $this->book->title, 'format' => null, 'qty' => (int) ($this->quantity ?: 1), 'price' => (float) $this->unit_price, 'type' => 'book', 'id' => $this->book_id]]
+            : [];
     }
 
     public function book()

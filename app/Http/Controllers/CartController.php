@@ -238,9 +238,12 @@ class CartController extends Controller
         $totalQuantity = 0;
         $primaryBookId = null;
         $titles = [];
+        $lineItems = [];
 
         $hasPhysicalBooks = false;
         foreach ($items as $item) {
+            $dbEbook = $dbProd = $dbBook = $fallbackProd = null;
+            $itemFormat = '';
             $rawId = (string)($item['id'] ?? '');
             $cleanId = intval(str_replace('ebook_', '', $rawId));
             $isEbookItem = str_contains($rawId, 'ebook') || strtolower($item['type'] ?? '') === 'ebook' || str_contains(strtolower((string)($item['title'] ?? '')), 'ই-বুক');
@@ -302,6 +305,17 @@ class CartController extends Controller
                     }
                 }
             }
+
+            // Structured line for the admin's packing list (admin_notes keeps the old text line too).
+            $lineModel = $dbEbook ?? $dbProd ?? $dbBook ?? $fallbackProd;
+            $lineItems[] = [
+                'type'   => $dbEbook ? 'ebook' : (($dbProd || $fallbackProd) ? 'product' : ($dbBook ? 'book' : ($isEbookItem ? 'ebook' : 'item'))),
+                'id'     => $lineModel?->id,
+                'title'  => (string) ($lineModel->title ?? ($item['title'] ?? 'পণ্য')),
+                'format' => $dbBook ? (($itemFormat === 'hardcover' || $dbBook->bindings() === ['hardcover']) ? 'hardcover' : 'paperback') : null,
+                'qty'    => $qty,
+                'price'  => round((float) $price, 2),
+            ];
 
             $subtotal += ($price * $qty);
             $totalQuantity += $qty;
@@ -388,7 +402,10 @@ class CartController extends Controller
             $adminNoteParts[] = "বিশেষ অফার ছাড়: ৳{$thresholdDiscount}";
         }
 
-        $order = Order::create([
+        $order = Order::create(array_merge(
+            // Only once the `items` column exists (migration), so checkout never breaks before it runs.
+            \App\Support\SchemaCache::hasColumn('orders', 'items') ? ['items' => $lineItems] : [],
+            [
             'user_id'                => auth()->id(),
             'customer_name'          => $validated['customer_name'],
             'customer_phone'         => $validated['customer_phone'],
@@ -417,7 +434,8 @@ class CartController extends Controller
             'points_earned'          => $pointsEarned,
             'affiliate_id'           => $affiliateId,
             'commission_amount'      => $commissionAmount,
-        ]);
+            ]
+        ));
 
         if (auth()->check()) {
             auth()->user()->increment('loyalty_points', $pointsEarned);

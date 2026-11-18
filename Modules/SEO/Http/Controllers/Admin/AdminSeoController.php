@@ -408,36 +408,138 @@ class AdminSeoController extends Controller
     /**
      * 404 Broken Links Monitoring
      */
-    public function brokenLinks(): View
+    public function brokenLinks(Request $request): View
     {
-        $brokenLinks = \Modules\SEO\Models\SeoBrokenLink::where('is_resolved', false)->latest('last_hit_at')->paginate(25);
-        $totalBroken = \Modules\SEO\Models\SeoBrokenLink::where('is_resolved', false)->count();
+        $Link = \Modules\SEO\Models\SeoBrokenLink::class;
+        $tab = $request->query('tab') === 'resolved' ? 'resolved' : 'open';
+        $kind = (string) $request->query('kind', '');
+        $sort = $request->query('sort') === 'hits' ? 'hits' : 'recent';
+        $q = trim((string) $request->query('q', ''));
 
-        return view('seo::admin.broken-links', compact('brokenLinks', 'totalBroken'));
+        // Files that were missing but exist now (e.g. a placeholder image that has been added) fix themselves.
+        $Link::where('is_resolved', false)->where('url', 'like', '%.%')->latest('last_hit_at')->limit(300)->get()
+            ->filter(fn ($l) => $l->existsNow())
+            ->each(fn ($l) => $l->forceFill(['is_resolved' => true])->saveQuietly());
+
+        $extImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'ico', 'bmp'];
+        $kindScope = function ($query, string $kind) use ($extImage) {
+            $imageLike = function ($w) use ($extImage) {
+                $w->where(function ($x) use ($extImage) {
+                    foreach ($extImage as $e) {
+                        $x->orWhere('url', 'like', '%.' . $e);
+                    }
+                });
+            };
+            if ($kind === 'image') {
+                $imageLike($query);
+            } elseif ($kind === 'page') {
+                $query->where('url', 'not regexp', '\\.[A-Za-z0-9]{2,5}$');
+            } elseif ($kind === 'asset') {
+                $query->where('url', 'regexp', '\\.[A-Za-z0-9]{2,5}$')->whereNot(fn ($w) => $imageLike($w));
+            }
+        };
+
+        $base = $Link::where('is_resolved', $tab === 'resolved');
+        $brokenLinks = (clone $base)
+            ->when($q !== '', fn ($w) => $w->where(fn ($x) => $x->where('url', 'like', '%' . $q . '%')
+                ->orWhere('url', 'like', '%' . str_replace('%2F', '/', rawurlencode($q)) . '%')
+                ->orWhere('referer', 'like', '%' . $q . '%')))
+            ->when(isset($Link::KINDS[$kind]), fn ($w) => $kindScope($w, $kind))
+            ->when($sort === 'hits', fn ($w) => $w->orderByDesc('hits_count'), fn ($w) => $w->orderByDesc('last_hit_at'))
+            ->paginate(25)->withQueryString();
+
+        $counts = ['open' => $Link::where('is_resolved', false)->count(), 'resolved' => $Link::where('is_resolved', true)->count()];
+        foreach (array_keys($Link::KINDS) as $k) {
+            $counts[$k] = $Link::query()->where('is_resolved', false)->where(fn ($w) => $kindScope($w, $k))->count();
+        }
+        $totalBroken = $counts['open'];
+        $totalHits = (int) $Link::where('is_resolved', false)->sum('hits_count');
+
+        // Common destinations for the "fix" box.
+        $targets = collect(['/', '/books', '/ebooks', '/blog', '/webzines', '/authors', '/publishers', '/contact', '/track-order'])
+            ->filter(fn ($p) => $Link::routeExists($p))->values();
+
+        $kinds = $Link::KINDS;
+
+        return view('seo::admin.broken-links', compact('brokenLinks', 'totalBroken', 'totalHits', 'counts', 'tab', 'kind', 'sort', 'q', 'targets', 'kinds'));
     }
 
     /**
-     * Mark 404 broken link as resolved / create redirect
+     * Fix a broken link: 301 to the right address (default) or just dismiss it (action=ignore).
      */
     public function resolveBrokenLink(Request $request, int $id): RedirectResponse
     {
         $link = \Modules\SEO\Models\SeoBrokenLink::findOrFail($id);
 
-        if ($request->filled('target_url')) {
-            \Modules\SEO\Models\SeoRedirect::updateOrCreate(
-                ['source_url' => $link->url],
-                [
-                    'target_url'  => $request->input('target_url'),
-                    'status_code' => 301,
-                    'is_active'   => true,
-                    'notes'       => 'Auto created from 404 broken link resolution',
-                ]
-            );
+        if ($request->input('action') === 'ignore') {
+            $link->update(['is_resolved' => true]);
+
+            return back()->with('success', 'লিংকটি তালিকা থেকে সরানো হয়েছে (রিডাইরেক্ট ছাড়া)। আবার কেউ এই লিংকে এলে এটি আবার তালিকায় আসবে।');
         }
 
+        $target = $this->cleanRedirectTarget((string) $request->input('target_url'), $link->url);
+        if (str_starts_with($target, '!')) {
+            return back()->withInput()->with('error', substr($target, 1));
+        }
+
+        \Modules\SEO\Models\SeoRedirect::updateOrCreate(
+            ['source_url' => $link->url],
+            [
+                'target_url'  => $target,
+                'status_code' => 301,
+                'is_active'   => true,
+                'notes'       => 'Auto created from 404 broken link resolution',
+            ]
+        );
         $link->update(['is_resolved' => true]);
 
-        return back()->with('success', 'ব্রোকেন লিংকটি সমাধান করা হয়েছে' . ($request->filled('target_url') ? ' এবং ৩০১ রিডাইরেক্ট সেট করা হয়েছে।' : '।'));
+        return back()->with('success', '৩০১ রিডাইরেক্ট চালু হয়েছে: ' . $link->display_url . ' → ' . rawurldecode($target));
+    }
+
+    /** Bulk: ignore, delete or re-open the ticked links. */
+    public function bulkBrokenLinks(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'ids'    => 'required|array|min:1',
+            'ids.*'  => 'integer',
+            'action' => 'required|in:ignore,delete,reopen',
+        ]);
+        $query = \Modules\SEO\Models\SeoBrokenLink::whereIn('id', $data['ids']);
+        $n = match ($data['action']) {
+            'delete' => $query->delete(),
+            'reopen' => $query->update(['is_resolved' => false]),
+            default  => $query->update(['is_resolved' => true]),
+        };
+        $done = ['ignore' => 'তালিকা থেকে সরানো হয়েছে', 'delete' => 'মুছে ফেলা হয়েছে', 'reopen' => 'আবার খোলা হয়েছে'][$data['action']];
+
+        return back()->with('success', "{$n}টি লিংক {$done}।");
+    }
+
+    /**
+     * Normalise a redirect target. Returns the path, or "!message" when it cannot be used.
+     * Only addresses on this site are accepted; a target equal to the broken address would loop.
+     */
+    private function cleanRedirectTarget(string $raw, string $source): string
+    {
+        $raw = trim($raw);
+        if ($raw === '') {
+            return '!সঠিক লিংক লিখুন (যেমন /books)।';
+        }
+        if (preg_match('#^https?://#i', $raw)) {
+            $strip = fn ($h) => preg_replace('/^www\./', '', strtolower((string) $h));
+            $own = array_map($strip, [request()->getHost(), parse_url((string) config('app.url'), PHP_URL_HOST)]);
+            if (!in_array($strip(parse_url($raw, PHP_URL_HOST)), $own, true)) {
+                return '!শুধু এই সাইটের লিংক দিন। অন্য সাইটে পাঠাতে চাইলে রিডাইরেক্ট ম্যানেজার ব্যবহার করুন।';
+            }
+            $raw = (parse_url($raw, PHP_URL_PATH) ?: '/') . (($qs = parse_url($raw, PHP_URL_QUERY)) ? '?' . $qs : '');
+        }
+        $raw = '/' . ltrim($raw, '/');
+        $same = fn ($p) => rtrim(rawurldecode((string) parse_url($p, PHP_URL_PATH)), '/');
+        if ($same($raw) === $same($source)) {
+            return '!লক্ষ্য লিংকটি ভাঙা লিংকের মতোই — এতে রিডাইরেক্ট লুপ হবে।';
+        }
+
+        return $raw;
     }
 }
 

@@ -164,6 +164,10 @@
             <i class="fa-solid fa-list-check text-primary"></i> Orders Directory 
             <span class="badge bg-light text-dark border font-monospace">{{ $orders->total() }}</span>
         </h6>
+        <div class="form-check form-switch mb-0" title="স্ট্যাটাস বদলালে গ্রাহককে SMS যাবে (প্রতিটি ধাপে একবার)">
+            <input class="form-check-input" type="checkbox" role="switch" id="notifyCustomerToggle" checked>
+            <label class="form-check-label small fw-semibold" for="notifyCustomerToggle">গ্রাহককে SMS</label>
+        </div>
     </div>
 
     <div class="card-body p-0">
@@ -202,20 +206,27 @@
 
                         <!-- Book Title -->
                         <td>
-                            @if($order->book)
-                                <div class="d-flex align-items-center gap-2">
-                                    <div>
-                                        <a href="{{ route('book.show', $order->book->slug) }}" target="_blank" class="text-decoration-none fw-bold text-dark d-block text-truncate" style="max-width: 180px;">
-                                            {{ $order->book->title }}
-                                        </a>
-                                        <div class="small text-muted">
-                                            Qty: <span class="fw-bold text-dark">{{ $order->quantity ?? 1 }}</span> pcs 
-                                            &bull; ৳{{ number_format($order->unit_price > 0 ? $order->unit_price : ($order->book->discount_price ?? $order->book->price ?? 0)) }}
-                                        </div>
-                                    </div>
-                                </div>
+                            {{-- Every item of the order (packing list), not just the first book. --}}
+                            @php $lines = $order->lineItems(); @endphp
+                            @if($lines)
+                                <ul class="list-unstyled mb-0 small" style="max-width: 240px;">
+                                    @foreach(array_slice($lines, 0, 4) as $li)
+                                        <li class="d-flex justify-content-between gap-2 lh-sm py-0.5">
+                                            <span class="text-dark fw-semibold text-truncate" title="{{ $li['title'] }}">
+                                                {{ $li['title'] }}
+                                                @if($li['format'] === 'hardcover' && !str_contains($li['title'], 'হার্ডকভার'))<span class="badge bg-dark-subtle text-dark border ms-1" style="font-size: 9.5px;">HC</span>@endif
+                                                @if($li['type'] === 'ebook')<span class="badge bg-info-subtle text-info border ms-1" style="font-size: 9.5px;">ই-বুক</span>@endif
+                                            </span>
+                                            <span class="text-nowrap fw-bold">×{{ $li['qty'] }}</span>
+                                        </li>
+                                    @endforeach
+                                    @if(count($lines) > 4)
+                                        <li class="text-muted">+{{ count($lines) - 4 }} আরও</li>
+                                    @endif
+                                </ul>
+                                <div class="text-muted" style="font-size: 11px;">{{ array_sum(array_column($lines, 'qty')) }} কপি</div>
                             @else
-                                <span class="text-muted fst-italic">Book not found</span>
+                                <span class="text-muted fst-italic">পণ্যের তথ্য নেই</span>
                             @endif
                         </td>
 
@@ -245,9 +256,33 @@
 
                         <!-- Status Quick Updater -->
                         <td>
+                            @php
+                                // One click to the next step of the usual flow.
+                                $next = match ($order->status) {
+                                    'pending'               => ['confirmed', 'নিশ্চিত করুন', 'btn-success', 'fa-check'],
+                                    'confirmed', 'processing' => ['shipped', 'কুরিয়ারে দিন', 'btn-primary', 'fa-truck-fast'],
+                                    'shipped'               => ['delivered', 'ডেলিভারড', 'btn-outline-success', 'fa-box-open'],
+                                    default                 => null,
+                                };
+                            @endphp
+                            @if($next)
+                                <form action="{{ route('admin.ecommerce-orders.status', $order) }}" method="POST" class="mb-1 js-order-next" data-next="{{ $next[0] }}"
+                                      data-courier="{{ $order->courier_name }}" data-tracking="{{ $order->tracking_code }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="{{ $next[0] }}">
+                                    <input type="hidden" name="courier_name" value="">
+                                    <input type="hidden" name="tracking_code" value="">
+                                    <input type="hidden" name="notify_customer" value="1" class="js-notify">
+                                    <button class="btn btn-sm {{ $next[2] }} rounded-pill w-100 fw-semibold" style="font-size: 11.5px;">
+                                        <i class="fa-solid {{ $next[3] }} me-1"></i>{{ $next[1] }}
+                                    </button>
+                                </form>
+                            @endif
                             <form action="{{ route('admin.ecommerce-orders.status', $order) }}" method="POST" class="d-inline-block">
                                 @csrf
                                 @method('PATCH')
+                                <input type="hidden" name="notify_customer" value="1" class="js-notify">
                                 <select name="status" class="form-select form-select-sm rounded-pill fw-semibold border" 
                                         style="font-size: 11.5px; padding-top: 2px; padding-bottom: 2px;" onchange="this.form.submit()">
                                     <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>⏳ Pending</option>
@@ -593,6 +628,30 @@
 
 @push('scripts')
 <script>
+    // Status changes: honour the "গ্রাহককে SMS" switch, and ask for courier/tracking when shipping.
+    (function () {
+        var toggle = document.getElementById('notifyCustomerToggle');
+        try { if (toggle && localStorage.getItem('orders.notifyCustomer') === '0') toggle.checked = false; } catch (e) {}
+        if (toggle) toggle.addEventListener('change', function () {
+            try { localStorage.setItem('orders.notifyCustomer', toggle.checked ? '1' : '0'); } catch (e) {}
+        });
+        document.addEventListener('submit', function (e) {
+            var form = e.target;
+            var notify = form.querySelector && form.querySelector('.js-notify');
+            if (notify) notify.value = (!toggle || toggle.checked) ? '1' : '0';
+            if (form.classList && form.classList.contains('js-order-next') && form.dataset.next === 'shipped') {
+                var courier = prompt('কুরিয়ারের নাম (যেমন: Steadfast, Pathao, Sundarban)', form.dataset.courier || '');
+                if (courier === null) { e.preventDefault(); return; }
+                var tracking = prompt('ট্র্যাকিং / কনসাইনমেন্ট নম্বর (না থাকলে খালি রাখুন)', form.dataset.tracking || '');
+                if (tracking === null) { e.preventDefault(); return; }
+                form.querySelector('[name="courier_name"]').value = courier.trim();
+                form.querySelector('[name="tracking_code"]').value = tracking.trim();
+            }
+            var btn = form.querySelector && form.querySelector('button');
+            if (btn && form.classList.contains('js-order-next')) btn.disabled = true;
+        }, true);
+    })();
+
     const ordersDataMap = @json($orders->getCollection()->keyBy('id'));
 
     function openOrderViewModal(orderId) {

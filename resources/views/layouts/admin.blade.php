@@ -541,6 +541,16 @@
 
 <script src="{{ asset('js/admin-ux.js') }}?v={{ @filemtime(public_path('js/admin-ux.js')) ?: 1 }}" defer></script>
 
+{{-- Live new-order alert (sound + desktop notification + bell count) for staff who can see orders --}}
+@php $orderAlertUser = auth()->user(); @endphp
+@if ($orderAlertUser && \Illuminate\Support\Facades\Route::has('admin.ecommerce-orders.pulse')
+    && ($orderAlertUser->isAdmin() || (method_exists($orderAlertUser, 'hasPermission') && $orderAlertUser->hasPermission('orders.view'))))
+    <div id="orderAlertCfg" hidden
+         data-pulse="{{ route('admin.ecommerce-orders.pulse') }}"
+         data-list="{{ route('admin.ecommerce-orders', ['status' => 'pending']) }}"></div>
+    <script src="{{ asset('js/admin-order-alerts.js') }}?v={{ @filemtime(public_path('js/admin-order-alerts.js')) ?: 1 }}" defer></script>
+@endif
+
 @stack('scripts')
 </body>
 </html>

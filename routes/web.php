@@ -152,7 +152,7 @@ Route::controller(\App\Http\Controllers\PaymentController::class)->group(functio
 Route::get('/webzines/archive', fn() => redirect(route('webzine.index')))->name('webzine.archive');
 
 // --- Storage Fallback Route for Live Shared Hosts & CPanel without Symlink ---
-Route::get('/storage/{path}', function (string $path) {
+Route::get('/storage/{path}', function (\Illuminate\Http\Request $request, string $path) {
     $cleanPath = ltrim($path, '/');
 
     // 1. Direct path check in storage/app/public/
@@ -215,14 +215,23 @@ Route::get('/storage/{path}', function (string $path) {
         }
     }
 
-    // 5. If requested path is in books/ or covers, serve placeholder if missing
+    // 5. If requested path is in books/ or covers, serve placeholder if missing.
+    //    The miss is still recorded in the broken-link monitor, so the missing cover can be re-uploaded.
     if (str_contains($cleanPath, 'books') || str_contains($cleanPath, 'covers') || str_contains($cleanPath, 'ebooks')) {
-        $bookPlaceholder = public_path('images/book-placeholder.png');
-        if (file_exists($bookPlaceholder) && is_file($bookPlaceholder)) {
-            return response()->file($bookPlaceholder, [
-                'Content-Type'           => 'image/png',
-                'X-Content-Type-Options' => 'nosniff',
-            ]);
+        foreach (['images/book-placeholder.png', 'assets/images/book-placeholder.png', 'images/ebook-placeholder.png'] as $candidate) {
+            $bookPlaceholder = public_path($candidate);
+            if (is_file($bookPlaceholder)) {
+                try {
+                    \Modules\SEO\Models\SeoBrokenLink::logHit($request->fullUrl(), $request->header('referer'), $request->userAgent(), $request->ip());
+                } catch (\Throwable) {
+                }
+
+                return response()->file($bookPlaceholder, [
+                    'Content-Type'           => 'image/png',
+                    'X-Content-Type-Options' => 'nosniff',
+                    'Cache-Control'          => 'public, max-age=3600',
+                ]);
+            }
         }
     }
 
@@ -713,6 +722,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
     Route::get('/orders', [AdminController::class, 'orders'])->name('orders');
     Route::get('/ecommerce-orders', [AdminController::class, 'ecommerceOrders'])->name('ecommerce-orders');
+    Route::get('/ecommerce-orders/pulse', [AdminController::class, 'ecommerceOrdersPulse'])->name('ecommerce-orders.pulse');
     Route::get('/ecommerce-orders/{order}', [AdminController::class, 'showEcommerceOrder'])->name('ecommerce-orders.show');
     Route::put('/ecommerce-orders/{order}', [AdminController::class, 'updateEcommerceOrder'])->name('ecommerce-orders.update');
     Route::patch('/ecommerce-orders/{order}/status', [AdminController::class, 'updateEcommerceOrderStatus'])->name('ecommerce-orders.status');
@@ -913,7 +923,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/clear-routes', 'clearRoutes')->name('clear-routes');
         Route::post('/clear-events', 'clearEvents')->name('clear-events');
         Route::post('/clear-opcache', 'clearOpcache')->name('clear-opcache');
-        Route::post('/clear-images', 'clearImages')->name('clear-images');
+        Route::post('/clear-images', 'clearImages')->middleware('throttle:6,1')->name('clear-images');
+        Route::post('/scan-images', 'scanImages')->middleware('throttle:10,1')->name('scan-images');
+        Route::post('/restore-images', 'restoreImages')->name('restore-images');
+        Route::post('/delete-image-batch', 'deleteImageBatch')->name('delete-image-batch');
         Route::post('/warmup', 'warmup')->name('warmup');
         Route::post('/warm-key', 'warmKey')->name('warm-key');
         Route::post('/delete-key', 'deleteKey')->name('delete-key');
