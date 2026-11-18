@@ -1,0 +1,69 @@
+/* Quick Book Editor (admin/books): one field size everywhere, phone-friendly layout, cover scanner. */
+
+/* ── Same height for every box ─────────────────────────── */
+.qe-form { --qe-h: 38px; --qe-fs: 14px; }
+.qe-form .form-control:not(textarea),
+.qe-form .form-select,
+.qe-form .input-group-text {
+    height: var(--qe-h) !important;
+    min-height: var(--qe-h) !important;
+    font-size: var(--qe-fs) !important;
+    border-radius: 8px;
+}
+.qe-form .input-group > :not(:first-child) { border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important; }
+.qe-form .input-group > :not(:last-child) { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+.qe-form .input-group-text { padding: 0 10px; color: #64748b; background: #f8fafc; }
+.qe-form .form-label { font-size: 12.5px !important; min-height: 18px; }
+.qe-form .btn-group .btn { min-height: 34px; display: inline-flex; align-items: center; justify-content: center; }
+
+.qe-price-table { margin: 0; }
+.qe-price-table td.p-1 { padding: 4px !important; }
+.qe-price-table thead th { font-size: 11px; font-weight: 700; white-space: nowrap; }
+
+/* ── Phones ─────────────────────────────────────────────── */
+@media (max-width: 575.98px) {
+    .qe-form { --qe-h: 44px; --qe-fs: 16px; } /* 16px stops iPhone from zooming into the field */
+    .qe-dialog .modal-content { border-radius: 0 !important; }
+    .qe-dialog .modal-body { padding: 12px !important; }
+
+    /* Cover: picture left, buttons right, so the form starts higher up */
+    .qe-cover-col { flex-direction: row !important; flex-wrap: wrap; gap: 10px 12px; justify-content: flex-start !important; text-align: left !important; padding-bottom: 12px; border-bottom: 1px solid #eef1f7; }
+    .qe-cover-col > .position-relative { width: 84px !important; height: 118px !important; margin: 0 !important; }
+    .qe-cover-col #qeCoverPreview { width: 84px !important; height: 118px !important; }
+    .qe-cover-col #qeCoverButtons { flex-direction: column; align-items: stretch; flex: 1; justify-content: center !important; }
+    .qe-cover-col #qeCoverButtons .btn { min-height: 44px; display: flex; align-items: center; justify-content: center; }
+
+    /* Price table → one card per binding with labelled fields */
+    .qe-price-wrap { overflow: visible; }
+    .qe-price-table, .qe-price-table tbody, .qe-price-table tr, .qe-price-table td { display: block; width: 100%; border: 0 !important; }
+    .qe-price-table thead { display: none; }
+    .qe-price-table tr { border: 1px solid #e2e8f0 !important; border-radius: 12px; padding: 8px 10px 10px; margin-bottom: 8px; background: #fff; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .qe-price-table tr[style*="display: none"], .qe-price-table tr.d-none { display: none !important; }
+    .qe-price-table td:first-child { grid-column: 1 / -1; padding: 0 !important; font-size: 13px; }
+    .qe-price-table td[data-label] { padding: 0 !important; }
+    .qe-price-table td[data-label]::before { content: attr(data-label); display: block; font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 3px; white-space: nowrap; }
+
+    /* Save / Cancel always reachable */
+    .qe-dialog .modal-footer { position: sticky; bottom: 0; z-index: 2; padding: 10px 12px !important; box-shadow: 0 -6px 16px -10px rgba(15, 23, 42, .25); }
+    .qe-dialog .modal-footer .btn { flex: 1; min-height: 44px; }
+}
+
+/* ── Cover scanner (corner adjust + straighten + colour) ── */
+.cs-overlay { position: fixed; inset: 0; z-index: 2600; background: #0b1220; color: #e2e8f0; display: flex; flex-direction: column; touch-action: none; }
+.cs-overlay[hidden] { display: none; }
+.cs-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; font-size: 14px; }
+.cs-top b { font-size: 15px; }
+.cs-hint { font-size: 12px; color: #94a3b8; }
+.cs-stage { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 8px; }
+.cs-wrap { position: relative; max-width: 100%; max-height: 100%; }
+.cs-wrap canvas { display: block; max-width: 100%; max-height: calc(100vh - 170px); border-radius: 6px; }
+.cs-wrap svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.cs-wrap polygon { fill: rgba(37, 99, 235, .14); stroke: #3b82f6; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.cs-handle { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: rgba(255, 255, 255, .25); border: 3px solid #3b82f6; touch-action: none; cursor: grab; }
+.cs-handle::after { content: ""; position: absolute; inset: 11px; border-radius: 50%; background: #fff; }
+.cs-handle:active { cursor: grabbing; background: rgba(59, 130, 246, .4); }
+.cs-bar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 10px 12px 14px; border-top: 1px solid #1f2a40; }
+.cs-bar .btn { min-height: 42px; border-radius: 999px; font-weight: 700; font-size: 13.5px; }
+.cs-bar label { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; padding: 0 6px; cursor: pointer; }
+.cs-busy { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(11, 18, 32, .6); font-size: 14px; }
+.cs-busy[hidden] { display: none; }

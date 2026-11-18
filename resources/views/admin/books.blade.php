@@ -5,6 +5,7 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/admin-books.css') }}?v={{ @filemtime(public_path('css/admin-books.css')) ?: 1 }}">
+<link rel="stylesheet" href="{{ asset('css/quick-book-editor.css') }}?v={{ @filemtime(public_path('css/quick-book-editor.css')) ?: 1 }}">
 @endpush
 
 @section('breadcrumb')
@@ -1177,7 +1178,7 @@
 {{-- UNIFIED QUICK BOOK SHORTCUT UPDATE MODAL                                   --}}
 {{-- ========================================================================= --}}
 <div class="modal fade" id="quickBookEditModal" tabindex="-1" aria-labelledby="quickBookEditModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg modal-fullscreen-sm-down qe-dialog">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
                 <h5 class="modal-title fw-bold text-white mb-0 fs-6" id="quickBookEditModalLabel">
@@ -1186,7 +1187,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
-            <form id="quickBookEditForm" onsubmit="handleQuickBookEditSubmit(event)" enctype="multipart/form-data">
+            <form id="quickBookEditForm" class="qe-form" onsubmit="handleQuickBookEditSubmit(event)" enctype="multipart/form-data">
                 <input type="hidden" id="qeBookId" name="book_id">
                 
                 <div class="modal-body p-3 p-md-4">
@@ -1194,7 +1195,7 @@
 
                     <div class="row g-3 g-md-4">
                         {{-- Left Column: Cover Preview & Upload --}}
-                        <div class="col-12 col-md-4 border-end-md text-center d-flex flex-column align-items-center justify-content-center">
+                        <div class="col-12 col-md-4 border-end-md text-center d-flex flex-column align-items-center justify-content-center qe-cover-col">
                             <div class="position-relative d-inline-block mb-2.5" style="width: 125px; height: 175px;">
                                 <img src="https://placehold.co/120x170/e2e8f0/475569?text=Cover" 
                                      id="qeCoverPreview" 
@@ -1246,8 +1247,8 @@
                             </div>
 
                             {{-- Clean Dynamic Pricing Table --}}
-                            <div class="table-responsive mb-2.5">
-                                <table class="table table-sm table-bordered align-middle mb-0 bg-white">
+                            <div class="table-responsive mb-2.5 qe-price-wrap">
+                                <table class="table table-sm table-bordered align-middle mb-0 bg-white qe-price-table">
                                     <thead class="table-light">
                                         <tr style="font-size: 11px;">
                                             <th class="py-1.5 px-2 text-muted">Format</th>
@@ -1259,25 +1260,25 @@
                                     <tbody>
                                         <tr id="qePaperbackPriceBlock">
                                             <td class="px-2 fw-semibold small text-dark text-nowrap">Paperback</td>
-                                            <td class="p-1">
+                                            <td class="p-1" data-label="MRP (৳)">
                                                 <input type="number" id="qePrice" name="price" min="0" step="1" class="form-control form-control-sm fw-bold" oninput="recalcPricingFromMrp()">
                                             </td>
-                                            <td class="p-1">
+                                            <td class="p-1" data-label="Discount (%)">
                                                 <input type="number" id="qeSaleCommission" min="0" max="100" step="0.5" class="form-control form-control-sm text-center text-danger fw-bold" oninput="recalcSalePriceFromCommission()">
                                             </td>
-                                            <td class="p-1">
+                                            <td class="p-1" data-label="Sale Price (৳)">
                                                 <input type="number" id="qeDiscountPrice" name="discount_price" min="0" step="1" class="form-control form-control-sm text-primary fw-bold" oninput="recalcSaleCommissionFromPrice()">
                                             </td>
                                         </tr>
                                         <tr id="qeHardcoverPriceBlock">
                                             <td class="px-2 fw-semibold small text-dark text-nowrap">Hardcover</td>
-                                            <td class="p-1">
+                                            <td class="p-1" data-label="MRP (৳)">
                                                 <input type="number" id="qeHardcoverPrice" name="hardcover_price" min="0" step="1" class="form-control form-control-sm fw-bold" oninput="recalcHardcoverPricingFromMrp()">
                                             </td>
-                                            <td class="p-1">
+                                            <td class="p-1" data-label="Discount (%)">
                                                 <input type="number" id="qeHardcoverSaleCommission" min="0" max="100" step="0.5" class="form-control form-control-sm text-center text-danger fw-bold" oninput="recalcHardcoverSalePriceFromCommission()">
                                             </td>
-                                            <td class="p-1">
+                                            <td class="p-1" data-label="Sale Price (৳)">
                                                 <input type="number" id="qeHardcoverDiscountPrice" name="hardcover_discount_price" min="0" step="1" class="form-control form-control-sm text-primary fw-bold" oninput="recalcHardcoverSaleCommissionFromPrice()">
                                             </td>
                                         </tr>
