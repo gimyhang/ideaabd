@@ -22,3 +22,10 @@ Illuminate\Support\Facades\Schedule::command('dashboard:warm')
     ->everyThreeMinutes()
     ->withoutOverlapping(10)
     ->runInBackground();
+
+
+// Bulk SMS campaigns left unfinished (browser closed, PHP stopped): continue them from the saved position.
+Illuminate\Support\Facades\Schedule::call(fn () => App\Services\SmsCampaignRunner::runDue(45))
+    ->everyMinute()
+    ->name('sms-campaigns')
+    ->withoutOverlapping(5);

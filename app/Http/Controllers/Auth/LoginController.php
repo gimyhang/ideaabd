@@ -570,6 +570,13 @@ class LoginController extends Controller
                     throw ValidationException::withMessages(['email' => $msg]);
                 }
 
+                // Signing in as someone else in a browser that is still signed in (another tab, a shared computer):
+                // end the old account's session first, so nothing of it (cart, admin state) carries over.
+                if (Auth::check() && (int) Auth::id() !== (int) $matchedUser->id) {
+                    Auth::logout();
+                    $request->session()->invalidate();
+                }
+
                 Auth::login($matchedUser, $request->boolean('remember'));
                 $request->session()->regenerate();
 
@@ -671,7 +678,8 @@ class LoginController extends Controller
         $rawPhone = trim(str_replace($bn, $en, (string) $request->input('phone')));
         $cleanDigits = preg_replace('/[^\d]/', '', $rawPhone);
 
-        if (strlen($cleanDigits) < 8) {
+        $isEmail = filter_var(strtolower($rawPhone), FILTER_VALIDATE_EMAIL) !== false;
+        if (!$isEmail && strlen($cleanDigits) < 10) {
             $msg = 'Enter a valid phone number.';
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
@@ -679,17 +687,26 @@ class LoginController extends Controller
             return back()->withInput()->with('error', $msg);
         }
 
+        // 1. Find the account: exact phone formats or exact email (a partial "ends with" match could pick a stranger's account)
+        $user = self::findOtpAccount($rawPhone);
+        if ($user && $user->phone) {
+            $cleanDigits = preg_replace('/[^\d]/', '', (string) $user->phone);
+        }
+        if (!$user && $isEmail) {
+            $msg = 'No account uses this email. Enter your mobile number instead.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return back()->withInput()->with('error', $msg);
+        }
+        if (strlen($cleanDigits) < 10) {
+            $msg = 'No phone number is saved for this account. Sign in with your password or use "Forgot password".';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return back()->withInput()->with('error', $msg);
+        }
         $last10 = substr($cleanDigits, -10);
-
-        // 1. Find user by phone or email
-        $user = \App\Models\User::where('phone', $rawPhone)
-            ->orWhere('phone', $cleanDigits)
-            ->orWhere('phone', '0' . $last10)
-            ->orWhere('phone', '+880' . $last10)
-            ->orWhere('phone', '880' . $last10)
-            ->orWhere('phone', 'LIKE', '%' . $last10)
-            ->orWhere('email', strtolower($rawPhone))
-            ->first();
 
         // 2. If user not found, check event registrations or create new user
         if (!$user) {
@@ -699,7 +716,14 @@ class LoginController extends Controller
             }
 
             $userName = $eventReg?->name ?: ('User ' . $last10);
-            $userEmail = $eventReg?->email ?: ($cleanDigits . '@ideaabd.com');
+            // The e-mail must be free: an e-mail already used by another account made this create fail with an error.
+            $userEmail = $eventReg?->email ? strtolower(trim($eventReg->email)) : '';
+            if ($userEmail === '' || \App\Models\User::where('email', $userEmail)->exists()) {
+                $userEmail = '0' . $last10 . '@ideaabd.com';
+                if (\App\Models\User::where('email', $userEmail)->exists()) {
+                    $userEmail = '0' . $last10 . '.' . strtolower(\Illuminate\Support\Str::random(5)) . '@ideaabd.com';
+                }
+            }
 
             // Auto-create or link user account for OTP authentication
             $user = \App\Models\User::create([
@@ -732,7 +756,8 @@ class LoginController extends Controller
         \Illuminate\Support\Facades\Cache::put('login_otp_' . $user->id, $cachePayload, $expireAt);
         \Illuminate\Support\Facades\Cache::put('login_otp_' . $last10, $cachePayload, $expireAt);
         \Illuminate\Support\Facades\Cache::put('login_otp_' . preg_replace('/[^\d]/', '', $targetPhone), $cachePayload, $expireAt);
-        \Illuminate\Support\Facades\Cache::put('pwd_reset_otp_' . $last10, $cachePayload, $expireAt);
+        // (No longer also written to the password-reset key: a login code used to overwrite a reset code sent a
+        //  moment earlier, so whichever arrived first was "wrong".)
 
         // Send SMS via SmsService
         $smsResult = null;
@@ -748,7 +773,7 @@ class LoginController extends Controller
         if (is_array($smsResult) && empty($smsResult['success']) && !empty($smsResult['code'])) {
             \Illuminate\Support\Facades\Cache::forget('login_otp_' . $user->id);
             \Illuminate\Support\Facades\Cache::forget('login_otp_' . $last10);
-            \Illuminate\Support\Facades\Cache::forget('pwd_reset_otp_' . $last10);
+            \Illuminate\Support\Facades\Cache::forget('login_otp_' . preg_replace('/[^\d]/', '', $targetPhone));
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => $smsResult['message'], 'retry_after' => $smsResult['retry_after'] ?? null], 429);
@@ -802,17 +827,15 @@ class LoginController extends Controller
         $last10 = substr($cleanDigits, -10);
         $otp = trim(str_replace($bn, $en, (string) $request->input('otp')));
 
-        // Find candidate user
-        $user = \App\Models\User::where('phone', $rawPhone)
-            ->orWhere('phone', $cleanDigits)
-            ->orWhere('phone', '0' . $last10)
-            ->orWhere('phone', '+880' . $last10)
-            ->orWhere('phone', '880' . $last10)
-            ->orWhere('phone', 'LIKE', '%' . $last10)
-            ->orWhere('email', strtolower($rawPhone))
-            ->first();
+        // Find candidate user (exact formats only: with fewer than 10 digits the old "ends with" match was LIKE '%',
+        // i.e. the first account in the table)
+        $user = self::findOtpAccount($rawPhone);
+        if ($user && strlen($cleanDigits) < 10 && $user->phone) {
+            $cleanDigits = preg_replace('/[^\d]/', '', (string) $user->phone);
+            $last10 = substr($cleanDigits, -10);
+        }
 
-        if (!$user) {
+        if (!$user || strlen($last10) < 10) {
             $msg = 'User account not found. Please check your phone number.';
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
@@ -828,7 +851,10 @@ class LoginController extends Controller
 
         $matchedPayload = null;
         foreach ([$cached1, $cached2, $cached3, $cached4] as $cand) {
-            if ($cand && is_array($cand) && isset($cand['otp']) && (string)$cand['otp'] === $otp) {
+            // The code belongs to the account it was sent for: never set the password of a different account
+            // (two accounts with one phone number used to share codes).
+            if ($cand && is_array($cand) && isset($cand['otp']) && hash_equals((string) $cand['otp'], $otp)
+                && (int) ($cand['user_id'] ?? 0) === (int) $user->id) {
                 if (!isset($cand['expires_at']) || now()->timestamp <= $cand['expires_at']) {
                     $matchedPayload = $cand;
                     break;
@@ -862,7 +888,11 @@ class LoginController extends Controller
         \Illuminate\Support\Facades\Cache::forget('login_otp_' . preg_replace('/[^\d]/', '', (string)$user->phone));
         \Illuminate\Support\Facades\Cache::forget('pwd_reset_otp_' . $last10);
 
-        // Auto Log In
+        // Auto Log In (ending another account's session in this browser first)
+        if (Auth::check() && (int) Auth::id() !== (int) $user->id) {
+            Auth::logout();
+            $request->session()->invalidate();
+        }
         \Illuminate\Support\Facades\Auth::login($user, true);
         $request->session()->regenerate();
 
@@ -883,6 +913,34 @@ class LoginController extends Controller
         }
 
         return redirect()->to($targetUrl)->with('success', $msg);
+    }
+
+    /**
+     * The account an OTP is for: exact e-mail, or the phone in any of its stored formats (017…, 88017…, +88017…).
+     * When two accounts share a phone the same one is always chosen (active, verified, oldest), so the account the
+     * code was sent for is also the one it unlocks.
+     */
+    public static function findOtpAccount(string $input): ?\App\Models\User
+    {
+        $input = trim($input);
+        $email = strtolower($input);
+        if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return \App\Models\User::where('email', $email)->first();
+        }
+
+        $digits = preg_replace('/[^\d]/', '', $input);
+        if (strlen($digits) < 10) {
+            return null;
+        }
+        $last10 = substr($digits, -10);
+        $formats = array_values(array_unique([$input, $digits, $last10, '0' . $last10, '880' . $last10, '+880' . $last10, '+88 0' . $last10, '88 0' . $last10]));
+
+        // Ending in the same 10 digits is the same BD number (safe only with all 10 digits).
+        return \App\Models\User::where(fn ($q) => $q->whereIn('phone', $formats)->orWhere('phone', 'LIKE', '%' . $last10))
+            ->orderByDesc('is_active')
+            ->orderByRaw('CASE WHEN phone_verified_at IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('id')
+            ->first();
     }
 
     public function logout(Request $request)

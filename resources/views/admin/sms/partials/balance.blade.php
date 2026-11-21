@@ -16,6 +16,8 @@
         'order_sent'     => 'অর্ডারের মেসেজ আগেই গেছে',
         'number_blocked' => 'ওটিপি ব্লক',
         'gateway_error'  => 'গেটওয়ে সমস্যা',
+        'no_answer'      => 'গেটওয়ে উত্তর দেয়নি (যেতে পারে)',
+        'cut_off'        => 'পাঠানোর মাঝে থেমেছে',
     ];
     $purposeMap = ['otp' => 'ওটিপি', 'order' => 'অর্ডার', 'welcome' => 'ওয়েলকাম', 'notification' => 'নোটিফিকেশন', 'campaign' => 'ক্যাম্পেইন', 'test' => 'টেস্ট'];
     $localPhone = fn ($p) => str_starts_with($p, '880') ? '0' . substr($p, 3) : '+' . $p;

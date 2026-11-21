@@ -198,9 +198,10 @@ class SmsService
         $numbers  = array_keys($screen['allowed']);
         $creds    = self::getCredentials();
         $provider = strtolower((string) $creds['provider']);
-        $sent     = 0;
-        $failed   = 0;
-        $last     = [];
+        $sent      = 0;
+        $failed    = 0;
+        $uncertain = 0;
+        $last      = [];
 
         Log::info('SMS dispatch [one-to-many] to ' . count($numbers) . " number(s) | Provider: {$provider} | Type: " . (self::isUnicode($message) ? 'unicode' : 'text'));
 
@@ -211,6 +212,8 @@ class SmsService
 
             if (!empty($last['success'])) {
                 $sent += count($chunk);
+            } elseif (!empty($last['uncertain'])) {
+                $uncertain += count($chunk);
             } else {
                 $failed += count($chunk);
             }
@@ -229,6 +232,7 @@ class SmsService
             'numbers'       => implode(',', $numbers),
             'sent'          => $sent,
             'failed'        => $failed,
+            'uncertain'     => $uncertain,
             'denied'        => $screen['denied'],
         ];
 
@@ -287,7 +291,9 @@ class SmsService
         }
 
         $totalSent    = 0;
+        $uncertain    = 0;
         $lastResponse = null;
+        $lastCode     = null;
 
         foreach (array_chunk($formatted, 100) as $chunk) {
             $phones  = array_column($chunk, 'to');
@@ -301,12 +307,15 @@ class SmsService
                 ];
 
                 try {
-                    $response = Http::connectTimeout(5)->timeout(25)->asForm()->post($url, $payload);
+                    $response = Http::connectTimeout(5)->timeout(self::BATCH_TIMEOUT)->asForm()->post($url, $payload);
                     $json     = $response->json();
                     $body     = $response->body();
                     $lastResponse = $json ?: $body;
                     $statusCode   = $response->status();
                 } catch (\Illuminate\Http\Client\ConnectionException $connEx) {
+                    if (self::mayHaveReachedGateway($connEx)) {
+                        throw $connEx; // timed out after sending: a retry could deliver the same SMS twice
+                    }
                     $rawCurl = self::executeCurl($url, $payload);
                     if ($rawCurl === '') {
                         throw $connEx;
@@ -319,6 +328,7 @@ class SmsService
 
                 $outcome['success']       = self::isSuccessfulResponse($statusCode, is_array($json) ? $json : null, (string) $body);
                 $outcome['response_code'] = is_array($json) ? ($json['response_code'] ?? null) : null;
+                $lastCode                 = $outcome['response_code'];
                 $outcome['message']       = $outcome['success']
                     ? (!empty($json['success_message']) ? $json['success_message'] : (!empty($json['message']) ? $json['message'] : self::getResponseCodeMessage($outcome['response_code'], (string) $body)))
                     : (!empty($json['error_message']) ? $json['error_message'] : (!empty($json['message']) ? $json['message'] : (!empty($json['error']) ? $json['error'] : self::getResponseCodeMessage($outcome['response_code'], (string) $body))));
@@ -329,6 +339,11 @@ class SmsService
             } catch (\Throwable $e) {
                 Log::error('Many-to-Many SMS Exception: ' . $e->getMessage());
                 $outcome['error'] = $e->getMessage();
+                if ($e instanceof ConnectionException && self::mayHaveReachedGateway($e)) {
+                    $outcome['message']   = self::UNCERTAIN_MESSAGE;
+                    $outcome['uncertain'] = true;
+                    $uncertain += count($chunk);
+                }
             }
 
             SmsGuard::settle($screen['batch'], $phones, $outcome, $screen['logging']);
@@ -341,9 +356,11 @@ class SmsService
         return [
             'success'      => $totalSent > 0,
             'total_sent'   => $totalSent,
-            'total_target' => count($items),
-            'denied'       => $screen['denied'],
-            'response'     => $lastResponse,
+            'total_target'  => count($items),
+            'uncertain'     => $uncertain,
+            'response_code' => $lastCode,
+            'denied'        => $screen['denied'],
+            'response'      => $lastResponse,
             'message'      => "মেনি-টু-মেনি পার্সোনালাইজড ক্যাম্পেইন: {$totalSent}/" . count($items) . ' টি এসএমএস প্রেরণ সম্পন্ন হয়েছে।',
         ];
     }
@@ -400,6 +417,8 @@ class SmsService
         $senderId = $creds['sender_id'] ?: self::DEFAULT_SENDER_ID;
         $provider = strtolower((string) $creds['provider']);
         $smsType  = self::isUnicode($message) ? 'unicode' : 'text';
+        // A gateway takes longer for 100 numbers than for one OTP; the old 8 s limit cut big sends off mid-way.
+        $timeout  = count($numbers) > 1 ? self::BATCH_TIMEOUT : 10;
 
         try {
             if ($provider === 'bulksmsbd' || str_contains((string) $url, 'bulksmsbd.net')) {
@@ -413,9 +432,13 @@ class SmsService
                 ];
 
                 try {
-                    $response = Http::connectTimeout(4)->timeout(8)->asForm()->post($apiUrl, $payload);
+                    $response = Http::connectTimeout(4)->timeout($timeout)->asForm()->post($apiUrl, $payload);
                 } catch (ConnectionException $connEx) {
-                    // The request never reached the gateway (DNS/TLS/socket problem), so it is safe to try the native client once.
+                    // Only when the request never reached the gateway (DNS/connect/TLS) is it safe to try the native client.
+                    // A read timeout means the gateway may already be sending: a second try sent every SMS twice.
+                    if (self::mayHaveReachedGateway($connEx)) {
+                        throw $connEx;
+                    }
                     $rawCurl = self::executeCurl($apiUrl, $payload);
                     if ($rawCurl === '') {
                         throw $connEx;
@@ -445,15 +468,15 @@ class SmsService
                     'message'   => $message,
                     'type'      => $smsType,
                 ];
-                $response = Http::connectTimeout(4)->timeout(8)->withToken($apiKey)->asJson()->post($url, $payload);
+                $response = Http::connectTimeout(4)->timeout($timeout)->withToken($apiKey)->asJson()->post($url, $payload);
             } elseif ($provider === 'greenweb') {
-                $response = Http::connectTimeout(4)->timeout(8)->post($url, [
+                $response = Http::connectTimeout(4)->timeout($timeout)->post($url, [
                     'token'   => $apiKey,
                     'to'      => $formattedNumbers,
                     'message' => $message,
                 ]);
             } else {
-                $response = Http::connectTimeout(4)->timeout(8)->post($url, [
+                $response = Http::connectTimeout(4)->timeout($timeout)->post($url, [
                     'api_key'  => $apiKey,
                     'senderid' => $senderId,
                     'number'   => $formattedNumbers,
@@ -485,8 +508,31 @@ class SmsService
         } catch (\Throwable $e) {
             Log::error('SMS gateway exception: ' . $e->getMessage());
 
+            if ($e instanceof ConnectionException && self::mayHaveReachedGateway($e)) {
+                return ['success' => false, 'uncertain' => true, 'error' => $e->getMessage(), 'message' => self::UNCERTAIN_MESSAGE];
+            }
+
             return ['success' => false, 'error' => $e->getMessage(), 'message' => 'গেটওয়ের সাথে সংযোগ করা যায়নি।'];
         }
+    }
+
+    /** Seconds to wait for the gateway to accept a batch of up to 100 numbers. */
+    public const BATCH_TIMEOUT = 30;
+
+    public const UNCERTAIN_MESSAGE = 'গেটওয়ে সময়মতো উত্তর দেয়নি — এসএমএস গিয়েও থাকতে পারে, তাই আবার পাঠানো হয়নি।';
+
+    /**
+     * False only when the request certainly never reached the gateway: name lookup, connect or TLS handshake failed.
+     * A timeout while waiting for the answer means "maybe sent".
+     */
+    public static function mayHaveReachedGateway(\Throwable $e): bool
+    {
+        $m = $e->getMessage();
+        if (preg_match('/cURL error (6|7|35|51|58|60|77)\b/i', $m)) {
+            return false;
+        }
+
+        return !preg_match('/Connection timed out|Resolving timed out|Could not resolve|Failed to connect|Connection refused/i', $m);
     }
 
     /**
@@ -978,7 +1024,7 @@ BASH,
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+        curl_setopt($ch, CURLOPT_TIMEOUT, self::BATCH_TIMEOUT);
         $response = curl_exec($ch);
         curl_close($ch);
         return $response ?: '';

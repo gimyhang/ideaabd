@@ -14,6 +14,10 @@
     RewriteCond %{HTTP_HOST} ^ideaabd\.com$ [NC]
     RewriteRule ^(.*)$ https://www.ideaabd.com/$1 [L,R=301]
 
+    # LiteSpeed: let bulk SMS / cache / backup work finish after the page is sent (otherwise LiteSpeed ends the PHP
+    # process when the browser disconnects, cutting a campaign off part-way). Admin paths only.
+    RewriteRule ^admin/(sms|cache|backup) - [E=noabort:1,E=noconntimeout:1]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

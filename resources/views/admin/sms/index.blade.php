@@ -46,6 +46,15 @@
         </div>
     @endif
 
+    {{-- Bulk SMS campaigns: live progress (filled and refreshed by admin-sms.js) --}}
+    <div id="smsCampaigns" class="sms-campaigns mb-4" data-tick-url="{{ route('admin.sms.campaigns.tick') }}" data-action-url="{{ url('admin/sms/campaigns/__ID__/action') }}" @if(empty($liveCampaigns)) hidden @endif>
+        <div class="sms-campaigns-head">
+            <strong><i class="fa-solid fa-satellite-dish me-1"></i> বাল্ক এসএমএস ক্যাম্পেইন</strong>
+            <small class="text-muted">১০০ জন করে পাঠানো হয়; পেজ খোলা থাকলে দ্রুত চলে। বন্ধ করলেও পরে বাকি অংশ থেকে চলবে।</small>
+        </div>
+        <div class="sms-campaigns-list" data-campaign-list></div>
+    </div>
+
     {{-- Main tabs: one word each --}}
     @php
         $hubTabs = [
@@ -1201,6 +1210,7 @@
     window.messagingCounts = @json($counts);
     window.savedTemplates = @json($templates);
     window.smsCostPerSms = {{ (float) $guard['cost'] }};
+    window.smsCampaigns = @json($liveCampaigns);
 </script>
 <script src="{{ asset('js/admin-sms.js') }}"></script>
 @endpush

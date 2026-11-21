@@ -396,7 +396,7 @@ class SmsGuard
                 } else {
                     $query->update([
                         'status'           => 'failed',
-                        'reason'           => 'gateway_error',
+                        'reason'           => !empty($outcome['uncertain']) ? 'no_answer' : 'gateway_error', // no_answer: may have been delivered
                         'provider'         => $outcome['provider'] ?? null,
                         'response_code'    => isset($outcome['response_code']) ? Str::limit((string) $outcome['response_code'], 10, '') : null,
                         'gateway_response' => Str::limit((string) ($outcome['message'] ?? $outcome['error'] ?? ''), 480, ''),

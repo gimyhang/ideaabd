@@ -8,6 +8,8 @@ use App\Models\AdminDashboardSetting;
 use App\Models\EventCampaign;
 use App\Models\EventRegistration;
 use App\Models\SmsBalanceSnapshot;
+use App\Models\SmsCampaign;
+use App\Services\SmsCampaignRunner;
 use App\Models\SmsLog;
 use App\Models\SmsNumberRestriction;
 use App\Models\User;
@@ -83,6 +85,7 @@ class AdminSmsController extends Controller
             'filters'        => $filters,
             'restrictions'   => $tablesReady ? SmsNumberRestriction::where(fn ($q) => $q->whereNotNull('blocked_at')->orWhere('restricted_until', '>', now()))->latest('updated_at')->limit(100)->get() : collect(),
             'balanceHistory' => $tablesReady ? SmsBalanceSnapshot::latest('id')->limit(15)->get() : collect(),
+            'liveCampaigns'  => SmsCampaignRunner::recent(),
             'guard'          => [
                 'limit'   => (int) config('sms.guard.daily_limit', 2),
                 'hours'   => (int) config('sms.guard.restrict_hours', 24),
@@ -151,11 +154,7 @@ class AdminSmsController extends Controller
         }
 
         $title = 'Bulk SMS Broadcast (' . ucfirst($validated['target_group']) . ')';
-        SendSmsCampaign::dispatchAfterResponse('broadcast', $recipients, $validated['message'], $validated['target_group'], $title, auth()->id(), auth()->user()?->name ?? 'Admin');
-
-        $this->accessService->log('sms_bulk_broadcast', "বাল্ক এসএমএস শুরু হয়েছে ({$validated['target_group']}) — প্রাপক " . count($recipients));
-
-        return $this->campaignStarted(count($recipients));
+        return $this->startCampaign('broadcast', $recipients, $validated['message'], $validated['target_group'], $title);
     }
 
     /**
@@ -202,11 +201,7 @@ class AdminSmsController extends Controller
         }
 
         $title = 'Personalized SMS (' . ucfirst($validated['target_group']) . ')';
-        SendSmsCampaign::dispatchAfterResponse('many', $messages, $template, $validated['target_group'], $title, auth()->id(), auth()->user()?->name ?? 'Admin');
-
-        $this->accessService->log('sms_many_broadcast', "মেনি-টু-মেনি এসএমএস শুরু হয়েছে ({$validated['target_group']}) — প্রাপক " . count($messages));
-
-        return $this->campaignStarted(count($messages));
+        return $this->startCampaign('many', $messages, $template, $validated['target_group'], $title);
     }
 
     /**
@@ -755,9 +750,55 @@ class AdminSmsController extends Controller
         return array_values($unique);
     }
 
-    private function campaignStarted(int $count): RedirectResponse
+    /** Save the campaign, start sending right after the response, and show its progress card. */
+    private function startCampaign(string $mode, array $payload, string $message, string $group, string $title): RedirectResponse
     {
-        return back()->with('success', 'ক্যাম্পেইন শুরু হয়েছে — ' . number_format($count) . " জন প্রাপক। শেষ হলে ফলাফল (সফল, ব্যর্থ, ভুয়া বাদ) 'হিস্ট্রি' ও 'ব্যালান্স' ট্যাবে দেখা যাবে।");
+        if (!SmsCampaignRunner::ready()) {
+            return back()->with('error', "ক্যাম্পেইন টেবিল নেই — সার্ভারে একবার 'php artisan migrate' চালান, তারপর আবার চেষ্টা করুন।");
+        }
+
+        [$campaign, $duplicate] = SmsCampaignRunner::create($mode, $payload, $message, $group, $title, auth()->id(), auth()->user()?->name ?? 'Admin');
+
+        if ($duplicate) {
+            return back()->with('error', 'একই মেসেজ একই প্রাপকদের কাছে ইতিমধ্যে পাঠানো হচ্ছে (ক্যাম্পেইন #' . $duplicate->id . ') — দুবার পাঠানো হয়নি। অগ্রগতি উপরের কার্ডে দেখুন।');
+        }
+
+        SendSmsCampaign::dispatchAfterResponse($campaign->id);
+
+        $this->accessService->log($mode === 'many' ? 'sms_many_broadcast' : 'sms_bulk_broadcast', "এসএমএস ক্যাম্পেইন #{$campaign->id} শুরু ({$group}) — প্রাপক {$campaign->total}");
+
+        $parts = $campaign->segments > 1 ? " প্রতি মেসেজ {$campaign->segments} SMS, মোট প্রায় " . number_format($campaign->total * $campaign->segments) . ' SMS ক্রেডিট লাগবে।' : '';
+
+        return back()->with('success', 'ক্যাম্পেইন #' . $campaign->id . ' শুরু হয়েছে — ' . number_format($campaign->total) . ' জন প্রাপক।' . $parts . ' ১০০ জন করে পাঠানো হচ্ছে; অগ্রগতি উপরের কার্ডে দেখা যাবে। পেজটি খোলা রাখলে দ্রুত শেষ হবে।');
+    }
+
+    /** Progress of recent campaigns; also sends the next slice of a running one (the open page keeps it moving). */
+    public function campaignsTick(Request $request): JsonResponse
+    {
+        if ($request->boolean('work')) {
+            SmsCampaignRunner::runDue(15);
+        }
+
+        return response()->json(['campaigns' => SmsCampaignRunner::recent()]);
+    }
+
+    public function campaignAction(Request $request, SmsCampaign $campaign): JsonResponse|RedirectResponse
+    {
+        $action = $request->validate(['action' => 'required|in:pause,resume,cancel'])['action'];
+        match ($action) {
+            'pause'  => SmsCampaignRunner::pause($campaign),
+            'resume' => SmsCampaignRunner::resume($campaign),
+            'cancel' => SmsCampaignRunner::cancel($campaign),
+        };
+        $this->accessService->log('sms_campaign_' . $action, "এসএমএস ক্যাম্পেইন #{$campaign->id}: {$action}");
+
+        if ($action === 'resume') {
+            SendSmsCampaign::dispatchAfterResponse($campaign->id);
+        }
+
+        return $request->expectsJson()
+            ? response()->json(['ok' => true, 'campaign' => $campaign->fresh()->summary()])
+            : back()->with('success', 'ক্যাম্পেইন #' . $campaign->id . ': ' . (SmsCampaign::STATUS_BN[$campaign->fresh()->status] ?? ''));
     }
 
     /** A big campaign makes many gateway calls: do not let PHP stop it half way. */

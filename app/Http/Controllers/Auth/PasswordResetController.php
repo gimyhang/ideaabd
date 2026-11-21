@@ -49,21 +49,10 @@ class PasswordResetController extends Controller
         $cleanPhone = preg_replace('/[^0-9]/', '', $input);
         $deliveryMethod = $request->input('delivery_method', 'auto');
 
-        // Find user by email, phone, clean phone, or name/username
-        $user = User::where('email', $input)
-            ->orWhere('phone', $input)
-            ->orWhereRaw('LOWER(email) = ?', [strtolower($input)])
-            ->orWhere(function ($query) use ($cleanPhone) {
-                if (!empty($cleanPhone) && strlen($cleanPhone) >= 8) {
-                    $last10 = substr($cleanPhone, -10);
-                    $query->where('phone', 'LIKE', '%' . $last10)
-                          ->orWhere('phone', '0' . $last10)
-                          ->orWhere('phone', '+880' . $last10);
-                }
-            })
-            ->orWhere('name', $input)
-            ->orWhereRaw('LOWER(name) = ?', [strtolower($input)])
-            ->first();
+        // Find the account by exact e-mail or by phone (all 10 digits). Not by name: names are not unique, so a
+        // reset code could be sent to — and unlock — someone else's account. Same choice as the OTP login, so both
+        // flows always pick the same account when two share a phone.
+        $user = \App\Http\Controllers\Auth\LoginController::findOtpAccount($input);
 
         // Fallback matching with .env admin credentials (ADMIN_PHONE, ADMIN_EMAIL, ADMIN_USERNAME, or 'admin')
         if (!$user) {
@@ -83,7 +72,7 @@ class PasswordResetController extends Controller
         }
 
         // If user didn't have phone saved but provided a valid mobile number, sync it
-        if (empty($user->phone) && !empty($cleanPhone) && strlen($cleanPhone) >= 10) {
+        if (empty($user->phone) && !str_contains($input, '@') && !empty($cleanPhone) && strlen($cleanPhone) >= 10) {
             $user->phone = $cleanPhone;
             $user->save();
         }
@@ -311,20 +300,8 @@ class PasswordResetController extends Controller
             return null;
         }
 
-        // 1. Find user by email or phone
-        $user = User::where('email', $input)
-            ->orWhere('phone', $input)
-            ->orWhereRaw('LOWER(email) = ?', [strtolower($input)])
-            ->orWhere(function ($query) use ($cleanPhone, $last10) {
-                if (!empty($cleanPhone) && strlen($cleanPhone) >= 8) {
-                    $query->where('phone', $cleanPhone)
-                          ->orWhere('phone', 'LIKE', '%' . $last10)
-                          ->orWhere('phone', '0' . $last10)
-                          ->orWhere('phone', '+880' . $last10)
-                          ->orWhere('phone', '880' . $last10);
-                }
-            })
-            ->first();
+        // 1. Find user by email or phone (same rule as when the code was sent)
+        $user = \App\Http\Controllers\Auth\LoginController::findOtpAccount($input);
 
         // Check fallback admin
         if (!$user) {
@@ -367,11 +344,12 @@ class PasswordResetController extends Controller
 
         foreach ($cachedKeys as $cacheKey) {
             $cached = Cache::get($cacheKey);
-            if ($cached && is_array($cached) && isset($cached['otp'])) {
+            // Only a code issued for this very account counts (a login code or another account's code does not).
+            if ($cached && is_array($cached) && isset($cached['otp']) && (int) ($cached['user_id'] ?? 0) === (int) $user->id) {
                 if (isset($cached['expires_at']) && now()->timestamp > $cached['expires_at']) {
-                    return null; // Expired
+                    continue; // expired: another key may still hold the fresh code
                 }
-                if ((string)$cached['otp'] === $otp) {
+                if (hash_equals((string) $cached['otp'], $otp)) {
                     return $user;
                 }
             }
@@ -609,7 +587,6 @@ class PasswordResetController extends Controller
                     $q->where('phone', $cleanPhone);
                 }
             })
-            ->orWhere('name', $identity)
             ->first();
 
         \App\Models\PasswordResetRequest::create([

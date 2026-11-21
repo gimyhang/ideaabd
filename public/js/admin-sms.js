@@ -612,3 +612,109 @@ function initAjaxDispatchers() {
         });
     }
 }
+
+/* ---------- Bulk SMS campaigns: live progress, pause / resume / cancel ---------- */
+(function () {
+    const box = document.getElementById('smsCampaigns');
+    if (!box) return;
+    const list = box.querySelector('[data-campaign-list]');
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const n = (v) => Number(v || 0).toLocaleString('bn-BD');
+    let timer = null;
+    let busy = false;
+
+    function render(items) {
+        box.hidden = !items.length;
+        list.innerHTML = items.map((c) => {
+            const btns = [];
+            if (c.status === 'running') btns.push(`<button type="button" class="btn btn-outline-secondary btn-sm rounded-pill py-0" data-act="pause" data-id="${c.id}">বিরতি</button>`);
+            if (c.status === 'paused') btns.push(`<button type="button" class="btn btn-primary btn-sm rounded-pill py-0" data-act="resume" data-id="${c.id}">আবার চালু</button>`);
+            if (c.status === 'running' || c.status === 'paused') btns.push(`<button type="button" class="btn btn-outline-danger btn-sm rounded-pill py-0" data-act="cancel" data-id="${c.id}">বাতিল</button>`);
+            const left = Math.max(0, c.total - c.position);
+            const note = c.last_error
+                ? `<div class="sms-camp-note"><i class="fa-solid fa-triangle-exclamation me-1"></i>${escapeHtml(c.last_error)}</div>`
+                : (c.stalled ? '<div class="sms-camp-note">কিছুক্ষণ থেমে আছে — এই পেজ খোলা থাকলে নিজে থেকেই আবার চলবে।</div>' : '');
+            return `<div class="sms-camp">
+                <div class="sms-camp-top">
+                    <span class="sms-camp-title">#${c.id} · ${escapeHtml(c.title)}</span>
+                    <span class="sms-camp-badge ${c.status}">${escapeHtml(c.status_bn)}</span>
+                    <small class="text-muted">${escapeHtml(c.started_at || '')}${c.segments > 1 ? ' · প্রতি মেসেজ ' + n(c.segments) + ' SMS' : ''}</small>
+                    <span class="sms-camp-actions">${btns.join('')}</span>
+                </div>
+                <div class="sms-camp-bar" role="progressbar" aria-valuenow="${c.percent}" aria-valuemin="0" aria-valuemax="100"><span style="width:${c.percent}%"></span></div>
+                <div class="sms-camp-nums">
+                    <span>${n(c.percent)}% · ${n(c.position)}/${n(c.total)}</span>
+                    <span>সফল <b>${n(c.sent)}</b></span>
+                    <span>ব্যর্থ <b>${n(c.failed)}</b></span>
+                    <span>ভুয়া/অবৈধ বাদ <b>${n(c.refused)}</b></span>
+                    ${c.unknown ? `<span>অনিশ্চিত <b>${n(c.unknown)}</b></span>` : ''}
+                    ${left && c.status !== 'done' ? `<span>বাকি <b>${n(left)}</b></span>` : ''}
+                </div>${note}
+            </div>`;
+        }).join('');
+        schedule(items);
+    }
+
+    function schedule(items) {
+        clearTimeout(timer);
+        // While a campaign runs, every poll also sends the next slice: an open page keeps it moving.
+        if (items.some((c) => c.status === 'running')) timer = setTimeout(() => tick(true), 3000);
+        else if (items.some((c) => c.status === 'paused')) timer = setTimeout(() => tick(false), 30000);
+    }
+
+    async function post(url, body) {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify(body || {}),
+            credentials: 'same-origin',
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+    }
+
+    async function tick(work) {
+        if (busy) return;
+        busy = true;
+        try {
+            const data = await post(box.dataset.tickUrl, { work: work ? 1 : 0 });
+            render(data.campaigns || []);
+        } catch (e) {
+            clearTimeout(timer);
+            timer = setTimeout(() => tick(work), 10000); // network hiccup or a slow slice: try again later
+        } finally {
+            busy = false;
+        }
+    }
+
+    list.addEventListener('click', async (e) => {
+        const b = e.target.closest('[data-act]');
+        if (!b) return;
+        if (b.dataset.act === 'cancel' && !confirm('ক্যাম্পেইন বাতিল করবেন? যাদের কাছে এখনও যায়নি তারা আর পাবেন না।')) return;
+        b.disabled = true;
+        try {
+            await post(box.dataset.actionUrl.replace('__ID__', b.dataset.id), { action: b.dataset.act });
+        } catch (err) {
+            alert('কাজটি করা যায়নি, আবার চেষ্টা করুন।');
+        }
+        busy = false;
+        tick(b.dataset.act === 'resume');
+    });
+
+    const initial = window.smsCampaigns || [];
+    render(initial);
+    if (initial.some((c) => c.status === 'running')) tick(true);
+
+    // A double click on "শুরু করুন" used to start the same campaign twice (and spend the balance twice).
+    document.querySelectorAll('form[action$="/sms/broadcast"], form[action$="/sms/broadcast-many"]').forEach((form) => {
+        form.addEventListener('submit', (e) => {
+            if (e.defaultPrevented) return;
+            if (form.dataset.sending) { e.preventDefault(); return; }
+            form.dataset.sending = '1';
+            form.querySelectorAll('button[type="submit"]').forEach((btn) => {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> শুরু হচ্ছে…';
+            });
+        });
+    });
+})();

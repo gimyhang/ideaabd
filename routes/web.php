@@ -77,7 +77,9 @@ Route::get('/ads.txt', function () {
 
 // --- Auth routes (login / logout / OTP Password Setup) -----------------------
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
-Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
+// Not behind "guest": a login sent from a tab opened before signing in elsewhere used to get an HTML redirect
+// instead of an answer (the form showed "Sign in failed"). The controller switches accounts cleanly instead.
+Route::post('/login', [LoginController::class, 'login']);
 Route::post('/login/otp/send', [LoginController::class, 'sendLoginOtp'])->name('login.otp.send');
 Route::post('/login/otp/verify-set-password', [LoginController::class, 'verifyOtpAndSetPassword'])->name('login.otp.verify-set-password');
 Route::get('/login/refresh-bot-challenge', [LoginController::class, 'refreshBotChallenge'])->name('login.refresh-bot');
@@ -861,6 +863,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/send-test', 'sendTest')->middleware('throttle:10,1')->name('send-test');
         Route::post('/broadcast', 'broadcast')->middleware('throttle:6,1')->name('broadcast');
         Route::post('/broadcast-many', 'broadcastMany')->middleware('throttle:6,1')->name('broadcast-many');
+        Route::post('/campaigns/tick', 'campaignsTick')->middleware('throttle:40,1')->name('campaigns.tick');
+        Route::post('/campaigns/{campaign}/action', 'campaignAction')->middleware('throttle:20,1')->name('campaigns.action');
         Route::post('/settings', 'updateSettings')->name('settings');
         Route::post('/send-email-test', 'sendEmailTest')->middleware('throttle:10,1')->name('send-email-test');
         Route::post('/broadcast-email', 'broadcastEmail')->middleware('throttle:6,1')->name('broadcast-email');
