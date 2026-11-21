@@ -26,6 +26,13 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
+        // public/.htaccess sends every visitor (and Facebook/Google) to https://www.ideaabd.com. Generated links must
+        // use that same address: links on "ideaabd.com" redirect to www, and a page whose og:url / canonical points
+        // back to the non-www address is a redirect loop for Facebook's crawler (shared links stay plain text, no preview).
+        if (isset($_SERVER['HTTP_HOST']) && preg_match('/(^|\.)ideaabd\.com(:\d+)?$/i', (string) $_SERVER['HTTP_HOST'])) {
+            \Illuminate\Support\Facades\URL::forceRootUrl('https://www.ideaabd.com');
+        }
+
         // Register global security headers middleware for web routes
         if ($this->app->runningInConsole() === false) {
             $router = $this->app['router'] ?? null;

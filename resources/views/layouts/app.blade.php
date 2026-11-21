@@ -64,6 +64,10 @@
             $canonicalDomain = 'https://www.ideaabd.com';
         }
         $canonicalDomain = preg_replace('/^http:\/\//i', 'https://', $canonicalDomain);
+        // The live site is served on www (public/.htaccess redirects ideaabd.com → www). Canonical / og:url / og:image
+        // must name that same host, or Facebook sees a redirect loop and shows a shared link as plain text.
+        $wwwHost = fn ($u) => preg_replace('#^(https?:)?//ideaabd\.com(?=[/:?\#]|$)#i', 'https://www.ideaabd.com', (string) $u);
+        $canonicalDomain = $wwwHost($canonicalDomain);
 
         $defaultBanner = \App\Support\SiteSetting::blogOgBannerUrl() ?: asset('images/og-banner.jpg');
         if (!str_starts_with($defaultBanner, 'http://') && !str_starts_with($defaultBanner, 'https://')) {
@@ -138,7 +142,8 @@
             }
         }
 
-        $metaPageUrl = preg_replace('/^http:\/\//i', 'https://', $rawCanonical);
+        $metaPageUrl = $wwwHost(preg_replace('/^http:\/\//i', 'https://', $rawCanonical));
+        $metaPageImage = $wwwHost($metaPageImage);
         $metaPageType = View::hasSection('og_type') ? View::getSection('og_type') : ($dbSeo?->og_type ?: 'website');
 
         $imageExt = strtolower(pathinfo(parse_url($metaPageImage, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION));
