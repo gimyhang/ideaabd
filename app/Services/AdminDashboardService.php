@@ -293,53 +293,18 @@ class AdminDashboardService
                 ? round((($todayRevenue - $yesterdayRevenue) / $yesterdayRevenue) * 100, 1) 
                 : ($todayRevenue > 0 ? 100 : 0);
 
-            // 3. Visitor Traffic Analytics (Fast index-assisted query)
-            $hasVisitorTable = \App\Support\SchemaCache::has('visitor_logs');
-            $vRow = null;
-            $allTimeTotals = null;
-            if ($hasVisitorTable) {
-                // Cache lifetime total views and uniques for 1 hour to avoid unindexed full-table scans
-                $allTimeTotals = Cache::remember('admin_visitor_all_time_totals', 3600, function () {
-                    return $this->safe(fn () => VisitorLog::selectRaw("
-                        COUNT(*) as total_views,
-                        COUNT(DISTINCT ip_address) as total_uniques
-                    ")->first(), (object) ['total_views' => 0, 'total_uniques' => 0]);
-                });
-
-                // For year, month, and today, scan ONLY records from the start of this year (utilizes idx_visited_at)
-                $vRow = $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisYear)->selectRaw("
-                    COUNT(*) as year_views,
-                    COUNT(DISTINCT ip_address) as year_uniques,
-                    SUM(CASE WHEN visited_at >= ? THEN 1 ELSE 0 END) as month_views,
-                    COUNT(DISTINCT CASE WHEN visited_at >= ? THEN ip_address END) as month_uniques,
-                    SUM(CASE WHEN visited_at >= ? THEN 1 ELSE 0 END) as today_views,
-                    COUNT(DISTINCT CASE WHEN visited_at >= ? THEN ip_address END) as today_uniques
-                ", [$thisMonth, $thisMonth, $today, $today])->first(), null);
-            }
-
+            // 3. Visitor traffic, read from daily summaries (VisitorStats). This used to count the whole
+            //    visitor_logs table (all-time + year with several COUNT DISTINCTs) on every refresh, which is
+            //    what made the dashboard time out once the log grew large.
             $visitorStats = [
-                'today_views'     => (int) ($vRow->today_views ?? 0),
-                'today_uniques'   => (int) ($vRow->today_uniques ?? 0),
-                'month_views'     => (int) ($vRow->month_views ?? 0),
-                'month_uniques'   => (int) ($vRow->month_uniques ?? 0),
-                'year_views'      => (int) ($vRow->year_views ?? 0),
-                'year_uniques'    => (int) ($vRow->year_uniques ?? 0),
-                'total_views'     => (int) ($allTimeTotals->total_views ?? ($vRow->year_views ?? 0)),
-                'total_uniques'   => (int) ($allTimeTotals->total_uniques ?? ($vRow->year_uniques ?? 0)),
-                'filtered_views'  => 0,
-                'filtered_uniques'=> 0,
+                'today_views' => 0, 'today_uniques' => 0, 'month_views' => 0, 'month_uniques' => 0,
+                'year_views' => 0, 'year_uniques' => 0, 'total_views' => 0, 'total_uniques' => 0,
+                'filtered_views' => 0, 'filtered_uniques' => 0,
             ];
-
-            if ($hasVisitorTable && $startDate && $endDate) {
-                $fRow = $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$startDate, $endDate])
-                    ->selectRaw("COUNT(*) as views, COUNT(DISTINCT ip_address) as uniques")
-                    ->first(), null);
-                $visitorStats['filtered_views'] = (int) ($fRow->views ?? 0);
-                $visitorStats['filtered_uniques'] = (int) ($fRow->uniques ?? 0);
-            } else {
-                $visitorStats['filtered_views'] = $visitorStats['total_views'];
-                $visitorStats['filtered_uniques'] = $visitorStats['total_uniques'];
+            if (\App\Services\VisitorStats::ready()) {
+                $visitorStats = $this->safe(fn () => \App\Services\VisitorStats::headline($startDate, $endDate, ($from || $to) ? null : $period), $visitorStats);
             }
+            $visitorStats['pending_days'] = \App\Services\VisitorStats::ready() ? \App\Services\VisitorStats::pendingDays() : 0;
 
             // 4. Inventory Health (Low Stock & Out of Stock)
             $lowStockBooks = collect();
@@ -581,10 +546,11 @@ class AdminDashboardService
 
     protected function getSystemHealthMetricsUncached(): array
     {
-        $diskTotal = @disk_total_space(base_path()) ?: (50 * 1024 * 1024 * 1024);
-        $diskFree  = @disk_free_space(base_path()) ?: (32 * 1024 * 1024 * 1024);
-        $diskUsed  = $diskTotal - $diskFree;
-        $diskUsedPercent = $diskTotal > 0 ? round(($diskUsed / $diskTotal) * 100, 1) : 35;
+        // Real values only (shared hosting may hide them): never show made-up sizes.
+        $diskTotal = (float) (@disk_total_space(base_path()) ?: 0);
+        $diskFree  = (float) (@disk_free_space(base_path()) ?: 0);
+        $diskUsed  = max(0, $diskTotal - $diskFree);
+        $diskUsedPercent = $diskTotal > 0 ? round(($diskUsed / $diskTotal) * 100, 1) : 0;
 
         $dbVersion = 'MySQL 8.0';
         try {
@@ -604,7 +570,10 @@ class AdminDashboardService
             'cache_driver'      => config('cache.default', 'file'),
             'queue_connection'  => config('queue.default', 'sync'),
             'app_environment'   => config('app.env', 'production'),
-            'status'            => 'Optimal (100% Operational)',
+            // Based on what can actually be measured here: free disk space.
+            'status'            => $diskTotal <= 0 ? 'ডিস্কের তথ্য পাওয়া যায়নি'
+                : ($diskUsedPercent >= 95 ? 'ঝুঁকি: ডিস্ক প্রায় ভর্তি' : ($diskUsedPercent >= 85 ? 'সতর্কতা: ডিস্ক ৮৫%+ ভর্তি' : 'স্বাভাবিক')),
+            'status_level'      => $diskTotal <= 0 ? 'unknown' : ($diskUsedPercent >= 95 ? 'danger' : ($diskUsedPercent >= 85 ? 'warning' : 'ok')),
         ];
     }
 
@@ -763,6 +732,16 @@ class AdminDashboardService
 
             if (!$this->hasTable('visitor_logs')) {
                 return ['labels' => ['Today'], 'views' => [0], 'uniques' => [0]];
+            }
+
+            // Daily summaries: no scan of the raw log beyond today.
+            if (\App\Services\VisitorStats::ready()) {
+                return $this->safe(fn () => \App\Services\VisitorStats::series(
+                    in_array($period, ['monthly', 'yearly'], true) ? $period : 'daily',
+                    $from ? Carbon::parse($from) : null,
+                    $to ? Carbon::parse($to) : null,
+                    fn (Carbon $d, string $kind) => $kind === 'yearly' ? Bn::num($d->year) . ' সাল' : Bn::date($d)
+                ), ['labels' => [], 'views' => [], 'uniques' => []]);
             }
 
             if ($period === 'monthly') {
@@ -1189,21 +1168,19 @@ class AdminDashboardService
         $hasLogs = \App\Support\SchemaCache::has('visitor_logs');
         $liveOnlineCount = $this->liveOnlineCount();
 
-        $totalVisitorsCount = $precomputedTotal ?? ($hasLogs ? (int) $this->safe(fn () => \App\Models\VisitorLog::count(), 0) : 0);
+        $summaries = \App\Services\VisitorStats::ready();
+        // Never COUNT(*) the whole log here: the headline already knows the total (from daily summaries).
+        $totalVisitorsCount = (int) ($precomputedTotal ?? 0);
 
         // Real numbers only: with no recorded visits the lists are simply empty.
-        $countryTraffic = $this->safe(function () use ($hasLogs, $totalVisitorsCount) {
-            if (!$hasLogs || $totalVisitorsCount === 0) {
+        $countryTraffic = $this->safe(function () use ($hasLogs, $summaries, $totalVisitorsCount) {
+            if (!$hasLogs || !$summaries || $totalVisitorsCount === 0) {
                 return [];
             }
 
             $total = max(1, $totalVisitorsCount);
-            $records = \App\Models\VisitorLog::select('country', 'country_code', DB::raw('count(*) as total'))
-                ->whereNotNull('country')
-                ->groupBy('country', 'country_code')
-                ->orderByDesc('total')
-                ->limit(6)
-                ->get();
+            $records = collect(\App\Services\VisitorStats::topCountries(6))
+                ->map(fn ($r) => (object) ['country' => $r['country'], 'country_code' => $r['code'], 'total' => $r['visitors']]);
 
             $flagEmojis = [
                 'BD' => '🇧🇩', 'US' => '🇺🇸', 'GB' => '🇬🇧', 'SA' => '🇸🇦', 'AE' => '🇦🇪',
@@ -1223,13 +1200,11 @@ class AdminDashboardService
             })->all();
         }, []);
 
-        $deviceSplit = $this->safe(function () use ($hasLogs, $totalVisitorsCount) {
-            if (!$hasLogs || $totalVisitorsCount === 0) {
+        $deviceSplit = $this->safe(function () use ($hasLogs, $summaries, $totalVisitorsCount) {
+            if (!$hasLogs || !$summaries || $totalVisitorsCount === 0) {
                 return ['mobile' => 0, 'desktop' => 0, 'tablet' => 0];
             }
-            $byDevice = \App\Models\VisitorLog::select('device', DB::raw('COUNT(*) as c'))
-                ->groupBy('device')
-                ->pluck('c', 'device');
+            $byDevice = \App\Services\VisitorStats::devices();
             $counted = max(1, (int) ($byDevice['mobile'] ?? 0) + (int) ($byDevice['desktop'] ?? 0) + (int) ($byDevice['tablet'] ?? 0));
 
             return [

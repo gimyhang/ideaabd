@@ -24,6 +24,8 @@ class WarmAdminDashboard extends Command
     public function handle(AdminDashboardService $dashboard): int
     {
         $steps = [
+            // First: summarise finished visitor-log days, so the figures below read summaries, not the raw log.
+            'visitor rollup'  => fn () => \App\Services\VisitorStats::rollup(60.0),
             'stats'           => fn () => $dashboard->filteredStats(null, null, 'all'),
             'sales chart'     => fn () => $dashboard->salesSeries('monthly', null, null),
             'visitor chart'   => fn () => $dashboard->visitorSeries('daily', null, null),

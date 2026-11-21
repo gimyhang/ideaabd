@@ -44,7 +44,17 @@ class AdminController extends Controller
         try {
             $stats = $this->dashboard->filteredStats($dateFrom, $dateTo, $period);
         } catch (\Throwable $e) {
-            $stats = $this->dashboard->stats();
+            // Do not recompute everything a second time (that doubled the wait); show what is safe.
+            report($e);
+            $stats = ['visitor' => [], 'pending_alerts' => []];
+        }
+
+        // Summarise finished days of the visitor log after the page has been sent, so the admin never waits for it.
+        try {
+            if (($stats['visitor']['pending_days'] ?? 0) > 0) {
+                dispatch(fn () => \App\Services\VisitorStats::rollup(25.0))->afterResponse();
+            }
+        } catch (\Throwable) {
         }
 
         try {
@@ -124,6 +134,21 @@ class AdminController extends Controller
         $id = $validated['id'];
         $action = $validated['action'];
         $reason = $validated['reason'] ?? null;
+
+        // The route only needs "dashboard.view"; each action must also be allowed on its own, otherwise
+        // anyone who may look at the dashboard could approve people or delete orders and books from it.
+        $destructive = in_array($action, ['delete', 'cancel'], true);
+        $needed = match ($type) {
+            'user', 'author_update'              => 'users.manage',
+            'order'                              => $destructive ? 'orders.cancel_refund' : 'orders.manage',
+            'book'                               => $action === 'delete' ? 'catalog.delete' : 'content.moderate',
+            'ebook'                              => 'ebooks.manage',
+            'blog', 'submission', 'book_request' => 'content.moderate',
+            default                              => 'settings.manage',
+        };
+        if (!auth()->user()?->hasPermission($needed)) {
+            return response()->json(['success' => false, 'message' => 'এই কাজের অনুমতি আপনার নেই।'], 403);
+        }
         $message = 'অ্যাকশন সফলভাবে সম্পন্ন হয়েছে।';
 
         try {

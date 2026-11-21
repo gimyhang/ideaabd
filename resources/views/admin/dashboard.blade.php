@@ -309,7 +309,8 @@
             
             <!-- Quick Presets -->
             <div class="col-12 col-xl-5">
-                <div class="btn-group btn-group-sm w-100 flex-wrap" role="group">
+                {{-- Six equal buttons in one row (wrapping into equal rows on phones); "All Time" used to drop onto its own full-width row --}}
+                <div class="btn-group btn-group-sm w-100 flex-wrap dash-periods" role="group">
                     <a href="{{ route('admin.dashboard', ['period' => 'today']) }}" 
                        class="btn {{ ($currentPeriod === 'today') ? 'btn-primary' : 'btn-outline-secondary' }}">Today</a>
                     <a href="{{ route('admin.dashboard', ['period' => 'yesterday']) }}" 
@@ -358,10 +359,16 @@
                 Period: <strong>{{ $stats['filter_label'] ?? 'All Time' }}</strong>
             </div>
             <div>
-                Visitors: <strong>{{ number_format($stats['visitor']['filtered_uniques'] ?? 0) }}</strong> | 
+                Visitors: <strong @if (!empty($stats['visitor']['filtered_uniques_approx'])) title="৩১ দিনের বেশি সময়: প্রতিদিনের আলাদা ভিজিটর যোগ করা (একই ভিজিটর একাধিক দিনে একাধিকবার গোনা)" @endif>{{ !empty($stats['visitor']['filtered_uniques_approx']) ? '≈' : '' }}{{ number_format($stats['visitor']['filtered_uniques'] ?? 0) }}</strong> |
                 Revenue: <strong>৳{{ number_format($stats['filtered_revenue'] ?? 0, 2) }}</strong>
             </div>
         </div>
+        @if (($stats['visitor']['pending_days'] ?? 0) > 0)
+            <div class="small mt-2 px-2 py-1 rounded-2 bg-warning-subtle text-warning-emphasis">
+                <i class="fa-solid fa-hourglass-half me-1"></i>
+                পুরনো ভিজিটরের হিসাব সাজানো হচ্ছে — আরও {{ $stats['visitor']['pending_days'] }} দিন বাকি। ততক্ষণ ভিজিটরের সংখ্যা কম দেখাতে পারে; পেজ খোলার পর পেছনে কাজটি চলছে।
+            </div>
+        @endif
     </div>
 
     {{-- ========================================================================= --}}
@@ -589,9 +596,17 @@
                     <a href="{{ route('admin.payments.index') }}" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 small">Gateways</a>
                 </div>
                 <div class="adm-card__body d-flex flex-column align-items-center justify-content-center">
-                    <div class="chart-box w-100" style="position: relative; height: 200px;">
-                        <canvas id="paymentSplitChart"></canvas>
-                    </div>
+                    @if (array_sum(array_map('floatval', $stats['payment_split'] ?? [])) > 0)
+                        <div class="chart-box w-100" style="position: relative; height: 200px;">
+                            <canvas id="paymentSplitChart"></canvas>
+                        </div>
+                    @else
+                        {{-- Nothing to draw: say so instead of leaving a blank box --}}
+                        <div class="text-center text-muted small py-4">
+                            <i class="fa-solid fa-chart-pie fs-2 opacity-25 d-block mb-2"></i>
+                            এই সময়ে কোনো পেমেন্ট নেই
+                        </div>
+                    @endif
                     <div class="d-flex flex-wrap justify-content-center gap-2 mt-3 small">
                         <span class="badge bg-danger"><i class="fa-solid fa-circle me-1"></i> bKash (৳{{ number_format($stats['payment_split']['bkash'] ?? 0, 0) }})</span>
                         <span class="badge bg-warning text-dark"><i class="fa-solid fa-circle me-1"></i> Nagad (৳{{ number_format($stats['payment_split']['nagad'] ?? 0, 0) }})</span>
@@ -1736,18 +1751,23 @@
             <div class="adm-card h-100 bg-white">
                 <div class="adm-card__head d-flex align-items-center justify-content-between">
                     <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-server me-2 text-primary"></i>System Health</h6>
-                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
-                        <i class="fa-solid fa-circle-check me-1"></i>{{ $stats['system_health']['status'] ?? 'Optimal' }}
+                    @php
+                        $hLevel = $stats['system_health']['status_level'] ?? 'unknown';
+                        $hTone = ['ok' => 'success', 'warning' => 'warning', 'danger' => 'danger'][$hLevel] ?? 'secondary';
+                        $hIcon = ['ok' => 'fa-circle-check', 'warning' => 'fa-triangle-exclamation', 'danger' => 'fa-circle-exclamation'][$hLevel] ?? 'fa-circle-question';
+                    @endphp
+                    <span class="badge bg-{{ $hTone }}-subtle text-{{ $hTone }}-emphasis border border-{{ $hTone }}-subtle rounded-pill">
+                        <i class="fa-solid {{ $hIcon }} me-1"></i>{{ $stats['system_health']['status'] ?? '—' }}
                     </span>
                 </div>
                 <div class="adm-card__body p-3.5">
                     @php $health = $stats['system_health'] ?? []; @endphp
                     <div class="d-flex justify-content-between align-items-center mb-1.5 small">
                         <span class="text-muted"><i class="fa-solid fa-hard-drive me-1 text-secondary"></i>Disk Usage:</span>
-                        <span class="fw-bold text-dark font-monospace">{{ $health['disk_used_gb'] ?? 0 }} GB / {{ $health['disk_total_gb'] ?? 0 }} GB ({{ $health['disk_used_percent'] ?? 0 }}%)</span>
+                        <span class="fw-bold text-dark font-monospace">@if (($health['disk_total_gb'] ?? 0) > 0){{ $health['disk_used_gb'] }} GB / {{ $health['disk_total_gb'] }} GB ({{ $health['disk_used_percent'] }}%)@else — @endif</span>
                     </div>
                     <div class="progress mb-3" style="height: 7px;">
-                        <div class="progress-bar {{ ($health['disk_used_percent'] ?? 0) > 85 ? 'bg-danger' : 'bg-info' }}" style="width: {{ $health['disk_used_percent'] ?? 30 }}%;"></div>
+                        <div class="progress-bar {{ ($health['disk_used_percent'] ?? 0) > 85 ? 'bg-danger' : 'bg-info' }}" style="width: {{ $health['disk_used_percent'] ?? 0 }}%;"></div>
                     </div>
 
                     <div class="row g-2 small border-top pt-2.5">
@@ -2527,6 +2547,15 @@
 
 @push('styles')
 <style>
+/* Period presets: equal-width buttons, 6 in a row (3 per row on phones), no lone full-width "All Time" */
+.dash-periods { display: grid !important; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0; }
+.dash-periods > .btn { border-radius: 0 !important; margin: 0 !important; white-space: nowrap; padding-left: 4px !important; padding-right: 4px !important; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; }
+.dash-periods > .btn:first-child { border-top-left-radius: 8px !important; border-bottom-left-radius: 8px !important; }
+.dash-periods > .btn:last-child { border-top-right-radius: 8px !important; border-bottom-right-radius: 8px !important; }
+@media (max-width: 575.98px) {
+    .dash-periods { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+    .dash-periods > .btn { border-radius: 8px !important; }
+}
 .badge-pulse {
     animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
 }
@@ -2640,18 +2669,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 scales: {
+                    // Sales and order counts are never negative: start both axes at 0 (an all-zero series
+                    // otherwise drew ৳-1 … ৳1).
                     y: {
                         type: 'linear',
                         display: true,
                         position: 'left',
+                        beginAtZero: true,
+                        min: 0,
+                        suggestedMax: 100,
                         ticks: { callback: val => '৳' + val.toLocaleString('en-US') }
                     },
                     y1: {
                         type: 'linear',
                         display: true,
                         position: 'right',
+                        beginAtZero: true,
+                        min: 0,
+                        suggestedMax: 5,
                         grid: { drawOnChartArea: false },
-                        ticks: { stepSize: 1 }
+                        ticks: { stepSize: 1, precision: 0 }
                     }
                 }
             }
