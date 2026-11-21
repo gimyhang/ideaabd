@@ -50,15 +50,19 @@ return new class extends Migration
         // Covering indexes: "distinct IPs in a date range" and "visits per country in a date range" are answered
         // from the index alone. Without them a day's country count read every row (34 s per day on 2 M rows).
         if (Schema::hasTable('visitor_logs')) {
-            $names = collect(\Illuminate\Support\Facades\DB::select('SHOW INDEX FROM visitor_logs'))->pluck('Key_name')->all();
-            Schema::table('visitor_logs', function (Blueprint $table) use ($names) {
-                if (!in_array('visitor_logs_visited_at_ip_index', $names, true)) {
-                    $table->index(['visited_at', 'ip_address'], 'visitor_logs_visited_at_ip_index');
-                }
-                if (!in_array('visitor_logs_visited_at_country_index', $names, true)) {
-                    $table->index(['visited_at', 'country', 'country_code'], 'visitor_logs_visited_at_country_index');
-                }
-            });
+            // Schema::hasIndex works on MySQL/MariaDB and SQLite alike (SHOW INDEX is MySQL-only).
+            $needIp = !Schema::hasIndex('visitor_logs', 'visitor_logs_visited_at_ip_index');
+            $needCountry = !Schema::hasIndex('visitor_logs', 'visitor_logs_visited_at_country_index');
+            if ($needIp || $needCountry) {
+                Schema::table('visitor_logs', function (Blueprint $table) use ($needIp, $needCountry) {
+                    if ($needIp) {
+                        $table->index(['visited_at', 'ip_address'], 'visitor_logs_visited_at_ip_index');
+                    }
+                    if ($needCountry) {
+                        $table->index(['visited_at', 'country', 'country_code'], 'visitor_logs_visited_at_country_index');
+                    }
+                });
+            }
         }
     }
 

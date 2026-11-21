@@ -35,8 +35,9 @@ class VisitorStats
         static $hint = null;
         if ($hint === null) {
             try {
-                $names = collect(DB::select('SHOW INDEX FROM visitor_logs'))->pluck('Key_name')->all();
-                $hint = in_array('visitor_logs_visited_at_country_index', $names, true)
+                // Index hints are MySQL/MariaDB syntax; SQLite's planner picks the visited_at range by itself.
+                $hint = in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)
+                    && Schema::hasIndex('visitor_logs', 'visitor_logs_visited_at_country_index')
                     ? ' FORCE INDEX (`visitor_logs_visited_at_country_index`)' : '';
             } catch (\Throwable) {
                 $hint = '';
@@ -144,9 +145,11 @@ class VisitorStats
             }
 
             // Mark every IP of the day as seen in its month, its year and all-time.
+            // "Insert unless already there": INSERT IGNORE on MySQL/MariaDB, INSERT OR IGNORE on SQLite.
+            $insertIgnore = DB::getDriverName() === 'sqlite' ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
             foreach (['ALL', 'Y' . $day->format('Y'), 'M' . $day->format('Y-m')] as $period) {
                 DB::statement(
-                    'INSERT IGNORE INTO visitor_period_ips (period, ip_address)
+                    $insertIgnore . ' INTO visitor_period_ips (period, ip_address)
                      SELECT DISTINCT ?, ip_address FROM visitor_logs
                      WHERE visited_at >= ? AND visited_at < ? AND ip_address IS NOT NULL AND ip_address <> ?',
                     [$period, $day->copy()->startOfDay(), $day->copy()->addDay()->startOfDay(), '']
@@ -270,7 +273,7 @@ class VisitorStats
         if ($period === 'monthly') {
             $start = now()->startOfMonth()->subMonths(11);
             $rows = DB::table('visitor_daily_stats')->where('date', '>=', $start->toDateString())
-                ->selectRaw("DATE_FORMAT(date, '%Y-%m') AS k, SUM(views) AS v")->groupBy('k')->pluck('v', 'k');
+                ->selectRaw('SUBSTR(date, 1, 7) AS k, SUM(views) AS v')->groupBy('k')->pluck('v', 'k');
             $periods = [];
             for ($i = 0; $i < 12; $i++) {
                 $periods[] = 'M' . $start->copy()->addMonths($i)->format('Y-m');
@@ -286,7 +289,7 @@ class VisitorStats
         } elseif ($period === 'yearly') {
             $startYear = now()->year - 4;
             $rows = DB::table('visitor_daily_stats')->where('date', '>=', $startYear . '-01-01')
-                ->selectRaw('YEAR(date) AS k, SUM(views) AS v')->groupBy('k')->pluck('v', 'k');
+                ->selectRaw('SUBSTR(date, 1, 4) AS k, SUM(views) AS v')->groupBy('k')->pluck('v', 'k');
             $u = DB::table('visitor_period_ips')->whereIn('period', array_map(fn ($y) => 'Y' . $y, range($startYear, now()->year)))
                 ->selectRaw('period, COUNT(*) AS c')->groupBy('period')->pluck('c', 'period');
             for ($y = $startYear; $y <= now()->year; $y++) {

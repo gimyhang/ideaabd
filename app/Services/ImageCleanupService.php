@@ -258,18 +258,29 @@ class ImageCleanupService
             array_chunk($needles, 150)
         );
 
-        $db = DB::getDatabaseName();
-        $columns = DB::table('information_schema.columns')
-            ->where('table_schema', $db)
-            ->whereIn('data_type', ['char', 'varchar', 'tinytext', 'text', 'mediumtext', 'longtext', 'json'])
-            ->get(['TABLE_NAME as t', 'COLUMN_NAME as c'])
-            ->groupBy('t');
+        // Text-like columns of every table, via Laravel's schema API (works on MySQL/MariaDB and SQLite;
+        // information_schema is MySQL-only).
+        $textTypes = '/char|text|json|clob|string/i';
+        $columns = collect(Schema::getTableListing())
+            ->map(fn ($t) => str_contains($t, '.') ? substr($t, strrpos($t, '.') + 1) : $t)
+            ->unique()
+            ->mapWithKeys(function ($table) use ($textTypes) {
+                try {
+                    $cols = collect(Schema::getColumns($table))
+                        ->filter(fn ($c) => preg_match($textTypes, (string) ($c['type_name'] ?? $c['type'] ?? '')))
+                        ->pluck('name')->values()->all();
+                } catch (\Throwable) {
+                    $cols = [];
+                }
 
-        foreach ($columns as $table => $cols) {
+                return [$table => $cols];
+            })
+            ->filter();
+
+        foreach ($columns as $table => $colNames) {
             if (preg_match(self::SKIP_TABLES, $table) || !Schema::hasTable($table)) {
                 continue;
             }
-            $colNames = $cols->pluck('c')->all();
             $pk = Schema::hasColumn($table, 'id') ? 'id' : null;
             $query = DB::table($table)->select($colNames);
             $scan = function ($rows) use (&$found, $groups, $colNames) {

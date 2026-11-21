@@ -421,21 +421,23 @@ class AdminSeoController extends Controller
             ->filter(fn ($l) => $l->existsNow())
             ->each(fn ($l) => $l->forceFill(['is_resolved' => true])->saveQuietly());
 
+        // Plain LIKE on known file extensions: works on MySQL/MariaDB and SQLite (SQLite has no REGEXP).
         $extImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'ico', 'bmp'];
-        $kindScope = function ($query, string $kind) use ($extImage) {
-            $imageLike = function ($w) use ($extImage) {
-                $w->where(function ($x) use ($extImage) {
-                    foreach ($extImage as $e) {
-                        $x->orWhere('url', 'like', '%.' . $e);
-                    }
-                });
-            };
+        $extAsset = ['css', 'js', 'map', 'json', 'xml', 'txt', 'pdf', 'epub', 'zip', 'woff', 'woff2', 'ttf', 'eot', 'otf', 'mp3', 'mp4', 'webm', 'csv', 'xlsx', 'docx', 'php'];
+        $endsWith = function ($w, array $exts) {
+            $w->where(function ($x) use ($exts) {
+                foreach ($exts as $e) {
+                    $x->orWhere('url', 'like', '%.' . $e);
+                }
+            });
+        };
+        $kindScope = function ($query, string $kind) use ($extImage, $extAsset, $endsWith) {
             if ($kind === 'image') {
-                $imageLike($query);
-            } elseif ($kind === 'page') {
-                $query->where('url', 'not regexp', '\\.[A-Za-z0-9]{2,5}$');
+                $endsWith($query, $extImage);
             } elseif ($kind === 'asset') {
-                $query->where('url', 'regexp', '\\.[A-Za-z0-9]{2,5}$')->whereNot(fn ($w) => $imageLike($w));
+                $endsWith($query, $extAsset);
+            } elseif ($kind === 'page') {
+                $query->whereNot(fn ($w) => $endsWith($w, array_merge($extImage, $extAsset)));
             }
         };
 
