@@ -407,7 +407,7 @@
                             @if (Route::has('wishlist'))
                                 <li><a class="dropdown-item py-2" href="{{ route('wishlist') }}"><i class="fas fa-heart text-danger me-2"></i>Wishlist</a></li>
                             @endif
-                            <li><a class="dropdown-item py-2" href="{{ route('cart') }}"><i class="fas fa-bag-shopping text-info me-2"></i>কার্ট</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ route('cart') }}"><i class="fas fa-bag-shopping text-info me-2"></i>Cart</a></li>
 
                             <li><hr class="dropdown-divider my-2"></li>
                             <li>
@@ -1045,7 +1045,7 @@
                     <div class="text-truncate">
                         <h6 class="fw-bold mb-0 text-white text-truncate" style="font-size: 0.92rem;">{{ $me->name }}</h6>
                         <span class="badge bg-white bg-opacity-20 text-warning px-2 py-0.5 rounded-pill" style="font-size: 10px;">
-                            {{ ['admin' => '👑 অ্যাডমিন', 'sub_admin' => '🛡️ সাব-অ্যাডমিন', 'seller' => '💼 সেলার', 'publisher' => '🏢 প্রকাশক', 'author' => '✍️ লেখক'][$me->role] ?? '👤 গ্রাহক' }}
+                            {{ ['admin' => '👑 Admin', 'sub_admin' => '🛡️ Staff', 'seller' => '💼 Seller', 'publisher' => '🏢 Publisher', 'author' => '✍️ Author'][$me->role] ?? '👤 Customer' }}
                         </span>
                     </div>
                 </div>
@@ -1053,9 +1053,9 @@
                 {{-- Quick links: one word each, high contrast --}}
                 <div class="md-quick">
                     <a href="{{ route('my-account') }}" class="md-quick__item"><i class="fa-solid fa-user"></i><span>Profile</span></a>
-                    <a href="{{ route('my-account') }}" class="md-quick__item"><i class="fa-solid fa-box-open"></i><span>Orders</span></a>
+                    <a href="{{ route('my-account', ['tab' => 'orders']) }}" class="md-quick__item"><i class="fa-solid fa-box-open"></i><span>Orders</span></a>
                     <a href="{{ Route::has('wishlist') ? route('wishlist') : url('/wishlist') }}" class="md-quick__item"><i class="fa-solid fa-heart"></i><span>Wishlist</span></a>
-                    <a href="{{ route('cart') }}" class="md-quick__item"><i class="fa-solid fa-bag-shopping"></i><span>কার্ট</span></a>
+                    <a href="{{ route('cart') }}" class="md-quick__item"><i class="fa-solid fa-bag-shopping"></i><span>Cart</span></a>
                 </div>
 
                 {{-- Portals: one word each --}}

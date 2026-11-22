@@ -172,7 +172,7 @@ class SmsCampaignRunner
 
                 if ($r['sent'] === 0 && in_array($r['code'], self::STOP_CODES, true)) {
                     // The slice was refused for an account reason (no balance, sender ID, IP whitelist …): nothing
-                    // went out, so put the slice back and pause. "আবার চালু" continues from here once it is fixed.
+                    // went out, so put the slice back and pause. "Resume" continues from here once it is fixed.
                     $c->position  -= $n;
                     $c->in_flight  = 0;
                     $c->status     = SmsCampaign::PAUSED;

@@ -89,23 +89,23 @@
         <div class="nav nav-pills gap-1.5 flex-wrap">
             <a href="{{ route('admin.purchases.index') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fa-solid fa-cart-flatbed me-1.5 text-primary"></i> Purchases & Invoices
+                <i class="fa-solid fa-cart-flatbed me-1.5 text-primary"></i> Purchases
             </a>
             <a href="{{ route('admin.purchases.payments') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fa-solid fa-hand-holding-dollar me-1.5 text-success"></i> Payments & Ledgers
+                <i class="fa-solid fa-hand-holding-dollar me-1.5 text-success"></i> Payments
             </a>
             <a href="{{ route('admin.purchases.ledger') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fa-solid fa-book-bookmark me-1.5 text-info"></i> Vendor Statements
+                <i class="fa-solid fa-book-bookmark me-1.5 text-info"></i> Statements
             </a>
             <a href="{{ route('admin.purchases.monthly-report') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fa-solid fa-chart-pie me-1.5 text-warning"></i> Monthly Report
+                <i class="fa-solid fa-chart-pie me-1.5 text-warning"></i> Monthly
             </a>
             <a href="{{ route('admin.purchases.create') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fa-solid fa-file-circle-plus me-1.5 text-danger"></i> New Purchase Order
+                <i class="fa-solid fa-file-circle-plus me-1.5 text-danger"></i> New
             </a>
         </div>
 

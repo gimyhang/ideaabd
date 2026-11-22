@@ -80,12 +80,12 @@
         <ul class="nav nav-pills nav-fill gap-2" id="paymentLedgerTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active rounded-pill fw-semibold py-2" id="tab-ledgers-tab" data-bs-toggle="tab" data-bs-target="#tab-ledgers" type="button" role="tab">
-                    <i class="fa-solid fa-book-open-reader me-1.5 text-primary"></i> 1. Vendor & Press Ledgers ({{ count($vendorLedgers) }})
+                    <i class="fa-solid fa-book-open-reader me-1.5 text-primary"></i> Ledgers ({{ count($vendorLedgers) }})
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link rounded-pill fw-semibold py-2" id="tab-payments-tab" data-bs-toggle="tab" data-bs-target="#tab-payments" type="button" role="tab">
-                    <i class="fa-solid fa-receipt me-1.5 text-success"></i> 2. Payment Vouchers History ({{ $payments->total() }})
+                    <i class="fa-solid fa-receipt me-1.5 text-success"></i> Vouchers ({{ $payments->total() }})
                 </button>
             </li>
         </ul>

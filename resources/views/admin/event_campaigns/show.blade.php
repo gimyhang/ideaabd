@@ -1381,12 +1381,12 @@
                                                 <ul class="nav nav-pills" id="detailTab{{ $reg->id }}" role="tablist">
                                                     <li class="nav-item" role="presentation">
                                                         <button class="nav-link active rounded-pill px-3 py-1.5 fw-bold btn-sm" id="view-tab-btn-{{ $reg->id }}" data-bs-toggle="pill" data-bs-target="#view-tab-content-{{ $reg->id }}" type="button" role="tab">
-                                                            <i class="fa-solid fa-file-lines me-1.5"></i> পূরণকৃত আবেদন ফরম (View Form)
+                                                            <i class="fa-solid fa-file-lines me-1.5"></i> Form
                                                         </button>
                                                     </li>
                                                     <li class="nav-item" role="presentation">
                                                         <button class="nav-link rounded-pill px-3 py-1.5 fw-bold btn-sm text-primary" id="edit-tab-btn-{{ $reg->id }}" data-bs-toggle="pill" data-bs-target="#edit-tab-content-{{ $reg->id }}" type="button" role="tab">
-                                                            <i class="fa-solid fa-pen-to-square me-1.5"></i> এডমিন এডিট (Edit Information)
+                                                            <i class="fa-solid fa-pen-to-square me-1.5"></i> Edit
                                                         </button>
                                                     </li>
                                                 </ul>
@@ -2793,22 +2793,22 @@
                             <ul class="nav nav-pills studio-nav-pills nav-fill mb-3 p-1.5 bg-light rounded-3 border" id="cardCustomizerTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="tab-bg-btn" data-bs-toggle="pill" data-bs-target="#tab-bg-pane" type="button" role="tab">
-                                        <i class="fa-solid fa-palette me-1"></i> ব্যাকগ্রাউন্ড
+                                        <i class="fa-solid fa-palette me-1"></i> Background
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="tab-photo-btn" data-bs-toggle="pill" data-bs-target="#tab-photo-pane" type="button" role="tab">
-                                        <i class="fa-solid fa-image-portrait me-1"></i> ফটো ও ফ্রেম
+                                        <i class="fa-solid fa-image-portrait me-1"></i> Photo
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="tab-text-btn" data-bs-toggle="pill" data-bs-target="#tab-text-pane" type="button" role="tab">
-                                        <i class="fa-solid fa-pen-fancy me-1"></i> টাইপোগ্রাফি ও তথ্য
+                                        <i class="fa-solid fa-pen-fancy me-1"></i> Text
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="tab-qr-btn" data-bs-toggle="pill" data-bs-target="#tab-qr-pane" type="button" role="tab">
-                                        <i class="fa-solid fa-qrcode me-1"></i> ভেরিফাই QR
+                                        <i class="fa-solid fa-qrcode me-1"></i> QR
                                     </button>
                                 </li>
                             </ul>

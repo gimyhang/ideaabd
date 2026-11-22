@@ -49,7 +49,7 @@
     {{-- Bulk SMS campaigns: live progress (filled and refreshed by admin-sms.js) --}}
     <div id="smsCampaigns" class="sms-campaigns mb-4" data-tick-url="{{ route('admin.sms.campaigns.tick') }}" data-action-url="{{ url('admin/sms/campaigns/__ID__/action') }}" @if(empty($liveCampaigns)) hidden @endif>
         <div class="sms-campaigns-head">
-            <strong><i class="fa-solid fa-satellite-dish me-1"></i> বাল্ক এসএমএস ক্যাম্পেইন</strong>
+            <strong><i class="fa-solid fa-satellite-dish me-1"></i> Campaigns</strong>
             <small class="text-muted">১০০ জন করে পাঠানো হয়; পেজ খোলা থাকলে দ্রুত চলে। বন্ধ করলেও পরে বাকি অংশ থেকে চলবে।</small>
         </div>
         <div class="sms-campaigns-list" data-campaign-list></div>
@@ -58,13 +58,13 @@
     {{-- Main tabs: one word each --}}
     @php
         $hubTabs = [
-            ['sms',       'fa-comment-sms',       'এসএমএস'],
-            ['balance',   'fa-wallet',            'ব্যালান্স'],
-            ['email',     'fa-envelope',          'ইমেইল'],
-            ['unified',   'fa-key',               'ওটিপি'],
-            ['templates', 'fa-bookmark',          'টেমপ্লেট'],
-            ['logs',      'fa-clock-rotate-left', 'হিস্ট্রি'],
-            ['guard',     'fa-shield-halved',     'সুরক্ষা'],
+            ['sms',       'fa-comment-sms',       'SMS'],
+            ['balance',   'fa-wallet',            'Balance'],
+            ['email',     'fa-envelope',          'Email'],
+            ['unified',   'fa-key',               'OTP'],
+            ['templates', 'fa-bookmark',          'Templates'],
+            ['logs',      'fa-clock-rotate-left', 'History'],
+            ['guard',     'fa-shield-halved',     'Guard'],
         ];
     @endphp
     <div class="sms-tabs-wrap mb-4">
@@ -122,22 +122,22 @@
                     <ul class="nav sms-sub-nav" id="smsInnerTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="pills-sms-quick-tab" data-bs-toggle="pill" data-bs-target="#pills-sms-quick" type="button" role="tab">
-                                <i class="fa-solid fa-paper-plane me-1 text-primary"></i> কুইক টেস্ট এসএমএস
+                                <i class="fa-solid fa-paper-plane me-1 text-primary"></i> Test
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="pills-sms-bulk-tab" data-bs-toggle="pill" data-bs-target="#pills-sms-bulk" type="button" role="tab">
-                                <i class="fa-solid fa-bullhorn me-1 text-success"></i> বাল্ক ব্রডকাস্ট (সাধারণ গ্রুপ)
+                                <i class="fa-solid fa-bullhorn me-1 text-success"></i> Bulk
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="pills-sms-many-tab" data-bs-toggle="pill" data-bs-target="#pills-sms-many" type="button" role="tab">
-                                <i class="fa-solid fa-wand-magic-sparkles me-1 text-warning"></i> মেনি-টু-মেনি পার্সোনালাইজড এসএমএস
+                                <i class="fa-solid fa-wand-magic-sparkles me-1 text-warning"></i> Personal
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="pills-sms-settings-tab" data-bs-toggle="pill" data-bs-target="#pills-sms-settings" type="button" role="tab">
-                                <i class="fa-solid fa-gear me-1 text-secondary"></i> গেটওয়ে সেটিংস ও API কোড
+                                <i class="fa-solid fa-gear me-1 text-secondary"></i> Gateway
                             </button>
                         </li>
                     </ul>
@@ -511,17 +511,17 @@
                     <ul class="nav sms-sub-nav" id="emailInnerTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="pills-email-quick-tab" data-bs-toggle="pill" data-bs-target="#pills-email-quick" type="button" role="tab">
-                                <i class="fa-solid fa-paper-plane me-1 text-danger"></i> টেস্ট ইমেইল ডায়াগনস্টিক
+                                <i class="fa-solid fa-paper-plane me-1 text-danger"></i> Test
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="pills-email-bulk-tab" data-bs-toggle="pill" data-bs-target="#pills-email-bulk" type="button" role="tab">
-                                <i class="fa-solid fa-bullhorn me-1 text-primary"></i> বাল্ক ইমেইল ব্রডকাস্ট
+                                <i class="fa-solid fa-bullhorn me-1 text-primary"></i> Bulk
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="pills-email-settings-tab" data-bs-toggle="pill" data-bs-target="#pills-email-settings" type="button" role="tab">
-                                <i class="fa-solid fa-gear me-1 text-secondary"></i> SMTP সার্ভার কনফিগারেশন
+                                <i class="fa-solid fa-gear me-1 text-secondary"></i> SMTP
                             </button>
                         </li>
                     </ul>

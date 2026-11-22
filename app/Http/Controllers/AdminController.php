@@ -33,6 +33,11 @@ class AdminController extends Controller
         $trafficPeriod = $request->string('traffic_period', 'daily')->toString();
         $salesPeriod = $request->string('sales_period', 'monthly')->toString();
 
+        // No single query may hold the page: one that runs past 6 s is stopped and its box shows empty instead of
+        // the whole dashboard ending in LiteSpeed's "Request Timeout". Lifted again for the after-response work.
+        \App\Support\QueryBudget::limit(6);
+        app()->terminating(fn () => \App\Support\QueryBudget::clear());
+
         $systemNotice = null;
         try {
             $noticeVal = \App\Support\SiteSetting::get('system_notice');
@@ -52,7 +57,10 @@ class AdminController extends Controller
         // Summarise finished days of the visitor log after the page has been sent, so the admin never waits for it.
         try {
             if (($stats['visitor']['pending_days'] ?? 0) > 0) {
-                dispatch(fn () => \App\Services\VisitorStats::rollup(25.0))->afterResponse();
+                dispatch(function () {
+                    \App\Support\QueryBudget::clear();
+                    \App\Services\VisitorStats::rollup(25.0);
+                })->afterResponse();
             }
         } catch (\Throwable) {
         }
@@ -96,6 +104,17 @@ class AdminController extends Controller
             ];
         }
 
+        // Database updates not applied to the site's database yet (the server terminal reaches another database).
+        $dbUpdate = ['pending' => [], 'status' => null, 'can' => false];
+        try {
+            $dbUpdate = [
+                'pending' => \App\Services\DatabaseUpdater::pending(),
+                'status'  => \App\Services\DatabaseUpdater::status(),
+                'can'     => (bool) $request->user()?->hasPermission('settings.manage'),
+            ];
+        } catch (\Throwable) {
+        }
+
         // Retrieve SMS balance non-blockingly from cache to avoid delaying page load
         $smsInfo = \Illuminate\Support\Facades\Cache::get('sms_gateway_balance_info', ['balance' => null, 'status' => 'unknown']);
 
@@ -113,7 +132,22 @@ class AdminController extends Controller
             'dateTo'         => $dateTo,
             'trafficPeriod'  => $trafficPeriod,
             'salesPeriod'    => $salesPeriod,
+            'dbUpdate'       => $dbUpdate,
         ]);
+    }
+
+    /** Apply pending database updates on the site's own database, after the response (big tables take a while). */
+    public function databaseUpdate(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $pending = \App\Services\DatabaseUpdater::pending();
+        if ($pending === []) {
+            return back()->with('success', 'ডাটাবেস আপ-টু-ডেট — কিছু করার নেই।');
+        }
+        $by = $request->user()?->name;
+        dispatch(fn () => \App\Services\DatabaseUpdater::run($by))->afterResponse();
+        app(\App\Services\AdminAccessService::class)->log('database_update', 'ডাটাবেস আপডেট শুরু — ' . count($pending) . ' টি পরিবর্তন');
+
+        return back()->with('success', 'ডাটাবেস আপডেট শুরু হয়েছে (' . count($pending) . ' টি পরিবর্তন)। বড় টেবিলে কয়েক মিনিট লাগতে পারে — ১–২ মিনিট পর পেজটি রিফ্রেশ করুন।');
     }
 
     /**

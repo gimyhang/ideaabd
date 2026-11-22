@@ -627,9 +627,9 @@ function initAjaxDispatchers() {
         box.hidden = !items.length;
         list.innerHTML = items.map((c) => {
             const btns = [];
-            if (c.status === 'running') btns.push(`<button type="button" class="btn btn-outline-secondary btn-sm rounded-pill py-0" data-act="pause" data-id="${c.id}">বিরতি</button>`);
-            if (c.status === 'paused') btns.push(`<button type="button" class="btn btn-primary btn-sm rounded-pill py-0" data-act="resume" data-id="${c.id}">আবার চালু</button>`);
-            if (c.status === 'running' || c.status === 'paused') btns.push(`<button type="button" class="btn btn-outline-danger btn-sm rounded-pill py-0" data-act="cancel" data-id="${c.id}">বাতিল</button>`);
+            if (c.status === 'running') btns.push(`<button type="button" class="btn btn-outline-secondary btn-sm rounded-pill py-0" data-act="pause" data-id="${c.id}">Pause</button>`);
+            if (c.status === 'paused') btns.push(`<button type="button" class="btn btn-primary btn-sm rounded-pill py-0" data-act="resume" data-id="${c.id}">Resume</button>`);
+            if (c.status === 'running' || c.status === 'paused') btns.push(`<button type="button" class="btn btn-outline-danger btn-sm rounded-pill py-0" data-act="cancel" data-id="${c.id}">Cancel</button>`);
             const left = Math.max(0, c.total - c.position);
             const note = c.last_error
                 ? `<div class="sms-camp-note"><i class="fa-solid fa-triangle-exclamation me-1"></i>${escapeHtml(c.last_error)}</div>`

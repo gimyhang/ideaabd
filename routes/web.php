@@ -111,7 +111,8 @@ Route::get('/electronics/{slug}', fn($slug) => redirect()->route('products.show'
 Route::get('/stationery/{slug}', fn($slug) => redirect()->route('products.show', ['type' => 'stationery', 'slug' => $slug]));
 
 // --- Wishlist / Cart / Checkout ----------------------------------------------
-Route::get('/wishlist', fn() => redirect('/books'))->name('wishlist')->middleware('auth');
+// The wishlist lives in the account page; this used to send people to the book list instead.
+Route::get('/wishlist', fn() => redirect()->route('my-account', ['tab' => 'wishlist']))->name('wishlist')->middleware('auth');
 Route::get('/cart', [CartController::class, 'index'])->name('cart');
 Route::get('/checkout', [CartController::class, 'index'])->name('checkout');
 Route::match(['get', 'post'], '/cart/checkout', function (\Illuminate\Http\Request $request) {
@@ -525,6 +526,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/', [AdminController::class, 'index'])->name('index');
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::post('/dashboard/quick-action', [AdminController::class, 'dashboardQuickAction'])->name('dashboard.quick-action');
+    Route::post('/system/database-update', [AdminController::class, 'databaseUpdate'])->middleware('throttle:3,1')->name('system.database-update');
     Route::get('/dashboard/pending-data', [AdminController::class, 'dashboardPendingData'])->name('dashboard.pending-data');
     Route::get('/dashboard/live-visitors', [AdminController::class, 'dashboardLiveVisitors'])->middleware('throttle:30,1')->name('dashboard.live-visitors');
     Route::post('/settings/toggle-verification', [AdminController::class, 'toggleVerificationSetting'])->name('settings.toggle-verification');

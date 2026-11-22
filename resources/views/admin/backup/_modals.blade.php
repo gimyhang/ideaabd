@@ -120,9 +120,9 @@
                 </div>
                 <div class="modal-body">
                     <ul class="nav bkp-tabs mb-3" role="tablist">
-                        <li class="nav-item"><button type="button" class="nav-link active" data-bs-toggle="pill" data-bs-target="#setAuto">অটো</button></li>
-                        <li class="nav-item"><button type="button" class="nav-link" data-bs-toggle="pill" data-bs-target="#setTelegram">টেলিগ্রাম</button></li>
-                        <li class="nav-item"><button type="button" class="nav-link" data-bs-toggle="pill" data-bs-target="#setOffsite">অফসাইট</button></li>
+                        <li class="nav-item"><button type="button" class="nav-link active" data-bs-toggle="pill" data-bs-target="#setAuto">Auto</button></li>
+                        <li class="nav-item"><button type="button" class="nav-link" data-bs-toggle="pill" data-bs-target="#setTelegram">Telegram</button></li>
+                        <li class="nav-item"><button type="button" class="nav-link" data-bs-toggle="pill" data-bs-target="#setOffsite">Offsite</button></li>
                     </ul>
 
                     <div class="tab-content">

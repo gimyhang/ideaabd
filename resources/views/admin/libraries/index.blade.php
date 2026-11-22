@@ -300,17 +300,17 @@
                                 <ul class="nav nav-pills nav-fill mb-3 gap-1 bg-light p-1 rounded-pill" id="customizerTabs" role="tablist">
                                     <li class="nav-item">
                                         <button class="nav-link active rounded-pill fw-semibold py-1.5 small" id="tab-brand-btn" data-bs-toggle="pill" data-bs-target="#tab-brand" type="button">
-                                            <i class="fa-solid fa-image me-1"></i> ১. লোগো ও ব্র্যান্ডিং
+                                            <i class="fa-solid fa-image me-1"></i> Branding
                                         </button>
                                     </li>
                                     <li class="nav-item">
                                         <button class="nav-link rounded-pill fw-semibold py-1.5 small" id="tab-signature-btn" data-bs-toggle="pill" data-bs-target="#tab-signature" type="button">
-                                            <i class="fa-solid fa-file-signature me-1"></i> ২. শিরোনাম ও স্বাক্ষর
+                                            <i class="fa-solid fa-file-signature me-1"></i> Signature
                                         </button>
                                     </li>
                                     <li class="nav-item">
                                         <button class="nav-link rounded-pill fw-semibold py-1.5 small" id="tab-code-btn" data-bs-toggle="pill" data-bs-target="#tab-code" type="button">
-                                            <i class="fa-solid fa-code me-1"></i> ৩. CSS / JS / PHP কোড
+                                            <i class="fa-solid fa-code me-1"></i> Code
                                         </button>
                                     </li>
                                 </ul>

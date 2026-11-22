@@ -108,7 +108,7 @@
                 <ul class="nav nav-tabs nav-fill bg-light px-3 pt-3 border-bottom" id="profileTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active fw-bold py-2.5" id="tab-general" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">
-                            <i class="fa-solid fa-user-gear me-1.5 text-primary"></i>General Info
+                            <i class="fa-solid fa-user-gear me-1.5 text-primary"></i>General
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
@@ -118,17 +118,17 @@
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link fw-bold py-2.5" id="tab-signature" data-bs-toggle="tab" data-bs-target="#signature" type="button" role="tab">
-                            <i class="fa-solid fa-signature me-1.5 text-info"></i>Signature & Seal
+                            <i class="fa-solid fa-signature me-1.5 text-info"></i>Signature
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link fw-bold py-2.5" id="tab-security" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab">
-                            <i class="fa-solid fa-lock me-1.5 text-danger"></i>Password & Security
+                            <i class="fa-solid fa-lock me-1.5 text-danger"></i>Security
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link fw-bold py-2.5" id="tab-logs" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab">
-                            <i class="fa-solid fa-list-check me-1.5 text-warning"></i>Login Logs
+                            <i class="fa-solid fa-list-check me-1.5 text-warning"></i>Logins
                         </button>
                     </li>
                 </ul>

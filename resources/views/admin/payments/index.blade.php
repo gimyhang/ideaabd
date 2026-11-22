@@ -112,27 +112,27 @@
                     <ul class="nav nav-pills gap-2" id="paymentTab" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="tab-mfs-btn" data-bs-toggle="pill" data-bs-target="#tab-mfs" type="button" role="tab">
-                                <i class="fa-solid fa-mobile-screen-button me-1.5 text-danger"></i> 1. Mobile Banking (MFS)
+                                <i class="fa-solid fa-mobile-screen-button me-1.5 text-danger"></i> Mobile
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="tab-online-btn" data-bs-toggle="pill" data-bs-target="#tab-online" type="button" role="tab">
-                                <i class="fa-solid fa-credit-card me-1.5 text-primary"></i> 2. Online Cards & PGW
+                                <i class="fa-solid fa-credit-card me-1.5 text-primary"></i> Cards
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="tab-cod-btn" data-bs-toggle="pill" data-bs-target="#tab-cod" type="button" role="tab">
-                                <i class="fa-solid fa-hand-holding-dollar me-1.5 text-success"></i> 3. Cash on Delivery (COD)
+                                <i class="fa-solid fa-hand-holding-dollar me-1.5 text-success"></i> COD
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="tab-scripts-btn" data-bs-toggle="pill" data-bs-target="#tab-scripts" type="button" role="tab">
-                                <i class="fa-solid fa-code me-1.5 text-dark"></i> 4. Scripts & Custom Code
+                                <i class="fa-solid fa-code me-1.5 text-dark"></i> Scripts
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="tab-trx-btn" data-bs-toggle="pill" data-bs-target="#tab-trx" type="button" role="tab">
-                                <i class="fa-solid fa-receipt me-1.5 text-info"></i> 5. Transaction Logs
+                                <i class="fa-solid fa-receipt me-1.5 text-info"></i> Logs
                             </button>
                         </li>
                     </ul>

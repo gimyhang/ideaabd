@@ -229,19 +229,19 @@
         <div class="nav nav-pills gap-1.5 flex-wrap">
             <a href="{{ route('admin.accounting.index') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fa-solid fa-scale-balanced me-1.5"></i> Income & Expense Ledger
+                <i class="fa-solid fa-scale-balanced me-1.5"></i> Transactions
             </a>
             <a href="{{ route('admin.accounting.invoices.index') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fa-solid fa-file-invoice-dollar me-1.5"></i> Invoices, Challans & Quotations
+                <i class="fa-solid fa-file-invoice-dollar me-1.5"></i> Invoices
             </a>
             <a href="{{ route('admin.accounting.customer-ledger.index') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fa-solid fa-book-bookmark me-1.5"></i> Customer Ledgers & Statements
+                <i class="fa-solid fa-book-bookmark me-1.5"></i> Ledger
             </a>
             <a href="{{ route('admin.accounting.invoices.create') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fa-solid fa-file-circle-plus me-1.5"></i> Create New Invoice
+                <i class="fa-solid fa-file-circle-plus me-1.5"></i> New
             </a>
         </div>
 

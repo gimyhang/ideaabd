@@ -798,7 +798,7 @@ class AdminSmsController extends Controller
 
         return $request->expectsJson()
             ? response()->json(['ok' => true, 'campaign' => $campaign->fresh()->summary()])
-            : back()->with('success', 'ক্যাম্পেইন #' . $campaign->id . ': ' . (SmsCampaign::STATUS_BN[$campaign->fresh()->status] ?? ''));
+            : back()->with('success', 'ক্যাম্পেইন #' . $campaign->id . ': ' . (SmsCampaign::STATUS_LABELS[$campaign->fresh()->status] ?? ''));
     }
 
     /** A big campaign makes many gateway calls: do not let PHP stop it half way. */

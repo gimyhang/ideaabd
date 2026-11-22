@@ -369,6 +369,27 @@
                 পুরনো ভিজিটরের হিসাব সাজানো হচ্ছে — আরও {{ $stats['visitor']['pending_days'] }} দিন বাকি। ততক্ষণ ভিজিটরের সংখ্যা কম দেখাতে পারে; পেজ খোলার পর পেছনে কাজটি চলছে।
             </div>
         @endif
+        @if (!empty($dbUpdate['pending']) || in_array($dbUpdate['status']['state'] ?? '', ['running', 'failed'], true))
+            <div class="small mt-2 px-2 py-2 rounded-2 d-flex flex-wrap align-items-center gap-2 {{ ($dbUpdate['status']['state'] ?? '') === 'failed' ? 'bg-danger-subtle text-danger-emphasis' : 'bg-info-subtle text-info-emphasis' }}">
+                <i class="fa-solid fa-database"></i>
+                @if (($dbUpdate['status']['state'] ?? '') === 'running')
+                    <span>ডাটাবেস আপডেট চলছে (শুরু {{ $dbUpdate['status']['at'] }})… কিছুক্ষণ পর রিফ্রেশ করুন।</span>
+                @else
+                    <span>
+                        @if (($dbUpdate['status']['state'] ?? '') === 'failed')
+                            আগের ডাটাবেস আপডেট সম্পূর্ণ হয়নি: <code class="text-break">{{ \Illuminate\Support\Str::limit($dbUpdate['status']['output'] ?? '', 200) }}</code>
+                        @endif
+                        ডাটাবেসে {{ count($dbUpdate['pending']) }} টি আপডেট বাকি — না চালালে কিছু ফিচার (ভিজিটর হিসাব, এসএমএস ক্যাম্পেইন ইত্যাদি) কাজ করবে না।
+                    </span>
+                    @if ($dbUpdate['can'] && !empty($dbUpdate['pending']))
+                        <form method="POST" action="{{ route('admin.system.database-update') }}" class="ms-auto" onsubmit="this.querySelector('button').disabled = true;">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">Update</button>
+                        </form>
+                    @endif
+                @endif
+            </div>
+        @endif
     </div>
 
     {{-- ========================================================================= --}}
@@ -1939,7 +1960,7 @@
                             <button class="nav-link rounded-pill py-2 px-3 fw-bold small text-nowrap d-flex align-items-center justify-content-center gap-1.5" 
                                     id="tab-books-btn" data-bs-toggle="pill" data-bs-target="#pane-pending-books" type="button" role="tab">
                                 <i class="fa-solid fa-book-open text-primary"></i>
-                                <span>Books & E-Books</span>
+                                <span>Books</span>
                                 <span class="badge bg-primary-subtle text-primary border rounded-pill ms-1" id="tabBadge-books">{{ $bookCount + $ebookCount }}</span>
                             </button>
                         </li>
@@ -1949,7 +1970,7 @@
                             <button class="nav-link rounded-pill py-2 px-3 fw-bold small text-nowrap d-flex align-items-center justify-content-center gap-1.5" 
                                     id="tab-requests-btn" data-bs-toggle="pill" data-bs-target="#pane-pending-requests" type="button" role="tab">
                                 <i class="fa-solid fa-book-bookmark text-info"></i>
-                                <span>Book Requests</span>
+                                <span>Requests</span>
                                 <span class="badge bg-info-subtle text-info border rounded-pill ms-1" id="tabBadge-requests">{{ $bookReqCount }}</span>
                             </button>
                         </li>
@@ -1959,7 +1980,7 @@
                             <button class="nav-link rounded-pill py-2 px-3 fw-bold small text-nowrap d-flex align-items-center justify-content-center gap-1.5" 
                                     id="tab-submissions-btn" data-bs-toggle="pill" data-bs-target="#pane-pending-submissions" type="button" role="tab">
                                 <i class="fa-solid fa-file-signature text-dark"></i>
-                                <span>Submissions & Authors</span>
+                                <span>Submissions</span>
                                 <span class="badge bg-dark text-white rounded-pill ms-1" id="tabBadge-submissions">{{ $submissionCount + $authorUpdateCount }}</span>
                             </button>
                         </li>

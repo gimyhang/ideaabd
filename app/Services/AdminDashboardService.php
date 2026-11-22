@@ -34,6 +34,20 @@ class AdminDashboardService
      */
     private function swr(string $key, int $fresh, \Closure $callback): mixed
     {
+        // Name the slow part in the log, so a slow dashboard on the server can be traced without guessing.
+        $timed = function () use ($key, $callback) {
+            $t = microtime(true);
+            try {
+                return $callback();
+            } finally {
+                $s = microtime(true) - $t;
+                if ($s > 2) {
+                    \Illuminate\Support\Facades\Log::warning(sprintf('Admin dashboard: "%s" took %.1f s', $key, $s));
+                }
+            }
+        };
+        $callback = $timed;
+
         try {
             return Cache::flexible($key, [$fresh, $fresh * 10], $callback);
         } catch (\Throwable) {
@@ -726,9 +740,6 @@ class AdminDashboardService
         $cacheKey = 'admin_dash_visitor_series_' . md5($period . '_' . ($from ?? '') . '_' . ($to ?? ''));
 
         return $this->swr($cacheKey, 300, function () use ($period, $from, $to) {
-            $labels = [];
-            $views = [];
-            $uniques = [];
 
             if (!$this->hasTable('visitor_logs')) {
                 return ['labels' => ['Today'], 'views' => [0], 'uniques' => [0]];
@@ -744,70 +755,12 @@ class AdminDashboardService
                 ), ['labels' => [], 'views' => [], 'uniques' => []]);
             }
 
-            if ($period === 'monthly') {
-                // Last 12 months - Single query instead of 24
-                $start = now()->startOfMonth()->subMonths(11);
-                $end = now()->endOfMonth();
+            // Summary tables missing (database update not run yet): show today only. Counting months or years of the
+            // raw log here is exactly what timed the dashboard out on a large visitor_logs table.
+            $today = $this->safe(fn () => VisitorLog::where('visited_at', '>=', now()->startOfDay())
+                ->selectRaw('COUNT(*) AS v, COUNT(DISTINCT ip_address) AS u')->first(), null);
 
-                $visitorAggregates = $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$start, $end])
-                    ->selectRaw("SUBSTR(visited_at, 1, 7) as ym, COUNT(*) as views, COUNT(DISTINCT ip_address) as uniques")
-                    ->groupBy('ym')
-                    ->get()
-                    ->keyBy('ym'), collect());
-
-                for ($i = 0; $i < 12; $i++) {
-                    $m = $start->copy()->addMonths($i);
-                    $key = $m->format('Y-m');
-                    $row = $visitorAggregates->get($key);
-
-                    $labels[] = Bn::date($m);
-                    $views[] = (int) ($row->views ?? 0);
-                    $uniques[] = (int) ($row->uniques ?? 0);
-                }
-            } elseif ($period === 'yearly') {
-                // Last 5 years - Single query
-                $startYear = now()->subYears(4)->year;
-                $endYear = now()->year;
-                $yrStart = Carbon::createFromDate($startYear, 1, 1)->startOfDay();
-                $yrEnd = Carbon::createFromDate($endYear, 12, 31)->endOfDay();
-
-                $visitorAggregates = $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$yrStart, $yrEnd])
-                    ->selectRaw("SUBSTR(visited_at, 1, 4) as yr, COUNT(*) as views, COUNT(DISTINCT ip_address) as uniques")
-                    ->groupBy('yr')
-                    ->get()
-                    ->keyBy('yr'), collect());
-
-                for ($yr = $startYear; $yr <= $endYear; $yr++) {
-                    $row = $visitorAggregates->get((string) $yr);
-                    $labels[] = Bn::num($yr) . ' সাল';
-                    $views[] = (int) ($row->views ?? 0);
-                    $uniques[] = (int) ($row->uniques ?? 0);
-                }
-            } else {
-                // Last 14 days (Daily) - Single query instead of 28
-                $start = $from ? Carbon::parse($from)->startOfDay() : now()->subDays(13)->startOfDay();
-                $end = $to ? Carbon::parse($to)->endOfDay() : now()->endOfDay();
-                $days = (int) $start->diffInDays($end) + 1;
-                if ($days > 31) $days = 31;
-
-                $visitorAggregates = $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$start, $end])
-                    ->selectRaw("SUBSTR(visited_at, 1, 10) as dt, COUNT(*) as views, COUNT(DISTINCT ip_address) as uniques")
-                    ->groupBy('dt')
-                    ->get()
-                    ->keyBy('dt'), collect());
-
-                for ($i = 0; $i < $days; $i++) {
-                    $d = $start->copy()->addDays($i);
-                    $key = $d->format('Y-m-d');
-                    $row = $visitorAggregates->get($key);
-
-                    $labels[] = Bn::date($d);
-                    $views[] = (int) ($row->views ?? 0);
-                    $uniques[] = (int) ($row->uniques ?? 0);
-                }
-            }
-
-            return ['labels' => $labels, 'views' => $views, 'uniques' => $uniques];
+            return ['labels' => [Bn::date(now())], 'views' => [(int) ($today->v ?? 0)], 'uniques' => [(int) ($today->u ?? 0)], 'needs_update' => true];
         });
     }
 

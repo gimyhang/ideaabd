@@ -16,7 +16,7 @@
 
     # LiteSpeed: let bulk SMS / cache / backup work finish after the page is sent (otherwise LiteSpeed ends the PHP
     # process when the browser disconnects, cutting a campaign off part-way). Admin paths only.
-    RewriteRule ^admin/(sms|cache|backup) - [E=noabort:1,E=noconntimeout:1]
+    RewriteRule ^admin/(sms|cache|backup|system|dashboard) - [E=noabort:1,E=noconntimeout:1]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .

@@ -15,6 +15,7 @@ class RoleMiddleware
     public const ROUTE_PERMISSION_MAP = [
         // Dashboard & Metrics
         'admin.dashboard'                          => 'dashboard.view',
+        'admin.system.database-update'             => 'settings.manage',
         'admin.index'                              => 'dashboard.view',
         
         // Catalog & Books

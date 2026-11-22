@@ -11,11 +11,11 @@ class SmsCampaign extends Model
     public const DONE      = 'done';
     public const CANCELLED = 'cancelled';
 
-    public const STATUS_BN = [
-        self::RUNNING   => 'চলছে',
-        self::PAUSED    => 'বিরতিতে',
-        self::DONE      => 'সম্পন্ন',
-        self::CANCELLED => 'বাতিল',
+    public const STATUS_LABELS = [
+        self::RUNNING   => 'Running',
+        self::PAUSED    => 'Paused',
+        self::DONE      => 'Done',
+        self::CANCELLED => 'Cancelled',
     ];
 
     protected $guarded = ['id'];
@@ -47,7 +47,7 @@ class SmsCampaign extends Model
             'title'       => $this->title,
             'mode'        => $this->mode,
             'status'      => $this->status,
-            'status_bn'   => self::STATUS_BN[$this->status] ?? $this->status,
+            'status_bn'   => self::STATUS_LABELS[$this->status] ?? $this->status,
             'total'       => $this->total,
             'position'    => $this->position,
             'sent'        => $this->sent,
