@@ -40,10 +40,13 @@ class MoneyReceipt extends Model
     ];
 
     /**
-     * Clean book-sale lines and work out each one: sale = copies × price,
-     * commission = sale × % ÷ 100, the writer gets sale − commission.
+     * Book-sale lines of an honorarium. For each book:
+     *   sale price per copy = cover price less the sales commission %
+     *   total sale          = copies × sale price
+     *   writer's share      = total sale × royalty %
+     * e.g. ৳200 less 25% = ৳150; 100 copies = ৳15,000; 15% royalty = ৳2,250.
      *
-     * @return array<int, array{title:string, book_id:?int, qty:int, price:float, sale:float, pct:float, commission:float, net:float}>
+     * @return array<int, array{title:string, book_id:?int, qty:int, price:float, disc:float, unit:float, sale:float, royalty:float, net:float}>
      */
     public static function buildItems(array $rows): array
     {
@@ -54,33 +57,54 @@ class MoneyReceipt extends Model
             }
             $title = trim((string) ($r['title'] ?? ''));
             $qty = (int) ($r['qty'] ?? 0);
-            $price = round(max(0, (float) ($r['price'] ?? 0)), 2);
             if ($title === '' || $qty < 1) {
                 continue;
             }
-            $pct = min(100, max(0, round((float) ($r['pct'] ?? 0), 2)));
-            $sale = round($qty * $price, 2);
-            $commission = round($sale * $pct / 100, 2);
-            $out[] = [
-                'title' => mb_substr($title, 0, 255), 'book_id' => !empty($r['book_id']) ? (int) $r['book_id'] : null,
-                'qty' => $qty, 'price' => $price, 'sale' => $sale, 'pct' => $pct, 'commission' => $commission,
-                'net' => round($sale - $commission, 2),
-            ];
+            $out[] = self::line([
+                'title' => mb_substr($title, 0, 255), 'book_id' => !empty($r['book_id']) ? (int) $r['book_id'] : null, 'qty' => $qty,
+                'price' => $r['price'] ?? 0, 'disc' => $r['disc'] ?? 0, 'royalty' => $r['royalty'] ?? 0,
+            ]);
         }
 
         return $out;
     }
 
+    /** Works out one line; also reads lines saved before the royalty step (commission only, writer got the rest). */
+    public static function line(array $it): array
+    {
+        $legacy = !array_key_exists('royalty', $it) && array_key_exists('pct', $it);
+        $clamp = fn ($v) => min(100, max(0, round((float) $v, 2)));
+        $qty = (int) ($it['qty'] ?? 0);
+        $price = round(max(0, (float) ($it['price'] ?? 0)), 2);
+        $disc = $clamp($legacy ? $it['pct'] : ($it['disc'] ?? 0));
+        $royalty = $legacy ? 100.0 : $clamp($it['royalty'] ?? 0);
+        $unit = round($price * (100 - $disc) / 100, 2);
+        $sale = round($qty * $unit, 2);
+
+        return [
+            'title' => (string) ($it['title'] ?? ''), 'book_id' => $it['book_id'] ?? null, 'qty' => $qty, 'price' => $price,
+            'disc' => $disc, 'unit' => $unit, 'sale' => $sale, 'royalty' => $royalty, 'net' => round($sale * $royalty / 100, 2),
+        ];
+    }
+
+    /** Book lines, worked out (also for receipts saved with the older layout). */
+    public function bookLines(): array
+    {
+        return array_map(fn ($it) => self::line((array) $it), $this->items ?: []);
+    }
+
     /** Totals of the book lines. */
     public function itemTotals(): array
     {
-        $items = $this->items ?: [];
+        $items = $this->bookLines();
+        $royalties = array_values(array_unique(array_column($items, 'royalty')));
 
         return [
-            'qty'        => array_sum(array_column($items, 'qty')),
-            'sale'       => round(array_sum(array_column($items, 'sale')), 2),
-            'commission' => round(array_sum(array_column($items, 'commission')), 2),
-            'net'        => round(array_sum(array_column($items, 'net')), 2),
+            'qty'     => array_sum(array_column($items, 'qty')),
+            'gross'   => round(array_sum(array_map(fn ($i) => $i['qty'] * $i['price'], $items)), 2),
+            'sale'    => round(array_sum(array_column($items, 'sale')), 2),
+            'net'     => round(array_sum(array_column($items, 'net')), 2),
+            'royalty' => count($royalties) === 1 ? $royalties[0] : null, // one rate for every book
         ];
     }
 

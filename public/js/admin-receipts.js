@@ -50,6 +50,7 @@
     function reset() {
         form.reset();
         form.author_id.value = '';
+        authorRoyalty = null;
         document.getElementById('mrBookRows').innerHTML = '';
         recalcBooks();
         unlinkBill();
@@ -68,7 +69,7 @@
 
     modalEl.addEventListener('input', function (e) {
         var input = e.target;
-        if (input.id === 'mrName' && form.author_id.value) form.author_id.value = '';
+        if (input.id === 'mrName' && form.author_id.value) { form.author_id.value = ''; authorRoyalty = null; }
         if (input.id === 'mrAmount') {
             var v = parseFloat(input.value);
             document.getElementById('mrWords').textContent = v > 0 ? money(v) + (kind === 'bill' && due && v > due ? ' — বকেয়ার (' + money(due) + ') চেয়ে বেশি!' : '') : '';
@@ -126,6 +127,9 @@
             form.party_name.value = it.name;
             if (it.phone) form.party_phone.value = it.phone;
             form.author_id.value = it.id;
+            authorRoyalty = it.royalty != null ? it.royalty : null;
+            if (authorRoyalty != null) document.querySelectorAll('#mrBookRows [data-f="royalty"]').forEach(function (r) { if (!r.value) r.value = authorRoyalty; });
+            recalcBooks();
             form.purpose.focus();
         } else {
             linkBill(it);
@@ -176,23 +180,39 @@
     });
 
     // ---------------------------------------------------------------- book sales (honorarium)
+    // sale price = cover price less commission %; writer gets royalty % of copies × sale price
     var bookSeq = 0;
-    var lastPct = '';
-    try { lastPct = localStorage.getItem('mr_last_pct') || ''; } catch (e) {}
+    var authorRoyalty = null;
+    var mem = function (k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } };
+    var keep = function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} };
+    var num = function (v) { return bn(Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })); };
+
+    function field(i, f, label, attrs) {
+        return '<label class="mr-bk-f"><span>' + label + '</span><input type="number" data-f="' + f + '" name="items[' + i + '][' + f + ']" ' + attrs + '></label>';
+    }
 
     function addBookRow() {
         var i = bookSeq++;
+        var royalty = authorRoyalty != null ? authorRoyalty : mem('mr_last_royalty', '');
         var row = document.createElement('div');
         row.className = 'mr-bk-row';
         row.innerHTML =
-            '<div class="mr-lookup mr-bk-title"><input type="text" data-f="title" name="items[' + i + '][title]" maxlength="255" placeholder="বইয়ের নাম" data-lookup-type="book" aria-label="Book"><div class="mr-suggest" hidden></div></div>' +
+            '<div class="mr-bk-top">' +
+                '<div class="mr-lookup mr-bk-title"><input type="text" data-f="title" name="items[' + i + '][title]" maxlength="255" placeholder="বইয়ের নাম লিখুন বা তালিকা থেকে বাছুন" data-lookup-type="book" aria-label="বইয়ের নাম"><div class="mr-suggest" hidden></div></div>' +
+                '<button type="button" class="mr-bk-del">বাদ দিন</button>' +
+            '</div>' +
             '<input type="hidden" data-f="book_id" name="items[' + i + '][book_id]">' +
-            '<input type="number" data-f="qty" name="items[' + i + '][qty]" min="1" step="1" inputmode="numeric" placeholder="0" aria-label="Copies">' +
-            '<input type="number" data-f="price" name="items[' + i + '][price]" min="0" step="0.01" inputmode="decimal" placeholder="0" aria-label="Price">' +
-            '<input type="number" data-f="pct" name="items[' + i + '][pct]" min="0" max="100" step="0.01" inputmode="decimal" placeholder="0" value="' + esc(lastPct) + '" aria-label="Commission %">' +
-            '<span class="mr-bk-net r" data-f="net">৳০</span>' +
-            '<button type="button" class="mr-x-row" title="Remove"><i class="fa-solid fa-xmark"></i></button>' +
-            '<small class="mr-bk-line" data-f="line"></small>';
+            '<div class="mr-bk-fields">' +
+                field(i, 'qty', 'কপি', 'min="1" step="1" inputmode="numeric" placeholder="০"') +
+                field(i, 'price', 'মুদ্রিত মূল্য', 'min="0" step="0.01" inputmode="decimal" placeholder="০"') +
+                field(i, 'disc', 'কমিশন %', 'min="0" max="100" step="0.01" inputmode="decimal" placeholder="০" value="' + esc(mem('mr_last_disc', '25')) + '"') +
+                field(i, 'royalty', 'রয়্যালটি %', 'min="0" max="100" step="0.01" inputmode="decimal" placeholder="০" value="' + esc(royalty) + '"') +
+            '</div>' +
+            '<div class="mr-bk-calc">' +
+                '<div><span>বিক্রয় মূল্য</span><b data-f="unit">—</b></div>' +
+                '<div><span>মোট বিক্রয়</span><b data-f="sale">—</b></div>' +
+                '<div class="is-net"><span>লেখকের প্রাপ্য</span><b data-f="net">—</b></div>' +
+            '</div>';
         document.getElementById('mrBookRows').appendChild(row);
         if (!form.purpose.value.trim()) form.purpose.value = 'বই বিক্রয়ের সম্মানী';
         recalcBooks();
@@ -201,45 +221,46 @@
 
     function recalcBooks() {
         var rows = Array.prototype.slice.call(document.querySelectorAll('#mrBookRows .mr-bk-row'));
-        var t = { qty: 0, sale: 0, comm: 0, net: 0 };
+        var t = { qty: 0, sale: 0, net: 0 };
+        var val = function (row, f) { return parseFloat(row.querySelector('[data-f="' + f + '"]').value) || 0; };
+        var pc = function (v) { return Math.min(100, Math.max(0, v)); };
         rows.forEach(function (row) {
-            var qty = parseInt(row.querySelector('[data-f="qty"]').value, 10) || 0;
-            var price = parseFloat(row.querySelector('[data-f="price"]').value) || 0;
-            var pct = Math.min(100, Math.max(0, parseFloat(row.querySelector('[data-f="pct"]').value) || 0));
-            var sale = Math.round(qty * price * 100) / 100;
-            var comm = Math.round(sale * pct) / 100;
-            var net = Math.round((sale - comm) * 100) / 100;
-            row.querySelector('[data-f="net"]').textContent = money(net);
-            row.querySelector('[data-f="line"]').textContent = qty && price ? bn(qty) + ' × ' + money(price) + ' = ' + money(sale) + (pct ? ' − ' + bn(pct) + '% কমিশন ' + money(comm) : '') : '';
-            t.qty += qty; t.sale += sale; t.comm += comm; t.net += net;
+            var qty = Math.max(0, Math.floor(val(row, 'qty')));
+            var price = Math.max(0, val(row, 'price'));
+            var unit = Math.round(price * (100 - pc(val(row, 'disc')))) / 100;
+            var sale = Math.round(qty * unit * 100) / 100;
+            var net = Math.round(sale * pc(val(row, 'royalty'))) / 100;
+            row.querySelector('[data-f="unit"]').textContent = price ? money(unit) : '—';
+            row.querySelector('[data-f="sale"]').textContent = qty && price ? money(sale) : '—';
+            row.querySelector('[data-f="net"]').textContent = sale ? money(net) : '—';
+            row.classList.toggle('is-done', net > 0);
+            t.qty += qty; t.sale += sale; t.net += net;
         });
         var has = rows.length > 0;
         document.getElementById('mrBooks').hidden = !has;
-        document.getElementById('mrBkQty').textContent = bn(t.qty);
+        document.getElementById('mrBkQty').textContent = num(t.qty);
         document.getElementById('mrBkSale').textContent = money(t.sale);
-        document.getElementById('mrBkComm').textContent = money(t.comm);
         document.getElementById('mrBkNet').textContent = money(t.net);
         var amount = form.amount;
         amount.readOnly = has;
         amount.closest('.mr-amount').classList.toggle('is-auto', has);
         if (has) {
-            amount.value = t.net ? (Math.round(t.net * 100) / 100) : '';
-            document.getElementById('mrWords').textContent = t.net ? money(t.net) + ' — বই বিক্রির হিসাব থেকে' : '';
+            amount.value = t.net ? Math.round(t.net * 100) / 100 : '';
+            document.getElementById('mrWords').textContent = t.net ? money(t.net) + ' · বই বিক্রির হিসাব থেকে' : 'বইয়ের কপি, মূল্য আর রয়্যালটি দিন';
         }
     }
 
     document.getElementById('mrAddBook').addEventListener('click', addBookRow);
     document.getElementById('mrBookRows').addEventListener('click', function (e) {
-        var x = e.target.closest('.mr-x-row');
+        var x = e.target.closest('.mr-bk-del');
         if (!x) return;
         x.closest('.mr-bk-row').remove();
         recalcBooks();
     });
     document.getElementById('mrBookRows').addEventListener('change', function (e) {
-        if (e.target.getAttribute('data-f') === 'pct') {
-            lastPct = e.target.value;
-            try { localStorage.setItem('mr_last_pct', lastPct); } catch (err) {}
-        }
+        var f = e.target.getAttribute('data-f');
+        if (f === 'disc') keep('mr_last_disc', e.target.value);
+        if (f === 'royalty') keep('mr_last_royalty', e.target.value);
     });
 
     // ---------------------------------------------------------------- save

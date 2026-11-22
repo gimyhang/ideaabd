@@ -5,7 +5,7 @@
     $tagline = $settings['tagline'] ?? '';
     $logo = \App\Support\SiteSetting::billLogoUrl($settings['logo'] ?? null);
     $invoice = $receipt->invoice_id ? $receipt->invoice : null;
-    $items = $pay ? ($receipt->items ?: []) : [];
+    $items = $pay ? $receipt->bookLines() : [];
     $totals = $receipt->itemTotals();
     $title = $pay ? 'সম্মানী প্রদান রসিদ' : 'অর্থ প্রাপ্তি রসিদ';
     $copyLabels = $copies === 2 ? ['অফিস কপি', $pay ? 'লেখক কপি' : 'গ্রাহক কপি'] : [null];
@@ -56,7 +56,7 @@
         tfoot td { background: var(--soft); font-weight: 700; }
         .r { text-align: right; white-space: nowrap; }
         .c { text-align: center; }
-        .minus { color: var(--red); }
+        .muted { color: var(--ink2); }
         .net { color: var(--blue); font-weight: 700; }
 
         .sum { display: grid; grid-template-columns: 1fr 270px; gap: 12px; margin-top: 10px; }
@@ -139,10 +139,13 @@
                 </div>
 
                 @if($items)
-                    {{-- book sales: copies × price = sale − commission = writer's share --}}
+                    {{-- cover price less commission = sale price; writer's share = royalty % of the total sale --}}
                     <table>
                         <thead>
-                            <tr><th class="c" style="width:34px">ক্রম</th><th>বইয়ের নাম</th><th class="r">কপি</th><th class="r">মূল্য</th><th class="r">মোট বিক্রি</th><th class="r">কমিশন</th><th class="r">লেখকের প্রাপ্য</th></tr>
+                            <tr>
+                                <th class="c" style="width:32px">ক্রম</th><th>বইয়ের নাম</th><th class="r">কপি</th><th class="r">মুদ্রিত মূল্য</th>
+                                <th class="r">কমিশন</th><th class="r">বিক্রয় মূল্য</th><th class="r">মোট বিক্রয়</th><th class="r">রয়্যালটি</th><th class="r">লেখকের প্রাপ্য</th>
+                            </tr>
                         </thead>
                         <tbody>
                             @foreach($items as $i => $it)
@@ -151,8 +154,10 @@
                                     <td>{{ $it['title'] }}</td>
                                     <td class="r">{{ Bn::num($it['qty']) }}</td>
                                     <td class="r">{{ Bn::money($it['price']) }}</td>
+                                    <td class="r muted">{{ $pct($it['disc']) }}</td>
+                                    <td class="r">{{ Bn::money($it['unit']) }}</td>
                                     <td class="r">{{ Bn::money($it['sale']) }}</td>
-                                    <td class="r minus">{{ $pct($it['pct']) }} = {{ Bn::money($it['commission']) }}</td>
+                                    <td class="r muted">{{ $pct($it['royalty']) }}</td>
                                     <td class="r net">{{ Bn::money($it['net']) }}</td>
                                 </tr>
                             @endforeach
@@ -160,9 +165,10 @@
                         <tfoot>
                             <tr>
                                 <td></td><td>মোট</td>
-                                <td class="r">{{ Bn::num($totals['qty']) }}</td><td></td>
+                                <td class="r">{{ Bn::num($totals['qty']) }}</td>
+                                <td colspan="3"></td>
                                 <td class="r">{{ Bn::money($totals['sale']) }}</td>
-                                <td class="r minus">{{ Bn::money($totals['commission']) }}</td>
+                                <td></td>
                                 <td class="r net">{{ Bn::money($totals['net']) }}</td>
                             </tr>
                         </tfoot>
@@ -187,8 +193,8 @@
                     </div>
                     <div class="totals">
                         @if($items)
-                            <div><span>মোট বিক্রি</span><span>{{ Bn::money($totals['sale']) }}</span></div>
-                            <div class="minus"><span>বাদ: কমিশন</span><span>− {{ Bn::money($totals['commission']) }}</span></div>
+                            <div><span>মোট বিক্রয়</span><span>{{ Bn::money($totals['sale']) }}</span></div>
+                            @if($totals['royalty'] !== null)<div><span>রয়্যালটির হার</span><span>{{ $pct($totals['royalty']) }}</span></div>@endif
                         @elseif($invoice)
                             <div><span>বিলের মোট</span><span>{{ Bn::money($invoice->grand_total) }}</span></div>
                         @endif

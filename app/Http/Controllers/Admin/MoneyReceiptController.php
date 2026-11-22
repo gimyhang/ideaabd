@@ -84,10 +84,11 @@ class MoneyReceiptController extends Controller
         if ($type === 'author') {
             $rows = \Modules\Author\Models\Author::query()
                 ->when($q !== '', fn ($w) => $w->where(fn ($x) => $x->where('name', 'like', $like)->orWhere('name_bn', 'like', $like)->orWhere('phone', 'like', $like)))
-                ->orderBy('name')->limit(8)->get(['id', 'name', 'name_bn', 'phone']);
+                ->orderBy('name')->limit(8)->get(['id', 'name', 'name_bn', 'phone', 'royalty_percentage']);
 
             return response()->json(['items' => $rows->map(fn ($a) => [
                 'id' => $a->id, 'name' => $a->name_bn ?: $a->name, 'phone' => $a->phone, 'sub' => $a->phone ?: '',
+                'royalty' => $a->royalty_percentage !== null ? (float) $a->royalty_percentage : null,
             ])]);
         }
 
@@ -130,7 +131,8 @@ class MoneyReceiptController extends Controller
             'items.*.book_id'=> 'nullable|integer',
             'items.*.qty'    => 'nullable|integer|min:0|max:1000000',
             'items.*.price'  => 'nullable|numeric|min:0|max:10000000',
-            'items.*.pct'    => 'nullable|numeric|min:0|max:100',
+            'items.*.disc'   => 'nullable|numeric|min:0|max:100',
+            'items.*.royalty'=> 'nullable|numeric|min:0|max:100',
         ], [
             'party_name.required' => 'নাম লিখুন।',
             'purpose.required'    => 'কীসের জন্য — লিখুন।',

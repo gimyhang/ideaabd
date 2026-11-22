@@ -151,31 +151,44 @@ body.dark-mode .mr-head .btn-close { filter: invert(1); }
     .mr-amount-row input { font-size: 22px; }
 }
 
-/* Book sales on an honorarium */
-.mr-books { display: flex; flex-direction: column; gap: 8px; }
-.mr-books-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.mr-books-head label { font-size: 12.5px; font-weight: 800; margin: 0; }
-.mr-books-head label em { font-style: normal; font-weight: 500; color: var(--mr-mute); margin-left: 4px; }
-.mr-chip.is-pay { border-color: var(--mr-pay); color: var(--mr-pay); }
-.mr-bk { border: 1px solid var(--mr-line); border-radius: 12px; overflow: visible; }
-.mr-bk-head, .mr-bk-row { display: grid; grid-template-columns: minmax(0, 2.4fr) 64px 84px 76px 96px 30px; gap: 6px; align-items: center; }
-.mr-bk-head { padding: 7px 10px; font-size: 11px; font-weight: 800; color: var(--mr-mute); background: var(--mr-soft); border-bottom: 1px solid var(--mr-line2); border-radius: 12px 12px 0 0; }
-.mr-bk-row { padding: 7px 10px 4px; border-bottom: 1px solid var(--mr-line2); }
-.mr-bk-row input { height: 36px; border-radius: 9px; border: 1px solid var(--mr-line); background: var(--mr-bg); color: var(--mr-ink); padding: 0 9px; font-size: 13px; outline: 0; width: 100%; min-width: 0; }
-.mr-bk-row input:focus { border-color: var(--mr-pay); box-shadow: 0 0 0 3px var(--mr-pay-soft); }
-.mr-bk-title { position: relative; }
-.mr-bk-net { font-weight: 800; font-size: 13px; color: var(--mr-pay); white-space: nowrap; }
-.r { text-align: right; }
-.mr-x-row { width: 28px; height: 28px; border: 0; border-radius: 8px; background: transparent; color: var(--mr-mute); cursor: pointer; }
-.mr-x-row:hover { background: rgba(225, 29, 72, .08); color: var(--mr-red); }
-.mr-bk-line { grid-column: 1 / -1; font-size: 11px; color: var(--mr-mute); min-height: 14px; }
-.mr-bk-total { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 9px 12px; font-size: 12.5px; color: var(--mr-ink2); }
-.mr-bk-total b { color: var(--mr-ink); }
-.mr-bk-total .is-net { color: var(--mr-pay); font-size: 14px; }
-.mr-amount.is-auto input { background: var(--mr-soft); }
+/* Book sales on an honorarium: one clean card per book, figures update while typing */
+.mr-books { display: flex; flex-direction: column; gap: 10px; }
+.mr-books-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mr-books-head label { font-size: 13px; font-weight: 800; margin: 0; }
+.mr-books-head p { margin: 1px 0 0; font-size: 12px; color: var(--mr-mute); }
+.mr-add { flex: none; height: 36px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--mr-pay); background: var(--mr-bg); color: var(--mr-pay); font-size: 13px; font-weight: 800; cursor: pointer; transition: background .15s, color .15s; }
+.mr-add:hover { background: var(--mr-pay); color: #fff; }
+.mr-bk-list { display: flex; flex-direction: column; gap: 10px; }
+.mr-bk-row { border: 1px solid var(--mr-line); border-radius: 14px; background: var(--mr-bg); padding: 12px; display: flex; flex-direction: column; gap: 10px; transition: border-color .2s, box-shadow .2s; animation: mr-row-in .2s ease both; }
+.mr-bk-row:focus-within { border-color: var(--mr-pay); box-shadow: 0 0 0 4px var(--mr-pay-soft); }
+.mr-bk-row.is-done { border-color: rgba(124, 58, 237, .35); }
+@keyframes mr-row-in { from { opacity: 0; transform: translateY(4px); } }
+.mr-bk-top { display: flex; gap: 8px; align-items: center; }
+.mr-bk-title { flex: 1; position: relative; min-width: 0; }
+.mr-bk-row input { width: 100%; min-width: 0; height: 40px; border-radius: 10px; border: 1px solid var(--mr-line); background: var(--mr-bg); color: var(--mr-ink); padding: 0 11px; font-size: 14px; outline: 0; transition: border-color .15s; }
+.mr-bk-row input:focus { border-color: var(--mr-pay); }
+.mr-bk-title input { font-weight: 700; }
+.mr-bk-del { flex: none; height: 32px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: var(--mr-mute); font-size: 12px; font-weight: 700; cursor: pointer; }
+.mr-bk-del:hover { background: rgba(225, 29, 72, .08); color: var(--mr-red); }
+.mr-bk-fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.mr-bk-f { display: flex; flex-direction: column; gap: 4px; margin: 0; }
+.mr-bk-f span { font-size: 11.5px; font-weight: 700; color: var(--mr-ink2); }
+.mr-bk-f input { font-variant-numeric: tabular-nums; }
+.mr-bk-calc { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.mr-bk-calc div { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 10px; background: var(--mr-soft); }
+.mr-bk-calc span { font-size: 11px; font-weight: 700; color: var(--mr-mute); }
+.mr-bk-calc b { font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; transition: color .2s; }
+.mr-bk-calc .is-net { background: var(--mr-pay-soft); }
+.mr-bk-calc .is-net b { color: var(--mr-pay); }
+.mr-bk-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 12px; border-radius: 14px; border: 1px dashed var(--mr-pay); }
+.mr-bk-sum div { display: flex; flex-direction: column; gap: 2px; }
+.mr-bk-sum span { font-size: 11.5px; font-weight: 700; color: var(--mr-mute); }
+.mr-bk-sum b { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.mr-bk-sum .is-net b { color: var(--mr-pay); font-size: 18px; }
+.mr-amount.is-auto input { background: var(--mr-soft); color: var(--mr-pay); }
 @media (max-width: 575.98px) {
-    .mr-bk-head { display: none; }
-    .mr-bk-row { grid-template-columns: 1fr 1fr 1fr 30px; }
-    .mr-bk-title { grid-column: 1 / -1; }
-    .mr-bk-net { grid-column: 1 / -1; text-align: left; }
+    .mr-bk-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .mr-bk-calc, .mr-bk-sum { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .mr-bk-calc b { font-size: 12.5px; }
+    .mr-books-head { flex-direction: column; align-items: stretch; }
 }

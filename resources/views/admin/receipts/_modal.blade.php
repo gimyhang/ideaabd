@@ -65,21 +65,20 @@
                     </div>
                 </div>
 
-                {{-- book sales (honorarium) --}}
+                {{-- book sales (honorarium): price less commission = sale price; writer gets royalty % of the sale --}}
                 <div class="mr-books" data-for="honorarium">
                     <div class="mr-books-head">
-                        <label>Books <em>বই বিক্রির হিসাব — দিলে লেখকের প্রাপ্য নিজে থেকে হিসাব হবে</em></label>
-                        <button type="button" class="mr-chip is-pay" id="mrAddBook"><i class="fa-solid fa-plus"></i> Book</button>
-                    </div>
-                    <div class="mr-bk" id="mrBooks" hidden>
-                        <div class="mr-bk-head"><span>বই</span><span>কপি</span><span>মূল্য ৳</span><span>কমিশন %</span><span class="r">প্রাপ্য</span><span></span></div>
-                        <div id="mrBookRows"></div>
-                        <div class="mr-bk-total">
-                            <span><b id="mrBkQty">০</b> কপি</span>
-                            <span>বিক্রি <b id="mrBkSale">৳০</b></span>
-                            <span>কমিশন <b id="mrBkComm">৳০</b></span>
-                            <span>লেখকের প্রাপ্য <b id="mrBkNet" class="is-net">৳০</b></span>
+                        <div>
+                            <label>বই বিক্রির হিসাব</label>
+                            <p>বিক্রয় মূল্যের ওপর লেখকের রয়্যালটি — দিলে প্রাপ্য নিজে থেকে হিসাব হবে</p>
                         </div>
+                        <button type="button" class="mr-add" id="mrAddBook">বই যোগ করুন</button>
+                    </div>
+                    <div id="mrBookRows" class="mr-bk-list"></div>
+                    <div class="mr-bk-sum" id="mrBooks" hidden>
+                        <div><span>মোট কপি</span><b id="mrBkQty">০</b></div>
+                        <div><span>মোট বিক্রয়</span><b id="mrBkSale">০</b></div>
+                        <div class="is-net"><span>লেখকের প্রাপ্য</span><b id="mrBkNet">০</b></div>
                     </div>
                 </div>
 
@@ -87,7 +86,6 @@
                 <div class="mr-amount">
                     <label for="mrAmount">Amount</label>
                     <div class="mr-amount-row">
-                        <span>৳</span>
                         <input type="number" id="mrAmount" name="amount" min="1" step="0.01" inputmode="decimal" required placeholder="0">
                         <button type="button" class="mr-chip" id="mrFullDue" data-for="bill" hidden>Full due</button>
                     </div>
