@@ -351,3 +351,28 @@
             .finally(function () { impBtn.disabled = false; });
     });
 })();
+
+/* ---------- navigation: keep the open section in view ---------- */
+(function () {
+    var nav = document.getElementById('settingsTab');
+    var main = document.querySelector('.st-main');
+    if (!nav || !main) return;
+    function reveal(link, smooth) {
+        // phones: the nav is one swipeable row — bring the active item into it
+        if (nav.scrollWidth > nav.clientWidth) {
+            var left = link.offsetLeft - (nav.clientWidth - link.offsetWidth) / 2;
+            nav.scrollTo({ left: Math.max(0, left), behavior: smooth ? 'smooth' : 'auto' });
+        }
+    }
+    nav.addEventListener('shown.bs.tab', function (e) {
+        reveal(e.target, true);
+        // a section opened while scrolled far down starts from its top
+        var top = main.getBoundingClientRect().top;
+        if (top < 0) {
+            var offset = (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--st-top'), 10) || 70) + (nav.scrollWidth > nav.clientWidth ? 64 : 12);
+            window.scrollTo({ top: window.scrollY + top - offset, behavior: 'smooth' });
+        }
+    });
+    var active = nav.querySelector('.nav-link.active');
+    if (active) setTimeout(function () { reveal(nav.querySelector('.nav-link.active') || active, false); }, 150);
+})();

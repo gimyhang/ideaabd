@@ -29,45 +29,6 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/admin-settings.css') }}?v={{ @filemtime(public_path('css/admin-settings.css')) }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
-<style>
-    .fixed-preview-container {
-        position: relative;
-        overflow: hidden;
-        background-color: #f8fafc;
-        border: 2px dashed #cbd5e1;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: border-color 0.2s;
-    }
-    .fixed-preview-container:hover {
-        border-color: #3b82f6;
-    }
-    .banner-preview-box {
-        width: 100%;
-        aspect-ratio: 3 / 1;
-    }
-    .logo-preview-box {
-        width: 100%;
-        max-width: 320px;
-        height: 76px;
-    }
-    .favicon-preview-box {
-        width: 60px;
-        height: 60px;
-        aspect-ratio: 1 / 1;
-    }
-    .og-preview-box {
-        width: 100%;
-        max-width: 460px;
-        aspect-ratio: 16 / 9;
-    }
-    .cropper-view-box,
-    .cropper-face {
-        border-radius: 6px;
-    }
-</style>
 @endpush
 
 @php
@@ -97,118 +58,112 @@
         <input type="hidden" name="header_menu_items" id="header_menu_items">
         <input type="hidden" name="home_hero_slides" id="home_hero_slides">
 
-        <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
-            
-            <!-- Navigation Tabs Header -->
-            <div class="card-header bg-white border-bottom p-3 p-md-4">
-                <ul class="nav nav-pills nav-fill gap-2" id="settingsTab" role="tablist">
+        <div class="st-shell">
+
+            <!-- Navigation: grouped list on wide screens, one scrollable row on phones -->
+            <aside class="st-side">
+                <ul class="nav st-nav" id="settingsTab" role="tablist" aria-orientation="vertical">
+                    <li class="st-nav-group" role="presentation">Site</li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
-                                id="tab-brand-btn" data-bs-toggle="pill" data-bs-target="#tab-brand" type="button" role="tab">
-                            <i class="fa-solid fa-crop-simple text-primary"></i>
+                        <button class="nav-link active" id="tab-brand-btn" data-bs-toggle="pill" data-bs-target="#tab-brand" type="button" role="tab" aria-controls="tab-brand" aria-selected="true">
+                            <i class="fa-solid fa-crop-simple"></i>
                             <span>Brand</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
-                                id="tab-hero-btn" data-bs-toggle="pill" data-bs-target="#tab-hero" type="button" role="tab">
-                            <i class="fa-solid fa-images text-warning"></i>
+                        <button class="nav-link" id="tab-hero-btn" data-bs-toggle="pill" data-bs-target="#tab-hero" type="button" role="tab" aria-controls="tab-hero" aria-selected="false">
+                            <i class="fa-solid fa-images"></i>
                             <span>Hero</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
-                                id="tab-menu-btn" data-bs-toggle="pill" data-bs-target="#tab-menu" type="button" role="tab">
-                            <i class="fa-solid fa-compass text-success"></i>
+                        <button class="nav-link" id="tab-menu-btn" data-bs-toggle="pill" data-bs-target="#tab-menu" type="button" role="tab" aria-controls="tab-menu" aria-selected="false">
+                            <i class="fa-solid fa-compass"></i>
                             <span>Menu</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
-                                id="tab-theme-btn" data-bs-toggle="pill" data-bs-target="#tab-theme" type="button" role="tab">
-                            <i class="fa-solid fa-wand-magic-sparkles text-info"></i>
+                        <button class="nav-link" id="tab-theme-btn" data-bs-toggle="pill" data-bs-target="#tab-theme" type="button" role="tab" aria-controls="tab-theme" aria-selected="false">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
                             <span>Theme</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
-                                id="tab-notice-btn" data-bs-toggle="pill" data-bs-target="#tab-notice" type="button" role="tab">
-                            <i class="fa-solid fa-bullhorn text-warning"></i>
+                        <button class="nav-link" id="tab-notice-btn" data-bs-toggle="pill" data-bs-target="#tab-notice" type="button" role="tab" aria-controls="tab-notice" aria-selected="false">
+                            <i class="fa-solid fa-bullhorn"></i>
                             <span>Notice</span>
                         </button>
                     </li>
+                    <li class="st-nav-group" role="presentation">Store</li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
-                                id="tab-ecom-btn" data-bs-toggle="pill" data-bs-target="#tab-ecom" type="button" role="tab">
-                            <i class="fa-solid fa-truck-fast text-success"></i>
+                        <button class="nav-link" id="tab-ecom-btn" data-bs-toggle="pill" data-bs-target="#tab-ecom" type="button" role="tab" aria-controls="tab-ecom" aria-selected="false">
+                            <i class="fa-solid fa-truck-fast"></i>
                             <span>Shop</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
-                                id="tab-invoice-btn" data-bs-toggle="pill" data-bs-target="#tab-invoice" type="button" role="tab">
-                            <i class="fa-solid fa-file-invoice-dollar text-primary"></i>
+                        <button class="nav-link" id="tab-invoice-btn" data-bs-toggle="pill" data-bs-target="#tab-invoice" type="button" role="tab" aria-controls="tab-invoice" aria-selected="false">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
                             <span>Invoice</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
-                                id="tab-payment-btn" data-bs-toggle="pill" data-bs-target="#tab-payment" type="button" role="tab">
-                            <i class="fa-solid fa-credit-card text-danger"></i>
+                        <button class="nav-link" id="tab-payment-btn" data-bs-toggle="pill" data-bs-target="#tab-payment" type="button" role="tab" aria-controls="tab-payment" aria-selected="false">
+                            <i class="fa-solid fa-credit-card"></i>
                             <span>Payment</span>
                         </button>
                     </li>
+                    <li class="st-nav-group" role="presentation">Pages</li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
-                                id="tab-editorial-btn" data-bs-toggle="pill" data-bs-target="#tab-editorial" type="button" role="tab">
-                            <i class="fa-solid fa-feather-pointed text-primary"></i>
+                        <button class="nav-link" id="tab-editorial-btn" data-bs-toggle="pill" data-bs-target="#tab-editorial" type="button" role="tab" aria-controls="tab-editorial" aria-selected="false">
+                            <i class="fa-solid fa-feather-pointed"></i>
                             <span>Editorial</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
-                                id="tab-about-btn" data-bs-toggle="pill" data-bs-target="#tab-about" type="button" role="tab">
-                            <i class="fa-solid fa-circle-info text-info"></i>
+                        <button class="nav-link" id="tab-about-btn" data-bs-toggle="pill" data-bs-target="#tab-about" type="button" role="tab" aria-controls="tab-about" aria-selected="false">
+                            <i class="fa-solid fa-circle-info"></i>
                             <span>About</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
-                                id="tab-contact-btn" data-bs-toggle="pill" data-bs-target="#tab-contact" type="button" role="tab">
-                            <i class="fa-solid fa-headset text-success"></i>
+                        <button class="nav-link" id="tab-contact-btn" data-bs-toggle="pill" data-bs-target="#tab-contact" type="button" role="tab" aria-controls="tab-contact" aria-selected="false">
+                            <i class="fa-solid fa-headset"></i>
                             <span>Contact</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
-                                id="tab-webzine-btn" data-bs-toggle="pill" data-bs-target="#tab-webzine" type="button" role="tab">
-                            <i class="fa-solid fa-newspaper text-warning"></i>
+                        <button class="nav-link" id="tab-webzine-btn" data-bs-toggle="pill" data-bs-target="#tab-webzine" type="button" role="tab" aria-controls="tab-webzine" aria-selected="false">
+                            <i class="fa-solid fa-newspaper"></i>
                             <span>Webzine</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
-                                id="tab-terms-btn" data-bs-toggle="pill" data-bs-target="#tab-terms" type="button" role="tab">
-                            <i class="fa-solid fa-scale-balanced text-teal" style="color: #0d9488;"></i>
+                        <button class="nav-link" id="tab-terms-btn" data-bs-toggle="pill" data-bs-target="#tab-terms" type="button" role="tab" aria-controls="tab-terms" aria-selected="false">
+                            <i class="fa-solid fa-scale-balanced"></i>
                             <span>Terms</span>
                         </button>
                     </li>
+                    <li class="st-nav-group" role="presentation">System</li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
-                                id="tab-system-btn" data-bs-toggle="pill" data-bs-target="#tab-system" type="button" role="tab">
-                            <i class="fa-solid fa-server text-secondary"></i>
+                        <button class="nav-link" id="tab-system-btn" data-bs-toggle="pill" data-bs-target="#tab-system" type="button" role="tab" aria-controls="tab-system" aria-selected="false">
+                            <i class="fa-solid fa-server"></i>
                             <span>System</span>
                         </button>
                     </li>
                 </ul>
-            </div>
+            </aside>
 
             <!-- Tabs Body -->
-            <div class="card-body p-4 p-md-5">
+            <div class="st-main">
                 <div class="tab-content" id="settingsTabContent">
                     
                     <!-- Tab 1: Branding & Visuals (Logo, Banners, Favicon + Cropper) -->
                     <div class="tab-pane fade show active" id="tab-brand" role="tabpanel">
+                        <header class="st-pane-head">
+                            <span class="st-pane-icon"><i class="fa-solid fa-crop-simple"></i></span>
+                            <div><h2>Brand</h2><p>নাম, লোগো, ফেভিকন, ব্যানার ও শেয়ারের ছবি</p></div>
+                        </header>
                         <div class="row g-4">
                             
                             <!-- Left: Site Name & Tagline & Favicon -->
@@ -658,6 +613,10 @@
 
                     <!-- Tab: Hero Carousel & Slides Customizer -->
                     <div class="tab-pane fade" id="tab-hero" role="tabpanel">
+                        <header class="st-pane-head">
+                            <span class="st-pane-icon"><i class="fa-solid fa-images"></i></span>
+                            <div><h2>Hero</h2><p>হোমপেজের স্লাইডার</p></div>
+                        </header>
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
                             <div>
                                 <h6 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
@@ -750,6 +709,10 @@
 
                     <!-- Tab: Dynamic Header & Navigation Menu Builder -->
                     <div class="tab-pane fade" id="tab-menu" role="tabpanel">
+                        <header class="st-pane-head">
+                            <span class="st-pane-icon"><i class="fa-solid fa-compass"></i></span>
+                            <div><h2>Menu</h2><p>হেডারের মেনু ও লিংক</p></div>
+                        </header>
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
                             <div>
                                 <h6 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
@@ -837,6 +800,10 @@
 
                     <!-- Tab 2: Theme & Colors Customizer -->
                     <div class="tab-pane fade" id="tab-theme" role="tabpanel">
+                        <header class="st-pane-head">
+                            <span class="st-pane-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+                            <div><h2>Theme</h2><p>রং ও লাইট/ডার্ক মোড</p></div>
+                        </header>
                         <div class="row g-4">
                             
                             <div class="col-lg-6">
@@ -972,6 +939,10 @@
 
                     <!-- Tab 3: System Notice & Announcement -->
                     <div class="tab-pane fade" id="tab-notice" role="tabpanel">
+                        <header class="st-pane-head">
+                            <span class="st-pane-icon"><i class="fa-solid fa-bullhorn"></i></span>
+                            <div><h2>Notice</h2><p>সাইটজুড়ে ঘোষণার বার</p></div>
+                        </header>
                         <div class="row g-4">
                             
                             <div class="col-lg-7">
@@ -1024,6 +995,10 @@
 
                     <!-- Tab 4: E-commerce & Delivery Configuration -->
                     <div class="tab-pane fade" id="tab-ecom" role="tabpanel">
+                        <header class="st-pane-head">
+                            <span class="st-pane-icon"><i class="fa-solid fa-truck-fast"></i></span>
+                            <div><h2>Shop</h2><p>ডেলিভারি চার্জ, হেল্পলাইন, কুপন ও অফার</p></div>
+                        </header>
                         <div class="row g-4">
                             
                             <!-- Delivery Charges -->
@@ -1222,6 +1197,10 @@
 
                     <!-- Tab: Invoice & Sender Details -->
                     <div class="tab-pane fade" id="tab-invoice" role="tabpanel">
+                        <header class="st-pane-head">
+                            <span class="st-pane-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+                            <div><h2>Invoice</h2><p>ইনভয়েসের প্রেরক, শিরোনাম ও শর্ত</p></div>
+                        </header>
                         <div class="row g-4">
                             
                             <!-- Sender Information Form -->
@@ -1334,6 +1313,10 @@
 
                     <!-- Tab 5: Customizable Payment Gateways -->
                     <div class="tab-pane fade" id="tab-payment" role="tabpanel">
+                        <header class="st-pane-head">
+                            <span class="st-pane-icon"><i class="fa-solid fa-credit-card"></i></span>
+                            <div><h2>Payment</h2><p>বিকাশ, নগদ, ব্যাংক ও ক্যাশ অন ডেলিভারি</p></div>
+                        </header>
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
                                 <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-credit-card text-danger me-2"></i>Gateways</h6>
@@ -1506,6 +1489,10 @@
 
                     <!-- Tab 6: Server Diagnostics & Maintenance -->
                     <div class="tab-pane fade" id="tab-system" role="tabpanel">
+                        <header class="st-pane-head">
+                            <span class="st-pane-icon"><i class="fa-solid fa-server"></i></span>
+                            <div><h2>System</h2><p>স্বাস্থ্য পরীক্ষা, মেইনটেন্যান্স, ক্যাশ, ব্যাকআপ ও হিস্ট্রি</p></div>
+                        </header>
                         <div class="row g-4">
 
                             <!-- Health (live) -->
@@ -1575,6 +1562,10 @@
 
                     <!-- Tab: Editorial & Publishing Board (আইডিয়াপত্র ও সম্পাদনা পরিষদ) -->
                     <div class="tab-pane fade" id="tab-editorial" role="tabpanel">
+                        <header class="st-pane-head">
+                            <span class="st-pane-icon"><i class="fa-solid fa-feather-pointed"></i></span>
+                            <div><h2>Editorial</h2><p>প্রকাশক, সম্পাদক ও সম্পাদনা পরিষদ</p></div>
+                        </header>
                         <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
                             <div>
                                 <h5 class="fw-bold text-dark mb-1"><i class="fa-solid fa-feather-pointed text-primary me-2"></i>Board</h5>
@@ -1679,6 +1670,10 @@
 
                     <!-- Tab: Terms, Return Policy & Legal Framework (ব্যবহারের শর্তাবলী ও প্রাতিষ্ঠানিক পলিসি) -->
                     <div class="tab-pane fade" id="tab-terms" role="tabpanel">
+                        <header class="st-pane-head">
+                            <span class="st-pane-icon"><i class="fa-solid fa-scale-balanced"></i></span>
+                            <div><h2>Terms</h2><p>শর্তাবলি, রিটার্ন ও রিফান্ড নীতি</p></div>
+                        </header>
                         <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom flex-wrap gap-2">
                             <div>
                                 <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
@@ -1833,6 +1828,10 @@
 
                     <!-- Tab: আমাদের সম্পর্কে কাস্টমাইজার (#tab-about) -->
                     <div class="tab-pane fade" id="tab-about" role="tabpanel">
+                        <header class="st-pane-head">
+                            <span class="st-pane-icon"><i class="fa-solid fa-circle-info"></i></span>
+                            <div><h2>About</h2><p>"আমাদের সম্পর্কে" পেজ</p></div>
+                        </header>
                         <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
                             <div>
                                 <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
@@ -2002,6 +2001,10 @@
 
                     <!-- Tab: যোগাযোগ ও হেল্পডেস্ক কাস্টমাইজার (#tab-contact) -->
                     <div class="tab-pane fade" id="tab-contact" role="tabpanel">
+                        <header class="st-pane-head">
+                            <span class="st-pane-icon"><i class="fa-solid fa-headset"></i></span>
+                            <div><h2>Contact</h2><p>যোগাযোগ পেজ</p></div>
+                        </header>
                         <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
                             <div>
                                 <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
@@ -2110,6 +2113,10 @@
 
                     <!-- Tab: ওয়েবজিন ও সাহিত্য সাময়িকী কাস্টমাইজার (#tab-webzine) -->
                     <div class="tab-pane fade" id="tab-webzine" role="tabpanel">
+                        <header class="st-pane-head">
+                            <span class="st-pane-icon"><i class="fa-solid fa-newspaper"></i></span>
+                            <div><h2>Webzine</h2><p>ওয়েবজিন পেজ</p></div>
+                        </header>
                         <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
                             <div>
                                 <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
@@ -2186,6 +2193,8 @@
 
         </div>
 
+            </div><!-- /.st-main -->
+        </div><!-- /.st-shell -->
     </form>
 
     <div class="st-save" id="stSave" role="status" aria-live="polite">

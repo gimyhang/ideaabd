@@ -1,32 +1,129 @@
-/* Admin › Settings — dynamic layer */
-:root { --st-ink: #0f172a; --st-muted: #64748b; --st-line: #e5eaf2; --st-soft: #f1f5f9; --st-brand: #2563eb; --st-ok: #16a34a; --st-warn: #d97706; --st-bad: #dc2626; }
-body.dark-mode { --st-ink: #e6ecf5; --st-muted: #92a1b8; --st-line: #1f2b42; --st-soft: #16213a; }
+/* Admin › Settings
+   Layout: grouped navigation on the left (sticky) + one card with the open section.
+   Phones: the navigation becomes one sticky, swipeable row above the section. */
 
-/* search */
+:root {
+    --st-ink: #0f172a; --st-muted: #64748b; --st-line: #e5eaf2; --st-soft: #f5f7fb; --st-card: #fff;
+    --st-brand: #2563eb; --st-brand-soft: rgba(37, 99, 235, .09);
+    --st-ok: #16a34a; --st-warn: #d97706; --st-bad: #dc2626;
+    --st-radius: 16px; --st-top: 76px;
+    --st-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 12px 32px -18px rgba(15, 23, 42, .18);
+}
+body.dark-mode {
+    --st-ink: #e6ecf5; --st-muted: #92a1b8; --st-line: #233149; --st-soft: #16213a; --st-card: #111a2c;
+    --st-brand: #60a5fa; --st-brand-soft: rgba(96, 165, 250, .12);
+    --st-shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 12px 32px -16px rgba(0, 0, 0, .6);
+}
+
+/* ── shell ─────────────────────────────────────────────── */
+.st-shell { display: grid; grid-template-columns: 228px minmax(0, 1fr); gap: 20px; align-items: start; }
+.st-side {
+    position: sticky; top: var(--st-top); max-height: calc(100vh - var(--st-top) - 16px); overflow-y: auto;
+    background: var(--st-card); border: 1px solid var(--st-line); border-radius: var(--st-radius);
+    box-shadow: var(--st-shadow); padding: 10px; scrollbar-width: thin;
+}
+.st-main { min-width: 0; background: var(--st-card); border: 1px solid var(--st-line); border-radius: var(--st-radius); box-shadow: var(--st-shadow); }
+
+/* ── navigation ────────────────────────────────────────── */
+.st-nav { display: flex; flex-direction: column; flex-wrap: nowrap; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.st-nav-group {
+    padding: 12px 10px 5px; font-size: 10.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--st-muted);
+}
+.st-nav-group:first-child { padding-top: 4px; }
+.st-nav .nav-item { width: 100%; }
+.st-nav .nav-link {
+    display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 10px; border: 0; border-radius: 10px;
+    background: transparent; color: var(--st-ink); font-size: 13.5px; font-weight: 600; text-align: left; line-height: 1.2;
+    transition: background .15s, color .15s;
+}
+.st-nav .nav-link i {
+    width: 28px; height: 28px; flex: none; display: grid; place-items: center; border-radius: 8px;
+    background: var(--st-soft); color: var(--st-muted); font-size: 12.5px; transition: inherit;
+}
+.st-nav .nav-link:hover { background: var(--st-soft); }
+.st-nav .nav-link:hover i { color: var(--st-brand); }
+.st-nav .nav-link.active { background: var(--st-brand-soft); color: var(--st-brand); }
+.st-nav .nav-link.active i { background: var(--st-brand); color: #fff; }
+.st-nav .nav-link:focus-visible { outline: 2px solid var(--st-brand); outline-offset: 1px; }
+
+/* ── one section ───────────────────────────────────────── */
+#systemSettingsForm .tab-pane { padding: 24px 28px 28px; }
+.st-pane-head { display: flex; align-items: center; gap: 14px; padding-bottom: 18px; margin-bottom: 22px; border-bottom: 1px solid var(--st-line); }
+.st-pane-icon {
+    width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: 12px;
+    background: var(--st-brand-soft); color: var(--st-brand); font-size: 18px;
+}
+.st-pane-head h2 { margin: 0; font-size: 19px; font-weight: 800; color: var(--st-ink); letter-spacing: -.01em; }
+.st-pane-head p { margin: 2px 0 0; font-size: 13px; color: var(--st-muted); }
+
+/* section titles inside a tab */
+#systemSettingsForm h5, #systemSettingsForm h6 { font-weight: 800; color: var(--st-ink); letter-spacing: .1px; }
+#systemSettingsForm h6 > i, #systemSettingsForm h5 > i { opacity: .9; }
+
+/* grouped boxes inside a tab (they use several Bootstrap spellings) */
+#systemSettingsForm .tab-pane .bg-light.rounded-4,
+#systemSettingsForm .tab-pane .bg-light.rounded-3,
+#systemSettingsForm .tab-pane .border.rounded-4,
+#systemSettingsForm .tab-pane .card {
+    background: var(--st-soft) !important; border: 1px solid var(--st-line) !important; border-radius: 14px !important; box-shadow: none !important;
+}
+#systemSettingsForm .tab-pane .card .card-header,
+#systemSettingsForm .tab-pane .card .card-body { background: transparent !important; }
+#systemSettingsForm .tab-pane hr { border-color: var(--st-line); opacity: 1; }
+
+/* ── form controls ─────────────────────────────────────── */
+#systemSettingsForm .form-label { font-size: 12.5px; font-weight: 700; color: var(--st-ink); margin-bottom: 5px; }
+#systemSettingsForm .form-control, #systemSettingsForm .form-select, #systemSettingsForm .input-group-text {
+    border-radius: 10px; border-color: var(--st-line); font-size: 13.5px; background-color: var(--st-card); color: var(--st-ink);
+}
+#systemSettingsForm .form-control:not(textarea):not([type="color"]):not(.form-control-sm), #systemSettingsForm .form-select:not(.form-select-sm) { min-height: 40px; }
+#systemSettingsForm .form-control[type="color"] { min-height: 40px; padding: 4px; }
+#systemSettingsForm .input-group > .form-control:not(:first-child), #systemSettingsForm .input-group > .input-group-text:not(:first-child), #systemSettingsForm .input-group > .btn:not(:first-child) { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+#systemSettingsForm .input-group > .form-control:not(:last-child), #systemSettingsForm .input-group > .input-group-text:not(:last-child), #systemSettingsForm .input-group > .btn:not(:last-child) { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+#systemSettingsForm .form-control:focus, #systemSettingsForm .form-select:focus { border-color: var(--st-brand); box-shadow: 0 0 0 3px var(--st-brand-soft); }
+#systemSettingsForm textarea.form-control { line-height: 1.6; }
+#systemSettingsForm .form-text, #systemSettingsForm .text-muted.small, #systemSettingsForm small.text-muted { font-size: 12px; }
+#systemSettingsForm .form-check-input:checked { background-color: var(--st-brand); border-color: var(--st-brand); }
+#systemSettingsForm .form-switch .form-check-input { width: 2.4em; height: 1.3em; cursor: pointer; }
+#systemSettingsForm input[type="file"].form-control { padding: 7px 10px; }
+#systemSettingsForm input[type="range"] { accent-color: var(--st-brand); }
+body.dark-mode #systemSettingsForm .bg-white { background: var(--st-card) !important; }
+body.dark-mode #systemSettingsForm .text-dark { color: var(--st-ink) !important; }
+
+/* ── image boxes ───────────────────────────────────────── */
+.fixed-preview-container { position: relative; overflow: hidden; background: var(--st-card); border: 2px dashed var(--st-line); border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: border-color .2s; }
+.fixed-preview-container:hover { border-color: var(--st-brand); }
+.banner-preview-box { width: 100%; aspect-ratio: 3 / 1; }
+.logo-preview-box { width: 100%; max-width: 320px; height: 76px; }
+.favicon-preview-box { width: 60px; height: 60px; aspect-ratio: 1 / 1; }
+.og-preview-box { width: 100%; max-width: 460px; aspect-ratio: 16 / 9; }
+.cropper-view-box, .cropper-face { border-radius: 6px; }
+
+/* ── header actions: search ────────────────────────────── */
 .st-search { position: relative; }
-.st-search i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--st-muted); }
-.st-search input { height: 32px; min-width: 230px; border: 1px solid var(--st-line); border-radius: 99px; padding: 0 14px 0 32px; font-size: 13px; background: var(--bs-body-bg, #fff); color: inherit; outline: none; }
-.st-search input:focus { border-color: var(--st-brand); box-shadow: 0 0 0 3px rgba(37, 99, 235, .15); }
-.st-search-count { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 700; color: var(--st-muted); }
+.st-search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--st-muted); }
+.st-search input { height: 34px; width: 240px; max-width: 100%; border: 1px solid var(--st-line); border-radius: 99px; padding: 0 40px 0 32px; font-size: 13px; background: var(--st-card); color: inherit; outline: none; }
+.st-search input:focus { border-color: var(--st-brand); box-shadow: 0 0 0 3px var(--st-brand-soft); }
+.st-search-count { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 700; color: var(--st-muted); }
 .st-hit { background: rgba(250, 204, 21, .35); border-radius: 3px; box-shadow: 0 0 0 2px rgba(250, 204, 21, .35); }
 .st-dim { opacity: .35; }
-.st-tab-hit::after { content: attr(data-hits); margin-left: 6px; background: var(--st-warn); color: #fff; font-size: 10px; font-weight: 800; border-radius: 99px; padding: 1px 6px; }
+.st-tab-hit::after { content: attr(data-hits); margin-left: auto; background: var(--st-warn); color: #fff; font-size: 10px; font-weight: 800; border-radius: 99px; padding: 1px 7px; }
 .st-tab-none { opacity: .4; }
 
-/* dirty marker on tabs */
-.nav-link.st-dirty::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--st-warn); display: inline-block; margin-right: 2px; }
+/* unsaved changes: dot on the section's nav item */
+.st-nav .nav-link.st-dirty::after { content: ""; width: 7px; height: 7px; margin-left: auto; border-radius: 50%; background: var(--st-warn); flex: none; }
+.st-nav .nav-link.st-dirty.st-tab-hit::after { width: auto; height: auto; }
 
-/* save bar */
+/* ── save bar ──────────────────────────────────────────── */
 .st-save { position: sticky; bottom: 16px; z-index: 30; display: none; align-items: center; gap: 12px; margin: 18px auto 0; width: max-content; max-width: calc(100% - 24px); padding: 10px 14px; border-radius: 14px; background: #0f172a; color: #fff; box-shadow: 0 14px 34px -10px rgba(0, 0, 0, .55); }
 .st-save.show { display: flex; animation: st-up .2s ease-out; }
 @keyframes st-up { from { transform: translateY(10px); opacity: 0; } }
 .st-btn { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 14px; border-radius: 9px; border: 1px solid rgba(255, 255, 255, .25); background: transparent; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
-.st-btn.primary { background: var(--st-brand); border-color: var(--st-brand); }
+.st-btn.primary { background: #2563eb; border-color: #2563eb; }
 .st-btn:disabled { opacity: .6; cursor: wait; }
 
-/* health */
+/* ── system: health, history ───────────────────────────── */
 .st-health { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-@media (max-width: 640px) { .st-health { grid-template-columns: 1fr; } }
 .st-check { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--st-line); border-radius: 12px; background: var(--st-soft); }
 .st-dot { width: 22px; height: 22px; border-radius: 50%; flex: none; display: grid; place-items: center; color: #fff; font-size: 11px; margin-top: 1px; }
 .st-check.ok .st-dot { background: var(--st-ok); } .st-check.warn .st-dot { background: var(--st-warn); } .st-check.bad .st-dot { background: var(--st-bad); }
@@ -35,69 +132,44 @@ body.dark-mode { --st-ink: #e6ecf5; --st-muted: #92a1b8; --st-line: #1f2b42; --s
 @keyframes st-sh { to { background-position: -200% 0; } }
 .st-score { display: inline-block; margin-left: 8px; padding: 2px 10px; border-radius: 99px; font-size: 12px; font-weight: 800; }
 .st-score.ok { background: rgba(22, 163, 74, .12); color: var(--st-ok); } .st-score.warn { background: rgba(217, 119, 6, .14); color: var(--st-warn); } .st-score.bad { background: rgba(220, 38, 38, .12); color: var(--st-bad); }
-
 #tab-system [data-busy="1"] { opacity: .55; pointer-events: none; }
 
-/* ---------- clean layout ---------- */
-:root { --st-card: #fff; --st-shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 10px 28px -16px rgba(15, 23, 42, .16); }
-body.dark-mode { --st-card: #111a2c; --st-shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px -14px rgba(0, 0, 0, .6); }
-
-#systemSettingsForm > .card { border: 1px solid var(--st-line) !important; box-shadow: var(--st-shadow) !important; background: var(--st-card) !important; }
-#systemSettingsForm > .card > .card-header { background: transparent !important; border-bottom: 1px solid var(--st-line) !important; padding: 12px 14px !important; }
-
-#settingsTab { display: flex; flex-wrap: wrap; gap: 2px !important; padding: 4px; border-radius: 12px; background: var(--st-soft); }
-#settingsTab .nav-item { flex: 1 1 auto; }
-#settingsTab .nav-link { width: 100%; border-radius: 9px !important; padding: 8px 12px !important; font-size: 13px; font-weight: 700 !important; color: var(--st-muted); background: transparent; border: 0; white-space: nowrap; }
-#settingsTab .nav-link i { color: inherit !important; font-size: 13px; opacity: .85; }
-#settingsTab .nav-link:hover { color: var(--st-ink); }
-#settingsTab .nav-link.active { background: var(--st-card) !important; color: var(--st-ink) !important; box-shadow: 0 1px 3px rgba(15, 23, 42, .16); }
-#settingsTab .nav-link.active i { color: var(--st-brand) !important; opacity: 1; }
-
-#systemSettingsForm .tab-pane { padding: 22px 24px; }
-@media (max-width: 767px) { #systemSettingsForm .tab-pane { padding: 16px 14px; } }
-#systemSettingsForm h5, #systemSettingsForm h6 { font-weight: 800; letter-spacing: .1px; }
-#systemSettingsForm h6 > i, #systemSettingsForm h5 > i { opacity: .9; }
-#systemSettingsForm .form-label { font-size: 12.5px; font-weight: 700; color: var(--st-ink); margin-bottom: 5px; }
-#systemSettingsForm .form-control, #systemSettingsForm .form-select, #systemSettingsForm .input-group-text { border-radius: 10px; border-color: var(--st-line); font-size: 13.5px; }
-#systemSettingsForm .input-group > .form-control:not(:first-child), #systemSettingsForm .input-group > .input-group-text:not(:first-child) { border-top-left-radius: 0; border-bottom-left-radius: 0; }
-#systemSettingsForm .input-group > .form-control:not(:last-child), #systemSettingsForm .input-group > .input-group-text:not(:last-child) { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-#systemSettingsForm .form-control:focus, #systemSettingsForm .form-select:focus { border-color: var(--st-brand); box-shadow: 0 0 0 3px rgba(37, 99, 235, .15); }
-#systemSettingsForm textarea.form-control { line-height: 1.6; }
-#systemSettingsForm .form-text, #systemSettingsForm .text-muted.small, #systemSettingsForm small.text-muted { font-size: 12px; }
-#systemSettingsForm .bg-light.rounded-4, #systemSettingsForm .bg-light.rounded-3 { background: var(--st-soft) !important; border-color: var(--st-line) !important; }
-body.dark-mode #systemSettingsForm .bg-white { background: var(--st-card) !important; }
-body.dark-mode #systemSettingsForm .text-dark { color: var(--st-ink) !important; }
-#settingsTab .nav-link { padding: 8px 8px !important; gap: 6px !important; font-size: 12.5px; justify-content: center; }
-
-/* history */
 .st-history { display: flex; flex-direction: column; gap: 8px; }
 .st-hist { display: flex; align-items: center; gap: 14px; padding: 10px 14px; border: 1px solid var(--st-line); border-radius: 12px; background: var(--st-soft); }
 .st-hist-main { flex: 1; min-width: 0; }
 .st-hist-areas { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
-.st-chip { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 99px; background: rgba(37, 99, 235, .12); color: var(--st-brand); }
+.st-chip { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 99px; background: var(--st-brand-soft); color: var(--st-brand); }
 .st-hist-when { font-size: 12px; color: var(--st-muted); white-space: nowrap; }
-@media (max-width: 640px) { .st-hist { flex-wrap: wrap; } }
 
-/* ---------- tabs: visible borders + comfortable padding ---------- */
-#settingsTab { gap: 8px !important; padding: 10px; background: var(--st-soft); border: 1px solid var(--st-line); }
-#settingsTab .nav-item { flex: 1 1 auto; }
-#settingsTab .nav-link {
-    padding: 9px 14px !important; gap: 8px !important; font-size: 13px;
-    border: 1px solid var(--st-line) !important; border-radius: 10px !important;
-    background: var(--st-card) !important; color: var(--st-ink); line-height: 1.2;
+/* ── tablet / phone ────────────────────────────────────── */
+@media (max-width: 991.98px) {
+    :root { --st-top: 56px; }
+    /* minmax(0, …): the swipeable nav row must not widen the column (it pushed the cards off screen) */
+    .st-shell { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .st-side, .st-main { min-width: 0; }
+    /* navigation: one swipeable row that stays under the topbar */
+    .st-side {
+        top: var(--st-top); z-index: 20; max-height: none; overflow: visible; padding: 6px;
+        border-radius: 14px; margin: 0 -2px;
+    }
+    .st-nav {
+        flex-direction: row; gap: 4px; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none;
+        -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
+    }
+    .st-nav::-webkit-scrollbar { display: none; }
+    .st-nav-group { display: none; }
+    .st-nav .nav-item { width: auto; flex: none; scroll-snap-align: start; }
+    .st-nav .nav-link { padding: 6px 12px 6px 6px; gap: 7px; font-size: 13px; white-space: nowrap; border-radius: 99px; }
+    .st-nav .nav-link i { width: 26px; height: 26px; border-radius: 99px; font-size: 11.5px; }
+    #systemSettingsForm .tab-pane { padding: 18px 16px 22px; }
+    .st-pane-head { gap: 12px; padding-bottom: 14px; margin-bottom: 16px; }
+    .st-pane-icon { width: 38px; height: 38px; font-size: 15px; border-radius: 10px; }
+    .st-pane-head h2 { font-size: 17px; }
 }
-#settingsTab .nav-link:hover { border-color: var(--st-brand) !important; color: var(--st-brand); }
-#settingsTab .nav-link.active {
-    border-color: var(--st-brand) !important; background: rgba(37, 99, 235, .08) !important; color: var(--st-brand) !important;
-    box-shadow: inset 0 -2px 0 var(--st-brand);
+@media (max-width: 640px) {
+    .st-health { grid-template-columns: 1fr; }
+    .st-hist { flex-wrap: wrap; }
+    .st-search, .st-search input { width: 100%; }
+    .st-save { bottom: 12px; gap: 8px; padding: 8px 10px; }
+    .st-save b { font-size: 12px; }
 }
-#settingsTab .nav-link.active i { color: var(--st-brand) !important; }
-#systemSettingsForm > .card > .card-header { padding: 14px 16px !important; }
-
-/* even grid: 14 tabs = 2 clean rows of 7 */
-#settingsTab { display: grid !important; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px !important; }
-#settingsTab .nav-item { flex: none; }
-#settingsTab .nav-link { justify-content: center; }
-@media (max-width: 1199px) { #settingsTab { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
-@media (max-width: 767px)  { #settingsTab { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 479px)  { #settingsTab { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
