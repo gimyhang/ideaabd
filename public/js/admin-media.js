@@ -1,1656 +1,907 @@
-/**
- * =========================================================================
- * ENTERPRISE MEDIA & ASSET STUDIO JAVASCRIPT ENGINE — IDEA PUBLICATION
- * =========================================================================
- */
+/* /admin/media — library, upload, details, editor and tools */
+(function () {
+    'use strict';
 
-document.addEventListener('DOMContentLoaded', () => {
-    initDragDropZone();
-    initMultiSelectListeners();
-    initStudioEvents();
-    initGlobalDragAndPaste();
-    initLightboxTouchSwipe();
-});
+    var app = document.getElementById('mdApp');
+    if (!app) return;
 
-/* ========================================================================= */
-/* 1. SELECTION & BATCH ACTIONS (DELEGATED & IDEMPOTENT)                     */
-/* ========================================================================= */
-let selectedMediaPaths = [];
-let selectedMediaUrls = [];
-let _isMultiSelectInitialized = false;
+    var U = app.dataset;
+    var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+    var FOLDERS = {};
+    try { JSON.parse(document.getElementById('mdFoldersData').textContent).forEach(function (f) { FOLDERS[f.key] = f; }); } catch (e) {}
 
-function initMultiSelectListeners() {
-    if (_isMultiSelectInitialized) return;
-    _isMultiSelectInitialized = true;
+    var grid = document.getElementById('mdGrid');
+    var $ = function (id) { return document.getElementById(id); };
+    var state = { folder: 'all', search: '', format: 'all', shape: 'all', usage: 'all', sort: 'latest', page: 1, pages: 1, count: 0, view: 'grid' };
+    var items = [];            // loaded items, in order
+    var byId = {};
+    var selected = new Map();  // id -> item (or {id} when selected through "select all")
+    var loadSeq = 0;
 
-    // Delegated change listener for selection checkboxes
-    document.addEventListener('change', (e) => {
-        if (e.target && e.target.classList.contains('media-select-cb')) {
-            updateSelectionState();
-        }
-    });
+    try {
+        var saved = JSON.parse(localStorage.getItem('md_view') || 'null');
+        if (saved === 'list' || saved === 'grid') state.view = saved;
+    } catch (e) {}
+    var q = new URLSearchParams(location.search);
+    ['folder', 'search', 'format', 'shape', 'usage', 'sort'].forEach(function (k) { if (q.get(k)) state[k] = q.get(k); });
+    if (q.get('dim') && !q.get('shape')) state.shape = { banner: 'wide', thumb: 'small', square: 'square', portrait: 'portrait' }[q.get('dim')] || 'all';
+    if (state.folder === 'books') state.folder = 'covers';
 
-    // Keyboard ESC to dismiss selection
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' || e.key === 'Esc') {
-            const bar = document.getElementById('mediaFloatingBar');
-            if (bar && bar.classList.contains('show')) {
-                clearAllSelections();
-            }
-        }
-    });
-}
-
-function toggleSelectAll(masterCb) {
-    const isChecked = masterCb ? masterCb.checked : false;
-    document.querySelectorAll('.media-select-cb').forEach(cb => {
-        cb.checked = isChecked;
-    });
-    document.querySelectorAll('#selectAllMaster, .select-all-master').forEach(el => {
-        if (el !== masterCb) el.checked = isChecked;
-    });
-    updateSelectionState();
-}
-
-function clearAllSelections() {
-    document.querySelectorAll('.media-select-cb').forEach(cb => {
-        cb.checked = false;
-    });
-    document.querySelectorAll('#selectAllMaster, .select-all-master').forEach(el => {
-        el.checked = false;
-    });
-    updateSelectionState();
-}
-
-function updateSelectionState() {
-    selectedMediaPaths = [];
-    selectedMediaUrls = [];
-
-    const checkboxes = document.querySelectorAll('.media-select-cb:checked');
-    checkboxes.forEach(cb => {
-        const path = cb.getAttribute('data-path');
-        const url = cb.getAttribute('data-url');
-        if (path) selectedMediaPaths.push(path);
-        if (url) selectedMediaUrls.push(url);
-
-        const card = cb.closest('.media-card');
-        if (card) card.classList.add('is-selected');
-        const row = cb.closest('tr');
-        if (row) row.classList.add('table-primary');
-    });
-
-    document.querySelectorAll('.media-select-cb:not(:checked)').forEach(cb => {
-        const card = cb.closest('.media-card');
-        if (card) card.classList.remove('is-selected');
-        const row = cb.closest('tr');
-        if (row) row.classList.remove('table-primary');
-    });
-
-    const totalCheckboxes = document.querySelectorAll('.media-select-cb');
-    const allChecked = totalCheckboxes.length > 0 && checkboxes.length === totalCheckboxes.length;
-    document.querySelectorAll('#selectAllMaster, .select-all-master').forEach(el => {
-        el.checked = allChecked;
-    });
-
-    const count = selectedMediaPaths.length;
-    const bar = document.getElementById('mediaFloatingBar');
-    const badge = document.getElementById('selectedMediaCountBadge');
-
-    if (badge) badge.textContent = `${count} Selected`;
-
-    if (bar) {
-        if (count > 0) {
-            bar.classList.add('show');
-        } else {
-            bar.classList.remove('show');
-        }
-    }
-}
-
-function copySelectedUrls() {
-    if (selectedMediaUrls.length === 0) return;
-    const text = selectedMediaUrls.join('\n');
-    navigator.clipboard.writeText(text).then(() => {
-        showMediaAlert('success', `${selectedMediaUrls.length} image URL(s) copied to clipboard!`);
-    });
-}
-
-function executeBulkConvertToWebp() {
-    if (selectedMediaPaths.length === 0) {
-        showMediaAlert('warning', 'Please select at least one image file first.');
-        return;
-    }
-    openConvertWebpEngineModal('selected');
-}
-
-function openBulkMoveModal() {
-    if (selectedMediaPaths.length === 0) return;
-    const modalEl = document.getElementById('bulkMoveModal');
-    if (modalEl && typeof bootstrap !== 'undefined') {
-        const m = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
-        m.show();
-    }
-}
-
-function executeBulkMove() {
-    const targetFolder = document.getElementById('bulkMoveTargetFolder')?.value;
-    if (!targetFolder || selectedMediaPaths.length === 0) return;
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const btn = document.getElementById('btnConfirmBulkMove');
-    if (btn) btn.disabled = true;
-
-    fetch('/admin/media/bulk-action', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            action: 'move',
-            paths: selectedMediaPaths,
-            target_folder: targetFolder
-        })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showMediaAlert('success', data.message);
-            setTimeout(() => window.location.reload(), 1200);
-        } else {
-            showMediaAlert('danger', data.message || 'Failed to move files.');
-        }
-    })
-    .catch(() => showMediaAlert('danger', 'Server request failed.'))
-    .finally(() => {
-        if (btn) btn.disabled = false;
-    });
-}
-
-function executeBulkDelete() {
-    if (selectedMediaPaths.length === 0) return;
-    if (!confirm(`Permanently delete ${selectedMediaPaths.length} selected image(s)?`)) {
-        return;
-    }
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-    fetch('/admin/media/bulk-action', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            action: 'delete',
-            paths: selectedMediaPaths
-        })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showMediaAlert('success', data.message);
-            setTimeout(() => window.location.reload(), 1200);
-        } else {
-            showMediaAlert('danger', data.message || 'Failed to delete files.');
-        }
-    })
-    .catch(() => showMediaAlert('danger', 'Server request failed.'));
-}
-
-function executeBulkDownloadZip() {
-    if (selectedMediaPaths.length === 0) return;
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/admin/media/download-zip';
-    form.target = '_blank';
-
-    const tokenInput = document.createElement('input');
-    tokenInput.type = 'hidden';
-    tokenInput.name = '_token';
-    tokenInput.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    form.appendChild(tokenInput);
-
-    selectedMediaPaths.forEach(p => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'paths[]';
-        input.value = p;
-        form.appendChild(input);
-    });
-
-    document.body.appendChild(form);
-    form.submit();
-    form.remove();
-}
-
-/* ========================================================================= */
-/* 2. STUDIO IMAGE CUSTOMIZER ENGINE (HTML5 CANVAS)                          */
-/* ========================================================================= */
-let studioState = {
-    imgObj: null,
-    origUrl: '',
-    origPath: '',
-    origFilename: '',
-    origWidth: 0,
-    origHeight: 0,
-    currWidth: 0,
-    currHeight: 0,
-    rotation: 0,
-    flipH: false,
-    flipV: false,
-    brightness: 100,
-    contrast: 100,
-    saturation: 100,
-    grayscale: 0,
-    sepia: 0,
-    blur: 0,
-    aspectRatioLock: true,
-    watermarkText: '',
-    watermarkOpacity: 60,
-    watermarkPosition: 'bottom-right',
-    watermarkColor: '#ffffff',
-    format: 'webp',
-    quality: 85
-};
-
-function openStudioModal(url, path, filename, width, height) {
-    studioState.origUrl = url;
-    studioState.origPath = path;
-    studioState.origFilename = filename;
-    studioState.rotation = 0;
-    studioState.flipH = false;
-    studioState.flipV = false;
-    studioState.brightness = 100;
-    studioState.contrast = 100;
-    studioState.saturation = 100;
-    studioState.grayscale = 0;
-    studioState.sepia = 0;
-    studioState.blur = 0;
-    studioState.watermarkText = '';
-
-    const titleEl = document.getElementById('studioModalTitle');
-    if (titleEl) titleEl.textContent = `Image Customizer & Studio — ${filename}`;
-
-    const filenameInput = document.getElementById('studioFilenameInput');
-    if (filenameInput) filenameInput.value = filename.substring(0, filename.lastIndexOf('.')) || filename;
-
-    // Load image into Image object
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-        studioState.imgObj = img;
-        studioState.origWidth = img.naturalWidth;
-        studioState.origHeight = img.naturalHeight;
-        studioState.currWidth = img.naturalWidth;
-        studioState.currHeight = img.naturalHeight;
-
-        updateStudioInputs();
-        renderStudioCanvas();
-
-        const modalEl = document.getElementById('mediaStudioModal');
-        if (modalEl && typeof bootstrap !== 'undefined') {
-            const m = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
-            m.show();
-        }
-    };
-    img.src = url;
-}
-
-function initStudioEvents() {
-    // Width / Height input listeners
-    const widthInput = document.getElementById('studioWidthInput');
-    const heightInput = document.getElementById('studioHeightInput');
-    const lockCb = document.getElementById('studioLockRatio');
-
-    if (widthInput) {
-        widthInput.addEventListener('input', (e) => {
-            const w = parseInt(e.target.value) || 0;
-            if (w <= 0) return;
-            studioState.currWidth = w;
-            if (lockCb && lockCb.checked && studioState.origWidth > 0) {
-                const ratio = studioState.origHeight / studioState.origWidth;
-                studioState.currHeight = Math.round(w * ratio);
-                if (heightInput) heightInput.value = studioState.currHeight;
-            }
-            renderStudioCanvas();
+    // ---------------------------------------------------------------- helpers
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
         });
     }
-
-    if (heightInput) {
-        heightInput.addEventListener('input', (e) => {
-            const h = parseInt(e.target.value) || 0;
-            if (h <= 0) return;
-            studioState.currHeight = h;
-            if (lockCb && lockCb.checked && studioState.origHeight > 0) {
-                const ratio = studioState.origWidth / studioState.origHeight;
-                studioState.currWidth = Math.round(h * ratio);
-                if (widthInput) widthInput.value = studioState.currWidth;
-            }
-            renderStudioCanvas();
-        });
+    function bytes(n) {
+        n = Number(n) || 0;
+        if (n < 1024) return n + ' B';
+        var u = ['KB', 'MB', 'GB'], i = -1;
+        do { n /= 1024; i++; } while (n >= 1024 && i < 2);
+        return (n >= 100 ? Math.round(n) : n.toFixed(1)) + ' ' + u[i];
     }
-
-    // Sliders
-    bindSlider('studioBrightness', (v) => { studioState.brightness = v; renderStudioCanvas(); }, 'studioBrightnessVal', '%');
-    bindSlider('studioContrast', (v) => { studioState.contrast = v; renderStudioCanvas(); }, 'studioContrastVal', '%');
-    bindSlider('studioSaturation', (v) => { studioState.saturation = v; renderStudioCanvas(); }, 'studioSaturationVal', '%');
-    bindSlider('studioGrayscale', (v) => { studioState.grayscale = v; renderStudioCanvas(); }, 'studioGrayscaleVal', '%');
-    bindSlider('studioQuality', (v) => { studioState.quality = v; }, 'studioQualityVal', '%');
-    bindSlider('studioWatermarkOpacity', (v) => { studioState.watermarkOpacity = v; renderStudioCanvas(); }, 'studioWatermarkOpacityVal', '%');
-
-    const wmInput = document.getElementById('studioWatermarkTextInput');
-    if (wmInput) {
-        wmInput.addEventListener('input', (e) => {
-            studioState.watermarkText = e.target.value;
-            renderStudioCanvas();
-        });
+    function num(n) { return Number(n || 0).toLocaleString('en'); }
+    function ago(t) {
+        var s = Math.max(1, Math.floor(Date.now() / 1000 - t));
+        var d = [[31536000, 'y'], [2592000, 'mo'], [86400, 'd'], [3600, 'h'], [60, 'm']];
+        for (var i = 0; i < d.length; i++) if (s >= d[i][0]) return Math.floor(s / d[i][0]) + d[i][1] + ' ago';
+        return 'just now';
     }
-}
+    function absUrl(u) { return new URL(String(u).split('?')[0], location.href).href; }
 
-function bindSlider(id, callback, valDisplayId, unit = '') {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('input', (e) => {
-        const val = e.target.value;
-        const disp = document.getElementById(valDisplayId);
-        if (disp) disp.textContent = val + unit;
-        callback(val);
-    });
-}
-
-function updateStudioInputs() {
-    const widthInput = document.getElementById('studioWidthInput');
-    const heightInput = document.getElementById('studioHeightInput');
-    const metaDisplay = document.getElementById('studioOrigMetaDisplay');
-
-    if (widthInput) widthInput.value = studioState.currWidth;
-    if (heightInput) heightInput.value = studioState.currHeight;
-    if (metaDisplay) metaDisplay.textContent = `Original Resolution: ${studioState.origWidth} × ${studioState.origHeight} px`;
-}
-
-function setStudioPreset(preset) {
-    if (!studioState.imgObj) return;
-
-    document.querySelectorAll('.studio-preset-chip').forEach(c => c.classList.remove('active'));
-
-    const activeChip = document.querySelector(`.studio-preset-chip[data-preset="${preset}"]`);
-    if (activeChip) activeChip.classList.add('active');
-
-    const lockCb = document.getElementById('studioLockRatio');
-
-    if (preset === 'original') {
-        studioState.currWidth = studioState.origWidth;
-        studioState.currHeight = studioState.origHeight;
-    } else if (preset === '1:1') {
-        const minDim = Math.min(studioState.origWidth, studioState.origHeight);
-        studioState.currWidth = minDim;
-        studioState.currHeight = minDim;
-        if (lockCb) lockCb.checked = false;
-    } else if (preset === '16:9') {
-        studioState.currWidth = 1200;
-        studioState.currHeight = 675;
-        if (lockCb) lockCb.checked = false;
-    } else if (preset === '4:3') {
-        studioState.currWidth = 1024;
-        studioState.currHeight = 768;
-        if (lockCb) lockCb.checked = false;
-    } else if (preset === '800x800') {
-        studioState.currWidth = 800;
-        studioState.currHeight = 800;
-        if (lockCb) lockCb.checked = false;
-    } else if (preset === 'book-cover-std') {
-        studioState.currWidth = 800;
-        studioState.currHeight = 1200;
-        if (lockCb) lockCb.checked = false;
-    } else if (preset === 'book-cover-compact') {
-        studioState.currWidth = 600;
-        studioState.currHeight = 900;
-        if (lockCb) lockCb.checked = false;
-    } else if (preset === '1200x630') {
-        studioState.currWidth = 1200;
-        studioState.currHeight = 630;
-        if (lockCb) lockCb.checked = false;
-    } else if (preset === '1080x1080') {
-        studioState.currWidth = 1080;
-        studioState.currHeight = 1080;
-        if (lockCb) lockCb.checked = false;
-    } else if (preset === '1920x1080') {
-        studioState.currWidth = 1920;
-        studioState.currHeight = 1080;
-        if (lockCb) lockCb.checked = false;
-    }
-
-    updateStudioInputs();
-    renderStudioCanvas();
-}
-
-/**
- * Smart Snippet Copy Hub (URL, HTML, Markdown, Blade)
- */
-function copySnippet(type, url, title) {
-    let snippet = url;
-    const safeTitle = (title || 'Image').replace(/"/g, '&quot;');
-
-    if (type === 'html') {
-        snippet = `<img src="${url}" alt="${safeTitle}" class="img-fluid rounded" loading="lazy">`;
-    } else if (type === 'markdown') {
-        snippet = `![${safeTitle}](${url})`;
-    } else if (type === 'blade') {
-        const cleanPath = url.replace(/https?:\/\/[^\/]+\//, '');
-        snippet = `<img src="{{ asset('${cleanPath}') }}" alt="${safeTitle}" class="img-fluid" loading="lazy">`;
-    }
-
-    navigator.clipboard.writeText(snippet).then(() => {
-        showMediaAlert('success', `${type.toUpperCase()} snippet copied to clipboard!`);
-    }).catch(() => {
-        prompt('Copy snippet:', snippet);
-    });
-}
-
-function studioRotate(deg) {
-    studioState.rotation = (studioState.rotation + deg) % 360;
-    if (studioState.rotation < 0) studioState.rotation += 360;
-    renderStudioCanvas();
-}
-
-function studioFlip(axis) {
-    if (axis === 'h') studioState.flipH = !studioState.flipH;
-    if (axis === 'v') studioState.flipV = !studioState.flipV;
-    renderStudioCanvas();
-}
-
-function setStudioQuickFilter(filter) {
-    if (filter === 'none') {
-        studioState.brightness = 100;
-        studioState.contrast = 100;
-        studioState.saturation = 100;
-        studioState.grayscale = 0;
-        studioState.sepia = 0;
-    } else if (filter === 'bw') {
-        studioState.brightness = 105;
-        studioState.contrast = 120;
-        studioState.saturation = 0;
-        studioState.grayscale = 100;
-        studioState.sepia = 0;
-    } else if (filter === 'vintage') {
-        studioState.brightness = 110;
-        studioState.contrast = 90;
-        studioState.saturation = 80;
-        studioState.grayscale = 0;
-        studioState.sepia = 45;
-    } else if (filter === 'crisp') {
-        studioState.brightness = 105;
-        studioState.contrast = 130;
-        studioState.saturation = 115;
-        studioState.grayscale = 0;
-        studioState.sepia = 0;
-    }
-
-    // Sync sliders
-    setSliderVal('studioBrightness', studioState.brightness, 'studioBrightnessVal', '%');
-    setSliderVal('studioContrast', studioState.contrast, 'studioContrastVal', '%');
-    setSliderVal('studioSaturation', studioState.saturation, 'studioSaturationVal', '%');
-    setSliderVal('studioGrayscale', studioState.grayscale, 'studioGrayscaleVal', '%');
-
-    renderStudioCanvas();
-}
-
-function setSliderVal(id, val, dispId, unit = '') {
-    const el = document.getElementById(id);
-    if (el) el.value = val;
-    const disp = document.getElementById(dispId);
-    if (disp) disp.textContent = val + unit;
-}
-
-function renderStudioCanvas() {
-    const canvas = document.getElementById('studioCanvas');
-    if (!canvas || !studioState.imgObj) return;
-
-    const ctx = canvas.getContext('2d');
-    const isSideways = (studioState.rotation === 90 || studioState.rotation === 270);
-
-    const w = isSideways ? studioState.currHeight : studioState.currWidth;
-    const h = isSideways ? studioState.currWidth : studioState.currHeight;
-
-    canvas.width = w;
-    canvas.height = h;
-
-    ctx.clearRect(0, 0, w, h);
-
-    // Apply CSS Filters to Canvas Context
-    ctx.filter = `brightness(${studioState.brightness}%) contrast(${studioState.contrast}%) saturate(${studioState.saturation}%) grayscale(${studioState.grayscale}%) sepia(${studioState.sepia}%)`;
-
-    ctx.save();
-    ctx.translate(w / 2, h / 2);
-    ctx.rotate((studioState.rotation * Math.PI) / 180);
-    ctx.scale(studioState.flipH ? -1 : 1, studioState.flipV ? -1 : 1);
-
-    ctx.drawImage(
-        studioState.imgObj,
-        -studioState.currWidth / 2,
-        -studioState.currHeight / 2,
-        studioState.currWidth,
-        studioState.currHeight
-    );
-
-    ctx.restore();
-
-    // Reset filter for Watermark
-    ctx.filter = 'none';
-
-    // Apply Watermark if exists
-    if (studioState.watermarkText && studioState.watermarkText.trim()) {
-        ctx.save();
-        const fontSize = Math.max(16, Math.round(w / 35));
-        ctx.font = `bold ${fontSize}px sans-serif`;
-        ctx.fillStyle = studioState.watermarkColor || '#ffffff';
-        ctx.globalAlpha = studioState.watermarkOpacity / 100;
-        ctx.shadowColor = 'rgba(0,0,0,0.8)';
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetX = 1;
-        ctx.shadowOffsetY = 1;
-
-        const pad = fontSize * 1.2;
-        const textWidth = ctx.measureText(studioState.watermarkText).width;
-
-        let posX = w - textWidth - pad;
-        let posY = h - pad;
-
-        if (studioState.watermarkPosition === 'center') {
-            posX = (w - textWidth) / 2;
-            posY = h / 2;
-        } else if (studioState.watermarkPosition === 'bottom-left') {
-            posX = pad;
-            posY = h - pad;
-        } else if (studioState.watermarkPosition === 'top-right') {
-            posX = w - textWidth - pad;
-            posY = pad + fontSize;
-        }
-
-        ctx.fillText(studioState.watermarkText, posX, posY);
-        ctx.restore();
-    }
-}
-
-function saveCustomizedImage(mode) {
-    const canvas = document.getElementById('studioCanvas');
-    if (!canvas) return;
-
-    const formatSelect = document.getElementById('studioFormatSelect')?.value || 'webp';
-    const quality = (parseInt(document.getElementById('studioQuality')?.value) || 85) / 100;
-    const filenameInput = document.getElementById('studioFilenameInput')?.value || '';
-    const folderSelect = document.getElementById('studioFolderSelect')?.value || 'uploads';
-
-    let mime = 'image/webp';
-    if (formatSelect === 'png') mime = 'image/png';
-    if (formatSelect === 'jpg' || formatSelect === 'jpeg') mime = 'image/jpeg';
-
-    const dataUrl = canvas.toDataURL(mime, quality);
-
-    const btn = (mode === 'overwrite') ? document.getElementById('btnStudioOverwrite') : document.getElementById('btnStudioSaveCopy');
-    if (btn) btn.disabled = true;
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-    fetch('/admin/media/save-customized', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            data_url: dataUrl,
-            original_path: studioState.origPath,
-            mode: mode,
-            new_filename: filenameInput,
-            folder: folderSelect,
-            target_format: formatSelect
-        })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showMediaAlert('success', data.message);
-            const modalEl = document.getElementById('mediaStudioModal');
-            if (modalEl && typeof bootstrap !== 'undefined') {
-                const m = bootstrap.Modal.getInstance(modalEl);
-                if (m) m.hide();
-            }
-            setTimeout(() => window.location.reload(), 1200);
-        } else {
-            showMediaAlert('danger', data.message || 'Failed to save customized image.');
-        }
-    })
-    .catch(() => showMediaAlert('danger', 'Server request failed.'))
-    .finally(() => {
-        if (btn) btn.disabled = false;
-    });
-}
-
-function downloadStudioCanvasLocally() {
-    const canvas = document.getElementById('studioCanvas');
-    if (!canvas) return;
-
-    const format = document.getElementById('studioFormatSelect')?.value || 'webp';
-    const quality = (parseInt(document.getElementById('studioQuality')?.value) || 85) / 100;
-    const filenameInput = document.getElementById('studioFilenameInput')?.value || 'customized-image';
-
-    const link = document.createElement('a');
-    link.download = `${filenameInput}.${format}`;
-    link.href = canvas.toDataURL(`image/${format}`, quality);
-    link.click();
-    link.remove();
-}
-
-/* ========================================================================= */
-/* 3. MULTI-FILE DRAG & DROP UPLOAD ZONE                                     */
-/* ========================================================================= */
-function initDragDropZone() {
-    const zone = document.getElementById('mediaUploadZone');
-    const input = document.getElementById('multiFileInput');
-
-    if (!zone || !input) return;
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-        zone.addEventListener(eventName, (e) => {
-            e.preventDefault();
-            zone.classList.add('dragover');
-        }, false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        zone.addEventListener(eventName, (e) => {
-            e.preventDefault();
-            zone.classList.remove('dragover');
-        }, false);
-    });
-
-    zone.addEventListener('drop', (e) => {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-        handleFilesSelected(files);
-    });
-
-    input.addEventListener('change', (e) => {
-        handleFilesSelected(e.target.files);
-    });
-}
-
-let pendingUploadFiles = [];
-
-function handleFilesSelected(files) {
-    if (!files || files.length === 0) return;
-
-    pendingUploadFiles = Array.from(files);
-    const previewContainer = document.getElementById('uploadThumbPreviewList');
-    if (previewContainer) previewContainer.innerHTML = '';
-
-    pendingUploadFiles.forEach((file, idx) => {
-        if (!file.type.startsWith('image/')) return;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const div = document.createElement('div');
-            div.className = 'd-flex align-items-center justify-content-between p-2 bg-white border rounded-3 mb-1.5 small';
-            div.innerHTML = `
-                <div class="d-flex align-items-center gap-2 text-truncate">
-                    <img src="${e.target.result}" style="width: 38px; height: 38px; object-fit: cover; border-radius: 6px;">
-                    <div class="text-truncate">
-                        <div class="fw-bold text-dark text-truncate">${file.name}</div>
-                        <div class="text-muted fs-xs font-monospace">${(file.size / 1024).toFixed(1)} KB</div>
-                    </div>
-                </div>
-                <span class="badge bg-primary-subtle text-primary rounded-pill">Ready</span>
-            `;
-            if (previewContainer) previewContainer.appendChild(div);
-        };
-        reader.readAsDataURL(file);
-    });
-
-    const box = document.getElementById('uploadPreviewWrap');
-    if (box) box.classList.remove('d-none');
-}
-
-/**
- * Convert any File (PNG/JPG/BMP) to a WebP Blob directly in the browser via HTML5 Canvas
- */
-async function convertFileToWebpInBrowser(file, quality = 0.85, maxDim = 1920) {
-    if (!file.type.startsWith('image/') || file.type === 'image/svg+xml' || file.type === 'image/webp') {
-        return file; // SVGs and WebPs pass through natively
-    }
-
-    return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                let w = img.naturalWidth;
-                let h = img.naturalHeight;
-
-                if (maxDim > 0 && (w > maxDim || h > maxDim)) {
-                    const ratio = Math.min(maxDim / w, maxDim / h);
-                    w = Math.round(w * ratio);
-                    h = Math.round(h * ratio);
+    function request(method, url, body, opts) {
+        opts = opts || {};
+        var init = { method: method, credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrf } };
+        if (body instanceof FormData) init.body = body;
+        else if (body !== undefined) { init.headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(body); }
+        return fetch(url, init).then(function (res) {
+            if (opts.blob && res.ok) return res.blob();
+            return res.json().catch(function () { return {}; }).then(function (data) {
+                if (!res.ok) {
+                    var msg = data.message;
+                    if (data.errors) for (var k in data.errors) { msg = data.errors[k][0]; break; }
+                    var err = new Error(msg || (res.status === 403 ? 'You do not have permission' : res.status === 419 ? 'Session expired — reload the page' : res.status === 413 ? 'File too large for the server' : 'Something went wrong'));
+                    err.status = res.status; err.data = data;
+                    throw err;
                 }
+                return data;
+            });
+        });
+    }
 
-                const canvas = document.createElement('canvas');
-                canvas.width = w;
-                canvas.height = h;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, w, h);
+    var toastTimer;
+    function toast(msg, isError) {
+        var el = $('mdToast');
+        el.innerHTML = '<i class="fa-solid ' + (isError ? 'fa-circle-exclamation' : 'fa-circle-check') + '"></i><span>' + esc(msg) + '</span>';
+        el.classList.toggle('is-error', !!isError);
+        el.classList.toggle('is-lifted', !$('mdSelbar').hidden);
+        el.hidden = false;
+        el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { el.hidden = true; }, 3400);
+    }
 
-                canvas.toBlob((blob) => {
-                    if (blob) {
-                        const originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-                        const webpFile = new File([blob], `${originalName}.webp`, { type: 'image/webp' });
-                        resolve(webpFile);
-                    } else {
-                        resolve(file);
-                    }
-                }, 'image/webp', quality);
+    function confirmBox(title, text, danger, okText) {
+        if (window.SwalConfirm) {
+            return window.SwalConfirm({ title: title, text: text, icon: danger ? 'warning' : 'question', isDanger: !!danger, confirmButtonText: okText || (danger ? 'Delete' : 'Yes'), cancelButtonText: 'Cancel' })
+                .then(function (r) { return !!(r && r.isConfirmed); });
+        }
+        return Promise.resolve(window.confirm(title + '\n\n' + text));
+    }
+
+    function copyText(text, label) {
+        var done = function () { toast((label || 'Link') + ' copied'); };
+        if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text); done(); });
+        fallbackCopy(text); done();
+    }
+    function fallbackCopy(text) {
+        var t = document.createElement('textarea');
+        t.value = text; t.style.position = 'fixed'; t.style.opacity = '0';
+        document.body.appendChild(t); t.select();
+        try { document.execCommand('copy'); } catch (e) {}
+        t.remove();
+    }
+
+    function modal(id) { return window.bootstrap ? bootstrap.Modal.getOrCreateInstance($(id)) : null; }
+
+    // ---------------------------------------------------------------- loading
+    function params(extra) {
+        var p = new URLSearchParams();
+        ['folder', 'search', 'format', 'shape', 'usage', 'sort'].forEach(function (k) { if (state[k] && state[k] !== 'all' && !(k === 'sort' && state[k] === 'latest')) p.set(k, state[k]); });
+        Object.keys(extra || {}).forEach(function (k) { p.set(k, extra[k]); });
+        return p;
+    }
+
+    function syncUrl() {
+        var p = params();
+        history.replaceState(null, '', location.pathname + (p.toString() ? '?' + p : ''));
+        var filtered = state.search || state.format !== 'all' || state.shape !== 'all' || state.usage !== 'all';
+        $('mdClearFilters').hidden = !filtered;
+        ['Format', 'Shape', 'Usage'].forEach(function (k) { $('md' + k).classList.toggle('is-set', state[k.toLowerCase()] !== 'all'); });
+    }
+
+    function load(append) {
+        var seq = ++loadSeq;
+        if (!append) {
+            state.page = 1;
+            grid.innerHTML = '<div class="md-skel-wrap" style="display:contents">' + new Array(12).join('<div class="md-skel"></div>') + '</div>';
+        }
+        syncUrl();
+        var btn = $('mdMoreBtn');
+        btn.classList.add('is-busy');
+        return request('GET', U.items + '?' + params({ page: state.page })).then(function (d) {
+            if (seq !== loadSeq) return;
+            if (!append) { items = []; byId = {}; grid.innerHTML = ''; }
+            state.pages = d.pages; state.count = d.count;
+            d.items.forEach(function (it) { items.push(it); byId[it.id] = it; });
+            grid.insertAdjacentHTML('beforeend', d.items.map(card).join(''));
+            if (!items.length) grid.innerHTML = emptyHtml();
+            $('mdResultText').textContent = d.count ? num(d.count) + ' image' + (d.count === 1 ? '' : 's') + ' · ' + bytes(d.bytes) : 'No images';
+            $('mdMore').hidden = state.page >= state.pages;
+            paintStats(d.stats);
+            paintSelection();
+        }).catch(function (e) {
+            if (seq !== loadSeq) return;
+            grid.innerHTML = '<div class="md-empty"><i class="fa-solid fa-triangle-exclamation"></i><strong>Could not load</strong><span>' + esc(e.message) + '</span></div>';
+        }).then(function () { if (seq === loadSeq) btn.classList.remove('is-busy'); });
+    }
+
+    function emptyHtml() {
+        var filtered = state.search || state.format !== 'all' || state.shape !== 'all' || state.usage !== 'all';
+        return '<div class="md-empty"><i class="fa-regular fa-image"></i><strong>' + (filtered ? 'Nothing matches' : 'This folder is empty') + '</strong><span>' +
+            (filtered ? 'Try another search or clear the filters.' : 'Drop images anywhere on this page to upload.') + '</span></div>';
+    }
+
+    function card(it) {
+        var f = FOLDERS[it.folder] || {};
+        var heavy = it.size >= 200 * 1024;
+        var dims = it.w ? it.w + '×' + it.h : it.format.toUpperCase();
+        var used = it.used === true ? 'is-used' : it.used === false ? 'is-unused' : '';
+        var usedTitle = it.used === true ? 'Used on the site' : it.used === false ? 'Not used anywhere' : 'Use unknown';
+        return '<article class="md-card' + (selected.has(it.id) ? ' is-selected' : '') + '" data-id="' + esc(it.id) + '">' +
+            '<label class="md-check" title="Select"><input type="checkbox" data-select' + (selected.has(it.id) ? ' checked' : '') + '><span></span></label>' +
+            '<div class="md-media"><button type="button" class="md-thumb" data-open title="' + esc(it.name) + '"><img src="' + esc(it.url) + '" alt="' + esc(it.title) + '" loading="lazy" decoding="async"></button>' +
+            '<div class="md-badges"><span class="md-badge' + (it.format === 'webp' ? ' is-webp' : '') + '">' + esc(it.format) + '</span>' + (heavy ? '<span class="md-badge is-heavy">' + bytes(it.size) + '</span>' : '') + '</div>' +
+            '<div class="md-hover">' +
+                '<button type="button" data-open title="Details"><i class="fa-solid fa-expand"></i></button>' +
+                '<button type="button" data-copy title="Copy link"><i class="fa-regular fa-copy"></i></button>' +
+                (isEditable(it) ? '<button type="button" data-edit title="Edit"><i class="fa-solid fa-sliders"></i></button>' : '') +
+            '</div></div>' +
+            '<div class="md-info">' +
+                '<div class="md-name" title="' + esc(it.title) + '">' + esc(it.title) + '</div>' +
+                '<div class="md-meta"><i class="md-dot ' + used + '" title="' + usedTitle + '"></i><span>' + esc(dims) + ' · ' + bytes(it.size) + '</span>' +
+                (state.folder === 'all' ? '<span class="md-folder-tag" style="--c:' + esc(f.color || '#64748b') + '">' + esc(f.label || '') + '</span>' : '') + '</div>' +
+            '</div>' +
+            '<div class="md-row-acts">' +
+                '<button type="button" class="md-icon" data-copy title="Copy link"><i class="fa-regular fa-copy"></i></button>' +
+                '<button type="button" class="md-icon" data-open title="Details"><i class="fa-solid fa-chevron-right"></i></button>' +
+            '</div>' +
+        '</article>';
+    }
+
+    function isEditable(it) { return U.gd === '1' && ['jpg', 'png', 'webp'].indexOf(it.format) !== -1; }
+
+    function paintStats(s) {
+        if (!s) return;
+        var put = function (k, v) { app.querySelectorAll('[data-stat="' + k + '"]').forEach(function (el) { el.textContent = v; }); };
+        put('count', num(s.count)); put('bytes', bytes(s.bytes)); put('heavy', num(s.heavy)); put('unused', num(s.unused)); put('webp_pct', s.webp_pct + '%');
+        put('formats', Object.keys(s.formats).slice(0, 3).map(function (k) { return k.toUpperCase(); }).join(' · ') || '—');
+        var ring = app.querySelector('[data-webp-ring] .md-ring-value');
+        if (ring) ring.setAttribute('stroke-dasharray', s.webp_pct + ' 100');
+        $('mdFolders').querySelector('[data-folder-count="all"]').textContent = num(s.count);
+        var bar = '';
+        Object.keys(s.folders).forEach(function (k) {
+            var el = $('mdFolders').querySelector('[data-folder-count="' + k + '"]');
+            if (el) el.textContent = num(s.folders[k].count);
+            var pct = s.bytes ? s.folders[k].bytes * 100 / s.bytes : 0;
+            if (pct > 0) bar += '<button type="button" data-folder-jump="' + k + '" style="--c:' + esc((FOLDERS[k] || {}).color) + ';width:' + pct.toFixed(2) + '%" title="' + esc((FOLDERS[k] || {}).label) + ': ' + bytes(s.folders[k].bytes) + ' · ' + s.folders[k].count + ' files"></button>';
+        });
+        $('mdStorageBar').innerHTML = bar;
+    }
+
+    // ---------------------------------------------------------------- filters
+    function setFolder(key) {
+        state.folder = key;
+        $('mdFolders').querySelectorAll('.md-folder').forEach(function (b) { b.classList.toggle('is-on', b.dataset.folder === key); });
+        var on = $('mdFolders').querySelector('.is-on');
+        if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        load();
+    }
+    $('mdFolders').addEventListener('click', function (e) { var b = e.target.closest('[data-folder]'); if (b) setFolder(b.dataset.folder); });
+    $('mdStorageBar').addEventListener('click', function (e) { var b = e.target.closest('[data-folder-jump]'); if (b) setFolder(b.dataset.folderJump); });
+
+    var searchTimer;
+    $('mdSearch').value = state.search;
+    $('mdSearch').addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        var v = this.value.trim();
+        searchTimer = setTimeout(function () { state.search = v; load(); }, 260);
+    });
+    [['mdFormat', 'format'], ['mdShape', 'shape'], ['mdUsage', 'usage'], ['mdSort', 'sort']].forEach(function (p) {
+        var el = $(p[0]);
+        el.value = state[p[1]];
+        if (el.value !== state[p[1]]) { state[p[1]] = p[1] === 'sort' ? 'latest' : 'all'; el.value = state[p[1]]; }
+        el.addEventListener('change', function () { state[p[1]] = el.value; load(); });
+    });
+    app.querySelectorAll('[data-quick-usage]').forEach(function (b) {
+        b.addEventListener('click', function () {
+            state.usage = b.dataset.quickUsage; $('mdUsage').value = state.usage;
+            if (state.usage === 'heavy') { state.sort = 'largest'; $('mdSort').value = 'largest'; }
+            load();
+        });
+    });
+    $('mdClearFilters').addEventListener('click', function () {
+        state.search = ''; state.format = state.shape = state.usage = 'all';
+        $('mdSearch').value = ''; $('mdFormat').value = $('mdShape').value = $('mdUsage').value = 'all';
+        load();
+    });
+
+    function setView(v) {
+        state.view = v;
+        grid.classList.toggle('is-list', v === 'list');
+        app.querySelectorAll('[data-view]').forEach(function (b) { b.classList.toggle('is-on', b.dataset.view === v); });
+        try { localStorage.setItem('md_view', JSON.stringify(v)); } catch (e) {}
+    }
+    app.querySelectorAll('[data-view]').forEach(function (b) { b.addEventListener('click', function () { setView(b.dataset.view); }); });
+    setView(state.view);
+    $('mdFolders').querySelectorAll('.md-folder').forEach(function (b) { b.classList.toggle('is-on', b.dataset.folder === state.folder); });
+
+    $('mdMoreBtn').addEventListener('click', function () { state.page++; load(true); });
+    if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+            if (entries[0].isIntersecting && !$('mdMore').hidden && !$('mdMoreBtn').classList.contains('is-busy')) { state.page++; load(true); }
+        }, { rootMargin: '400px' }).observe($('mdMore'));
+    }
+
+    document.addEventListener('keydown', function (e) {
+        var tag = (document.activeElement || {}).tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || document.querySelector('.modal.show')) return;
+        if (e.key === '/' && !e.ctrlKey) { e.preventDefault(); $('mdSearch').focus(); }
+        if ($('mdDrawer').classList.contains('show')) {
+            if (e.key === 'ArrowRight') navDrawer(1);
+            if (e.key === 'ArrowLeft') navDrawer(-1);
+        }
+        if (e.key === 'Escape' && selected.size && !$('mdDrawer').classList.contains('show')) clearSelection();
+    });
+
+    // ---------------------------------------------------------------- grid clicks & selection
+    var lastClicked = null;
+    grid.addEventListener('click', function (e) {
+        var c = e.target.closest('.md-card');
+        if (!c) return;
+        var it = byId[c.dataset.id];
+        if (e.target.closest('[data-select]')) {
+            var box = e.target.closest('[data-select]');
+            if (e.shiftKey && lastClicked) {
+                var ids = items.map(function (x) { return x.id; });
+                var a = ids.indexOf(lastClicked), b = ids.indexOf(it.id);
+                ids.slice(Math.min(a, b), Math.max(a, b) + 1).forEach(function (id) { toggleSelect(byId[id], box.checked); });
+            } else {
+                toggleSelect(it, box.checked);
+            }
+            lastClicked = it.id;
+            paintSelection();
+            return;
+        }
+        if (e.target.closest('[data-copy]')) return copyText(absUrl(it.url));
+        if (e.target.closest('[data-edit]')) return openEditor(it);
+        if (e.target.closest('[data-open]')) {
+            if (selected.size && !e.target.closest('.md-hover, .md-row-acts')) { toggleSelect(it, !selected.has(it.id)); paintSelection(); return; }
+            openDrawer(it.id);
+        }
+    });
+
+    // a picture that does not load shows a clean placeholder
+    grid.addEventListener('error', function (e) {
+        if (e.target.tagName === 'IMG') e.target.closest('.md-thumb').classList.add('is-broken');
+    }, true);
+
+    function toggleSelect(it, on) {
+        if (!it) return;
+        if (on) selected.set(it.id, it); else selected.delete(it.id);
+    }
+    function clearSelection() { selected.clear(); paintSelection(); }
+
+    function paintSelection() {
+        grid.querySelectorAll('.md-card').forEach(function (c) {
+            var on = selected.has(c.dataset.id);
+            c.classList.toggle('is-selected', on);
+            var box = c.querySelector('[data-select]');
+            if (box) box.checked = on;
+        });
+        var n = selected.size;
+        app.classList.toggle('has-selection', n > 0);
+        $('mdSelbar').hidden = n === 0;
+        $('mdSelCount').textContent = num(n);
+        $('mdSelAll').hidden = n >= state.count;
+        $('mdSelAllCount').textContent = '(' + num(state.count) + ')';
+        var page = $('mdCheckPage');
+        var onPage = items.filter(function (it) { return selected.has(it.id); }).length;
+        page.checked = items.length > 0 && onPage === items.length;
+        page.indeterminate = onPage > 0 && onPage < items.length;
+    }
+
+    $('mdCheckPage').addEventListener('change', function () {
+        var on = this.checked;
+        items.forEach(function (it) { toggleSelect(it, on); });
+        paintSelection();
+    });
+    $('mdSelAll').addEventListener('click', function () {
+        request('GET', U.items + '?' + params({ ids: 1 })).then(function (d) {
+            d.ids.forEach(function (id) { if (!selected.has(id)) selected.set(id, byId[id] || { id: id }); });
+            paintSelection();
+        }).catch(function (e) { toast(e.message, true); });
+    });
+
+    // ---------------------------------------------------------------- bulk actions
+    function selectedIds() { return Array.from(selected.keys()); }
+
+    $('mdSelbar').addEventListener('click', function (e) {
+        var b = e.target.closest('[data-bulk], [data-move]');
+        if (!b) return;
+        if (b.dataset.move) return runBulk('move', selectedIds(), { folder: b.dataset.move }, 'Move ' + selected.size + ' file(s) to ' + FOLDERS[b.dataset.move].label + '?');
+        var act = b.dataset.bulk;
+        if (act === 'clear') return clearSelection();
+        if (act === 'copy') {
+            var urls = Array.from(selected.values()).filter(function (it) { return it.url; }).map(function (it) { return absUrl(it.url); });
+            if (!urls.length) return toast('Links are copied for the files shown on screen', true);
+            return copyText(urls.join('\n'), urls.length + ' links');
+        }
+        if (act === 'zip') return downloadZip(selectedIds());
+        if (act === 'delete') return runBulk('delete', selectedIds(), {}, 'Delete ' + selected.size + ' file(s)? This cannot be undone.', true);
+        if (act === 'webp') return openTool('webp', selectedIds());
+        if (act === 'optimize') return openTool('optimize', selectedIds());
+    });
+
+    function runBulk(action, ids, extra, question, danger) {
+        return confirmBox(action === 'delete' ? 'Delete files' : 'Are you sure?', question, danger, action === 'move' ? 'Move' : undefined).then(function (ok) {
+            if (!ok) return;
+            return sendBulk(action, ids, extra);
+        });
+    }
+
+    function sendBulk(action, ids, extra) {
+        var body = Object.assign({ action: action, ids: ids }, extra || {});
+        return request('POST', U.bulk, body).then(function (d) {
+            toast(d.message);
+            selected.clear();
+            load();
+            return d;
+        }).catch(function (e) {
+            if (e.status === 409 && e.data && e.data.needs_force) {
+                return confirmBox('Files in use', e.data.in_use + ' of these files are shown on the site (books, authors, banners…). Deleting them leaves broken images. Delete anyway?', true, 'Delete anyway')
+                    .then(function (ok) { if (ok) return sendBulk(action, ids, Object.assign({}, extra, { force: true })); });
+            }
+            toast(e.message, true);
+        });
+    }
+
+    function downloadZip(ids) {
+        toast('Preparing ZIP…');
+        request('POST', U.zip, { ids: ids }, { blob: true }).then(function (blob) {
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'media-' + new Date().toISOString().slice(0, 10) + '.zip';
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+        }).catch(function (e) { toast(e.message, true); });
+    }
+
+    // ---------------------------------------------------------------- drawer
+    var drawerId = null;
+    function openDrawer(id) {
+        var it = byId[id];
+        if (!it) return;
+        drawerId = id;
+        var f = FOLDERS[it.folder] || {};
+        var status = it.used === true ? ['is-used', 'fa-link', 'Used on the site'] : it.used === false ? ['is-unused', 'fa-link-slash', 'Not used anywhere'] : ['is-unknown', 'fa-circle-question', 'Use not tracked in this folder'];
+        var url = absUrl(it.url);
+        $('mdDrawerTitle').textContent = it.name;
+        $('mdDrawerBody').innerHTML =
+            '<div class="md-preview"><img src="' + esc(it.url) + '" alt="' + esc(it.title) + '"></div>' +
+            '<div><h6 class="md-d-title">' + (it.link ? '<a href="' + esc(it.link) + '" target="_blank" rel="noopener">' + esc(it.title) + ' <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:11px"></i></a>' : esc(it.title)) + '</h6>' +
+            '<p class="md-d-sub">' + esc(it.sub) + '</p></div>' +
+            '<div><span class="md-status ' + status[0] + '"><i class="fa-solid ' + status[1] + '"></i>' + status[2] + '</span></div>' +
+            '<dl class="md-facts">' +
+                '<div><dt>Size</dt><dd>' + bytes(it.size) + '</dd></div>' +
+                '<div><dt>Dimensions</dt><dd>' + (it.w ? it.w + ' × ' + it.h + ' px' : '—') + '</dd></div>' +
+                '<div><dt>Format</dt><dd>' + esc(it.format.toUpperCase()) + '</dd></div>' +
+                '<div><dt>Folder</dt><dd style="color:' + esc(f.color) + '">' + esc(f.label || '') + '</dd></div>' +
+                '<div><dt>Updated</dt><dd title="' + esc(new Date(it.t * 1000).toLocaleString()) + '">' + ago(it.t) + '</dd></div>' +
+                '<div><dt>File</dt><dd title="' + esc(it.name) + '">' + esc(it.name) + '</dd></div>' +
+            '</dl>' +
+            '<div class="md-copyrow"><input type="text" readonly value="' + esc(url) + '" aria-label="Link"><button type="button" class="md-btn" data-d="copy"><i class="fa-regular fa-copy"></i><span>Copy</span></button></div>' +
+            '<div class="md-copyrow"><input type="text" readonly value="' + esc('<img src="' + url + '" alt="' + it.title + '" loading="lazy">') + '" aria-label="HTML"><button type="button" class="md-btn" data-d="copy-html"><i class="fa-solid fa-code"></i><span>HTML</span></button></div>' +
+            '<div class="md-d-acts">' +
+                (isEditable(it) ? '<button type="button" class="md-btn" data-d="edit"><i class="fa-solid fa-sliders"></i><span>Edit</span></button>' : '') +
+                '<button type="button" class="md-btn" data-d="replace"><i class="fa-solid fa-arrow-right-arrow-left"></i><span>Replace</span></button>' +
+                '<a class="md-btn" href="' + esc(url) + '" download="' + esc(it.name) + '"><i class="fa-solid fa-download"></i><span>Save</span></a>' +
+                '<button type="button" class="md-btn" data-d="open-tab"><i class="fa-solid fa-up-right-from-square"></i><span>Open</span></button>' +
+                (U.gd === '1' && ['jpg', 'png'].indexOf(it.format) !== -1 ? '<button type="button" class="md-btn" data-d="webp"><i class="fa-solid fa-bolt"></i><span>WebP</span></button>' : '') +
+                '<button type="button" class="md-btn is-danger-soft" data-d="delete"><i class="fa-regular fa-trash-can"></i><span>Delete</span></button>' +
+            '</div>' +
+            '<div><div class="md-field"><span>Rename</span></div><div class="md-rename"><input type="text" class="md-input" id="mdRename" value="' + esc(it.name.replace(/\.[^.]+$/, '')) + '"' + (it.used === true ? ' disabled title="Used on the site"' : '') + '><button type="button" class="md-btn" data-d="rename"' + (it.used === true ? ' disabled' : '') + '>Save</button></div>' +
+            (it.used === true ? '<p class="md-hint"><i class="fa-solid fa-shield-halved"></i>Used on the site, so its name and folder are locked. Replace keeps the same link.</p>' : '') + '</div>';
+        if (window.bootstrap) bootstrap.Offcanvas.getOrCreateInstance($('mdDrawer')).show();
+    }
+
+    function navDrawer(step) {
+        var i = items.findIndex(function (x) { return x.id === drawerId; });
+        var next = items[i + step];
+        if (next) {
+            openDrawer(next.id);
+            var c = grid.querySelector('[data-id="' + CSS.escape(next.id) + '"]');
+            if (c) c.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        } else if (step > 0 && state.page < state.pages) {
+            state.page++;
+            load(true).then(function () { navDrawer(1); });
+        }
+    }
+
+    $('mdDrawer').addEventListener('click', function (e) {
+        var nav = e.target.closest('[data-nav]');
+        if (nav) return navDrawer(parseInt(nav.dataset.nav, 10));
+        var b = e.target.closest('[data-d]');
+        if (!b) return;
+        var it = byId[drawerId];
+        if (!it) return;
+        var act = b.dataset.d;
+        if (act === 'copy') copyText(absUrl(it.url));
+        else if (act === 'copy-html') copyText('<img src="' + absUrl(it.url) + '" alt="' + it.title.replace(/"/g, '&quot;') + '" loading="lazy">', 'HTML');
+        else if (act === 'open-tab') window.open(absUrl(it.url), '_blank', 'noopener');
+        else if (act === 'edit') openEditor(it);
+        else if (act === 'replace') { replaceTarget = it; $('mdReplaceInput').value = ''; $('mdReplaceInput').click(); }
+        else if (act === 'webp') { closeDrawer(); sendBulk('webp', [it.id], { replace_original: false }); }
+        else if (act === 'delete') {
+            runBulk('delete', [it.id], {}, 'Delete ' + it.name + '? This cannot be undone.', true).then(function (d) { if (d) closeDrawer(); });
+        } else if (act === 'rename') {
+            var name = $('mdRename').value.trim();
+            if (!name) return;
+            b.classList.add('is-busy');
+            request('POST', U.rename, { id: it.id, name: name }).then(function (d) {
+                toast(d.message);
+                replaceItem(it.id, d.item);
+                openDrawer(d.item.id);
+            }).catch(function (err) { toast(err.message, true); }).then(function () { b.classList.remove('is-busy'); });
+        }
+    });
+    $('mdDrawer').addEventListener('focusin', function (e) { if (e.target.matches('.md-copyrow input')) e.target.select(); });
+    function closeDrawer() { if (window.bootstrap) bootstrap.Offcanvas.getOrCreateInstance($('mdDrawer')).hide(); }
+
+    function replaceItem(oldId, item) {
+        var i = items.findIndex(function (x) { return x.id === oldId; });
+        if (i === -1) return;
+        delete byId[oldId];
+        items[i] = item; byId[item.id] = item;
+        if (selected.has(oldId)) { selected.delete(oldId); selected.set(item.id, item); }
+        var el = grid.querySelector('[data-id="' + CSS.escape(oldId) + '"]');
+        if (el) el.outerHTML = card(item);
+    }
+
+    // replace
+    var replaceTarget = null;
+    $('mdReplaceInput').addEventListener('change', function () {
+        var file = this.files[0], it = replaceTarget;
+        if (!file || !it) return;
+        confirmBox('Replace image', 'Put "' + file.name + '" in place of ' + it.name + '? The link stays the same, so every page shows the new picture.', false, 'Replace').then(function (ok) {
+            if (!ok) return;
+            var fd = new FormData();
+            fd.append('id', it.id); fd.append('file', file);
+            toast('Replacing…');
+            request('POST', U.replace, fd).then(function (d) {
+                toast(d.message);
+                replaceItem(it.id, Object.assign({}, it, d.item, { title: it.title, sub: it.sub, link: it.link }));
+                if (drawerId === it.id) openDrawer(d.item.id);
+            }).catch(function (e) { toast(e.message, true); });
+        });
+    });
+
+    // ---------------------------------------------------------------- upload
+    var queue = [];
+    var uploading = false;
+
+    function openUpload(files) {
+        var sel = $('mdUpFolder');
+        if (state.folder !== 'all' && FOLDERS[state.folder]) sel.value = state.folder;
+        updateMaxHint();
+        modal('mdUpload').show();
+        if (files && files.length) addFiles(files);
+    }
+    app.querySelectorAll('[data-open-upload]').forEach(function (b) { b.addEventListener('click', function () { openUpload(); }); });
+
+    function updateMaxHint() {
+        var opt = $('mdUpFolder').selectedOptions[0];
+        $('mdUpMax').options[0].textContent = 'Folder default (' + (opt ? opt.dataset.max : '') + ' px)';
+    }
+    $('mdUpFolder').addEventListener('change', updateMaxHint);
+
+    function addFiles(list) {
+        Array.prototype.forEach.call(list, function (file) {
+            if (!/^image\//.test(file.type)) return toast(file.name + ' is not an image', true);
+            if (file.size > 10 * 1024 * 1024) return toast(file.name + ' is over 10 MB', true);
+            queue.push({ file: file, state: 'wait', key: Math.random().toString(36).slice(2) });
+        });
+        paintQueue();
+    }
+
+    function paintQueue() {
+        var wrap = $('mdQueue');
+        wrap.innerHTML = queue.map(function (q) {
+            if (!q.thumb) q.thumb = URL.createObjectURL(q.file);
+            var icon = q.state === 'done' ? 'fa-circle-check' : q.state === 'error' ? 'fa-circle-exclamation' : q.state === 'up' ? 'fa-spinner fa-spin' : 'fa-xmark';
+            return '<div class="md-q ' + (q.state === 'done' ? 'is-done' : q.state === 'error' ? 'is-error' : '') + '" data-key="' + q.key + '">' +
+                '<img src="' + q.thumb + '" alt="">' +
+                '<div><div class="md-q-name">' + esc(q.file.name) + '</div><div class="md-q-sub">' + esc(q.note || bytes(q.file.size)) + '</div><div class="md-q-bar"><i style="width:' + (q.pct || 0) + '%"></i></div></div>' +
+                '<button type="button" class="md-icon md-q-state" data-remove="' + q.key + '"' + (q.state === 'wait' ? ' title="Remove"' : ' disabled') + '><i class="fa-solid ' + icon + '"></i></button>' +
+            '</div>';
+        }).join('');
+        var waiting = queue.filter(function (q) { return q.state === 'wait'; }).length;
+        $('mdUpStart').disabled = !waiting || uploading;
+        $('mdQueueNote').textContent = queue.length ? waiting + ' waiting · ' + bytes(queue.reduce(function (n, q) { return n + q.file.size; }, 0)) : '';
+    }
+
+    $('mdQueue').addEventListener('click', function (e) {
+        var b = e.target.closest('[data-remove]');
+        if (!b || uploading) return;
+        queue = queue.filter(function (q) { if (q.key === b.dataset.remove) { URL.revokeObjectURL(q.thumb); return false; } return true; });
+        paintQueue();
+    });
+
+    var drop = $('mdDrop');
+    $('mdFiles').addEventListener('change', function () { addFiles(this.files); this.value = ''; });
+    ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('is-over'); }); });
+    ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('is-over'); }); });
+    drop.addEventListener('drop', function (e) { e.stopPropagation(); addFiles(e.dataTransfer.files); });
+
+    $('mdUpStart').addEventListener('click', function () {
+        if (uploading) return;
+        uploading = true;
+        var btn = this;
+        btn.classList.add('is-busy');
+        var ok = 0, failed = 0;
+        var next = function () {
+            var q = queue.find(function (x) { return x.state === 'wait'; });
+            if (!q) {
+                uploading = false;
+                btn.classList.remove('is-busy');
+                paintQueue();
+                toast(ok + ' uploaded' + (failed ? ', ' + failed + ' failed' : ''), failed && !ok);
+                if (ok) {
+                    var target = $('mdUpFolder').value;
+                    if (state.folder !== 'all' && state.folder !== target) setFolder(target); else load();
+                }
+                return;
+            }
+            q.state = 'up'; paintQueue();
+            sendFile(q).then(function (d) {
+                q.state = 'done';
+                var item = d.items && d.items[0];
+                q.note = item ? (item.reused ? 'Already in the library' : bytes(q.file.size) + ' → ' + bytes(item.size) + (item.w ? ' · ' + item.w + '×' + item.h : '')) : 'Done';
+                ok++;
+            }).catch(function (e) {
+                q.state = 'error'; q.note = (e.data && e.data.failed && e.data.failed[0] && e.data.failed[0].reason) || e.message; failed++;
+            }).then(next);
+        };
+        next();
+    });
+
+    function sendFile(q) {
+        return new Promise(function (resolve, reject) {
+            var fd = new FormData();
+            fd.append('files[]', q.file, q.file.name || 'pasted.png');
+            fd.append('folder', $('mdUpFolder').value);
+            fd.append('webp', $('mdUpWebp').checked ? '1' : '0');
+            if ($('mdUpMax').value !== '') fd.append('max', $('mdUpMax').value);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', U.upload);
+            xhr.setRequestHeader('X-CSRF-TOKEN', csrf);
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.upload.onprogress = function (e) {
+                if (!e.lengthComputable) return;
+                q.pct = Math.round(e.loaded * 95 / e.total);
+                var bar = $('mdQueue').querySelector('[data-key="' + q.key + '"] .md-q-bar i');
+                if (bar) bar.style.width = q.pct + '%';
             };
-            img.onerror = () => resolve(file);
-            img.src = e.target.result;
+            xhr.onload = function () {
+                var d = {};
+                try { d = JSON.parse(xhr.responseText); } catch (e) {}
+                if (xhr.status >= 200 && xhr.status < 300) return resolve(d);
+                var msg = d.message;
+                if (d.errors) for (var k in d.errors) { msg = d.errors[k][0]; break; }
+                var err = new Error(msg || (xhr.status === 413 ? 'File too large for the server' : xhr.status === 419 ? 'Session expired — reload' : 'Upload failed'));
+                err.data = d; reject(err);
+            };
+            xhr.onerror = function () { reject(new Error('Network error')); };
+            xhr.send(fd);
+        });
+    }
+
+    $('mdUpload').addEventListener('hidden.bs.modal', function () {
+        if (uploading) return;
+        queue.filter(function (q) { return q.state !== 'wait'; }).forEach(function (q) { URL.revokeObjectURL(q.thumb); });
+        queue = queue.filter(function (q) { return q.state === 'wait'; });
+        paintQueue();
+    });
+
+    // drop anywhere / paste
+    var dragDepth = 0;
+    var hasFiles = function (e) { return e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') !== -1; };
+    document.addEventListener('dragenter', function (e) { if (!hasFiles(e) || document.querySelector('.modal.show')) return; dragDepth++; $('mdOverlay').hidden = false; });
+    document.addEventListener('dragleave', function (e) { if (!hasFiles(e)) return; dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) $('mdOverlay').hidden = true; });
+    document.addEventListener('dragover', function (e) { if (hasFiles(e)) e.preventDefault(); });
+    document.addEventListener('drop', function (e) {
+        if (!hasFiles(e)) return;
+        e.preventDefault(); dragDepth = 0; $('mdOverlay').hidden = true;
+        if (!document.querySelector('.modal.show')) openUpload(e.dataTransfer.files);
+    });
+    document.addEventListener('paste', function (e) {
+        var tag = (document.activeElement || {}).tagName;
+        if ((tag === 'INPUT' || tag === 'TEXTAREA') && !$('mdUpload').classList.contains('show')) return;
+        var files = Array.prototype.filter.call((e.clipboardData || {}).files || [], function (f) { return /^image\//.test(f.type); });
+        if (!files.length) return;
+        e.preventDefault();
+        if ($('mdUpload').classList.contains('show')) addFiles(files); else openUpload(files);
+    });
+
+    // ---------------------------------------------------------------- editor
+    var ed = null;
+    var canvas = $('mdCanvas');
+    var ctx = canvas.getContext('2d');
+
+    function openEditor(it) {
+        var img = new Image();
+        img.onload = function () {
+            ed = { it: it, img: img, rot: 0, fx: 1, fy: 1, ratio: 0, tone: { brightness: 100, contrast: 100, saturate: 100 }, width: 0, mark: '', markPos: 'br', markOp: 60 };
+            $('mdEdMeta').textContent = it.name + ' · ' + img.naturalWidth + '×' + img.naturalHeight + ' · ' + bytes(it.size);
+            $('mdEdName').value = it.name.replace(/\.[^.]+$/, '') + '-edit';
+            $('mdEdFolder').value = it.folder;
+            $('mdEdFormat').value = 'webp';
+            $('mdEdMark').value = '';
+            $('mdEdRatio').querySelectorAll('button').forEach(function (b) { b.classList.toggle('is-on', b.dataset.ratio === '0'); });
+            resetTone();
+            var full = cropBox();
+            $('mdEdW').value = full.w;
+            ed.width = full.w;
+            $('mdEdOverwrite').disabled = false;
+            render();
+            modal('mdEditor').show();
         };
-        reader.onerror = () => resolve(file);
-        reader.readAsDataURL(file);
+        img.onerror = function () { toast('Could not open this image', true); };
+        img.src = it.url;
+    }
+
+    function srcSize() {
+        var swap = Math.abs(ed.rot) % 180 === 90;
+        return { w: swap ? ed.img.naturalHeight : ed.img.naturalWidth, h: swap ? ed.img.naturalWidth : ed.img.naturalHeight };
+    }
+    function cropBox() {
+        var s = srcSize();
+        if (!ed.ratio) return { x: 0, y: 0, w: s.w, h: s.h };
+        var w = s.w, h = Math.round(s.w / ed.ratio);
+        if (h > s.h) { h = s.h; w = Math.round(s.h * ed.ratio); }
+        return { x: Math.round((s.w - w) / 2), y: Math.round((s.h - h) / 2), w: w, h: h };
+    }
+
+    function render() {
+        if (!ed) return;
+        var s = srcSize(), box = cropBox();
+        var outW = Math.max(16, Math.min(4000, ed.width || box.w));
+        var scale = outW / box.w;
+        var outH = Math.max(1, Math.round(box.h * scale));
+        $('mdEdH').value = outH;
+
+        // turn + flip onto a work canvas at full size
+        var work = document.createElement('canvas');
+        work.width = s.w; work.height = s.h;
+        var w = work.getContext('2d');
+        w.translate(s.w / 2, s.h / 2);
+        w.rotate(ed.rot * Math.PI / 180);
+        w.scale(ed.fx, ed.fy);
+        w.drawImage(ed.img, -ed.img.naturalWidth / 2, -ed.img.naturalHeight / 2);
+
+        canvas.width = outW; canvas.height = outH;
+        ctx.save();
+        ctx.filter = 'brightness(' + ed.tone.brightness + '%) contrast(' + ed.tone.contrast + '%) saturate(' + ed.tone.saturate + '%)';
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(work, box.x, box.y, box.w, box.h, 0, 0, outW, outH);
+        ctx.restore();
+
+        if (ed.mark) {
+            var size = Math.max(12, Math.round(outW / 28));
+            ctx.save();
+            ctx.globalAlpha = ed.markOp / 100;
+            ctx.font = '700 ' + size + 'px system-ui, sans-serif';
+            ctx.fillStyle = '#fff';
+            ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = size / 3;
+            var pad = size;
+            var tw = ctx.measureText(ed.mark).width;
+            var pos = { br: [outW - tw - pad, outH - pad], bl: [pad, outH - pad], tr: [outW - tw - pad, pad + size], c: [(outW - tw) / 2, outH / 2 + size / 3] }[ed.markPos];
+            ctx.fillText(ed.mark, pos[0], pos[1]);
+            ctx.restore();
+        }
+        $('mdEdOut').textContent = 'Result: ' + outW + ' × ' + outH + ' px';
+    }
+
+    function resetTone() {
+        $('mdEditor').querySelectorAll('[data-tone]').forEach(function (r) { r.value = 100; r.nextElementSibling.textContent = '100%'; });
+        if (ed) ed.tone = { brightness: 100, contrast: 100, saturate: 100 };
+    }
+
+    $('mdEdRatio').addEventListener('click', function (e) {
+        var b = e.target.closest('[data-ratio]');
+        if (!b || !ed) return;
+        this.querySelectorAll('button').forEach(function (x) { x.classList.toggle('is-on', x === b); });
+        ed.ratio = parseFloat(b.dataset.ratio);
+        ed.width = cropBox().w; $('mdEdW').value = ed.width;
+        render();
     });
-}
-
-async function submitMultiUploadAjax() {
-    if (pendingUploadFiles.length === 0) {
-        showMediaAlert('warning', 'Please select at least one image file!');
-        return;
-    }
-
-    const btn = document.getElementById('btnSubmitUpload');
-    const progressBar = document.getElementById('uploadProgressBar');
-    const progressWrap = document.getElementById('uploadProgressWrap');
-    const percentLabel = document.getElementById('uploadPercentLabel');
-
-    if (btn) btn.disabled = true;
-    if (progressWrap) progressWrap.classList.remove('d-none');
-    if (progressBar) progressBar.style.width = '10%';
-    if (percentLabel) percentLabel.textContent = 'Pre-converting and optimizing WebP in browser...';
-
-    const formData = new FormData();
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const folder = document.getElementById('uploadTargetFolder')?.value || 'uploads';
-    const autoWebp = document.getElementById('uploadAutoWebp')?.checked;
-    const maxDim = parseInt(document.getElementById('uploadMaxDim')?.value) || 1920;
-
-    formData.append('_token', token);
-    formData.append('folder', folder);
-    formData.append('auto_webp', autoWebp ? 1 : 0);
-    formData.append('max_dim', maxDim);
-
-    // Client-side WebP pre-conversion
-    for (let i = 0; i < pendingUploadFiles.length; i++) {
-        let f = pendingUploadFiles[i];
-        if (autoWebp) {
-            f = await convertFileToWebpInBrowser(f, 0.85, maxDim);
-        }
-        formData.append('files[]', f);
-    }
-
-    if (progressBar) progressBar.style.width = '35%';
-    if (percentLabel) percentLabel.textContent = 'Uploading to server...';
-
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/admin/media/upload', true);
-    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-    xhr.setRequestHeader('Accept', 'application/json');
-
-    xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable && progressBar) {
-            const percent = 35 + Math.round((e.loaded / e.total) * 60);
-            progressBar.style.width = percent + '%';
-            if (percentLabel) percentLabel.textContent = `Upload complete: ${percent}%`;
-        }
-    };
-
-    xhr.onload = () => {
-        if (btn) btn.disabled = false;
-        if (progressBar) progressBar.style.width = '100%';
-        if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-                const res = JSON.parse(xhr.responseText);
-                showMediaAlert('success', res.message || 'Upload successful!');
-                setTimeout(() => window.location.reload(), 1000);
-            } catch (e) {
-                window.location.reload();
-            }
-        } else {
-            showMediaAlert('danger', 'Failed to upload files.');
-        }
-    };
-
-    xhr.onerror = () => {
-        if (btn) btn.disabled = false;
-        showMediaAlert('danger', 'Network error. Upload failed.');
-    };
-
-    xhr.send(formData);
-}
-
-/**
- * 1-Click Dynamic WebP Conversion Engine & Live Storage Optimizer Modal
- */
-/**
- * 1-Click Dynamic WebP Conversion Engine & Live Storage Optimizer Modal
- */
-function openConvertWebpEngineModal(scope = 'auto') {
-    const configView = document.getElementById('webpEngineConfigView');
-    const progressView = document.getElementById('webpEngineProgressView');
-    const successView = document.getElementById('webpEngineSuccessView');
-
-    if (configView) configView.classList.remove('d-none');
-    if (progressView) progressView.classList.add('d-none');
-    if (successView) successView.classList.add('d-none');
-
-    const folderSelect = document.getElementById('webpTargetFolderSelect');
-    if (folderSelect) {
-        let selectedOption = document.getElementById('webpScopeSelectedOption');
-        if (scope === 'selected' || (scope === 'auto' && selectedMediaPaths.length > 0)) {
-            if (!selectedOption) {
-                selectedOption = document.createElement('option');
-                selectedOption.id = 'webpScopeSelectedOption';
-                selectedOption.value = 'selected';
-                folderSelect.insertBefore(selectedOption, folderSelect.firstChild);
-            }
-            selectedOption.textContent = `🎯 Selected Assets (${selectedMediaPaths.length} items)`;
-            folderSelect.value = 'selected';
-        } else {
-            if (selectedOption) selectedOption.remove();
-            const urlParams = new URLSearchParams(window.location.search);
-            const currentFolder = urlParams.get('folder') || 'all';
-            folderSelect.value = folderSelect.querySelector(`option[value="${currentFolder}"]`) ? currentFolder : 'all';
-        }
-    }
-
-    const modalEl = document.getElementById('convertWebpEngineModal');
-    if (modalEl && typeof bootstrap !== 'undefined') {
-        const m = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
-        m.show();
-    }
-}
-
-function startWebpConversionEngine() {
-    const configView = document.getElementById('webpEngineConfigView');
-    const progressView = document.getElementById('webpEngineProgressView');
-    const successView = document.getElementById('webpEngineSuccessView');
-
-    const folder = document.getElementById('webpTargetFolderSelect')?.value || 'all';
-    const quality = parseInt(document.getElementById('webpQualitySelect')?.value || '85');
-    const deleteOriginal = document.getElementById('webpDeleteOriginalCheck')?.checked ? true : false;
-
-    if (configView) configView.classList.add('d-none');
-    if (progressView) progressView.classList.remove('d-none');
-    if (successView) successView.classList.add('d-none');
-
-    const progressBar = document.getElementById('webpEngineProgressBar');
-    const statusBadge = document.getElementById('webpStatusBadge');
-    const countBadge = document.getElementById('webpConvertedCount');
-    const memSavedBadge = document.getElementById('webpMemorySaved');
-    const logBox = document.getElementById('webpEngineLogBox');
-
-    if (progressBar) progressBar.style.width = '20%';
-    if (statusBadge) statusBadge.textContent = 'Processing conversion...';
-
-    const appendLog = (text) => {
-        if (!logBox) return;
-        const line = document.createElement('div');
-        line.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
-        logBox.appendChild(line);
-        logBox.scrollTop = logBox.scrollHeight;
-    };
-
-    if (folder === 'selected') {
-        appendLog(`Target: ${selectedMediaPaths.length} Selected Image(s) | Quality: ${quality}%`);
-    } else {
-        appendLog(`Target Folder: ${folder.toUpperCase()} | Quality: ${quality}%`);
-    }
-    appendLog(`Delete originals: ${deleteOriginal ? 'Enabled (Reclaim Disk)' : 'Disabled'}`);
-
-    let progressSim = 25;
-    const interval = setInterval(() => {
-        if (progressSim < 85) {
-            progressSim += 10;
-            if (progressBar) progressBar.style.width = progressSim + '%';
-            if (statusBadge) statusBadge.textContent = 'Converting (' + progressSim + '%)...';
-        }
-    }, 400);
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-    const payload = (folder === 'selected')
-        ? { paths: selectedMediaPaths, quality: quality, delete_original: deleteOriginal }
-        : { folder: folder, quality: quality, delete_original: deleteOriginal };
-
-    fetch('/admin/media/convert-all-webp', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(r => r.json())
-    .then(data => {
-        clearInterval(interval);
-        if (progressBar) progressBar.style.width = '100%';
-
-        if (data.success) {
-            if (statusBadge) statusBadge.textContent = 'Completed!';
-            if (countBadge) countBadge.textContent = `${data.count} files`;
-            if (memSavedBadge) memSavedBadge.textContent = data.saved || '0 B';
-
-            appendLog(`Success! Total ${data.count} file(s) converted to WebP.`);
-            appendLog(`Total Saved: ${data.saved}`);
-
-            if (data.items && data.items.length > 0) {
-                data.items.slice(0, 15).forEach(item => {
-                    appendLog(`✓ ${item.filename} ➔ ${item.webp_name}`);
-                });
-            }
-
-            setTimeout(() => {
-                if (progressView) progressView.classList.add('d-none');
-                if (successView) {
-                    successView.classList.remove('d-none');
-                    const msgEl = document.getElementById('webpSuccessMessage');
-                    if (msgEl) msgEl.textContent = data.message;
-                }
-            }, 1000);
-        } else {
-            appendLog(`Error: ${data.message || 'Conversion failed.'}`);
-            showMediaAlert('danger', data.message || 'WebP conversion failed.');
-            setTimeout(() => {
-                if (configView) configView.classList.remove('d-none');
-                if (progressView) progressView.classList.add('d-none');
-            }, 2000);
-        }
-    })
-    .catch((err) => {
-        clearInterval(interval);
-        appendLog(`Network or server error!`);
-        showMediaAlert('danger', 'Server request failed.');
-        setTimeout(() => {
-            if (configView) configView.classList.remove('d-none');
-            if (progressView) progressView.classList.add('d-none');
-        }, 2000);
+    $('mdEditor').addEventListener('click', function (e) {
+        if (!ed) return;
+        var t = e.target.closest('[data-turn]'), f = e.target.closest('[data-flip]');
+        if (t) { ed.rot = (ed.rot + parseInt(t.dataset.turn, 10) + 360) % 360; ed.width = cropBox().w; $('mdEdW').value = ed.width; render(); }
+        if (f) { if (f.dataset.flip === 'x') ed.fx *= -1; else ed.fy *= -1; render(); }
     });
-}
-
-function runConvertAllToWebp(btn) {
-    openConvertWebpEngineModal();
-}
-
-/* ========================================================================= */
-/* 4. RENAME FILE & SINGLE OPTIMIZE                                          */
-/* ========================================================================= */
-function openRenameModal(path, currentName) {
-    const pathInput = document.getElementById('renamePathInput');
-    const nameInput = document.getElementById('renameNewNameInput');
-    if (pathInput) pathInput.value = path;
-    if (nameInput) nameInput.value = currentName.substring(0, currentName.lastIndexOf('.')) || currentName;
-
-    const modalEl = document.getElementById('renameFileModal');
-    if (modalEl && typeof bootstrap !== 'undefined') {
-        const m = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
-        m.show();
-    }
-}
-
-function submitRenameFile() {
-    const path = document.getElementById('renamePathInput')?.value;
-    const newName = document.getElementById('renameNewNameInput')?.value;
-    if (!path || !newName) return;
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const btn = document.getElementById('btnConfirmRename');
-    if (btn) btn.disabled = true;
-
-    fetch('/admin/media/rename', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ path: path, new_name: newName })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showMediaAlert('success', data.message);
-            setTimeout(() => window.location.reload(), 1000);
-        } else {
-            showMediaAlert('danger', data.message || 'Failed to rename file.');
-        }
-    })
-    .catch(() => showMediaAlert('danger', 'Server request failed.'))
-    .finally(() => {
-        if (btn) btn.disabled = false;
+    $('mdEditor').querySelectorAll('[data-tone]').forEach(function (r) {
+        r.addEventListener('input', function () { r.nextElementSibling.textContent = r.value + '%'; if (ed) { ed.tone[r.dataset.tone] = +r.value; render(); } });
     });
-}
+    $('mdEdResetTone').addEventListener('click', function () { resetTone(); render(); });
+    $('mdEdW').addEventListener('input', function () { if (ed) { ed.width = parseInt(this.value, 10) || 0; render(); } });
+    $('mdEdMark').addEventListener('input', function () { if (ed) { ed.mark = this.value.trim(); render(); } });
+    $('mdEdMarkPos').addEventListener('change', function () { if (ed) { ed.markPos = this.value; render(); } });
+    $('mdEdMarkOp').addEventListener('input', function () { this.nextElementSibling.textContent = this.value + '%'; if (ed) { ed.markOp = +this.value; render(); } });
+    $('mdEdQuality').addEventListener('input', function () { this.nextElementSibling.textContent = this.value; });
 
-/* ========================================================================= */
-/* 5. CREATE NEW FOLDER                                                      */
-/* ========================================================================= */
-function submitCreateFolder() {
-    const name = document.getElementById('newFolderNameInput')?.value;
-    const loc = document.getElementById('newFolderLocSelect')?.value || 'storage';
-    if (!name) return;
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const btn = document.getElementById('btnConfirmCreateFolder');
-    if (btn) btn.disabled = true;
-
-    fetch('/admin/media/create-folder', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ folder_name: name, location: loc })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showMediaAlert('success', data.message);
-            setTimeout(() => window.location.reload(), 1000);
-        } else {
-            showMediaAlert('danger', data.message || 'Failed to create folder.');
-        }
-    })
-    .catch(() => showMediaAlert('danger', 'Server request failed.'))
-    .finally(() => {
-        if (btn) btn.disabled = false;
-    });
-}
-
-/* ========================================================================= */
-/* 6. LIGHTBOX CAROUSEL, ZOOM & PREVIEW ENGINE                               */
-/* ========================================================================= */
-let currentLightboxIndex = 0;
-let currentLightboxZoom = 1;
-
-function copyUrl(url) {
-    navigator.clipboard.writeText(url).then(() => {
-        showMediaAlert('success', 'Image link copied to clipboard!');
-    });
-}
-
-function openLightbox(url, filename, size, date, dimensions, folder) {
-    document.getElementById('lightboxImage').src = url;
-    document.getElementById('lightboxTitle').textContent = filename;
-    document.getElementById('lightboxMeta').textContent = `Resolution: ${dimensions || 'N/A'} | Size: ${size} | Folder: ${folder} | Date: ${date}`;
-    document.getElementById('lightboxOpenBtn').href = url;
-    document.getElementById('lightboxDownloadBtn').href = url;
-    document.getElementById('lightboxDownloadBtn').setAttribute('download', filename || 'image');
-
-    const modalEl = document.getElementById('lightboxModal');
-    if (modalEl && typeof bootstrap !== 'undefined') {
-        const m = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
-        m.show();
-    }
-}
-
-function openLightboxByIndex(index) {
-    const items = document.querySelectorAll('.media-item-card, .media-item-row');
-    if (index < 0 || index >= items.length) return;
-
-    currentLightboxIndex = index;
-    currentLightboxZoom = 1;
-
-    const el = items[index];
-    const url = el.getAttribute('data-url');
-    const path = el.getAttribute('data-path');
-    const title = el.getAttribute('data-title') || el.getAttribute('data-filename');
-    const size = el.getAttribute('data-size');
-    const date = el.getAttribute('data-date');
-    const res = el.getAttribute('data-res');
-    const folder = el.getAttribute('data-folderlabel');
-
-    const img = document.getElementById('lightboxImage');
-    if (img) {
-        img.src = url;
-        img.style.transform = 'scale(1)';
-    }
-
-    document.getElementById('lightboxTitle').textContent = title || 'Image Preview';
-    document.getElementById('lightboxMeta').textContent = `Resolution: ${res || 'N/A'} | Size: ${size} | Folder: ${folder} | Date: ${date}`;
-    document.getElementById('lightboxOpenBtn').href = url;
-    document.getElementById('lightboxDownloadBtn').href = url;
-    document.getElementById('lightboxDownloadBtn').setAttribute('download', title || 'image');
-
-    const modalEl = document.getElementById('lightboxModal');
-    if (modalEl && typeof bootstrap !== 'undefined') {
-        const m = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
-        m.show();
-    }
-}
-
-function lightboxNavigate(direction) {
-    const items = document.querySelectorAll('.media-item-card, .media-item-row');
-    if (items.length === 0) return;
-    let nextIndex = currentLightboxIndex + direction;
-    if (nextIndex < 0) nextIndex = items.length - 1;
-    if (nextIndex >= items.length) nextIndex = 0;
-    openLightboxByIndex(nextIndex);
-}
-
-function lightboxZoom(step) {
-    currentLightboxZoom = Math.max(0.4, Math.min(3.0, currentLightboxZoom + step));
-    const img = document.getElementById('lightboxImage');
-    if (img) {
-        img.style.transform = `scale(${currentLightboxZoom})`;
-    }
-}
-
-function lightboxResetZoom() {
-    currentLightboxZoom = 1;
-    const img = document.getElementById('lightboxImage');
-    if (img) {
-        img.style.transform = 'scale(1)';
-    }
-}
-
-function openStudioFromLightbox() {
-    const items = document.querySelectorAll('.media-item-card, .media-item-row');
-    if (currentLightboxIndex >= 0 && currentLightboxIndex < items.length) {
-        const el = items[currentLightboxIndex];
-        const url = el.getAttribute('data-url');
-        const path = el.getAttribute('data-path');
-        const title = el.getAttribute('data-title') || el.getAttribute('data-filename');
-
-        const modalEl = document.getElementById('lightboxModal');
-        if (modalEl && typeof bootstrap !== 'undefined') {
-            const m = bootstrap.Modal.getInstance(modalEl);
-            if (m) m.hide();
-        }
-
-        setTimeout(() => {
-            openStudioModal(url, path, title);
-        }, 300);
-    }
-}
-
-function openReplaceFromLightbox() {
-    const items = document.querySelectorAll('.media-item-card, .media-item-row');
-    if (currentLightboxIndex >= 0 && currentLightboxIndex < items.length) {
-        const el = items[currentLightboxIndex];
-        const path = el.getAttribute('data-path');
-        const filename = el.getAttribute('data-filename') || el.getAttribute('data-title');
-
-        const modalEl = document.getElementById('lightboxModal');
-        if (modalEl && typeof bootstrap !== 'undefined') {
-            const m = bootstrap.Modal.getInstance(modalEl);
-            if (m) m.hide();
-        }
-
-        setTimeout(() => {
-            openReplaceModal(path, filename);
-        }, 300);
-    }
-}
-
-function openRenameFromLightbox() {
-    const items = document.querySelectorAll('.media-item-card, .media-item-row');
-    if (currentLightboxIndex >= 0 && currentLightboxIndex < items.length) {
-        const el = items[currentLightboxIndex];
-        const path = el.getAttribute('data-path');
-        const filename = el.getAttribute('data-filename') || el.getAttribute('data-title');
-
-        const modalEl = document.getElementById('lightboxModal');
-        if (modalEl && typeof bootstrap !== 'undefined') {
-            const m = bootstrap.Modal.getInstance(modalEl);
-            if (m) m.hide();
-        }
-
-        setTimeout(() => {
-            openRenameModal(path, filename);
-        }, 300);
-    }
-}
-
-function deleteFromLightbox() {
-    const items = document.querySelectorAll('.media-item-card, .media-item-row');
-    if (currentLightboxIndex < 0 || currentLightboxIndex >= items.length) return;
-    const el = items[currentLightboxIndex];
-    const path = el.getAttribute('data-path');
-    const filename = el.getAttribute('data-title') || el.getAttribute('data-filename');
-
-    if (!confirm(`Are you sure you want to permanently delete "${filename}"?`)) return;
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    fetch('/admin/media', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ _method: 'DELETE', path: path })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            const modalEl = document.getElementById('lightboxModal');
-            if (modalEl && typeof bootstrap !== 'undefined') {
-                const m = bootstrap.Modal.getInstance(modalEl);
-                if (m) m.hide();
-            }
-            showMediaAlert('success', data.message || 'File deleted successfully!');
-            setTimeout(() => window.location.reload(), 800);
-        } else {
-            showMediaAlert('danger', data.message || 'Failed to delete file.');
-        }
-    })
-    .catch(() => showMediaAlert('danger', 'Server request failed.'));
-}
-
-/* ========================================================================= */
-/* 7. REPLACE MEDIA ASSET (KEEP EXACT URL & AUTO-OPTIMIZE)                   */
-/* ========================================================================= */
-function openReplaceModal(targetPath, filename) {
-    document.getElementById('replaceTargetPathInput').value = targetPath;
-    document.getElementById('replaceTargetFilenameDisplay').textContent = filename;
-    document.getElementById('replaceFileInput').value = '';
-
-    const modalEl = document.getElementById('replaceMediaModal');
-    if (modalEl && typeof bootstrap !== 'undefined') {
-        const m = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
-        m.show();
-    }
-}
-
-function submitReplaceFile() {
-    const targetPath = document.getElementById('replaceTargetPathInput').value;
-    const fileInput = document.getElementById('replaceFileInput');
-    const file = fileInput.files[0];
-
-    if (!file) {
-        alert('Please select a replacement image.');
-        return;
-    }
-
-    const btn = document.getElementById('btnConfirmReplace');
-    const origHtml = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Replacing...`;
-
-    const formData = new FormData();
-    formData.append('target_path', targetPath);
-    formData.append('file', file);
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-    fetch('/admin/media/replace', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        },
-        body: formData
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showMediaAlert('success', data.message);
-            const modalEl = document.getElementById('replaceMediaModal');
-            if (modalEl && typeof bootstrap !== 'undefined') {
-                const m = bootstrap.Modal.getInstance(modalEl);
-                if (m) m.hide();
-            }
-            setTimeout(() => window.location.reload(), 1200);
-        } else {
-            showMediaAlert('danger', data.message || 'Failed to replace image.');
-        }
-    })
-    .catch(() => showMediaAlert('danger', 'Server request failed.'))
-    .finally(() => {
-        btn.disabled = false;
-        btn.innerHTML = origHtml;
-    });
-}
-
-/* ========================================================================= */
-/* 8. GLOBAL WINDOW DRAG & DROP AND CLIPBOARD PASTE ENGINE                   */
-/* ========================================================================= */
-function initGlobalDragAndPaste() {
-    const overlay = document.getElementById('globalDragOverlay');
-    let dragCounter = 0;
-
-    window.addEventListener('dragenter', (e) => {
-        e.preventDefault();
-        dragCounter++;
-        if (overlay) overlay.classList.remove('d-none');
-    });
-
-    window.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        dragCounter--;
-        if (dragCounter <= 0 && overlay) {
-            overlay.classList.add('d-none');
-            dragCounter = 0;
-        }
-    });
-
-    window.addEventListener('dragover', (e) => {
-        e.preventDefault();
-    });
-
-    window.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dragCounter = 0;
-        if (overlay) overlay.classList.add('d-none');
-
-        const files = e.dataTransfer.files;
-        if (files && files.length > 0) {
-            handleDroppedFilesDirectly(files);
-        }
-    });
-
-    // Keyboard navigation in lightbox
-    window.addEventListener('keydown', (e) => {
-        const lb = document.getElementById('lightboxModal');
-        if (lb && lb.classList.contains('show')) {
-            if (e.key === 'ArrowLeft') lightboxNavigate(-1);
-            if (e.key === 'ArrowRight') lightboxNavigate(1);
-            if (e.key === '+' || e.key === '=') lightboxZoom(0.2);
-            if (e.key === '-') lightboxZoom(-0.2);
-            if (e.key === '0') lightboxResetZoom();
-        }
-    });
-
-    // Clipboard Paste (Ctrl + V)
-    window.addEventListener('paste', (e) => {
-        const items = (e.clipboardData || e.originalEvent.clipboardData)?.items;
-        if (!items) return;
-
-        const imageFiles = [];
-        for (let i = 0; i < items.length; i++) {
-            if (items[i].type.indexOf('image') !== -1) {
-                const blob = items[i].getAsFile();
-                if (blob) imageFiles.push(blob);
-            }
-        }
-
-        if (imageFiles.length > 0) {
-            showMediaAlert('warning', `${imageFiles.length} image(s) detected from clipboard! Processing upload...`);
-            handleDroppedFilesDirectly(imageFiles);
-        }
-    });
-}
-
-function handleDroppedFilesDirectly(files) {
-    const modalEl = document.getElementById('uploadMediaModal');
-    if (modalEl && typeof bootstrap !== 'undefined') {
-        const m = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
-        m.show();
-    }
-
-    pendingUploadFiles = Array.from(files);
-    handleFilesSelected(files);
-}
-
-function initLightboxTouchSwipe() {
-    const wrapper = document.getElementById('lightboxImgWrapper') || document.getElementById('lightboxModal');
-    if (!wrapper) return;
-
-    let touchStartX = 0;
-    let touchEndX = 0;
-    let touchStartY = 0;
-    let touchEndY = 0;
-
-    wrapper.addEventListener('touchstart', (e) => {
-        if (e.touches && e.touches.length === 1) {
-            touchStartX = e.touches[0].screenX;
-            touchStartY = e.touches[0].screenY;
-        }
-    }, { passive: true });
-
-    wrapper.addEventListener('touchend', (e) => {
-        if (e.changedTouches && e.changedTouches.length === 1) {
-            touchEndX = e.changedTouches[0].screenX;
-            touchEndY = e.changedTouches[0].screenY;
-            
-            const diffX = touchEndX - touchStartX;
-            const diffY = touchEndY - touchStartY;
-
-            // Trigger swipe only when horizontal gesture dominates
-            if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY) * 1.3) {
-                if (diffX < 0) {
-                    // Swiped Left -> Go Next
-                    lightboxNavigate(1);
+    function saveEdit(mode) {
+        if (!ed) return;
+        var it = ed.it;
+        var fmt = mode === 'overwrite' ? it.format : $('mdEdFormat').value;
+        var mime = fmt === 'jpg' ? 'image/jpeg' : 'image/' + fmt;
+        var quality = +$('mdEdQuality').value;
+        var data = canvas.toDataURL(mime === 'image/webp' && !canvas.toDataURL('image/webp').startsWith('data:image/webp') ? 'image/png' : mime, quality / 100);
+        var btn = mode === 'overwrite' ? $('mdEdOverwrite') : $('mdEdCopy');
+        var go = function () {
+            btn.classList.add('is-busy');
+            request('POST', U.save, { data_url: data, mode: mode, id: it.id, name: $('mdEdName').value, folder: $('mdEdFolder').value, format: fmt, quality: quality }).then(function (d) {
+                toast(d.message);
+                modal('mdEditor').hide();
+                if (mode === 'overwrite') {
+                    replaceItem(it.id, Object.assign({}, it, d.item, { title: it.title, sub: it.sub, link: it.link, used: it.used }));
+                    if (drawerId === it.id && $('mdDrawer').classList.contains('show')) openDrawer(d.item.id);
                 } else {
-                    // Swiped Right -> Go Previous
-                    lightboxNavigate(-1);
+                    load();
                 }
-            }
-        }
-    }, { passive: true });
-}
-
-/* ========================================================================= */
-/* 9. RUN BATCH AUTO-OPTIMIZE ALL IMAGES                                     */
-/* ========================================================================= */
-function runMediaOptimization(btn) {
-    const origContent = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1.5"></span><span>Optimizing...</span>`;
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-    fetch('/admin/media/optimize-all', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        }
-    })
-    .then(r => r.json())
-    .then(data => {
-        btn.disabled = false;
-        btn.innerHTML = origContent;
-        if (data.success) {
-            showMediaAlert('success', data.message);
-            setTimeout(() => window.location.reload(), 1500);
-        } else {
-            showMediaAlert('danger', data.message || 'Optimization failed.');
-        }
-    })
-    .catch(() => {
-        btn.disabled = false;
-        btn.innerHTML = origContent;
-        showMediaAlert('danger', 'Server response error.');
-    });
-}
-
-/* ========================================================================= */
-/* 10. CLIENT LIVE SEARCH & FILTER                                           */
-/* ========================================================================= */
-function filterMediaLive(query) {
-    const q = (query || '').toLowerCase().trim();
-    const cards = document.querySelectorAll('.media-item-card, .media-item-row');
-    let count = 0;
-
-    cards.forEach(el => {
-        const name = (el.getAttribute('data-filename') || '').toLowerCase();
-        const folder = (el.getAttribute('data-folder') || '').toLowerCase();
-        const ext = (el.getAttribute('data-ext') || '').toLowerCase();
-        const title = (el.getAttribute('data-title') || '').toLowerCase();
-
-        if (!q || name.includes(q) || folder.includes(q) || ext.includes(q) || title.includes(q)) {
-            el.style.display = '';
-            count++;
-        } else {
-            el.style.display = 'none';
-        }
-    });
-
-    const emptyNotice = document.getElementById('noSearchMatchNotice');
-    if (emptyNotice) {
-        emptyNotice.classList.toggle('d-none', count > 0 || cards.length === 0);
+            }).catch(function (e) { toast(e.message, true); }).then(function () { btn.classList.remove('is-busy'); });
+        };
+        if (mode === 'overwrite') {
+            confirmBox('Overwrite original', 'Save over ' + it.name + '? Every page that shows it will show the edited picture. This cannot be undone.', true, 'Overwrite').then(function (ok) { if (ok) go(); });
+        } else go();
     }
-}
+    $('mdEdCopy').addEventListener('click', function () { saveEdit('new_copy'); });
+    $('mdEdOverwrite').addEventListener('click', function () { saveEdit('overwrite'); });
 
-/* ========================================================================= */
-/* 11. TOAST NOTIFICATION                                                    */
-/* ========================================================================= */
-function showMediaAlert(type, message) {
-    const container = document.getElementById('mediaLiveAlert');
-    if (!container) return;
+    // ---------------------------------------------------------------- tools
+    var tool = null;
 
-    const icon = (type === 'success') ? 'fa-circle-check text-success' : (type === 'warning' ? 'fa-triangle-exclamation text-warning' : 'fa-circle-exclamation text-danger');
+    function openTool(kind, ids) {
+        tool = { kind: kind, ids: ids || null, running: false, stop: false };
+        var body = $('mdToolBody');
+        var run = $('mdToolRun');
+        run.hidden = false; run.disabled = false; run.classList.remove('is-busy');
+        $('mdToolNote').textContent = '';
+        var scope = ids ? ids.length + ' selected file(s)' : (state.folder === 'all' ? 'the whole library' : (FOLDERS[state.folder] || {}).label + ' folder');
 
-    container.innerHTML = `
-        <div class="alert alert-${type} alert-dismissible fade show d-flex align-items-center mb-0 rounded-4 shadow-sm border-0 border-start border-4 border-${type} bg-white py-3 px-4" role="alert">
-            <i class="fa-solid ${icon} fs-4 me-3"></i>
-            <div class="fw-semibold text-dark">${message}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
-        </div>
-    `;
-
-    setTimeout(() => {
-        const alert = container.querySelector('.alert');
-        if (alert) {
-            alert.classList.remove('show');
-            setTimeout(() => alert.remove(), 250);
+        if (kind === 'unused') {
+            $('mdToolIcon').innerHTML = '<i class="fa-solid fa-broom"></i>';
+            $('mdToolTitle').textContent = 'Unused files';
+            $('mdToolSub').textContent = 'Images no book, author, publisher, e-book, user or setting uses';
+            body.innerHTML = '<div class="md-empty" style="padding:30px"><i class="fa-solid fa-spinner fa-spin"></i><span>Checking the database…</span></div>';
+            run.querySelector('span').textContent = 'Delete selected';
+            run.disabled = true;
+            modal('mdTool').show();
+            request('GET', U.unused).then(function (d) {
+                tool.unused = d.items;
+                if (!d.count) {
+                    body.innerHTML = '<div class="md-empty" style="padding:30px"><i class="fa-solid fa-circle-check" style="color:#059669"></i><strong>All clean</strong><span>Every image in ' + esc(d.folders.join(', ')) + ' is in use.</span></div>';
+                    run.hidden = true;
+                    return;
+                }
+                body.innerHTML = '<div class="md-note-box is-warn"><i class="fa-solid fa-triangle-exclamation"></i><div>Only ' + esc(d.folders.join(', ')) + ' are checked — other folders can be used inside page text, so they are never listed. Files added in the last 24 hours are skipped. Deleting cannot be undone.</div></div>' +
+                    '<div class="md-resultbar"><label class="md-check"><input type="checkbox" id="mdUnusedAll" checked><span></span></label><span><b>' + num(d.count) + '</b> unused · ' + bytes(d.bytes) + (d.count > d.items.length ? ' · first ' + d.items.length + ' shown' : '') + '</span></div>' +
+                    '<div class="md-unused-grid">' + d.items.map(function (it) {
+                        return '<label class="md-unused" title="' + esc(it.name + ' · ' + bytes(it.size)) + '"><input type="checkbox" checked value="' + esc(it.id) + '"><img src="' + esc(it.url) + '" alt="" loading="lazy"><small>' + esc(it.name) + '</small></label>';
+                    }).join('') + '</div>';
+                var sync = function () {
+                    var n = body.querySelectorAll('.md-unused input:checked').length;
+                    run.disabled = !n;
+                    $('mdToolNote').textContent = n + ' selected';
+                };
+                $('mdUnusedAll').addEventListener('change', function () { var on = this.checked; body.querySelectorAll('.md-unused input').forEach(function (c) { c.checked = on; }); sync(); });
+                body.addEventListener('change', sync);
+                sync();
+            }).catch(function (e) { body.innerHTML = '<div class="md-empty"><span>' + esc(e.message) + '</span></div>'; });
+            return;
         }
-    }, 4500);
-}
 
-/* ========================================================================= */
-/* 12. FOLDER BUTTON INTERACTIONS & ACTIVE CLICK                             */
-/* ========================================================================= */
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.folder-btn-card').forEach(btn => {
-        btn.addEventListener('click', function() {
-            this.style.transform = 'scale(0.96)';
+        var isWebp = kind === 'webp';
+        $('mdToolIcon').innerHTML = '<i class="fa-solid ' + (isWebp ? 'fa-bolt' : 'fa-gauge-high') + '"></i>';
+        $('mdToolTitle').textContent = isWebp ? 'Make WebP' : 'Optimize';
+        $('mdToolSub').textContent = 'For ' + scope;
+        body.innerHTML =
+            '<div class="md-note-box"><i class="fa-solid fa-circle-info"></i><div>' + (isWebp
+                ? 'Makes a lighter WebP copy of each JPG/PNG. Choose below whether the site should switch to the new files.'
+                : 'Re-compresses JPG, PNG, WebP and SVG files and scales oversized pictures down to the folder size. Files only change when they get smaller; links stay the same.') + '</div></div>' +
+            (isWebp ? '<label class="md-switch"><input type="checkbox" id="mdToolReplace" checked><span></span><b>Switch the site to WebP and remove the old file</b></label>' +
+                '<p class="md-hint"><i class="fa-solid fa-shield-halved"></i>Books, authors, publishers, banners and settings are updated to the new file. Turn this off to keep both files.</p>' : '') +
+            '<div class="md-tool-progress" id="mdToolProg" hidden><div class="md-tool-bar"><i></i></div>' +
+            '<div class="md-tool-stats"><div><strong data-t="done">0</strong><span>Done</span></div><div><strong data-t="skipped">0</strong><span>Skipped</span></div><div><strong data-t="saved">0 B</strong><span>Saved</span></div></div></div>';
+        run.querySelector('span').textContent = 'Start';
+        modal('mdTool').show();
+    }
+
+    app.querySelectorAll('[data-tool]').forEach(function (b) { b.addEventListener('click', function () { openTool(b.dataset.tool); }); });
+
+    $('mdToolRun').addEventListener('click', function () {
+        if (!tool || tool.running) return;
+        var run = this;
+        if (tool.kind === 'unused') {
+            var ids = Array.prototype.map.call($('mdToolBody').querySelectorAll('.md-unused input:checked'), function (c) { return c.value; });
+            confirmBox('Delete unused files', 'Delete ' + ids.length + ' file(s)? This cannot be undone.', true).then(function (ok) {
+                if (!ok) return;
+                run.classList.add('is-busy');
+                request('POST', U.bulk, { action: 'delete', ids: ids }).then(function (d) {
+                    toast(d.message); modal('mdTool').hide(); load();
+                }).catch(function (e) { toast(e.message, true); }).then(function () { run.classList.remove('is-busy'); });
+            });
+            return;
+        }
+
+        tool.running = true;
+        run.classList.add('is-busy');
+        $('mdToolProg').hidden = false;
+        var replace = $('mdToolReplace') ? $('mdToolReplace').checked : false;
+        var totals = { done: 0, skipped: 0, saved: 0 };
+        // tools work on the open folder, not on the search filters
+        var idsFor = function (format) {
+            var p = { ids: 1 };
+            if (state.folder !== 'all') p.folder = state.folder;
+            if (format) p.format = format;
+            return request('GET', U.items + '?' + new URLSearchParams(p)).then(function (d) { return d.ids; });
+        };
+        var getIds = tool.ids ? Promise.resolve(tool.ids)
+            : tool.kind === 'webp' ? Promise.all([idsFor('jpg'), idsFor('png')]).then(function (r) { return r[0].concat(r[1]); })
+            : idsFor(null);
+        getIds.then(function (ids) {
+            var queueIds = ids.slice(), total = ids.length;
+            if (!total) { $('mdToolNote').textContent = 'Nothing to do'; return; }
+            var step = function () {
+                if (!queueIds.length || !$('mdTool').classList.contains('show')) return Promise.resolve();
+                var chunk = queueIds.splice(0, 12);
+                return request('POST', U.bulk, { action: tool.kind, ids: chunk, replace_original: replace }).then(function (d) {
+                    totals.done += d.done; totals.skipped += d.skipped; totals.saved += d.saved;
+                }).catch(function () { totals.skipped += chunk.length; }).then(function () {
+                    var pct = Math.round((total - queueIds.length) * 100 / total);
+                    $('mdToolProg').querySelector('.md-tool-bar i').style.width = pct + '%';
+                    $('mdToolProg').querySelector('[data-t="done"]').textContent = num(totals.done);
+                    $('mdToolProg').querySelector('[data-t="skipped"]').textContent = num(totals.skipped);
+                    $('mdToolProg').querySelector('[data-t="saved"]').textContent = bytes(totals.saved);
+                    $('mdToolNote').textContent = (total - queueIds.length) + ' of ' + total + ' checked';
+                    return step();
+                });
+            };
+            return step();
+        }).then(function () {
+            tool.running = false;
+            run.classList.remove('is-busy');
+            run.hidden = true;
+            toast((tool.kind === 'webp' ? 'WebP' : 'Optimize') + ' finished · saved ' + bytes(totals.saved));
+            selected.clear();
+            load();
+        }).catch(function (e) {
+            tool.running = false; run.classList.remove('is-busy'); toast(e.message, true);
         });
     });
-});
 
-/* ========================================================================= */
-/* 13. 1-CLICK PURGE UNUSED / REPLACED IMAGES & CACHE                         */
-/* ========================================================================= */
-function triggerPurgeUnusedMedia(btn) {
-    if (!confirm('Are you sure you want to scan and purge all unused, replaced, or orphaned cache images not currently linked in the database?')) {
-        return;
-    }
-
-    const origHtml = btn ? btn.innerHTML : '';
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Purging...';
-    }
-
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-    fetch('/admin/media/purge-unused', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = origHtml;
-        }
-        if (data.success) {
-            showMediaAlert('success', data.message);
-            if (data.count > 0) {
-                setTimeout(() => window.location.reload(), 1200);
-            }
-        } else {
-            showMediaAlert('danger', data.message || 'Error occurred during cleanup.');
-        }
-    })
-    .catch(err => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = origHtml;
-        }
-        showMediaAlert('danger', 'Could not communicate with server.');
-    });
-}
-
-/* ========================================================================= */
-/* 14. GLOBAL WINDOW EXPORTS (ZERO CONFLICTS & RUNTIME SAFEGUARD)            */
-/* ========================================================================= */
-function changePerPage(val) {
-    const input = document.getElementById('mediaPerPageInput');
-    const form = document.getElementById('mediaFilterForm');
-    if (input && form) {
-        input.value = val;
-        // Reset page to 1 when changing per_page
-        const pageParam = form.querySelector('input[name="page"]');
-        if (pageParam) pageParam.value = '1';
-        form.submit();
-    } else {
-        const u = new URL(window.location.href);
-        u.searchParams.set('per_page', val);
-        u.searchParams.set('page', '1');
-        window.location.href = u.toString();
-    }
-}
-
-window.openStudioFromLightbox = openStudioFromLightbox;
-window.openReplaceFromLightbox = openReplaceFromLightbox;
-window.openRenameFromLightbox = openRenameFromLightbox;
-window.deleteFromLightbox = deleteFromLightbox;
-window.changePerPage = changePerPage;
-window.toggleSelectAll = toggleSelectAll;
-window.clearAllSelections = clearAllSelections;
-window.updateSelectionState = updateSelectionState;
-window.copySelectedUrls = copySelectedUrls;
-window.executeBulkConvertToWebp = executeBulkConvertToWebp;
-window.openBulkMoveModal = openBulkMoveModal;
-window.executeBulkMove = executeBulkMove;
-window.executeBulkDelete = executeBulkDelete;
-window.executeBulkDownloadZip = executeBulkDownloadZip;
-window.openStudioModal = openStudioModal;
-window.openConvertWebpEngineModal = openConvertWebpEngineModal;
-window.runMediaOptimization = runMediaOptimization;
-window.triggerPurgeUnusedMedia = triggerPurgeUnusedMedia;
-window.openLightboxByIndex = openLightboxByIndex;
-window.copySnippet = copySnippet;
-window.openReplaceModal = openReplaceModal;
-window.openRenameModal = openRenameModal;
-window.submitRenameFile = submitRenameFile;
-window.submitReplaceFile = submitReplaceFile;
-window.submitCreateFolder = submitCreateFolder;
-window.submitMultiUploadAjax = submitMultiUploadAjax;
-window.saveCustomizedImage = saveCustomizedImage;
-window.setStudioPreset = setStudioPreset;
-window.setStudioQuickFilter = setStudioQuickFilter;
-window.studioRotate = studioRotate;
-window.studioFlip = studioFlip;
-window.filterMediaLive = filterMediaLive;
-
-
-
+    // ---------------------------------------------------------------- start
+    load();
+})();

@@ -236,7 +236,7 @@
         'admin.visitor-reports' => 'marketing.view',
         'admin.system-settings' => 'settings.manage',
         'admin.cache.manage' => 'settings.manage',
-        'admin.media.index' => 'catalog.view',
+        'admin.media.index' => 'marketing.banners_manage',
         'admin.backup.index' => 'settings.manage',
         'admin.audit-logs.index' => 'activity_logs.view',
     ];

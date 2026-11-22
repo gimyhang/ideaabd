@@ -968,17 +968,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Media & Asset Studio Library
     Route::prefix('media')->name('media.')->controller(\App\Http\Controllers\Admin\AdminMediaController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::post('/upload', 'upload')->name('upload');
-        Route::post('/optimize-all', 'optimizeAll')->name('optimize-all');
-        Route::post('/convert-all-webp', 'convertAllToWebp')->name('convert-all-webp');
-        Route::post('/purge-unused', 'purgeUnused')->name('purge-unused');
-        Route::post('/bulk-action', 'bulkAction')->name('bulk-action');
-        Route::post('/save-customized', 'saveCustomized')->name('save-customized');
-        Route::post('/rename', 'renameFile')->name('rename');
-        Route::post('/create-folder', 'createFolder')->name('create-folder');
-        Route::post('/download-zip', 'downloadZip')->name('download-zip');
-        Route::post('/replace', 'replaceFile')->name('replace');
-        Route::delete('/', 'destroy')->name('destroy');
+        Route::get('/items', 'items')->name('items')->middleware('throttle:240,1,media-list');
+        Route::get('/unused', 'unused')->name('unused')->middleware('throttle:20,1,media-unused');
+        Route::post('/upload', 'upload')->name('upload')->middleware('throttle:60,1,media-upload');
+        Route::post('/bulk-action', 'bulkAction')->name('bulk-action')->middleware('throttle:120,1,media-bulk');
+        Route::post('/save-customized', 'saveCustomized')->name('save-customized')->middleware('throttle:30,1,media-edit');
+        Route::post('/rename', 'renameFile')->name('rename')->middleware('throttle:60,1,media-rename');
+        Route::post('/download-zip', 'downloadZip')->name('download-zip')->middleware('throttle:20,1,media-zip');
+        Route::post('/replace', 'replaceFile')->name('replace')->middleware('throttle:30,1,media-replace');
+        Route::delete('/', 'destroy')->name('destroy')->middleware('throttle:120,1,media-delete');
     });
 
     // Book genres: one list shared by the admin book form, the publisher portal and validation
