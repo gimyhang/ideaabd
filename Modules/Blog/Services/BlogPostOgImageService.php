@@ -95,8 +95,7 @@ class BlogPostOgImageService
             @mkdir($cacheDir, 0755, true);
         }
 
-        $postHash = md5('bgd1_' . $post->id . '_' . $post->title . '_' . ($post->author_name ?? '') . '_' . ($post->category?->name ?? '') . '_' . ($post->updated_at ? $post->updated_at->timestamp : '0'));
-        $cacheFile = $cacheDir . '/og_' . $post->id . '_' . $postHash . '.jpg';
+        $cacheFile = self::cachePath($post);
 
         if (file_exists($cacheFile) && filesize($cacheFile) > 1000) {
             return response()->file($cacheFile, [
@@ -122,6 +121,72 @@ class BlogPostOgImageService
             'Content-Length' => strlen($imageBinary),
             'Cache-Control'  => 'public, max-age=2592000, immutable',
         ]);
+    }
+
+    /** Card file for the post as it is now (title, author, category, design version). */
+    public static function cachePath(BlogPost $post): string
+    {
+        $hash = md5('bgd1_' . $post->id . '_' . $post->title . '_' . ($post->author_name ?? '') . '_' . ($post->category?->name ?? '') . '_' . ($post->updated_at ? $post->updated_at->timestamp : '0'));
+        return storage_path('app/public/blog/og_cards') . '/og_' . $post->id . '_' . $hash . '.jpg';
+    }
+
+    /**
+     * Redraw saved cards made with an older design or for an old title, within
+     * a time budget so it can run in steps. Cards of deleted posts are removed.
+     *
+     * @return array{rebuilt:int, removed:int, remaining:int}
+     */
+    public static function rebuildStale(float $seconds = 4.0): array
+    {
+        $files = glob(storage_path('app/public/blog/og_cards') . '/og_*.jpg') ?: [];
+        $byPost = [];
+        foreach ($files as $file) {
+            if (preg_match('/^og_(\d+)_/', basename($file), $m)) {
+                $byPost[(int) $m[1]][] = $file;
+            }
+        }
+
+        $start = microtime(true);
+        $rebuilt = $removed = $remaining = 0;
+        $posts = $byPost ? BlogPost::with('category')->whereIn('id', array_keys($byPost))->get()->keyBy('id') : collect();
+
+        foreach ($byPost as $id => $cards) {
+            $post = $posts->get($id);
+            $current = $post ? self::cachePath($post) : null;
+            $stale = array_values(array_filter($cards, fn ($c) => $c !== $current));
+            if (!$stale) {
+                continue;
+            }
+            if (microtime(true) - $start > $seconds) {
+                $remaining++;
+                continue;
+            }
+            if ($post && !in_array($current, $cards, true)) {
+                @file_put_contents($current, self::renderPhotocard($post));
+                self::mirrorCard($current);
+                $rebuilt++;
+            }
+            foreach ($stale as $old) {
+                @unlink($old);
+                self::mirrorCard($old, true);
+                if (!$post) {
+                    $removed++;
+                }
+            }
+        }
+
+        return ['rebuilt' => $rebuilt, 'removed' => $removed, 'remaining' => $remaining];
+    }
+
+    /** Keep public/storage in step on hosts where it is a copy, not a link. */
+    private static function mirrorCard(string $file, bool $delete = false): void
+    {
+        $pubDir = public_path('storage/blog/og_cards');
+        if (!is_dir($pubDir) || is_link(public_path('storage')) || realpath($pubDir) === realpath(dirname($file))) {
+            return;
+        }
+        $pub = $pubDir . '/' . basename($file);
+        $delete ? @unlink($pub) : @copy($file, $pub);
     }
 
     /**

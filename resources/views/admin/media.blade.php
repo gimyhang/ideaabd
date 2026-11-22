@@ -16,6 +16,7 @@
 <div class="md" id="mdApp"
      data-items="{{ route('admin.media.items') }}"
      data-unused="{{ route('admin.media.unused') }}"
+     data-cards="{{ route('admin.media.refresh-cards') }}"
      data-upload="{{ route('admin.media.upload') }}"
      data-bulk="{{ route('admin.media.bulk-action') }}"
      data-save="{{ route('admin.media.save-customized') }}"

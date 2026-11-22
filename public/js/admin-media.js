@@ -904,4 +904,14 @@
 
     // ---------------------------------------------------------------- start
     load();
+
+    // blog share cards drawn with the old design are redrawn in the background, a few seconds per call
+    (function refreshCards(round, total) {
+        if (!U.cards || round > 40) return;
+        request('POST', U.cards, {}).then(function (d) {
+            total += (d.rebuilt || 0) + (d.removed || 0);
+            if (d.remaining > 0) return refreshCards(round + 1, total);
+            if (total > 0) { toast('Redrew ' + total + ' blog share card' + (total === 1 ? '' : 's') + ' with clean Bengali text'); load(); }
+        }).catch(function () {});
+    })(1, 0);
 })();

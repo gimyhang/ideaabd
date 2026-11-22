@@ -970,6 +970,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/', 'index')->name('index');
         Route::get('/items', 'items')->name('items')->middleware('throttle:240,1,media-list');
         Route::get('/unused', 'unused')->name('unused')->middleware('throttle:20,1,media-unused');
+        Route::post('/refresh-cards', 'refreshCards')->name('refresh-cards')->middleware('throttle:60,1,media-cards');
         Route::post('/upload', 'upload')->name('upload')->middleware('throttle:60,1,media-upload');
         Route::post('/bulk-action', 'bulkAction')->name('bulk-action')->middleware('throttle:120,1,media-bulk');
         Route::post('/save-customized', 'saveCustomized')->name('save-customized')->middleware('throttle:30,1,media-edit');

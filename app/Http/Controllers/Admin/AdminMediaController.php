@@ -945,6 +945,23 @@ class AdminMediaController extends Controller
         ]);
     }
 
+    /** Redraws blog share cards drawn with the old design (broken Bengali), a few seconds at a time. */
+    public function refreshCards(): JsonResponse
+    {
+        if (!class_exists(\Modules\Blog\Services\BlogPostOgImageService::class)) {
+            return response()->json(['rebuilt' => 0, 'removed' => 0, 'remaining' => 0]);
+        }
+        try {
+            $res = \Modules\Blog\Services\BlogPostOgImageService::rebuildStale(4.0);
+        } catch (\Throwable $e) {
+            Log::warning('Blog card rebuild failed: ' . $e->getMessage());
+            return $this->fail('Could not redraw the blog cards', 500);
+        }
+        if ($res['rebuilt'] || $res['removed']) {
+            $this->forget();
+        }
+        return response()->json($res);
+    }
     public function destroy(Request $request): JsonResponse
     {
         $request->merge(['action' => 'delete', 'ids' => [(string) $request->input('id')]]);
