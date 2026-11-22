@@ -33,15 +33,15 @@ class SeoScanCommand extends Command
         $this->table(
             ['Content Type', 'Items Scanned & Optimized'],
             [
-                ['Books (বইসমূহ)', $summary['books']],
-                ['Blog Posts (আইডিয়াপত্র)', $summary['blog_posts']],
-                ['Authors (লেখকবৃন্দ)', $summary['authors']],
-                ['Publishers (প্রকাশকবৃন্দ)', $summary['publishers']],
-                ['E-books (ই-বুক)', $summary['ebooks']],
-                ['Webzines (ওয়েবজিন)', $summary['webzines']],
+                ['Books (বইসমূহ)', $summary['books'] ?? 0],
+                ['Blog Posts (আইডিয়াপত্র)', $summary['blog_posts'] ?? 0],
+                ['Authors (লেখকবৃন্দ)', $summary['authors'] ?? 0],
+                ['Publishers (প্রকাশকবৃন্দ)', $summary['publishers'] ?? 0],
+                ['E-books (ই-বুক)', $summary['ebooks'] ?? 0],
+                ['Webzines (ওয়েবজিন)', $summary['webzines'] ?? 0],
                 ['Research Papers (গবেষণাপত্র)', $summary['research'] ?? 0],
-                ['Static Pages (পেজ)', $summary['pages']],
-                ['Total Items (সর্বমোট)', $summary['total']],
+                ['Static Pages (পেজ)', $summary['pages'] ?? 0],
+                ['Total Items (সর্বমোট)', $summary['total'] ?? 0],
             ]
         );
 

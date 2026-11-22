@@ -22,9 +22,29 @@ class AutoSeoScannerService
     /**
      * Scan any Model and persist its SeoMeta record.
      */
-    public function scanAndSave(Model $model, ?string $customFocusKeyword = null): SeoMeta
+    public function scanAndSave(Model $model, ?string $customFocusKeyword = null, bool $force = false): SeoMeta
     {
+        $existing = SeoMeta::where('seoable_type', get_class($model))->where('seoable_id', $model->getKey())->first();
         $scanData = $this->scanModel($model, $customFocusKeyword);
+        $scanData['url_path'] = self::pathOf($scanData['canonical_url'] ?? '');
+        $auto = true;
+
+        // Text an admin wrote by hand is kept (saving the book used to overwrite it); facts that follow the record
+        // (link, schema, image when none was chosen) are still refreshed. "Fix" ($force) regenerates everything.
+        if ($existing && !$existing->is_auto_generated && !$force) {
+            $auto = false;
+            foreach (['meta_title', 'meta_description', 'meta_keywords', 'focus_keyword', 'robots', 'og_title', 'og_description', 'twitter_title', 'twitter_description'] as $f) {
+                if (filled($existing->{$f})) {
+                    $scanData[$f] = $existing->{$f};
+                }
+            }
+            if (filled($existing->og_image) && !str_contains((string) $existing->og_image, 'placeholder')) {
+                $scanData['og_image'] = $scanData['twitter_image'] = $existing->og_image;
+            }
+            $analysis = $this->analyzeSeoQuality($scanData['meta_title'], (string) $scanData['meta_description'], (string) $scanData['meta_keywords'], '', $scanData['og_image'], $scanData['focus_keyword']);
+            $scanData['seo_score'] = $analysis['score'];
+            $scanData['seo_analysis'] = $analysis;
+        }
 
         return SeoMeta::updateOrCreate(
             [
@@ -32,10 +52,21 @@ class AutoSeoScannerService
                 'seoable_id'   => $model->getKey(),
             ],
             array_merge($scanData, [
-                'is_auto_generated' => true,
+                'is_auto_generated' => $auto,
                 'last_scanned_at'   => now(),
             ])
         );
+    }
+
+    /** "/books/rokeya" from "https://www.ideaabd.com/books/rokeya" — the key the site layout looks tags up by. */
+    public static function pathOf(string $url): ?string
+    {
+        if ($url === '') {
+            return null;
+        }
+        $path = parse_url($url, PHP_URL_PATH);
+
+        return '/' . ltrim(rawurldecode((string) $path), '/');
     }
 
     /**
@@ -44,38 +75,57 @@ class AutoSeoScannerService
     public function scanAndSavePath(string $urlPath, array $customData = []): SeoMeta
     {
         $cleanPath = '/' . ltrim($urlPath, '/');
-        $siteName = SiteSetting::name() ?: config('app.name', 'আইডিয়া প্রকাশন');
+        $siteName = SiteSetting::name() ?: config('app.name', 'আইডিয়া প্রকাশন');
 
-        $defaultTitle = match ($cleanPath) {
-            '/'           => $siteName . ' — বই ও মুক্তচিন্তার ডিজিটাল প্রকাশনা প্ল্যাটফর্ম',
-            '/books'      => 'বুকশপ ও সকল বইসমূহ — ' . $siteName,
-            '/ebooks'     => 'ই-বুক লাইব্রেরি ও ডিজিটাল বই — ' . $siteName,
-            '/authors'    => 'লেখক ডিরেক্টরি ও জীবনবৃত্তান্ত — ' . $siteName,
-            '/publishers' => 'প্রকাশক ও প্রকাশনা সংস্থা তালিকা — ' . $siteName,
-            '/blog'       => 'আইডিয়াপত্র — সাহিত্য, প্রবন্ধ ও মুক্তচিন্তার ব্লগ — ' . $siteName,
-            '/webzines'   => 'ওয়েবজিন ও সাহিত্য সাময়িকী সংকলন — ' . $siteName,
-            '/research'   => 'গবেষণা ও সমকালীন গবেষণাপত্র — ' . $siteName,
-            '/about'      => 'আমাদের সম্পর্কে — ' . $siteName,
-            '/contact'    => 'যোগাযোগ ও হেল্পডেস্ক — ' . $siteName,
-            '/terms'      => 'ব্যবহারের শর্তাবলী ও নীতিমালা — ' . $siteName,
-            default       => ucfirst(trim($cleanPath, '/')) . ' — ' . $siteName,
-        };
+        // A rescan without new data keeps what an admin wrote for this page.
+        $existing = SeoMeta::whereNull('seoable_type')->where('url_path', $cleanPath)->first();
+        $adminFields = ['meta_title', 'meta_description', 'meta_keywords', 'focus_keyword', 'robots', 'og_image', 'canonical_url'];
+        $byAdmin = array_filter(array_intersect_key($customData, array_flip($adminFields)), 'filled');
+        if ($byAdmin === [] && $existing && !$existing->is_auto_generated && !empty($existing->seo_analysis['by_admin']) && empty($customData['force'])) {
+            foreach ($adminFields as $f) {
+                if (filled($existing->{$f})) {
+                    $customData[$f] = $existing->{$f};
+                }
+            }
+            $byAdmin = ['kept' => true];
+        }
+        $customData = array_filter($customData, 'filled');
 
-        $defaultDesc = match ($cleanPath) {
-            '/about'   => SiteSetting::aboutCustomizer()['page_subtitle'] ?? 'উত্তরবঙ্গের জ্ঞানচর্চা, সৃজনশীল প্রকাশ ও সাংস্কৃতিক আত্মপরিচয় নির্মাণের দুই দশকের অভিযাত্রা। ৪৫০+ প্রকাশিত বই ও ২৭,০০০+ পাঠাগার বই অনুদান।',
-            '/contact' => SiteSetting::contactCustomizer()['hero_subtitle'] ?? 'আইডিয়া প্রকাশন কাস্টমার কেয়ার, বই অর্ডার, লেখক প্রকাশনা সেবা ও হেল্পলাইন।',
-            '/blog'    => 'আইডিয়াপত্র — সমকালীন গল্প, কবিতা, প্রবন্ধ, নতুন বইয়ের প্রামাণ্য পর্যালোচনা ও মুক্তচিন্তার ডিজিটাল সাময়িকী।',
-            '/webzines'=> 'সাহিত্য, শিল্প-সংস্কৃতি, প্রবন্ধ ও সমকালীন ভাবনার নিয়মিত ও বিশেষ সংখ্যাগুলোর ডিজিটাল সংকলন।',
-            default    => SiteSetting::tagline() ?: 'বই ও মুক্তচিন্তার ডিজিটাল প্রকাশনা',
+        // [focus keyword, title, description] for the site's own pages.
+        $tagline = SiteSetting::tagline() ?: 'বই ও মুক্তচিন্তার ডিজিটাল প্রকাশনা';
+        [$defaultFocus, $defaultTitle, $defaultDesc] = match ($cleanPath) {
+            '/'           => [$siteName, "{$siteName} — বাংলা বই, ই-বুক ও মুক্তচিন্তার প্রকাশনা", "{$siteName} — {$tagline}। বাংলা বই, ই-বুক, গবেষণা ও সাহিত্য সাময়িকী এক জায়গায়; অনলাইনে অর্ডার করুন, সারাদেশে হোম ডেলিভারি।"],
+            '/books'      => ['বাংলা বই', "বাংলা বই অনলাইনে কিনুন — বুকশপ | {$siteName}", "বাংলা বই অনলাইনে কিনুন: উপন্যাস, গল্প, কবিতা, প্রবন্ধ, গবেষণা ও শিশুতোষ বইয়ের বিশাল সংগ্রহ। {$siteName} থেকে সারাদেশে হোম ডেলিভারি ও ক্যাশ অন ডেলিভারি।"],
+            '/ebooks'     => ['ই-বুক', "ই-বুক লাইব্রেরি ও ডিজিটাল বাংলা বই | {$siteName}", "ই-বুক লাইব্রেরি: জনপ্রিয় বাংলা বইয়ের ডিজিটাল সংস্করণ স্মার্টফোন, ট্যাবলেট বা কম্পিউটারে সাথে সাথে পড়ুন। {$siteName}-এর ই-বুক সংগ্রহ।"],
+            '/authors'    => ['লেখক', "লেখক ডিরেক্টরি — জীবনী ও প্রকাশিত বই | {$siteName}", "লেখক ডিরেক্টরি: {$siteName}-এর লেখকদের জীবনী, ছবি ও প্রকাশিত সব বইয়ের তালিকা। প্রিয় লেখকের নতুন বই অনলাইনে অর্ডার করুন।"],
+            '/publishers' => ['প্রকাশক', "প্রকাশক ও প্রকাশনা সংস্থার তালিকা | {$siteName}", "প্রকাশক ও প্রকাশনা সংস্থার তালিকা: প্রতিটি প্রকাশকের বই, নতুন প্রকাশনা ও ক্যাটালগ দেখুন এবং {$siteName} থেকে অনলাইনে অর্ডার করুন।"],
+            '/blog'       => ['আইডিয়াপত্র', 'আইডিয়াপত্র — সাহিত্য, প্রবন্ধ ও মুক্তচিন্তার ব্লগ', 'আইডিয়াপত্র — সমকালীন গল্প, কবিতা, প্রবন্ধ, নতুন বইয়ের পর্যালোচনা ও মুক্তচিন্তার ডিজিটাল সাময়িকী। নিয়মিত নতুন লেখা পড়ুন ও মতামত দিন।'],
+            '/webzines'   => ['ওয়েবজিন', "ওয়েবজিন — সাহিত্য ও সংস্কৃতি সাময়িকী | {$siteName}", 'ওয়েবজিন: সাহিত্য, শিল্প-সংস্কৃতি, প্রবন্ধ ও সমকালীন ভাবনার নিয়মিত ও বিশেষ সংখ্যাগুলোর ডিজিটাল সংকলন। প্রতিটি সংখ্যা অনলাইনে পড়ুন।'],
+            '/research'   => ['গবেষণা', "গবেষণা ও সমকালীন গবেষণাপত্র | {$siteName}", "গবেষণা বিভাগ: সাহিত্য, ইতিহাস, সমাজ ও সংস্কৃতি নিয়ে সমকালীন গবেষণাপত্র ও প্রবন্ধ। {$siteName}-এর গবেষণা সংকলন অনলাইনে পড়ুন।"],
+            '/about'      => [$siteName, "আমাদের সম্পর্কে — {$siteName}-এর পথচলা", (SiteSetting::aboutCustomizer()['page_subtitle'] ?? '') ?: "{$siteName}: উত্তরবঙ্গের জ্ঞানচর্চা, সৃজনশীল প্রকাশনা ও সাংস্কৃতিক আত্মপরিচয় নির্মাণের দীর্ঘ অভিযাত্রা।"],
+            '/contact'    => ['যোগাযোগ', "যোগাযোগ ও হেল্পডেস্ক — {$siteName}", (SiteSetting::contactCustomizer()['hero_subtitle'] ?? '') ?: "যোগাযোগ করুন {$siteName}-এর সাথে: বই অর্ডার, ডেলিভারি, লেখক ও প্রকাশনা সেবা নিয়ে যেকোনো প্রশ্নে হেল্পলাইন, ইমেইল বা হোয়াটসঅ্যাপে।"],
+            '/terms'      => ['শর্তাবলী', "ব্যবহারের শর্তাবলী ও নীতিমালা — {$siteName}", "শর্তাবলী ও নীতিমালা: {$siteName}-এ অর্ডার, ডেলিভারি, রিটার্ন, রিফান্ড, ই-বুক ব্যবহার ও লেখক রয়্যালটি সংক্রান্ত নিয়মাবলি বিস্তারিত জানুন।"],
+            default       => (function () use ($cleanPath, $siteName, $tagline) {
+                $name = Str::of(trim($cleanPath, '/'))->afterLast('/')->replace(['-', '_'], ' ')->title()->value();
+
+                return [$name, "{$name} | {$siteName}", "{$name} — {$siteName}। {$tagline}।"];
+            })(),
         };
 
         $title = $customData['meta_title'] ?? $defaultTitle;
-        $desc = $customData['meta_description'] ?? $defaultDesc;
-        $keywords = $customData['meta_keywords'] ?? 'আইডিয়া প্রকাশন, বই, ই-বুক, সাহিত্য, রংপুর প্রকাশনা, সাকিল মাসুদ';
-        $canonical = url($cleanPath);
-        $ogImage = SiteSetting::blogOgBannerUrl() ?: asset('images/og-banner.jpg');
+        $focusKeyword = $customData['focus_keyword'] ?? $defaultFocus;
+        // Long site names can push a default title past what search results show.
+        if (!isset($customData['meta_title']) && mb_strlen($title) > self::TITLE_MAX) {
+            $title = $this->fitTitle($defaultFocus, null, '', $siteName)[0];
+        }
+        $desc = $customData['meta_description']
+            ?? $this->fitDescription($defaultDesc, $focusKeyword, [], "{$siteName} — {$tagline}।");
+        $keywords = $customData['meta_keywords'] ?? implode(', ', array_unique([$focusKeyword, $siteName, 'বাংলা বই', 'ই-বুক', 'সাহিত্য', 'অনলাইন বই অর্ডার']));
+        $canonical = $customData['canonical_url'] ?? url($cleanPath);
+        $ogImage = $customData['og_image'] ?? self::siteShareImage();
 
-        $analysis = $this->analyzeSeoQuality($title, $desc, $keywords, $cleanPath, $ogImage, $customData['focus_keyword'] ?? null);
+        $analysis = $this->analyzeSeoQuality($title, $desc, $keywords, $cleanPath, $ogImage, $focusKeyword);
+        $analysis['by_admin'] = $byAdmin !== [];
 
         return SeoMeta::updateOrCreate(
             ['url_path' => $cleanPath],
@@ -85,7 +135,7 @@ class AutoSeoScannerService
                 'meta_keywords'       => $keywords,
                 'canonical_url'       => $canonical,
                 'robots'              => $customData['robots'] ?? 'index, follow',
-                'focus_keyword'       => $customData['focus_keyword'] ?? null,
+                'focus_keyword'       => $focusKeyword,
                 'og_title'            => $customData['og_title'] ?? $title,
                 'og_description'      => $customData['og_description'] ?? $desc,
                 'og_image'            => $customData['og_image'] ?? $ogImage,
@@ -109,7 +159,7 @@ class AutoSeoScannerService
                 ],
                 'seo_score'           => $analysis['score'],
                 'seo_analysis'        => $analysis,
-                'is_auto_generated'   => false,
+                'is_auto_generated'   => $byAdmin === [],
                 'last_scanned_at'     => now(),
             ]
         );
@@ -142,7 +192,7 @@ class AutoSeoScannerService
                 $price = $model->discount_price > 0 ? $model->discount_price : $model->price;
                 
                 $metaTitle = $title . ($authorName ? ' — ' . $authorName : '') . ' | ' . $siteName;
-                $rawSummary = $model->summary ?: $model->description ?: ($title . ' বইটি লিখেছেন ' . $authorName . '। আইডিয়া প্রকাশন থেকে অনলাইনে সেরা মূল্যে অর্ডার করুন।');
+                $rawSummary = $model->summary ?: $model->description ?: ($title . ($authorName ? ' বইটি লিখেছেন ' . $authorName . '।' : ' — ' . $siteName . '-এর বই।'));
                 $metaDescription = $this->cleanExcerpt($rawSummary, 155);
                 
                 $keywordsList = [$title, $authorName, $genre, 'আইডিয়া প্রকাশন', 'অনলাইন বইমেলা', 'বই কিনুন', $model->isbn, $model->publisher?->name];
@@ -374,8 +424,23 @@ class AutoSeoScannerService
                 break;
         }
 
-        // 2. Extract Focus Keyword if not provided
-        $focusKeyword = $customFocusKeyword ?: ($metaKeywords[0] ?? $title);
+        // 2. Fit the tags to what search engines show: a 30–65 character title that starts with the page's own
+        //    name, a 120–160 character description built from the record's real facts, and a real share image.
+        $core = trim((string) ($title ?? $name ?? ''));
+        [$suffix, $typePhrase, $facts, $cta] = $this->factsFor($className, $model, $siteName);
+        [$metaTitle, $coreInTitle] = $this->fitTitle($core, $suffix, $typePhrase, $siteName);
+        $focusKeyword = $customFocusKeyword ?: $coreInTitle;
+        $metaDescription = $this->fitDescription($metaDescription, $focusKeyword, $facts, $cta);
+        if ($ogImage === '' || str_contains($ogImage, 'placeholder') || str_ends_with(strtolower($ogImage), '.svg')) {
+            $ogImage = $this->shareImageFor($className, $model);
+        }
+        if (isset($schemaJson['description'])) {
+            $schemaJson['description'] = $metaDescription;
+        }
+        if (isset($schemaJson['image'])) {
+            $schemaJson['image'] = $ogImage;
+        }
+        $metaKeywords = array_values(array_unique(array_filter(array_merge([$focusKeyword], $metaKeywords), fn ($k) => trim((string) $k) !== '')));
 
         // 3. Dynamic Health Audit & Scoring
         $keywordsStr = implode(', ', $metaKeywords);
@@ -404,86 +469,268 @@ class AutoSeoScannerService
     }
 
     /**
-     * Comprehensive SEO Quality & Health Audit Engine (Calculates 0-100 score + diagnostics)
+     * SEO audit: six checks worth 100 points in total. Returns the score, a structured list of checks
+     * (for the editor and the dashboard) and the same results as passed / warnings / critical messages.
      */
     public function analyzeSeoQuality(string $title, string $description, string $keywords, string $content, ?string $image, ?string $focusKeyword): array
     {
-        $score = 0;
-        $passed = [];
-        $warnings = [];
-        $critical = [];
+        $titleLen = mb_strlen(trim($title));
+        $descLen = mb_strlen(trim($description));
+        $focusKeyword = trim((string) $focusKeyword);
+        $keywordsCount = count(array_filter(array_map('trim', explode(',', $keywords))));
+        $hasImage = !empty($image) && !str_contains((string) $image, 'placeholder');
+        $inTitle = $focusKeyword !== '' && mb_stripos($title, $focusKeyword) !== false;
+        $inDesc = $focusKeyword !== '' && mb_stripos($description, $focusKeyword) !== false;
 
-        // Check 1: Title Length (Recommended 40 - 65 characters)
-        $titleLen = mb_strlen($title);
+        $checks = [];
+        $add = function (string $key, string $label, int $earned, int $max, string $hint) use (&$checks) {
+            $checks[] = [
+                'key' => $key, 'label' => $label, 'earned' => $earned, 'max' => $max, 'hint' => $hint,
+                'status' => $earned >= $max ? 'pass' : ($earned > 0 ? 'warn' : 'fail'),
+            ];
+        };
+
+        // 1. Title length (20)
         if ($titleLen >= 30 && $titleLen <= 70) {
-            $score += 20;
-            $passed[] = "মেটা টাইটেল আদর্শ দৈর্ঘ্য বিশিষ্ট ({$titleLen} অক্ষর, আদর্শ: ৪০-৬৫)।";
+            $add('title', 'Title length', 20, 20, "টাইটেল {$titleLen} অক্ষর — আদর্শ (৩০–৬৫)।");
         } elseif ($titleLen > 70) {
-            $score += 10;
-            $warnings[] = "মেটা টাইটেল কিছুটা দীর্ঘ ({$titleLen} অক্ষর)। গুগল সার্চে কিছু অংশ ট্রাঙ্কেট হতে পারে।";
+            $add('title', 'Title length', 10, 20, "টাইটেল {$titleLen} অক্ষর — দীর্ঘ; সার্চে শেষাংশ কেটে যাবে। ৬৫-এর মধ্যে আনুন।");
         } else {
-            $critical[] = "মেটা টাইটেল অত্যন্ত ছোট ({$titleLen} অক্ষর)। যথাযথ কিওয়ার্ড যোগ করুন।";
+            $add('title', 'Title length', 0, 20, "টাইটেল মাত্র {$titleLen} অক্ষর — অন্তত ৩০ অক্ষর লিখুন।");
         }
 
-        // Check 2: Meta Description Length (Recommended 120 - 160 characters)
-        $descLen = mb_strlen($description);
+        // 2. Description length (25)
         if ($descLen >= 100 && $descLen <= 170) {
-            $score += 25;
-            $passed[] = "মেটা বিবরণ আদর্শ পরিমাপের ({$descLen} অক্ষর, আদর্শ: ১২০-১৬০)।";
+            $add('description', 'Description length', 25, 25, "বিবরণ {$descLen} অক্ষর — আদর্শ (১২০–১৬০)।");
         } elseif ($descLen > 170) {
-            $score += 15;
-            $warnings[] = "মেটা বিবরণ ১৬০ অক্ষরের বেশি ({$descLen} অক্ষর)। সার্চ স্নিপেটে শেষাংশ কেটে যেতে পারে।";
+            $add('description', 'Description length', 15, 25, "বিবরণ {$descLen} অক্ষর — দীর্ঘ; ১৬০-এর মধ্যে আনুন।");
         } else {
-            $score += 5;
-            $critical[] = "মেটা বিবরণ অত্যন্ত সংক্ষিপ্ত ({$descLen} অক্ষর)। বিস্তারিত বর্ণনা লিখুন।";
+            $add('description', 'Description length', $descLen > 0 ? 5 : 0, 25, $descLen > 0 ? "বিবরণ মাত্র {$descLen} অক্ষর — ১২০–১৬০ অক্ষর লিখুন।" : 'বিবরণ নেই।');
         }
 
-        // Check 3: Focus Keyword in Title
-        if ($focusKeyword) {
-            if (mb_stripos($title, $focusKeyword) !== false) {
-                $score += 20;
-                $passed[] = "ফোকাস কিওয়ার্ড '{$focusKeyword}' সফলভাবে টাইটেলে উপস্থিত।";
+        // 3–4. Focus keyword in title (20) and description (15)
+        if ($focusKeyword === '') {
+            $add('keyword_title', 'Keyword in title', 0, 20, 'ফোকাস কিওয়ার্ড দেওয়া নেই।');
+            $add('keyword_desc', 'Keyword in description', 0, 15, 'ফোকাস কিওয়ার্ড দেওয়া নেই।');
+        } else {
+            $add('keyword_title', 'Keyword in title', $inTitle ? 20 : 0, 20, $inTitle ? "“{$focusKeyword}” টাইটেলে আছে।" : "“{$focusKeyword}” টাইটেলে নেই — টাইটেলের শুরুতে রাখুন।");
+            $add('keyword_desc', 'Keyword in description', $inDesc ? 15 : 0, 15, $inDesc ? "“{$focusKeyword}” বিবরণে আছে।" : "“{$focusKeyword}” বিবরণে নেই — প্রথম বাক্যে রাখুন।");
+        }
+
+        // 5. Share image (10)
+        $add('image', 'Share image', $hasImage ? 10 : 0, 10, $hasImage ? 'শেয়ার ছবি আছে।' : 'নিজস্ব শেয়ার ছবি নেই (প্লেসহোল্ডার)।');
+
+        // 6. Keywords (10)
+        $add('keywords', 'Keywords', $keywordsCount >= 3 ? 10 : 0, 10, $keywordsCount >= 3 ? "{$keywordsCount}টি কিওয়ার্ড।" : "মাত্র {$keywordsCount}টি কিওয়ার্ড — অন্তত ৩টি দিন।");
+
+        $score = min(100, array_sum(array_column($checks, 'earned')));
+        $passed = $warnings = $critical = [];
+        foreach ($checks as $c) {
+            if ($c['status'] === 'pass') {
+                $passed[] = $c['hint'];
+            } elseif ($c['status'] === 'warn' || in_array($c['key'], ['keyword_title', 'keyword_desc', 'image', 'keywords'], true)) {
+                $warnings[] = $c['hint'];
             } else {
-                $warnings[] = "ফোকাস কিওয়ার্ড '{$focusKeyword}' পেজের মূল টাইটেলে পাওয়া যায়নি।";
+                $critical[] = $c['hint'];
             }
-
-            // Check 4: Focus Keyword in Description
-            if (mb_stripos($description, $focusKeyword) !== false) {
-                $score += 15;
-                $passed[] = "ফোকাস কিওয়ার্ড মেটা বর্ণনায় স্বাভাবিকভাবে যুক্ত আছে।";
-            } else {
-                $warnings[] = "মেটা বর্ণনায় ফোকাস কিওয়ার্ড যুক্ত করলে CTR বৃদ্ধি পাবে।";
-            }
-        } else {
-            $warnings[] = "কোনো নির্দিষ্ট ফোকাস কিওয়ার্ড নির্ধারিত নেই।";
-        }
-
-        // Check 5: OG / Social Preview Image
-        if (!empty($image) && !str_contains($image, 'placeholder')) {
-            $score += 10;
-            $passed[] = "উচ্চমানের ওপেনগ্রাফ (OG) সোশ্যাল শেয়ারিং ইমেজ সংযুক্ত আছে।";
-        } else {
-            $warnings[] = "ডিফল্ট প্লেসহোল্ডার ইমেজ বিদ্যমান। আকর্ষণীয় কাস্টম ব্যানার ব্যবহার করুন।";
-        }
-
-        // Check 6: Content Depth & Keywords
-        $keywordsCount = count(array_filter(explode(',', $keywords)));
-        if ($keywordsCount >= 3) {
-            $score += 10;
-            $passed[] = "পর্যাপ্ত মেটা কিওয়ার্ড ও ট্যাগ ({$keywordsCount}টি) সমৃদ্ধ।";
-        } else {
-            $warnings[] = "মেটা কিওয়ার্ডের সংখ্যা কম ({$keywordsCount}টি)। কমপক্ষে ৩-৫টি ট্যাগ যোগ করুন।";
         }
 
         return [
-            'score'        => min(100, $score),
-            'title_len'    => $titleLen,
-            'desc_len'     => $descLen,
-            'passed'       => $passed,
-            'warnings'     => $warnings,
-            'critical'     => $critical,
-            'scanned_at'   => now()->toDateTimeString(),
+            'score'      => $score,
+            'title_len'  => $titleLen,
+            'desc_len'   => $descLen,
+            'checks'     => $checks,
+            'passed'     => $passed,
+            'warnings'   => $warnings,
+            'critical'   => $critical,
+            'scanned_at' => now()->toDateTimeString(),
         ];
+    }
+
+    // ── Fitting tags to search results ──────────────────────
+
+    public const TITLE_MIN = 30;
+    public const TITLE_MAX = 65;
+    public const DESC_MIN = 120;
+    public const DESC_MAX = 160;
+
+    /**
+     * What a record can say about itself.
+     *
+     * @return array{0: ?string, 1: string, 2: string[], 3: string} [title suffix, type phrase, fact sentences, closing line]
+     */
+    protected function factsFor(string $className, Model $m, string $siteName): array
+    {
+        $bn = fn ($n) => strtr((string) $n, ['0' => '০', '1' => '১', '2' => '২', '3' => '৩', '4' => '৪', '5' => '৫', '6' => '৬', '7' => '৭', '8' => '৮', '9' => '৯']);
+        $g = fn ($attr) => trim((string) ($m->getAttribute($attr) ?? ''));
+
+        switch ($className) {
+            case 'Book':
+                $author = $g('author_name') ?: (string) ($m->author?->name ?? '');
+                $genre = '';
+                try {
+                    $genre = \Modules\Book\Models\Genre::nameFor($m->genre_category, 'bn') ?: (string) ($m->category?->name ?? '');
+                } catch (\Throwable) {
+                }
+                $price = (float) ($m->discount_price > 0 ? $m->discount_price : $m->price);
+                $facts = array_filter([
+                    $author ? "লেখক: {$author}।" : null,
+                    $genre ? "বিষয়: {$genre}।" : null,
+                    ($m->publisher?->name ?? null) ? 'প্রকাশক: ' . $m->publisher->name . '।' : null,
+                    $m->page_count ? 'পৃষ্ঠা: ' . $bn($m->page_count) . '।' : null,
+                    $price > 0 ? 'মূল্য ৳' . $bn((int) round($price)) . '।' : null,
+                ]);
+
+                return [$author ?: null, 'বই', $facts, "{$siteName} থেকে অনলাইনে অর্ডার করুন, সারাদেশে হোম ডেলিভারি ও ক্যাশ অন ডেলিভারি।"];
+
+            case 'BlogPost':
+                $author = (string) ($m->author?->name ?? '');
+                $cat = (string) ($m->category?->name ?? '');
+
+                return ['আইডিয়াপত্র', 'লেখা', array_filter([$author ? "লিখেছেন {$author}।" : null, $cat ? "বিভাগ: {$cat}।" : null]),
+                    "আইডিয়াপত্রে পড়ুন সমকালীন প্রবন্ধ, গল্প, কবিতা ও মুক্তচিন্তার লেখা — {$siteName}।"];
+
+            case 'Author':
+                $count = 0;
+                try {
+                    $count = method_exists($m, 'books') ? (int) $m->books()->count() : 0;
+                } catch (\Throwable) {
+                }
+
+                return ['লেখক পরিচিতি ও বইসমূহ', 'লেখক', array_filter([$count ? "প্রকাশিত বই: {$bn($count)}টি।" : null]),
+                    "লেখকের জীবনী, প্রকাশিত সব বই ও নতুন প্রকাশনার খবর পাবেন {$siteName}-এ। পছন্দের বই অনলাইনে অর্ডার করুন।"];
+
+            case 'Publisher':
+                return ['প্রকাশনা সংস্থা', 'প্রকাশক', [],
+                    "প্রকাশনা সংস্থার সব বই, নতুন প্রকাশনা ও ক্যাটালগ দেখুন {$siteName}-এ এবং অনলাইনে অর্ডার করুন, সারাদেশে হোম ডেলিভারি।"];
+
+            case 'Ebook':
+                return [(string) ($m->author?->name ?? $g('author_name')) ?: null, 'ই-বুক', [],
+                    "ডিজিটাল ই-বুক সংস্করণ — স্মার্টফোন, ট্যাবলেট বা কম্পিউটারে সাথে সাথে পড়ুন। {$siteName}।"];
+
+            case 'Webzine':
+                return ['ওয়েবজিন', 'সাময়িকী', [],
+                    "সাহিত্য, শিল্প-সংস্কৃতি ও সমকালীন ভাবনার ডিজিটাল সাময়িকী — {$siteName}-এর ওয়েবজিনে পড়ুন।"];
+
+            case 'ResearchPaper':
+                return ['আইডিয়া গবেষণা', 'গবেষণাপত্র', [],
+                    "সমকালীন সাহিত্য ও সমাজ নিয়ে গবেষণাপত্র ও প্রবন্ধ পড়ুন {$siteName}-এর গবেষণা বিভাগে।"];
+
+            default:
+                return [null, '', [], "বিস্তারিত জানুন {$siteName}-এ।"];
+        }
+    }
+
+    /**
+     * A title of TITLE_MIN–TITLE_MAX characters that starts with the page's own name.
+     *
+     * @return array{0: string, 1: string} [title, the part of the name that is in it (the focus keyword)]
+     */
+    public function fitTitle(string $core, ?string $suffix, string $typePhrase, string $siteName): array
+    {
+        $core = trim(preg_replace('/\s+/u', ' ', $core));
+        if ($core === '') {
+            return [$siteName, $siteName];
+        }
+        // A name longer than a title can be: cut it at a word.
+        if (mb_strlen($core) > self::TITLE_MAX) {
+            $core = $this->cutAtWord($core, self::TITLE_MAX - 1);
+        }
+        $candidates = array_values(array_unique(array_filter([
+            $suffix ? "{$core} — {$suffix} | {$siteName}" : null,
+            $suffix ? "{$core} — {$suffix}" : null,
+            $typePhrase ? "{$core} — {$typePhrase} | {$siteName}" : null,
+            "{$core} | {$siteName}",
+            $typePhrase ? "{$core} {$typePhrase} — অনলাইনে পড়ুন ও কিনুন | {$siteName}" : null,
+            "{$core} — {$siteName}-এর বিশেষ আয়োজন",
+            $core,
+        ])));
+        foreach ($candidates as $t) {
+            $len = mb_strlen($t);
+            if ($len >= self::TITLE_MIN && $len <= self::TITLE_MAX) {
+                return [$t, $core];
+            }
+        }
+        // Nothing in range: the longest one that still fits.
+        $fits = array_filter($candidates, fn ($t) => mb_strlen($t) <= self::TITLE_MAX);
+        usort($fits, fn ($a, $b) => mb_strlen($b) <=> mb_strlen($a));
+
+        return [$fits[0] ?? $core, $core];
+    }
+
+    /** A DESC_MIN–DESC_MAX character description that names the focus keyword early. */
+    public function fitDescription(string $text, ?string $focus, array $facts, string $cta): string
+    {
+        $text = trim(preg_replace('/\s+/u', ' ', strip_tags(html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8'))));
+        // (preg with /u, never rtrim(): rtrim cuts bytes and broke Bangla letters at the end)
+        $text = preg_replace('/[\s.…]+$/u', '', $text);
+        $focus = trim((string) $focus);
+
+        // The keyword must be there, and early (a long summary is cut at DESC_MAX).
+        if ($focus !== '') {
+            $at = mb_stripos($text, $focus);
+            if ($at === false || $at + mb_strlen($focus) > self::DESC_MAX - 20) {
+                $text = $text === '' ? $focus : $focus . ' — ' . $text;
+            }
+        }
+        if ($text !== '' && !preg_match('/[।.!?]$/u', $text)) {
+            $text .= '।';
+        }
+        foreach (array_merge($facts, [$cta]) as $add) {
+            if (mb_strlen($text) >= self::DESC_MIN) {
+                break;
+            }
+            // skip a fact the text already states ("লেখক: X" when X is already named)
+            $value = trim(preg_replace(['/^[^:]+:\s*/u', '/[।\s]+$/u'], '', (string) $add));
+            if ($add !== '' && ($value === '' || mb_stripos($text, $value) === false)) {
+                $text = trim($text . ' ' . $add);
+            }
+        }
+        if (mb_strlen($text) < self::DESC_MIN) {
+            $text .= ' বিস্তারিত তথ্য, পাঠকের মতামত ও নতুন প্রকাশনার খবর পেতে নিয়মিত চোখ রাখুন।';
+        }
+        if (mb_strlen($text) > self::DESC_MAX) {
+            $text = $this->cutAtWord($text, self::DESC_MAX - 1) . '…';
+        }
+
+        return $text;
+    }
+
+    /** The landscape share card for books with a stored cover, otherwise the site's own share image. */
+    protected function shareImageFor(string $className, Model $m): string
+    {
+        if ($className === 'Book') {
+            try {
+                if (class_exists(\Modules\Book\Services\ShareCardService::class) && \Illuminate\Support\Facades\Route::has('book.share-card')
+                    && app(\Modules\Book\Services\ShareCardService::class)->coverPath($m)) {
+                    return route('book.share-card', $m->slug ?: $m->id);
+                }
+            } catch (\Throwable) {
+            }
+        }
+
+        return self::siteShareImage();
+    }
+
+    /** The share image set in Settings › Brand (what the layout uses when a page has none). */
+    public static function siteShareImage(): string
+    {
+        return SiteSetting::blogOgBannerUrl() ?: asset('images/og-banner.jpg');
+    }
+
+    private function cutAtWord(string $s, int $max): string
+    {
+        if (mb_strlen($s) <= $max) {
+            return $s;
+        }
+        $cut = mb_substr($s, 0, $max);
+        $sp = mb_strrpos($cut, ' ');
+        if ($sp !== false && $sp > $max * 0.6) {
+            $cut = mb_substr($cut, 0, $sp);
+        }
+
+        // preg with /u, never rtrim(): rtrim cuts bytes and broke Bangla letters at the end
+        return preg_replace('/[\s,;:—|।-]+$/u', '', $cut);
     }
 
     /**
@@ -509,94 +756,152 @@ class AutoSeoScannerService
         return $cut . '...';
     }
 
+    // ── Scanning everything, a slice at a time ──────────────
+
+    /** Static pages that always get tags. */
+    public const STATIC_PAGES = ['/', '/books', '/ebooks', '/authors', '/publishers', '/blog', '/webzines', '/research', '/about', '/contact', '/terms'];
+
     /**
-     * Batch Scan all records across all key models.
+     * What a full scan covers, in order: kind => [label, model class, "public" scope]. Only public records get tags;
+     * the rest are removed in the final "cleanup" step (a hidden book has no page to rank).
      */
-    public function batchScanAll(): array
+    public function scanKinds(): array
     {
-        $summary = [
-            'books'       => 0,
-            'blog_posts'  => 0,
-            'authors'     => 0,
-            'publishers'  => 0,
-            'ebooks'      => 0,
-            'webzines'    => 0,
-            'research'    => 0,
-            'pages'       => 0,
-            'total'       => 0,
+        $kinds = [
+            'books'      => ['Books', \Modules\Book\Models\Book::class, fn ($q) => $q->where('is_active', true)],
+            'blog'       => ['Posts', \Modules\Blog\Models\BlogPost::class, fn ($q) => $q->where('status', 'published')],
+            'authors'    => ['Authors', \Modules\Author\Models\Author::class, fn ($q) => $q->where('is_active', true)],
+            'publishers' => ['Publishers', \Modules\Publisher\Models\Publisher::class, null],
+            'ebooks'     => ['Ebooks', \Modules\Ebook\Models\Ebook::class, null],
+            'webzines'   => ['Webzines', \Modules\Webzine\Models\Webzine::class, null],
+            'research'   => ['Research', \Modules\Research\Models\ResearchPaper::class, fn ($q) => $q->where('is_published', true)],
         ];
 
-        // 1. Books
-        if (class_exists(\Modules\Book\Models\Book::class)) {
-            $books = \Modules\Book\Models\Book::where('is_active', true)->get();
-            foreach ($books as $b) {
-                $this->scanAndSave($b);
-                $summary['books']++;
+        return array_filter($kinds, function ($k) {
+            try {
+                return class_exists($k[1]) && \App\Support\SchemaCache::has((new $k[1]())->getTable());
+            } catch (\Throwable) {
+                return false;
+            }
+        });
+    }
+
+    /** @return array<string, int> records each step will go through */
+    public function scanTotals(): array
+    {
+        $out = [];
+        foreach ($this->scanKinds() as $key => [, $class, $scope]) {
+            $q = $class::query();
+            if ($scope) {
+                $scope($q);
+            }
+            $out[$key] = (int) $q->count();
+        }
+        $out['pages'] = count(self::STATIC_PAGES);
+
+        return $out;
+    }
+
+    /**
+     * One slice of a full scan: records of $kind with id > $after, for up to $seconds.
+     *
+     * @return array{kind: string, after: int, scanned: int, done: bool, next: ?string, removed?: int}
+     */
+    public function scanStep(string $kind, int $after = 0, float $seconds = 8.0, bool $force = false): array
+    {
+        $order = array_merge(array_keys($this->scanKinds()), ['pages', 'cleanup']);
+        $pos = array_search($kind, $order, true);
+        if ($pos === false) {
+            throw new \InvalidArgumentException('Unknown scan step.');
+        }
+        $next = $order[$pos + 1] ?? null;
+        $until = microtime(true) + $seconds;
+        $scanned = 0;
+
+        if ($kind === 'pages') {
+            foreach (self::STATIC_PAGES as $path) {
+                $this->scanAndSavePath($path, $force ? ['force' => true] : []);
+                $scanned++;
+            }
+
+            return ['kind' => $kind, 'after' => 0, 'scanned' => $scanned, 'done' => true, 'next' => $next];
+        }
+
+        if ($kind === 'cleanup') {
+            return ['kind' => $kind, 'after' => 0, 'scanned' => 0, 'done' => true, 'next' => null, 'removed' => $this->removeStale()];
+        }
+
+        [, $class, $scope] = $this->scanKinds()[$kind];
+        $q = $class::query()->where((new $class())->getKeyName(), '>', $after)->orderBy((new $class())->getKeyName());
+        if ($scope) {
+            $scope($q);
+        }
+        $last = $after;
+        foreach ($q->limit(200)->cursor() as $model) {
+            try {
+                $this->scanAndSave($model, null, $force);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("SEO scan skipped {$kind} #{$model->getKey()}: " . $e->getMessage());
+            }
+            $last = (int) $model->getKey();
+            $scanned++;
+            if (microtime(true) >= $until) {
+                break;
             }
         }
+        $done = $scanned === 0 || !(clone $q)->where((new $class())->getKeyName(), '>', $last)->exists();
 
-        // 2. Blog Posts
-        if (class_exists(\Modules\Blog\Models\BlogPost::class)) {
-            $posts = \Modules\Blog\Models\BlogPost::where('status', 'published')->get();
-            foreach ($posts as $p) {
-                $this->scanAndSave($p);
-                $summary['blog_posts']++;
+        return ['kind' => $kind, 'after' => $done ? 0 : $last, 'scanned' => $scanned, 'done' => $done, 'next' => $done ? $next : $kind];
+    }
+
+    /** Tags of records that are gone or no longer public (they only pulled the average down). */
+    public function removeStale(): int
+    {
+        $removed = 0;
+        $public = [];
+        foreach ($this->scanKinds() as [, $class, $scope]) {
+            $public[$class] = $scope;
+        }
+        SeoMeta::whereNotNull('seoable_type')->select(['id', 'seoable_type', 'seoable_id'])->chunkById(500, function ($rows) use (&$removed, $public) {
+            foreach ($rows->groupBy('seoable_type') as $type => $group) {
+                if (!class_exists($type)) {
+                    $removed += SeoMeta::whereIn('id', $group->pluck('id'))->delete();
+                    continue;
+                }
+                $q = $type::query()->whereIn((new $type())->getKeyName(), $group->pluck('seoable_id'));
+                if (!empty($public[$type])) {
+                    ($public[$type])($q);
+                }
+                $alive = $q->pluck((new $type())->getKeyName())->map(fn ($v) => (string) $v)->flip();
+                $dead = $group->filter(fn ($m) => !isset($alive[(string) $m->seoable_id]))->pluck('id');
+                if ($dead->isNotEmpty()) {
+                    $removed += SeoMeta::whereIn('id', $dead)->delete();
+                }
             }
-        }
+        });
 
-        // 3. Authors
-        if (class_exists(\Modules\Author\Models\Author::class)) {
-            $authors = \Modules\Author\Models\Author::where('is_active', true)->get();
-            foreach ($authors as $a) {
-                $this->scanAndSave($a);
-                $summary['authors']++;
+        return $removed;
+    }
+
+    /**
+     * Batch Scan all records across all key models (command line; the admin page runs scanStep() slice by slice).
+     */
+    public function batchScanAll(bool $force = false): array
+    {
+        $summary = array_fill_keys(array_merge(array_keys($this->scanKinds()), ['pages']), 0) + ['removed' => 0];
+        $kind = array_key_first($summary);
+        $after = 0;
+        while ($kind) {
+            $r = $this->scanStep($kind, $after, 60.0, $force);
+            if (isset($summary[$kind]) && $kind !== 'removed') {
+                $summary[$kind] += $r['scanned'];
             }
+            $summary['removed'] += $r['removed'] ?? 0;
+            [$kind, $after] = [$r['next'], $r['after']];
         }
-
-        // 4. Publishers
-        if (class_exists(\Modules\Publisher\Models\Publisher::class)) {
-            $publishers = \Modules\Publisher\Models\Publisher::all();
-            foreach ($publishers as $pub) {
-                $this->scanAndSave($pub);
-                $summary['publishers']++;
-            }
-        }
-
-        // 5. Ebooks
-        if (class_exists(\Modules\Ebook\Models\Ebook::class)) {
-            $ebooks = \Modules\Ebook\Models\Ebook::all();
-            foreach ($ebooks as $eb) {
-                $this->scanAndSave($eb);
-                $summary['ebooks']++;
-            }
-        }
-
-        // 6. Webzines
-        if (class_exists(\Modules\Webzine\Models\Webzine::class)) {
-            $webzines = \Modules\Webzine\Models\Webzine::all();
-            foreach ($webzines as $wz) {
-                $this->scanAndSave($wz);
-                $summary['webzines']++;
-            }
-        }
-
-        // 7. Research Papers
-        if (class_exists(\Modules\Research\Models\ResearchPaper::class)) {
-            $papers = \Modules\Research\Models\ResearchPaper::where('is_published', true)->get();
-            foreach ($papers as $rp) {
-                $this->scanAndSave($rp);
-                $summary['research']++;
-            }
-        }
-
-        // 8. Core Static Pages
-        $staticPages = ['/', '/books', '/ebooks', '/authors', '/publishers', '/blog', '/webzines', '/research', '/about', '/contact', '/terms'];
-        foreach ($staticPages as $path) {
-            $this->scanAndSavePath($path);
-            $summary['pages']++;
-        }
-
-        $summary['total'] = array_sum($summary);
+        // older callers read these names
+        $summary['blog_posts'] = $summary['blog'] ?? 0;
+        $summary['total'] = array_sum(array_intersect_key($summary, array_flip(array_merge(array_keys($this->scanKinds()), ['pages']))));
 
         return $summary;
     }

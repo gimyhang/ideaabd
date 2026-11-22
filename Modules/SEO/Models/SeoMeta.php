@@ -43,6 +43,21 @@ class SeoMeta extends Model
         'last_scanned_at'   => 'datetime',
     ];
 
+    /** The site layout caches the record per path for 10 minutes: an edit must show at once. */
+    protected static function booted(): void
+    {
+        $forget = function (self $m) {
+            foreach (array_filter([$m->url_path, $m->getOriginal('url_path')]) as $path) {
+                $encoded = implode('/', array_map('rawurlencode', explode('/', $path)));
+                foreach (array_unique([$path, $encoded]) as $p) {
+                    \Illuminate\Support\Facades\Cache::forget('seo_meta_path_' . md5($p));
+                }
+            }
+        };
+        static::saved($forget);
+        static::deleted($forget);
+    }
+
     /**
      * Get the owning seoable model (Book, BlogPost, Author, etc.).
      */

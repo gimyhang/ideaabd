@@ -51,7 +51,6 @@
             } catch(e) {}
         })();
     </script>
-    <title>@yield('title', config('app.name', 'Idea Publication')) — ideaabd</title>
 
     {{-- Universal Social Media Open Graph (Facebook, WhatsApp, LinkedIn) & Twitter / X Cards --}}
     @php
@@ -85,14 +84,15 @@
         if (class_exists(\Modules\SEO\Models\SeoMeta::class) && \App\Support\SchemaCache::has('seo_metas')) {
             try {
                 $dbSeo = \Illuminate\Support\Facades\Cache::remember('seo_meta_path_' . md5($currentReqPath), 600, function () use ($currentReqPath) {
-                    return \Modules\SEO\Models\SeoMeta::where('url_path', $currentReqPath)->first();
+                    return \Modules\SEO\Models\SeoMeta::whereIn('url_path', array_unique([$currentReqPath, rawurldecode($currentReqPath)]))->first();
                 });
             } catch (\Throwable) {}
         }
 
-        $metaPageTitle = View::hasSection('og_title') ? View::getSection('og_title') : ($dbSeo?->meta_title ?: (View::hasSection('title') ? View::getSection('title') : $defaultSiteName));
-        $metaPageDescription = View::hasSection('og_description') ? View::getSection('og_description') : ($dbSeo?->meta_description ?: (View::hasSection('meta_description') ? View::getSection('meta_description') : $defaultSiteTagline));
-        $metaPageKeywords = View::hasSection('meta_keywords') ? View::getSection('meta_keywords') : ($dbSeo?->meta_keywords ?: 'আইডিয়া প্রকাশন, বাংলা বই, ইবুক, সাহিত্য, ব্লগ, কবিতা, প্রবন্ধ, প্রকাশনা, বই অর্ডার, অনলাইন বই মেলা, Idea Publication, Bangla Books, Ebooks, Publishers, Research, Webzine');
+        // The page's SEO record wins: it is the text scored and edited in /admin/seo.
+        $metaPageTitle = $dbSeo?->meta_title ?: (View::hasSection('og_title') ? View::getSection('og_title') : (View::hasSection('title') ? View::getSection('title') : $defaultSiteName));
+        $metaPageDescription = $dbSeo?->meta_description ?: (View::hasSection('og_description') ? View::getSection('og_description') : (View::hasSection('meta_description') ? View::getSection('meta_description') : $defaultSiteTagline));
+        $metaPageKeywords = $dbSeo?->meta_keywords ?: (View::hasSection('meta_keywords') ? View::getSection('meta_keywords') : 'আইডিয়া প্রকাশন, বাংলা বই, ইবুক, সাহিত্য, ব্লগ, কবিতা, প্রবন্ধ, প্রকাশনা, বই অর্ডার, অনলাইন বই মেলা, Idea Publication, Bangla Books, Ebooks, Publishers, Research, Webzine');
         
         $candidateImage = View::hasSection('og_image') ? View::getSection('og_image') : ($dbSeo?->og_image ?: null);
         if (empty($candidateImage) || str_ends_with(strtolower($candidateImage), '.svg') || str_starts_with($candidateImage, 'data:')) {
@@ -153,6 +153,7 @@
         $cleanImageMetaUrl = htmlspecialchars(htmlspecialchars_decode($metaPageImage, ENT_QUOTES), ENT_QUOTES, 'UTF-8');
         $cleanPageMetaUrl = htmlspecialchars(htmlspecialchars_decode($metaPageUrl, ENT_QUOTES), ENT_QUOTES, 'UTF-8');
     @endphp
+    <title>{{ $dbSeo?->meta_title ?: trim($__env->yieldContent('title', config('app.name', 'Idea Publication'))) . ' — ideaabd' }}</title>
 
     <!-- Open Graph / Facebook / WhatsApp / LinkedIn (High Priority at Top of Head) -->
     <meta property="og:locale" content="bn_BD">
@@ -181,7 +182,7 @@
     <meta name="author" content="@yield('meta_author', $defaultSiteName)">
     <meta name="publisher" content="{{ $defaultSiteName }}">
     <meta name="copyright" content="© {{ date('Y') }} {{ $defaultSiteName }}. All Rights Reserved.">
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="robots" content="{{ $dbSeo?->robots && str_contains(strtolower($dbSeo->robots), 'noindex') ? 'noindex, follow' : 'index, follow' }}, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="revisit-after" content="1 days">

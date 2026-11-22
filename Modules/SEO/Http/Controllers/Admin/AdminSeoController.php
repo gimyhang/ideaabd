@@ -51,22 +51,194 @@ class AdminSeoController extends Controller
             } elseif ($level === 'fair') {
                 $query->whereBetween('seo_score', [50, 79]);
             } elseif ($level === 'good') {
-                $query->where('seo_score', '>=', 80);
+                $query->whereBetween('seo_score', [80, 99]);
+            } elseif ($level === 'perfect') {
+                $query->where('seo_score', '>=', 100);
+            } elseif ($level === 'below') {
+                $query->where('seo_score', '<', 100);
             }
         }
 
+        $overview = $this->overview();
+
+        // "Issue" filter: records failing one check (read from the stored audit).
+        if ($request->filled('issue') && isset(self::ISSUES[$request->string('issue')->value()])) {
+            $query->whereIn('id', $overview['issue_ids'][$request->string('issue')->value()] ?? [0]);
+        }
+
         $items = $query->paginate(20)->withQueryString();
+        unset($overview['issue_ids']);
 
-        // High Level Metrics
-        $totalItems = SeoMeta::count();
-        $avgScore = $totalItems > 0 ? (int) SeoMeta::avg('seo_score') : 0;
-        $highScoreCount = SeoMeta::where('seo_score', '>=', 80)->count();
-        $needsWorkCount = SeoMeta::where('seo_score', '<', 60)->count();
-        $missingDescCount = SeoMeta::whereNull('meta_description')->orWhere('meta_description', '')->count();
+        return view('seo::admin.index', ['items' => $items, 'overview' => $overview, 'issues' => self::ISSUES]);
+    }
 
-        return view('seo::admin.index', compact(
-            'items', 'totalItems', 'avgScore', 'highScoreCount', 'needsWorkCount', 'missingDescCount'
+    /** Check key => short name shown on the dashboard. */
+    private const ISSUES = [
+        'title'         => 'Title length',
+        'description'   => 'Description length',
+        'keyword_title' => 'Keyword in title',
+        'keyword_desc'  => 'Keyword in description',
+        'image'         => 'Share image',
+        'keywords'      => 'Keywords',
+    ];
+
+    /** Everything the dashboard shows above the table, from one pass over the records. */
+    private function overview(): array
+    {
+        $types = ['Book' => 'Books', 'BlogPost' => 'Posts', 'Author' => 'Authors', 'Publisher' => 'Publishers', 'Ebook' => 'Ebooks', 'Webzine' => 'Webzines', 'ResearchPaper' => 'Research', 'Page' => 'Pages'];
+        $o = [
+            'total' => 0, 'avg' => 0, 'perfect' => 0, 'strong' => 0, 'fair' => 0, 'weak' => 0, 'missing_desc' => 0,
+            'buckets' => ['100' => 0, '80–99' => 0, '50–79' => 0, '0–49' => 0],
+            'types' => [], 'issues' => array_fill_keys(array_keys(self::ISSUES), 0), 'issue_ids' => [],
+            'last_scan' => null, 'manual' => 0,
+        ];
+        $sum = 0;
+        $byType = [];
+        SeoMeta::select(['id', 'seoable_type', 'seo_score', 'seo_analysis', 'meta_description', 'last_scanned_at', 'is_auto_generated'])
+            ->orderBy('id')->chunkById(1000, function ($rows) use (&$o, &$sum, &$byType) {
+                foreach ($rows as $m) {
+                    $s = (int) $m->seo_score;
+                    $o['total']++;
+                    $sum += $s;
+                    $s >= 100 ? $o['perfect']++ : ($s >= 80 ? $o['strong']++ : ($s >= 50 ? $o['fair']++ : $o['weak']++));
+                    $o['buckets'][$s >= 100 ? '100' : ($s >= 80 ? '80–99' : ($s >= 50 ? '50–79' : '0–49'))]++;
+                    if (trim((string) $m->meta_description) === '') {
+                        $o['missing_desc']++;
+                    }
+                    if (!$m->is_auto_generated && $m->seoable_type) {
+                        $o['manual']++;
+                    }
+                    $t = $m->seoable_type ? class_basename($m->seoable_type) : 'Page';
+                    $byType[$t][] = $s;
+                    foreach ((array) ($m->seo_analysis['checks'] ?? []) as $c) {
+                        if (($c['status'] ?? 'pass') !== 'pass' && isset($o['issues'][$c['key'] ?? ''])) {
+                            $o['issues'][$c['key']]++;
+                            $o['issue_ids'][$c['key']][] = $m->id;
+                        }
+                    }
+                    if ($m->last_scanned_at && (!$o['last_scan'] || $m->last_scanned_at->gt($o['last_scan']))) {
+                        $o['last_scan'] = $m->last_scanned_at;
+                    }
+                }
+            });
+        $o['avg'] = $o['total'] ? (int) floor($sum / $o['total']) : 0;
+        $o['avg_exact'] = $o['total'] ? round($sum / $o['total'], 1) : 0;
+        foreach ($byType as $t => $scores) {
+            $o['types'][] = ['key' => $t, 'label' => $types[$t] ?? $t, 'count' => count($scores), 'avg' => (int) floor(array_sum($scores) / count($scores))];
+        }
+        usort($o['types'], fn ($a, $b) => $b['count'] <=> $a['count']);
+        arsort($o['issues']);
+
+        return $o;
+    }
+
+    /** One slice of a full scan (the page calls this until it reports no next step). */
+    public function scanStep(Request $request): JsonResponse
+    {
+        $v = $request->validate([
+            'kind'  => 'required|string|in:books,blog,authors,publishers,ebooks,webzines,research,pages,cleanup',
+            'after' => 'nullable|integer|min:0',
+            'force' => 'nullable|boolean',
+        ]);
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(60);
+        }
+        try {
+            $step = $this->scannerService->scanStep($v['kind'], (int) ($v['after'] ?? 0), 8.0, (bool) ($v['force'] ?? false));
+        } catch (\InvalidArgumentException) {
+            // a kind whose module is not installed: go on with the next one
+            return response()->json(['kind' => $v['kind'], 'after' => 0, 'scanned' => 0, 'done' => true, 'next' => $this->nextKind($v['kind'])]);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json(['message' => 'Scan failed. Try again.'], 500);
+        }
+        if ($step['next'] === null) {
+            $o = $this->overview();
+            unset($o['issue_ids']);
+            $step['overview'] = ['avg' => $o['avg'], 'total' => $o['total'], 'perfect' => $o['perfect']];
+        }
+
+        return response()->json($step);
+    }
+
+    /** Totals so the page can show progress for a full scan. */
+    public function scanPlan(): JsonResponse
+    {
+        $totals = $this->scannerService->scanTotals();
+
+        return response()->json(['steps' => array_merge(array_keys($totals), ['cleanup']), 'totals' => $totals, 'total' => array_sum($totals)]);
+    }
+
+    private function nextKind(string $kind): ?string
+    {
+        $order = array_merge(array_keys($this->scannerService->scanKinds()), ['pages', 'cleanup']);
+        $i = array_search($kind, $order, true);
+
+        return $i === false ? 'pages' : ($order[$i + 1] ?? null);
+    }
+
+    /** Regenerate one record's tags from its content (discards hand-written text for that record). */
+    public function fix(int $id): JsonResponse
+    {
+        $seo = SeoMeta::findOrFail($id);
+        try {
+            if ($seo->seoable_type) {
+                $model = $seo->seoable;
+                if (!$model) {
+                    $seo->delete();
+
+                    return response()->json(['removed' => true, 'message' => 'The page no longer exists; its tags were removed.']);
+                }
+                $seo = $this->scannerService->scanAndSave($model, null, true);
+            } else {
+                $seo = $this->scannerService->scanAndSavePath($seo->url_path ?: '/', ['force' => true]);
+            }
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json(['message' => 'Could not fix this page.'], 500);
+        }
+
+        return response()->json(['item' => self::modalData($seo), 'message' => 'Fixed — score ' . $seo->seo_score . '/100']);
+    }
+
+    /** Live score while editing (same rules as saving). */
+    public function analyze(Request $request): JsonResponse
+    {
+        $v = $request->validate([
+            'meta_title'       => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:1500',
+            'meta_keywords'    => 'nullable|string|max:1000',
+            'focus_keyword'    => 'nullable|string|max:150',
+            'og_image'         => 'nullable|string|max:500',
+        ]);
+
+        return response()->json($this->scannerService->analyzeSeoQuality(
+            (string) ($v['meta_title'] ?? ''), (string) ($v['meta_description'] ?? ''), (string) ($v['meta_keywords'] ?? ''), '', $v['og_image'] ?? null, $v['focus_keyword'] ?? null
         ));
+    }
+
+    /** Only what the editor needs (the full record carried the whole book row into the page). */
+    public static function modalData(SeoMeta $m): array
+    {
+        return [
+            'id'               => $m->id,
+            'type'             => $m->seoable_type ? class_basename($m->seoable_type) : 'Page',
+            'meta_title'       => (string) $m->meta_title,
+            'meta_description' => (string) $m->meta_description,
+            'meta_keywords'    => (string) $m->meta_keywords,
+            'focus_keyword'    => (string) $m->focus_keyword,
+            'canonical_url'    => (string) $m->canonical_url,
+            'url_path'         => (string) $m->url_path,
+            'robots'           => (string) ($m->robots ?: 'index, follow'),
+            'og_image'         => (string) $m->og_image,
+            'seo_score'        => (int) $m->seo_score,
+            'checks'           => array_values((array) ($m->seo_analysis['checks'] ?? [])),
+            'manual'           => !$m->is_auto_generated,
+            'update_url'       => route('admin.seo.update', $m->id),
+            'fix_url'          => route('admin.seo.fix', $m->id),
+        ];
     }
 
     /**
@@ -131,9 +303,11 @@ class AdminSeoController extends Controller
                 'message' => 'সফলভাবে স্ক্যান সম্পন্ন হয়েছে! এসইও স্কোর: ' . $seo->seo_score . '/১০০',
             ]);
         } catch (\Throwable $e) {
+            report($e); // details go to the log, not to the browser
+
             return response()->json([
                 'success' => false,
-                'message' => 'স্ক্যানে ত্রুটি: ' . $e->getMessage(),
+                'message' => 'Scan failed. Try again.',
             ], 500);
         }
     }
@@ -160,67 +334,89 @@ class AdminSeoController extends Controller
         return view('seo::admin.pages', compact('pages'));
     }
 
+    /** robots values the editor offers; anything else is refused. */
+    private const ROBOTS = ['index, follow', 'noindex, follow', 'index, nofollow', 'noindex, nofollow'];
+
+    /** A link field: a full http(s) URL or a site path — never javascript:, data: or other schemes. */
+    private static function linkRule(): \Closure
+    {
+        return function (string $attr, $value, \Closure $fail) {
+            $v = trim((string) $value);
+            if ($v === '') {
+                return;
+            }
+            if (str_starts_with($v, '/') && !str_starts_with($v, '//')) {
+                return;
+            }
+            if (!preg_match('#^https?://[^\s<>"\']+$#i', $v)) {
+                $fail('Use a full http(s) link or a path that starts with /.');
+            }
+        };
+    }
+
     /**
      * Save / Update Static Page SEO Meta
      */
     public function updatePage(Request $request): RedirectResponse
     {
-        $request->validate([
-            'url_path'         => 'required|string|max:255',
+        $v = $request->validate([
+            'url_path'         => ['required', 'string', 'max:255', 'regex:#^/[^\s<>"\']*$#'],
             'meta_title'       => 'required|string|max:255',
             'meta_description' => 'nullable|string|max:1000',
             'meta_keywords'    => 'nullable|string|max:1000',
             'focus_keyword'    => 'nullable|string|max:150',
-            'canonical_url'    => 'nullable|url|max:500',
-            'robots'           => 'required|string|max:50',
-            'og_image'         => 'nullable|string|max:500',
+            'canonical_url'    => ['nullable', 'string', 'max:500', self::linkRule()],
+            'robots'           => ['required', 'string', \Illuminate\Validation\Rule::in(self::ROBOTS)],
+            'og_image'         => ['nullable', 'string', 'max:500', self::linkRule()],
         ]);
 
-        $this->scannerService->scanAndSavePath($request->input('url_path'), $request->all());
+        $seo = $this->scannerService->scanAndSavePath($v['url_path'], $v);
 
-        return back()->with('success', 'পেজের এসইও কনফিগারেশন সফলভাবে সংরক্ষিত হয়েছে!');
+        return back()->with('success', 'Saved — score ' . $seo->seo_score . '/100');
     }
 
     /**
      * Edit / Update Single SeoMeta Record
      */
-    public function update(Request $request, int $id): RedirectResponse
+    public function update(Request $request, int $id): RedirectResponse|JsonResponse
     {
         $seo = SeoMeta::findOrFail($id);
 
-        $request->validate([
-            'meta_title'          => 'required|string|max:255',
-            'meta_description'    => 'nullable|string|max:1500',
-            'meta_keywords'       => 'nullable|string|max:1000',
-            'focus_keyword'       => 'nullable|string|max:150',
-            'canonical_url'       => 'nullable|string|max:500',
-            'robots'              => 'required|string|max:50',
-            'og_title'            => 'nullable|string|max:255',
-            'og_description'      => 'nullable|string|max:1500',
-            'og_image'            => 'nullable|string|max:500',
-            'twitter_card'        => 'nullable|string|max:50',
-            'twitter_title'       => 'nullable|string|max:255',
-            'twitter_description' => 'nullable|string|max:1500',
-            'twitter_image'       => 'nullable|string|max:500',
+        // Only these fields can be changed here (the whole request used to be saved, so any column could be set).
+        $v = $request->validate([
+            'meta_title'       => 'required|string|max:255',
+            'meta_description' => 'nullable|string|max:1500',
+            'meta_keywords'    => 'nullable|string|max:1000',
+            'focus_keyword'    => 'nullable|string|max:150',
+            'canonical_url'    => ['nullable', 'string', 'max:500', self::linkRule()],
+            'robots'           => ['required', 'string', \Illuminate\Validation\Rule::in(self::ROBOTS)],
+            'og_image'         => ['nullable', 'string', 'max:500', self::linkRule()],
         ]);
+        $v = array_map(fn ($x) => is_string($x) ? trim($x) : $x, $v);
 
         $analysis = $this->scannerService->analyzeSeoQuality(
-            $request->input('meta_title'),
-            $request->input('meta_description') ?? '',
-            $request->input('meta_keywords') ?? '',
-            '',
-            $request->input('og_image'),
-            $request->input('focus_keyword')
+            $v['meta_title'], $v['meta_description'] ?? '', $v['meta_keywords'] ?? '', '', $v['og_image'] ?? null, $v['focus_keyword'] ?? null
         );
+        $analysis['by_admin'] = true;
 
-        $seo->update(array_merge($request->all(), [
-            'seo_score'         => $analysis['score'],
-            'seo_analysis'      => $analysis,
-            'is_auto_generated' => false,
-            'last_scanned_at'   => now(),
-        ]));
+        $seo->update($v + [
+            // social cards follow the edited text
+            'og_title'            => $v['meta_title'],
+            'og_description'      => $v['meta_description'] ?? null,
+            'twitter_title'       => $v['meta_title'],
+            'twitter_description' => $v['meta_description'] ?? null,
+            'twitter_image'       => $v['og_image'] ?? $seo->twitter_image,
+            'seo_score'           => $analysis['score'],
+            'seo_analysis'        => $analysis,
+            'is_auto_generated'   => false,
+            'last_scanned_at'     => now(),
+        ]);
 
-        return back()->with('success', 'এসইও মেটা সফলভাবে আপডেট করা হয়েছে! নতুন স্কোর: ' . $analysis['score'] . '/১০০');
+        if ($request->expectsJson()) {
+            return response()->json(['item' => self::modalData($seo->fresh()), 'message' => 'Saved — score ' . $analysis['score'] . '/100']);
+        }
+
+        return back()->with('success', 'Saved — score ' . $analysis['score'] . '/100');
     }
 
     /**
