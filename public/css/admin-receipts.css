@@ -150,3 +150,32 @@ body.dark-mode .mr-head .btn-close { filter: invert(1); }
     .mr-actions { grid-template-columns: minmax(0, 1fr); }
     .mr-amount-row input { font-size: 22px; }
 }
+
+/* Book sales on an honorarium */
+.mr-books { display: flex; flex-direction: column; gap: 8px; }
+.mr-books-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.mr-books-head label { font-size: 12.5px; font-weight: 800; margin: 0; }
+.mr-books-head label em { font-style: normal; font-weight: 500; color: var(--mr-mute); margin-left: 4px; }
+.mr-chip.is-pay { border-color: var(--mr-pay); color: var(--mr-pay); }
+.mr-bk { border: 1px solid var(--mr-line); border-radius: 12px; overflow: visible; }
+.mr-bk-head, .mr-bk-row { display: grid; grid-template-columns: minmax(0, 2.4fr) 64px 84px 76px 96px 30px; gap: 6px; align-items: center; }
+.mr-bk-head { padding: 7px 10px; font-size: 11px; font-weight: 800; color: var(--mr-mute); background: var(--mr-soft); border-bottom: 1px solid var(--mr-line2); border-radius: 12px 12px 0 0; }
+.mr-bk-row { padding: 7px 10px 4px; border-bottom: 1px solid var(--mr-line2); }
+.mr-bk-row input { height: 36px; border-radius: 9px; border: 1px solid var(--mr-line); background: var(--mr-bg); color: var(--mr-ink); padding: 0 9px; font-size: 13px; outline: 0; width: 100%; min-width: 0; }
+.mr-bk-row input:focus { border-color: var(--mr-pay); box-shadow: 0 0 0 3px var(--mr-pay-soft); }
+.mr-bk-title { position: relative; }
+.mr-bk-net { font-weight: 800; font-size: 13px; color: var(--mr-pay); white-space: nowrap; }
+.r { text-align: right; }
+.mr-x-row { width: 28px; height: 28px; border: 0; border-radius: 8px; background: transparent; color: var(--mr-mute); cursor: pointer; }
+.mr-x-row:hover { background: rgba(225, 29, 72, .08); color: var(--mr-red); }
+.mr-bk-line { grid-column: 1 / -1; font-size: 11px; color: var(--mr-mute); min-height: 14px; }
+.mr-bk-total { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 9px 12px; font-size: 12.5px; color: var(--mr-ink2); }
+.mr-bk-total b { color: var(--mr-ink); }
+.mr-bk-total .is-net { color: var(--mr-pay); font-size: 14px; }
+.mr-amount.is-auto input { background: var(--mr-soft); }
+@media (max-width: 575.98px) {
+    .mr-bk-head { display: none; }
+    .mr-bk-row { grid-template-columns: 1fr 1fr 1fr 30px; }
+    .mr-bk-title { grid-column: 1 / -1; }
+    .mr-bk-net { grid-column: 1 / -1; text-align: left; }
+}

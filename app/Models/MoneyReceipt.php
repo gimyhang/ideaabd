@@ -29,14 +29,60 @@ class MoneyReceipt extends Model
 
     protected $fillable = [
         'receipt_no', 'kind', 'receipt_date', 'author_id', 'invoice_id', 'invoice_payment_id', 'accounting_entry_id',
-        'party_name', 'party_phone', 'party_address', 'purpose', 'category', 'amount', 'payment_method', 'reference',
+        'party_name', 'party_phone', 'party_address', 'purpose', 'category', 'amount', 'items', 'payment_method', 'reference',
         'notes', 'created_by',
     ];
 
     protected $casts = [
         'receipt_date' => 'date',
         'amount'       => 'decimal:2',
+        'items'        => 'array',
     ];
+
+    /**
+     * Clean book-sale lines and work out each one: sale = copies × price,
+     * commission = sale × % ÷ 100, the writer gets sale − commission.
+     *
+     * @return array<int, array{title:string, book_id:?int, qty:int, price:float, sale:float, pct:float, commission:float, net:float}>
+     */
+    public static function buildItems(array $rows): array
+    {
+        $out = [];
+        foreach (array_slice($rows, 0, 50) as $r) {
+            if (!is_array($r)) {
+                continue;
+            }
+            $title = trim((string) ($r['title'] ?? ''));
+            $qty = (int) ($r['qty'] ?? 0);
+            $price = round(max(0, (float) ($r['price'] ?? 0)), 2);
+            if ($title === '' || $qty < 1) {
+                continue;
+            }
+            $pct = min(100, max(0, round((float) ($r['pct'] ?? 0), 2)));
+            $sale = round($qty * $price, 2);
+            $commission = round($sale * $pct / 100, 2);
+            $out[] = [
+                'title' => mb_substr($title, 0, 255), 'book_id' => !empty($r['book_id']) ? (int) $r['book_id'] : null,
+                'qty' => $qty, 'price' => $price, 'sale' => $sale, 'pct' => $pct, 'commission' => $commission,
+                'net' => round($sale - $commission, 2),
+            ];
+        }
+
+        return $out;
+    }
+
+    /** Totals of the book lines. */
+    public function itemTotals(): array
+    {
+        $items = $this->items ?: [];
+
+        return [
+            'qty'        => array_sum(array_column($items, 'qty')),
+            'sale'       => round(array_sum(array_column($items, 'sale')), 2),
+            'commission' => round(array_sum(array_column($items, 'commission')), 2),
+            'net'        => round(array_sum(array_column($items, 'net')), 2),
+        ];
+    }
 
     public function invoice(): BelongsTo
     {

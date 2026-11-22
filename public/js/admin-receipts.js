@@ -41,13 +41,17 @@
         // writer search only for honorarium; the bill box searches invoices
         document.getElementById('mrName').setAttribute('data-lookup-type', kind === 'honorarium' ? 'author' : '');
         form.author_id.value = '';
+        if (kind !== 'honorarium') { document.getElementById('mrBookRows').innerHTML = ''; }
         unlinkBill();
         sync();
+        if (typeof recalcBooks === 'function') recalcBooks();
     }
 
     function reset() {
         form.reset();
         form.author_id.value = '';
+        document.getElementById('mrBookRows').innerHTML = '';
+        recalcBooks();
         unlinkBill();
         document.getElementById('mrDate').value = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
         document.getElementById('mrError').hidden = true;
@@ -70,6 +74,10 @@
             document.getElementById('mrWords').textContent = v > 0 ? money(v) + (kind === 'bill' && due && v > due ? ' — বকেয়ার (' + money(due) + ') চেয়ে বেশি!' : '') : '';
             document.getElementById('mrWords').classList.toggle('is-warn', kind === 'bill' && due > 0 && v > due);
         }
+        if (input.closest('.mr-bk-row')) {
+            if (input.name && input.name.indexOf('[title]') !== -1) input.closest('.mr-bk-row').querySelector('[data-f="book_id"]').value = '';
+            recalcBooks();
+        }
         var type = input.getAttribute('data-lookup-type');
         if (!type) return;
         clearTimeout(timers.get(input));
@@ -84,14 +92,14 @@
     function lookup(input, type) {
         var box = input.closest('.mr-lookup').querySelector('.mr-suggest');
         var my = ++seq;
-        fetch(modalEl.dataset.lookup + '?type=' + type + '&q=' + encodeURIComponent(input.value.trim()), { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+        fetch(modalEl.dataset.lookup + '?type=' + type + '&q=' + encodeURIComponent(input.value.trim()) + (type === 'book' && form.author_id.value ? '&author_id=' + encodeURIComponent(form.author_id.value) : ''), { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
             .then(function (r) { return r.ok ? r.json() : { items: [] }; })
             .then(function (d) {
                 if (my !== seq || document.activeElement !== input) return;
                 var items = d.items || [];
                 if (!items.length) { box.hidden = true; return; }
                 box.innerHTML = items.map(function (it, i) {
-                    return '<button type="button" data-i="' + i + '"><b>' + esc(it.name) + '</b><small>' + esc(type === 'invoice' ? it.sub : (it.phone || 'লেখক')) + '</small></button>';
+                    return '<button type="button" data-i="' + i + '"><b>' + esc(it.name) + '</b><small>' + esc(type === 'author' ? (it.phone || 'লেখক') : it.sub) + '</small></button>';
                 }).join('');
                 box._items = items; box._type = type;
                 box.hidden = false;
@@ -105,6 +113,15 @@
         var box = b.parentElement;
         var it = box._items[+b.dataset.i];
         box.hidden = true;
+        if (box._type === 'book') {
+            var row = box.closest('.mr-bk-row');
+            row.querySelector('[data-f="title"]').value = it.name;
+            row.querySelector('[data-f="book_id"]').value = it.id;
+            if (!row.querySelector('[data-f="price"]').value && it.price) row.querySelector('[data-f="price"]').value = it.price;
+            recalcBooks();
+            row.querySelector('[data-f="qty"]').focus();
+            return;
+        }
         if (box._type === 'author') {
             form.party_name.value = it.name;
             if (it.phone) form.party_phone.value = it.phone;
@@ -156,6 +173,73 @@
 
     modalEl.querySelectorAll('[data-mr-kind]').forEach(function (b) {
         b.addEventListener('click', function () { setKind(b.dataset.mrKind); });
+    });
+
+    // ---------------------------------------------------------------- book sales (honorarium)
+    var bookSeq = 0;
+    var lastPct = '';
+    try { lastPct = localStorage.getItem('mr_last_pct') || ''; } catch (e) {}
+
+    function addBookRow() {
+        var i = bookSeq++;
+        var row = document.createElement('div');
+        row.className = 'mr-bk-row';
+        row.innerHTML =
+            '<div class="mr-lookup mr-bk-title"><input type="text" data-f="title" name="items[' + i + '][title]" maxlength="255" placeholder="বইয়ের নাম" data-lookup-type="book" aria-label="Book"><div class="mr-suggest" hidden></div></div>' +
+            '<input type="hidden" data-f="book_id" name="items[' + i + '][book_id]">' +
+            '<input type="number" data-f="qty" name="items[' + i + '][qty]" min="1" step="1" inputmode="numeric" placeholder="0" aria-label="Copies">' +
+            '<input type="number" data-f="price" name="items[' + i + '][price]" min="0" step="0.01" inputmode="decimal" placeholder="0" aria-label="Price">' +
+            '<input type="number" data-f="pct" name="items[' + i + '][pct]" min="0" max="100" step="0.01" inputmode="decimal" placeholder="0" value="' + esc(lastPct) + '" aria-label="Commission %">' +
+            '<span class="mr-bk-net r" data-f="net">৳০</span>' +
+            '<button type="button" class="mr-x-row" title="Remove"><i class="fa-solid fa-xmark"></i></button>' +
+            '<small class="mr-bk-line" data-f="line"></small>';
+        document.getElementById('mrBookRows').appendChild(row);
+        if (!form.purpose.value.trim()) form.purpose.value = 'বই বিক্রয়ের সম্মানী';
+        recalcBooks();
+        row.querySelector('[data-f="title"]').focus();
+    }
+
+    function recalcBooks() {
+        var rows = Array.prototype.slice.call(document.querySelectorAll('#mrBookRows .mr-bk-row'));
+        var t = { qty: 0, sale: 0, comm: 0, net: 0 };
+        rows.forEach(function (row) {
+            var qty = parseInt(row.querySelector('[data-f="qty"]').value, 10) || 0;
+            var price = parseFloat(row.querySelector('[data-f="price"]').value) || 0;
+            var pct = Math.min(100, Math.max(0, parseFloat(row.querySelector('[data-f="pct"]').value) || 0));
+            var sale = Math.round(qty * price * 100) / 100;
+            var comm = Math.round(sale * pct) / 100;
+            var net = Math.round((sale - comm) * 100) / 100;
+            row.querySelector('[data-f="net"]').textContent = money(net);
+            row.querySelector('[data-f="line"]').textContent = qty && price ? bn(qty) + ' × ' + money(price) + ' = ' + money(sale) + (pct ? ' − ' + bn(pct) + '% কমিশন ' + money(comm) : '') : '';
+            t.qty += qty; t.sale += sale; t.comm += comm; t.net += net;
+        });
+        var has = rows.length > 0;
+        document.getElementById('mrBooks').hidden = !has;
+        document.getElementById('mrBkQty').textContent = bn(t.qty);
+        document.getElementById('mrBkSale').textContent = money(t.sale);
+        document.getElementById('mrBkComm').textContent = money(t.comm);
+        document.getElementById('mrBkNet').textContent = money(t.net);
+        var amount = form.amount;
+        amount.readOnly = has;
+        amount.closest('.mr-amount').classList.toggle('is-auto', has);
+        if (has) {
+            amount.value = t.net ? (Math.round(t.net * 100) / 100) : '';
+            document.getElementById('mrWords').textContent = t.net ? money(t.net) + ' — বই বিক্রির হিসাব থেকে' : '';
+        }
+    }
+
+    document.getElementById('mrAddBook').addEventListener('click', addBookRow);
+    document.getElementById('mrBookRows').addEventListener('click', function (e) {
+        var x = e.target.closest('.mr-x-row');
+        if (!x) return;
+        x.closest('.mr-bk-row').remove();
+        recalcBooks();
+    });
+    document.getElementById('mrBookRows').addEventListener('change', function (e) {
+        if (e.target.getAttribute('data-f') === 'pct') {
+            lastPct = e.target.value;
+            try { localStorage.setItem('mr_last_pct', lastPct); } catch (err) {}
+        }
     });
 
     // ---------------------------------------------------------------- save

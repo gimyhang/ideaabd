@@ -63,9 +63,23 @@ class MoneyReceiptController extends Controller
     /** Search writers (for honorarium) or invoices with money due (for bill receipts). */
     public function lookup(Request $request): JsonResponse
     {
-        $type = $request->query('type') === 'invoice' ? 'invoice' : 'author';
+        $type = in_array($request->query('type'), ['invoice', 'book'], true) ? $request->query('type') : 'author';
         $q = trim((string) $request->query('q', ''));
         $like = '%' . str_replace(['%', '_'], ['\%', '\_'], $q) . '%';
+
+        if ($type === 'book') {
+            // the chosen writer's books come first
+            $authorId = (int) $request->query('author_id', 0);
+            $rows = \Modules\Book\Models\Book::query()
+                ->when($q !== '', fn ($w) => $w->where(fn ($x) => $x->where('title', 'like', $like)->orWhere('title_en', 'like', $like)->orWhere('isbn', 'like', $like)))
+                ->when($authorId, fn ($w) => $w->orderByRaw('CASE WHEN author_link_id = ? THEN 0 ELSE 1 END', [$authorId]))
+                ->orderBy('title')->limit(8)->get(['id', 'title', 'author_name', 'price', 'discount_price']);
+
+            return response()->json(['items' => $rows->map(fn ($b) => [
+                'id' => $b->id, 'name' => $b->title, 'price' => (float) $b->price,
+                'sub' => trim(($b->author_name ?: '') . ' · মূল্য ৳' . number_format((float) $b->price, 0), ' ·'),
+            ])]);
+        }
 
         if ($type === 'author') {
             $rows = \Modules\Author\Models\Author::query()
@@ -111,6 +125,12 @@ class MoneyReceiptController extends Controller
             'payment_method' => ['required', Rule::in(array_keys(MoneyReceipt::METHODS))],
             'reference'      => 'nullable|string|max:120',
             'notes'          => 'nullable|string|max:1000',
+            'items'          => 'nullable|array|max:50',
+            'items.*.title'  => 'nullable|string|max:255',
+            'items.*.book_id'=> 'nullable|integer',
+            'items.*.qty'    => 'nullable|integer|min:0|max:1000000',
+            'items.*.price'  => 'nullable|numeric|min:0|max:10000000',
+            'items.*.pct'    => 'nullable|numeric|min:0|max:100',
         ], [
             'party_name.required' => 'নাম লিখুন।',
             'purpose.required'    => 'কীসের জন্য — লিখুন।',
@@ -120,6 +140,15 @@ class MoneyReceiptController extends Controller
 
         $v['amount'] = round((float) $v['amount'], 2);
         $kind = $v['kind'];
+
+        // book-sale lines (honorarium): the amount is what the lines add up to, worked out here
+        $items = $kind === 'honorarium' ? MoneyReceipt::buildItems((array) $request->input('items', [])) : [];
+        if ($items) {
+            $v['amount'] = round(array_sum(array_column($items, 'net')), 2);
+            if ($v['amount'] < 1) {
+                throw ValidationException::withMessages(['amount' => 'বই বিক্রির হিসাবে লেখকের প্রাপ্য কমপক্ষে ১ টাকা হতে হবে।']);
+            }
+        }
 
         if ($kind === 'honorarium' && !empty($v['author_id']) && !\Modules\Author\Models\Author::whereKey($v['author_id'])->exists()) {
             throw ValidationException::withMessages(['author_id' => 'লেখক পাওয়া যায়নি।']);
@@ -132,7 +161,7 @@ class MoneyReceiptController extends Controller
         }
 
         try {
-            $receipt = DB::transaction(function () use ($v, $kind) {
+            $receipt = DB::transaction(function () use ($v, $kind, $items) {
                 $no = MoneyReceipt::nextNumber($kind, (int) date('Y', strtotime($v['receipt_date'])));
                 $userId = auth()->id();
                 $paymentId = null;
@@ -198,6 +227,7 @@ class MoneyReceiptController extends Controller
                     'purpose'             => $v['purpose'],
                     'category'            => $category,
                     'amount'              => $v['amount'],
+                    'items'               => $items ?: null,
                     'payment_method'      => $v['payment_method'],
                     'reference'           => $v['reference'] ?? null,
                     'notes'               => $v['notes'] ?? null,
