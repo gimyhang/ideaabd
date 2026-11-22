@@ -13,7 +13,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Text saved on /admin/translations is laid over the lang/*.php files
+        $this->app->extend('translation.loader', fn ($loader) => new \App\Support\DbTranslationLoader($loader));
     }
 
     /**

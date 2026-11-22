@@ -1066,9 +1066,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Multi-Language Localization & i18n Translation Manager
     Route::prefix('translations')->name('translations.')->controller(\App\Http\Controllers\Admin\TranslationAdminController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::post('/', 'store')->name('store');
-        Route::put('/{translation}', 'update')->name('update');
-        Route::post('/auto-translate', 'autoTranslate')->name('auto-translate');
+        Route::post('/', 'store')->name('store')->middleware('throttle:60,1,tr-store');
+        Route::get('/export', 'export')->name('export');
+        Route::post('/sync', 'sync')->name('sync')->middleware('throttle:10,1,tr-sync');
+        Route::post('/fill', 'fill')->name('fill')->middleware('throttle:10,1,tr-fill');
+        Route::post('/auto-translate', 'autoTranslate')->name('auto-translate')->middleware('throttle:120,1,tr-suggest');
+        Route::put('/{translation}', 'update')->name('update')->middleware('throttle:240,1,tr-update');
+        Route::delete('/{translation}', 'destroy')->name('destroy')->middleware('throttle:60,1,tr-delete');
     });
 
     // Global Communication Hub, Transactional Email & WhatsApp Cloud API

@@ -1,251 +1,151 @@
 @extends('layouts.admin')
 
-@section('title', 'Multi-Language Translations & i18n')
+@section('title', 'Translations')
 @section('heading', 'Translations')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-    <li class="breadcrumb-item active">Translations & i18n</li>
+    <li class="breadcrumb-item active">Translations</li>
 @endsection
 
-@section('actions')
-    <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#addTranslationModal">
-        <i class="fa-solid fa-plus me-1"></i> Add Translation Key
-    </button>
-@endsection
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/admin-translations.css') }}?v={{ @filemtime(public_path('css/admin-translations.css')) }}">
+@endpush
 
 @section('content')
-<div class="d-flex flex-column gap-4">
+@php
+    $ready = $stats['total'] ? (int) floor(($stats['total'] - $stats['missing']) * 100 / $stats['total']) : 100;
+    $langs = ['bn' => 'Bangla', 'en' => 'English', 'ar' => 'Arabic'];
+@endphp
+<div class="tr" id="trApp"
+     data-index="{{ route('admin.translations.index') }}"
+     data-store="{{ route('admin.translations.store') }}"
+     data-update="{{ route('admin.translations.update', ['translation' => '__ID__']) }}"
+     data-sync="{{ route('admin.translations.sync') }}"
+     data-fill="{{ route('admin.translations.fill') }}"
+     data-suggest="{{ route('admin.translations.auto-translate') }}"
+     data-can-edit="{{ $canEdit ? 1 : 0 }}">
 
-    <!-- KPI Summary Hero Cards -->
-    <div class="row g-3">
-        <div class="col-12 col-sm-4">
-            <div class="kpi" style="--bar: #0066cc;">
-                <div class="kpi__icon bg-primary-subtle text-primary"><i class="fa-solid fa-language"></i></div>
-                <p class="kpi__label">Total Translation Strings</p>
-                <h3 class="kpi__value text-dark">{{ number_format($totalKeysCount) }}</h3>
-                <p class="kpi__foot text-muted">Across all UI groups</p>
+    {{-- Overview --}}
+    <section class="tr-hero">
+        <div class="tr-ring" style="--p: {{ $ready }}" data-ring>
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="tr-ring-track" cx="60" cy="60" r="52"/>
+                <circle class="tr-ring-value" cx="60" cy="60" r="52" pathLength="100" stroke-dasharray="{{ $ready }} 100"/>
+            </svg>
+            <div class="tr-ring-text"><strong data-stat="ready">{{ $ready }}</strong><small>% ready</small></div>
+        </div>
+        <div class="tr-hero-main">
+            <h2>Site language text</h2>
+            <p>Text typed here replaces the language files on the site. Leave a box empty to keep the file text (shown in grey).</p>
+            <div class="tr-kpis">
+                <div class="tr-kpi"><i class="fa-solid fa-key"></i><strong data-stat="total">{{ number_format($stats['total']) }}</strong><span>Keys</span></div>
+                <div class="tr-kpi"><i class="fa-solid fa-layer-group"></i><strong data-stat="groups">{{ $stats['groups'] }}</strong><span>Groups</span></div>
+                <div class="tr-kpi is-blue"><i class="fa-solid fa-pen-nib"></i><strong data-stat="custom">{{ number_format($stats['custom']) }}</strong><span>Custom</span></div>
+                <div class="tr-kpi is-amber"><i class="fa-solid fa-circle-exclamation"></i><strong data-stat="missing">{{ number_format($stats['missing']) }}</strong><span>Missing</span></div>
             </div>
         </div>
-        <div class="col-12 col-sm-4">
-            <div class="kpi" style="--bar: #16a34a;">
-                <div class="kpi__icon bg-success-subtle text-success"><i class="fa-solid fa-circle-check"></i></div>
-                <p class="kpi__label">English Translated</p>
-                <h3 class="kpi__value text-dark">{{ number_format($translatedEnCount) }}</h3>
-                <p class="kpi__foot text-muted">Global audience ready</p>
-            </div>
+        <div class="tr-langs">
+            @foreach($langs as $loc => $name)
+                <div class="tr-lang-bar" data-lang-bar="{{ $loc }}">
+                    <div class="tr-lang-bar-top">
+                        <span><b>{{ strtoupper($loc) }}</b> {{ $name }}{{ $loc === 'ar' ? ' · optional' : '' }}</span>
+                        <span><strong data-pct>{{ $stats['langs'][$loc]['percent'] }}</strong>% · <span data-count>{{ $stats['langs'][$loc]['count'] }}</span></span>
+                    </div>
+                    <div class="tr-meter"><i style="width: {{ $stats['langs'][$loc]['percent'] }}%"></i></div>
+                </div>
+            @endforeach
         </div>
-        <div class="col-12 col-sm-4">
-            <div class="kpi" style="--bar: #ff6b35;">
-                <div class="kpi__icon bg-warning-subtle text-warning"><i class="fa-solid fa-percent"></i></div>
-                <p class="kpi__label">Localization Completion</p>
-                <h3 class="kpi__value text-dark">{{ $completionRate }}%</h3>
-                <p class="kpi__foot text-muted">Translation coverage</p>
-            </div>
+    </section>
+
+    {{-- Toolbar --}}
+    <div class="tr-toolbar">
+        <label class="tr-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="search" id="trSearch" value="{{ $search }}" placeholder="Search key or text…" autocomplete="off">
+            <kbd>/</kbd>
+        </label>
+        <div class="tr-seg" role="tablist" id="trStatus">
+            @foreach(['all' => 'All', 'missing' => 'Missing', 'custom' => 'Custom', 'done' => 'Done'] as $val => $label)
+                <button type="button" role="tab" data-status="{{ $val }}" class="{{ $status === $val ? 'is-on' : '' }}" aria-selected="{{ $status === $val ? 'true' : 'false' }}">{{ $label }}</button>
+            @endforeach
+        </div>
+        <div class="tr-actions">
+            @if($canEdit)
+                <button type="button" class="tr-btn" data-action="sync" title="List every key from the language files"><i class="fa-solid fa-arrows-rotate"></i><span>Sync</span></button>
+                <button type="button" class="tr-btn" data-action="fill" title="Fill empty English from saved text and the glossary"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Fill</span></button>
+                <a class="tr-btn" href="{{ route('admin.translations.export') }}" title="Download CSV"><i class="fa-solid fa-file-arrow-down"></i><span>Export</span></a>
+                <button type="button" class="tr-btn is-primary" data-bs-toggle="modal" data-bs-target="#trAddModal"><i class="fa-solid fa-plus"></i><span>Add</span></button>
+            @endif
         </div>
     </div>
 
-    <!-- Filter & Search Bar -->
-    <div class="adm-card p-3 bg-white">
-        <form action="{{ route('admin.translations.index') }}" method="GET" class="row g-2 align-items-center">
-            <div class="col-12 col-md-4">
-                <select name="group" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">All Translation Groups</option>
-                    @foreach($groups as $g)
-                        <option value="{{ $g }}" {{ $group === $g ? 'selected' : '' }}>Group: {{ strtoupper($g) }}</option>
-                    @endforeach
-                </select>
+    {{-- Groups --}}
+    <div class="tr-groups" id="trGroups">
+        <button type="button" data-group="" class="tr-chip {{ $group === '' ? 'is-on' : '' }}">
+            <span>All</span><b>{{ $stats['total'] }}</b>
+        </button>
+        @foreach($groups as $g)
+            <button type="button" data-group="{{ $g['name'] }}" class="tr-chip {{ $group === $g['name'] ? 'is-on' : '' }}" style="--p: {{ $g['percent'] }}%">
+                <span>{{ $g['name'] }}</span><b>{{ $g['total'] }}</b><i class="tr-chip-meter"></i>
+            </button>
+        @endforeach
+    </div>
+
+    <div class="tr-results" id="trResults" aria-live="polite">
+        @include('admin.translations._rows')
+    </div>
+
+    <p class="tr-note"><i class="fa-solid fa-circle-info"></i>
+        Use a key in a page as <code>@{{ __('group.key') }}</code>. Words like <code>:attribute</code> are filled in by the site — keep them in every language.
+        Visitors who pick a language other than Bangla or English get Google Translate.</p>
+</div>
+
+@if($canEdit)
+{{-- Add key --}}
+<div class="modal fade" id="trAddModal" tabindex="-1" aria-labelledby="trAddTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content tr-modal" id="trAddForm" novalidate>
+            <div class="tr-modal-head">
+                <span class="tr-modal-icon"><i class="fa-solid fa-plus"></i></span>
+                <div><h5 id="trAddTitle">Add key</h5><p>A new text you can use in pages.</p></div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="col-12 col-md-6">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                    <input type="text" name="search" value="{{ $search }}" class="form-control" placeholder="Search string key or translation text...">
+            <div class="tr-modal-body">
+                <div class="tr-field-row">
+                    <label class="tr-field">
+                        <span>Group</span>
+                        <input name="group" list="trGroupList" required maxlength="50" placeholder="site" value="{{ $group ?: 'site' }}" autocomplete="off">
+                        <datalist id="trGroupList">
+                            @foreach($groups->pluck('name')->merge($fileGroups)->unique()->sort() as $g)<option value="{{ $g }}">@endforeach
+                        </datalist>
+                    </label>
+                    <label class="tr-field">
+                        <span>Key</span>
+                        <input name="key" required maxlength="100" placeholder="buy_now" class="font-monospace" autocomplete="off">
+                    </label>
                 </div>
+                <div class="tr-code">Code: <code id="trAddCode">__('site.…')</code></div>
+                <label class="tr-field"><span>Bangla</span><textarea name="text_bn" rows="2" maxlength="2000" placeholder="এখনই কিনুন"></textarea></label>
+                <label class="tr-field">
+                    <span>English <button type="button" class="tr-suggest is-text" data-add-suggest><i class="fa-solid fa-wand-magic-sparkles"></i> Suggest</button></span>
+                    <textarea name="text_en" rows="2" maxlength="2000" placeholder="Buy Now"></textarea>
+                </label>
+                <label class="tr-field"><span>Arabic <em>optional</em></span><textarea name="text_ar" rows="2" maxlength="2000" dir="rtl" placeholder="اشتري الآن"></textarea></label>
+                <div class="tr-form-error" id="trAddError" hidden></div>
             </div>
-            <div class="col-12 col-md-2 d-flex gap-1">
-                <button type="submit" class="btn btn-sm btn-primary flex-fill fw-semibold">Filter</button>
-                <a href="{{ route('admin.translations.index') }}" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-rotate-left"></i></a>
+            <div class="tr-modal-foot">
+                <button type="button" class="tr-btn" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="tr-btn is-primary"><i class="fa-solid fa-check"></i><span>Save</span></button>
             </div>
         </form>
     </div>
-
-    <!-- Translations Table -->
-    <div class="adm-card bg-white">
-        <div class="adm-card__head">
-            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-font me-2 text-primary"></i> Site Interface Strings</h6>
-        </div>
-        <div class="adm-card__body p-0">
-            <div class="table-responsive">
-                <table class="table adm-table align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th class="ps-3">Key / Identifier</th>
-                            <th>Group</th>
-                            <th>Bengali (বাংলা)</th>
-                            <th>English (Global)</th>
-                            <th>Arabic (العربية)</th>
-                            <th class="text-end pe-3">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($translations as $tr)
-                            <tr>
-                                <td class="ps-3 fw-bold font-monospace text-primary small">{{ $tr->key }}</td>
-                                <td><span class="badge bg-light text-dark border text-uppercase small">{{ $tr->group }}</span></td>
-                                <td class="fw-semibold text-dark">{{ $tr->text_bn ?? '—' }}</td>
-                                <td class="text-dark">{{ $tr->text_en ?? '—' }}</td>
-                                <td class="text-muted small" dir="rtl">{{ $tr->text_ar ?? '—' }}</td>
-                                <td class="text-end pe-3">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5"
-                                            onclick="openEditTranslationModal({{ $tr->id }}, '{{ $tr->key }}', '{{ addslashes($tr->text_bn ?? '') }}', '{{ addslashes($tr->text_en ?? '') }}', '{{ addslashes($tr->text_ar ?? '') }}')">
-                                        <i class="fa-solid fa-pen"></i> Edit
-                                    </button>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="6" class="text-center py-4 text-muted small">No translation strings found.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="adm-card__foot p-3">
-            {{ $translations->links() }}
-        </div>
-    </div>
-
 </div>
+@endif
 
-<!-- Modal: Add Translation -->
-<div class="modal fade" id="addTranslationModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header bg-primary text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-circle-plus me-1.5"></i> Add Translation Key</h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="{{ route('admin.translations.store') }}" method="POST">
-                @csrf
-                <div class="modal-body p-4">
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label small fw-semibold">Group</label>
-                            <input type="text" name="group" class="form-control" placeholder="e.g. site, checkout, reader" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-semibold">Unique Key</label>
-                            <input type="text" name="key" class="form-control font-monospace" placeholder="e.g. button_buy_now" required>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Bengali (বাংলা)</label>
-                        <input type="text" id="addTextBn" name="text_bn" class="form-control" placeholder="e.g. এখনই কিনুন" required>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="form-label small fw-semibold mb-0">English (Global)</label>
-                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 small" onclick="triggerAiTranslate('addTextBn', 'addTextEn')">
-                                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI Auto-Translate
-                            </button>
-                        </div>
-                        <input type="text" id="addTextEn" name="text_en" class="form-control" placeholder="e.g. Buy Now">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Arabic (العربية) (Optional)</label>
-                        <input type="text" name="text_ar" class="form-control text-end" dir="rtl" placeholder="اشتري الآن">
-                    </div>
-                </div>
-                <div class="modal-footer bg-light py-2">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-primary">Save Key</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Edit Translation -->
-<div class="modal fade" id="editTranslationModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header bg-primary text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-pen-to-square me-1.5"></i> Edit Translation Text</h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="editTranslationForm" method="POST">
-                @csrf
-                @method('PUT')
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-muted">Key</label>
-                        <input type="text" id="editKey" class="form-control font-monospace bg-light" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Bengali (বাংলা)</label>
-                        <input type="text" id="editTextBn" name="text_bn" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="form-label small fw-semibold mb-0">English (Global)</label>
-                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 small" onclick="triggerAiTranslate('editTextBn', 'editTextEn')">
-                                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI Auto-Translate
-                            </button>
-                        </div>
-                        <input type="text" id="editTextEn" name="text_en" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Arabic (العربية)</label>
-                        <input type="text" id="editTextAr" name="text_ar" class="form-control text-end" dir="rtl">
-                    </div>
-                </div>
-                <div class="modal-footer bg-light py-2">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-primary">Update Text</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<div class="tr-toast" id="trToast" role="status" hidden></div>
+@endsection
 
 @push('scripts')
-<script>
-function openEditTranslationModal(id, key, textBn, textEn, textAr) {
-    document.getElementById('editTranslationForm').action = "/admin/translations/" + id;
-    document.getElementById('editKey').value = key;
-    document.getElementById('editTextBn').value = textBn;
-    document.getElementById('editTextEn').value = textEn;
-    document.getElementById('editTextAr').value = textAr;
-
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('editTranslationModal')).show();
-}
-
-function triggerAiTranslate(sourceId, targetId) {
-    const textBn = document.getElementById(sourceId).value;
-    if (!textBn) {
-        SwalToast('warning', 'অনুবাদ করতে প্রথমে বাংলা টেক্সট লিখুন!');
-        return;
-    }
-
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-    fetch("{{ route('admin.translations.auto-translate') }}", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': csrfToken
-        },
-        body: JSON.stringify({ text_bn: textBn })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById(targetId).value = data.text_en;
-            SwalToast('success', 'AI অনুবাদ সফলভাবে তৈরি হয়েছে (' + data.confidence + ')');
-        }
-    })
-    .catch(() => SwalToast('error', 'AI translation error occurred'));
-}
-</script>
+    <script src="{{ asset('js/admin-translations.js') }}?v={{ @filemtime(public_path('js/admin-translations.js')) }}" defer></script>
 @endpush
-@endsection
