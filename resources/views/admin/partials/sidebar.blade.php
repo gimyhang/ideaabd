@@ -86,6 +86,7 @@
             ['route' => 'admin.accounting.invoices.index',         'icon' => 'file-lines',          'label' => 'Quotations', 'type' => 'quotation', 'url' => route('admin.accounting.index', ['stream' => 'invoices', 'type' => 'quotation'])],
             ['route' => 'admin.accounting.invoices.index',         'icon' => 'calculator',          'label' => 'Calculator', 'type' => 'calculator', 'url' => route('admin.accounting.index', ['stream' => 'invoices', 'type' => 'quotation', 'calculator' => '1'])],
             ['route' => 'admin.accounting.customer-ledger.index', 'icon' => 'book-bookmark',       'label' => 'Ledger'],
+            ['route' => 'admin.receipts.index',                   'icon' => 'receipt',             'label' => 'Receipts'],
             ['route' => 'admin.accounting.tax-vat-deductions.index', 'icon' => 'receipt',           'label' => 'Tax'],
             ['route' => 'admin.accounting.salary.index',           'icon' => 'money-check-dollar',  'label' => 'Payroll'],
             ['route' => 'admin.accounting.employees.index',        'icon' => 'users-gear',          'label' => 'Employees'],
@@ -159,7 +160,7 @@
         'Production' => 'উৎপাদন', 'Stock' => 'মজুদ', 'Locations' => 'অবস্থান', 'Transfers' => 'স্থানান্তর',
         'Wastage' => 'অপচয়', 'Alerts' => 'সতর্কতা', 'Movements' => 'চলাচল',
         'Accounting' => 'হিসাব', 'Transactions' => 'লেনদেন', 'Invoices' => 'ইনভয়েস', 'Quotations' => 'কোটেশন', 'Calculator' => 'ক্যালকুলেটর',
-        'Ledger' => 'বহি', 'Tax' => 'কর', 'Payroll' => 'বেতন', 'Employees' => 'কর্মী',
+        'Ledger' => 'বহি', 'Receipts' => 'রসিদ', 'Tax' => 'কর', 'Payroll' => 'বেতন', 'Employees' => 'কর্মী',
         'Content' => 'কনটেন্ট', 'Blog' => 'ব্লগ', 'Honorariums' => 'সম্মানী', 'Webzines' => 'ওয়েবজিন',
         'Sales' => 'বিক্রয়', 'POS' => 'কাউন্টার', 'Orders' => 'অর্ডার', 'Bills' => 'বিল', 'Affiliates' => 'অ্যাফিলিয়েট', 
         'Gateways' => 'গেটওয়ে', 'SMS' => 'এসএমএস', 'Requests' => 'অনুরোধ',
@@ -237,6 +238,7 @@
         'admin.system-settings' => 'settings.manage',
         'admin.cache.manage' => 'settings.manage',
         'admin.media.index' => 'marketing.banners_manage',
+        'admin.receipts.index' => 'accounting.view',
         'admin.audit-logs.index' => 'activity_logs.view',
     ];
 @endphp

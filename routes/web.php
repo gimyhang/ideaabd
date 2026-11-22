@@ -943,6 +943,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/run-artisan', 'runArtisan')->middleware('throttle:10,1')->name('run-artisan');
     });
 
+    // Money receipts: honorarium paid to writers and bill money received
+    Route::prefix('receipts')->name('receipts.')->controller(\App\Http\Controllers\Admin\MoneyReceiptController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/lookup', 'lookup')->name('lookup')->middleware('throttle:120,1,receipt-lookup');
+        Route::post('/', 'store')->name('store')->middleware('throttle:30,1,receipt-store');
+        Route::get('/{receipt}/print', 'print')->name('print');
+        Route::delete('/{receipt}', 'destroy')->name('destroy')->middleware('throttle:30,1,receipt-delete');
+    });
+
     // Enterprise Disaster Recovery & Master ZIP Backup Hub
     Route::prefix('backup')->name('backup.')->controller(\App\Http\Controllers\Admin\AdminBackupController::class)->group(function () {
         Route::get('/', 'index')->name('index');

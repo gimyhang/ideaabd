@@ -289,6 +289,14 @@
             <a href="{{ route('admin.accounting.index') }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
                 <i class="fa-solid fa-calculator me-1"></i>Accounting
             </a>
+            @if($canReceipts = (auth()->user()?->hasPermission('accounting.ledger_manage') ?? false))
+                <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold adm-mr-btn is-pay" @if($receiptsReady = \App\Models\MoneyReceipt::ready()) data-mr-open="honorarium" @else onclick="location.href='{{ route('admin.receipts.index') }}'" @endif title="লেখককে সম্মানী প্রদান — রসিদসহ">
+                    <i class="fa-solid fa-hand-holding-dollar me-1"></i>Honorarium
+                </button>
+                <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold adm-mr-btn is-get" @if($receiptsReady) data-mr-open="bill" @else onclick="location.href='{{ route('admin.receipts.index') }}'" @endif title="বিলের অর্থ গ্রহণ — মানি রিসিট">
+                    <i class="fa-solid fa-receipt me-1"></i>Receipt
+                </button>
+            @endif
             @if(auth()->user()?->isAdmin())
             <a href="{{ route('admin.backup.index') }}" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold">
                 <i class="fa-solid fa-database me-1"></i>Backup
@@ -3705,4 +3713,19 @@ window.addEventListener('load', function() {
 </script>
 @endpush
 
+@if(($canReceipts ?? false) && ($receiptsReady ?? false))
+    @include('admin.receipts._modal')
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('css/admin-receipts.css') }}?v={{ @filemtime(public_path('css/admin-receipts.css')) }}">
+        <style>
+            .adm-mr-btn.is-pay { color: #7c3aed; border: 1px solid rgba(124, 58, 237, .45); background: rgba(124, 58, 237, .06); }
+            .adm-mr-btn.is-pay:hover { color: #fff; background: #7c3aed; }
+            .adm-mr-btn.is-get { color: #059669; border: 1px solid rgba(5, 150, 105, .45); background: rgba(5, 150, 105, .06); }
+            .adm-mr-btn.is-get:hover { color: #fff; background: #059669; }
+        </style>
+    @endpush
+    @push('scripts')
+        <script src="{{ asset('js/admin-receipts.js') }}?v={{ @filemtime(public_path('js/admin-receipts.js')) }}"></script>
+    @endpush
+@endif
 @endsection

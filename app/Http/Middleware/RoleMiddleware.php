@@ -65,6 +65,8 @@ class RoleMiddleware
         'admin.production.store'                   => 'catalog.stock_update',
         'admin.production.destroy'                 => 'catalog.stock_update',
         'admin.accounting.index'                   => 'accounting.view',
+        'admin.receipts.index'                     => 'accounting.view',
+        'admin.receipts.print'                     => 'accounting.view',
         'admin.accounting.entries.store'           => 'accounting.ledger_manage',
         'admin.accounting.entries.destroy'         => 'accounting.ledger_manage',
         'admin.accounting.invoices.index'          => 'accounting.view',
@@ -267,6 +269,7 @@ class RoleMiddleware
         'admin.users.impersonate'          => self::ADMIN_ONLY,
         'admin.users.revoke-role'          => self::ADMIN_ONLY,
         'admin.backup.'                    => self::ADMIN_ONLY,
+        'admin.receipts.'                  => 'accounting.ledger_manage',
         'admin.authors.reset-password'     => self::ADMIN_ONLY,
 
         'admin.users.security.'            => 'security.sessions',
