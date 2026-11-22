@@ -37,8 +37,9 @@
         const close = document.createElement('button');
         close.type = 'button'; close.className = 'btn-close'; close.setAttribute('data-bs-dismiss', 'alert');
         el.appendChild(close);
-        box.replaceChildren(el);
-        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        box.appendChild(el);
+        while (box.children.length > 3) box.firstElementChild.remove();
+        setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 200); }, type === 'danger' ? 9000 : 5000);
     }
 
     function ask(title, text, okLabel) {
@@ -50,7 +51,7 @@
 
     // ------------------------------------------------------------ create
     async function createBackup(mode) {
-        $('#progressTitle').textContent = mode === 'db_only' ? 'ডাটাবেজ ব্যাকআপ হচ্ছে' : 'ডাটাবেজ + মিডিয়া ব্যাকআপ হচ্ছে';
+        $('#progressTitle').textContent = mode === 'db_only' ? 'Database backup চলছে' : 'Full backup চলছে (ডাটাবেজ + মিডিয়া)';
         modal('progressModal').show();
         const res = await api('POST', B.routes.create, { mode });
         if (res.success) {
@@ -68,6 +69,7 @@
         if (!zone || !input) return;
         const open = () => input.click();
         zone.addEventListener('click', open);
+        zone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
         $('#btnUpload')?.addEventListener('click', open);
         input.addEventListener('change', () => input.files.length && upload(input.files[0]));
         ['dragenter', 'dragover'].forEach((n) => zone.addEventListener(n, (e) => { e.preventDefault(); zone.classList.add('dragover'); }));
@@ -158,7 +160,7 @@
     const stat = (label, value, tone) => '<div class="col-6 col-md"><div class="p-3 border rounded-3 text-center"><small class="text-muted d-block">' + esc(label) + '</small><strong class="fs-5 ' + (tone || '') + '">' + esc(value) + '</strong></div></div>';
 
     async function preview(file) {
-        openInfo('প্রিভিউ', file, loading);
+        openInfo('Preview', file, loading);
         const d = await api('GET', url('inspect', file));
         if (!d.success) return void ($('#infoBody').innerHTML = '<div class="alert alert-danger mb-0">' + esc(d.message) + '</div>');
         let html = '<div class="row g-2 mb-3">' + stat('ফাইল', d.files_count) + stat('সাইজ', d.size) + (d.manifest ? stat('ডাটাবেজ', (d.manifest.driver || '').toUpperCase()) + stat('মিডিয়া', d.manifest.media_files ?? 0) : '') + '</div>';
@@ -168,7 +170,7 @@
     }
 
     async function verify(file) {
-        openInfo('যাচাই', file, loading);
+        openInfo('Verify', file, loading);
         const d = await api('POST', url('dry-run', file));
         const checks = d.checks || [];
         if (!checks.length) return void ($('#infoBody').innerHTML = '<div class="alert alert-danger mb-0">' + esc(d.message || 'যাচাই করা যায়নি') + '</div>');
@@ -186,7 +188,7 @@
     };
 
     async function diff(file) {
-        openInfo('তুলনা', file, loading, '<button type="button" class="btn btn-outline-danger" data-act="selective" data-file="' + esc(file) + '" data-bs-dismiss="modal">টেবিল বাছাই করে রিস্টোর</button>');
+        openInfo('Compare', file, loading, '<button type="button" class="btn btn-outline-danger" data-act="selective" data-file="' + esc(file) + '" data-bs-dismiss="modal">Tables — বাছাই করে রিস্টোর</button>');
         const d = await api('GET', url('diff', file));
         if (!d.success) { $('#infoFooter').classList.add('d-none'); return void ($('#infoBody').innerHTML = '<div class="alert alert-danger mb-0">' + esc(d.message) + '</div>'); }
         let html = '<div class="row g-2 mb-3">' + stat('টেবিল', d.total_tables) + stat('পার্থক্য', d.changed_tables_count, d.changed_tables_count ? 'text-warning' : 'text-success') + stat('লাইভ রো', Number(d.total_live_rows).toLocaleString()) + stat('ব্যাকআপ রো', Number(d.total_backup_rows).toLocaleString()) + '</div>';
@@ -235,7 +237,7 @@
         $('#selectiveRun')?.addEventListener('click', async () => {
             const tables = picked();
             if (!tables.length) return toast('warning', 'অন্তত একটি টেবিল বাছাই করুন।');
-            if (!(await ask('টেবিল রিস্টোর', bn(tables.length) + 'টি টেবিল ব্যাকআপ থেকে বদলে যাবে। এগোবেন?', 'রিস্টোর করুন'))) return;
+            if (!(await ask('Restore tables', bn(tables.length) + 'টি টেবিল ব্যাকআপ থেকে বদলে যাবে। এগোবেন?', 'রিস্টোর করুন'))) return;
             const btn = $('#selectiveRun'); btn.disabled = true;
             const res = await api('POST', url('selective-restore', selectiveFile), { tables });
             btn.disabled = false;
@@ -266,7 +268,7 @@
 
     // ---- delete
     async function remove(file) {
-        if (!(await ask('ব্যাকআপ মুছুন', file + ' স্থায়ীভাবে মুছে যাবে।', 'মুছুন'))) return;
+        if (!(await ask('Delete', file + ' স্থায়ীভাবে মুছে যাবে।', 'Delete'))) return;
         const res = await api('DELETE', B.routes.base + '/' + encodeURIComponent(file));
         if (!res.success) return toast('danger', res.message || 'মোছা যায়নি');
         const tr = $$('#backupRows tr[data-file]').find((r) => r.dataset.file === file);
@@ -278,7 +280,7 @@
     async function bulkRemove() {
         const files = $$('.row-check:checked').map((c) => c.value);
         if (!files.length) return;
-        if (!(await ask('একসাথে মুছুন', bn(files.length) + 'টি ব্যাকআপ স্থায়ীভাবে মুছে যাবে।', 'মুছুন'))) return;
+        if (!(await ask('Delete', bn(files.length) + 'টি ব্যাকআপ স্থায়ীভাবে মুছে যাবে।', 'Delete'))) return;
         const res = await api('POST', B.routes.bulkDelete, { filenames: files });
         if (!res.success) return toast('danger', res.message || 'মোছা যায়নি');
         $$('#backupRows tr[data-file]').filter((r) => files.includes(r.dataset.file)).forEach((r) => r.remove());
@@ -289,7 +291,7 @@
 
     // ---- masked dump, telegram test
     async function masked() {
-        if (!(await ask('মাস্কড ডাম্প', 'পাসওয়ার্ড, ইমেইল ও ফোন নম্বর বদলে দেওয়া একটি ডাম্প তৈরি হবে (ডেভেলপারদের জন্য)।', 'তৈরি করুন'))) return;
+        if (!(await ask('Masked', 'পাসওয়ার্ড, ইমেইল ও ফোন নম্বর বদলে দেওয়া একটি ডাম্প তৈরি হবে (ডেভেলপারদের জন্য)।', 'Create'))) return;
         toast('info', 'ডাম্প তৈরি হচ্ছে…');
         const res = await api('POST', B.routes.masked);
         if (!res.success) return toast('danger', res.message || 'ডাম্প ব্যর্থ');
@@ -308,13 +310,19 @@
     function initChart() {
         const el = $('#usageChart');
         if (!el || typeof Chart === 'undefined') return;
+        const dark = document.body.classList.contains('dark-mode');
+        const ink = dark ? '#aab6cc' : '#64748b', grid = dark ? 'rgba(255,255,255,.06)' : 'rgba(15,23,42,.06)';
+        const ctx = el.getContext('2d');
+        const fill = ctx.createLinearGradient(0, 0, 0, 220);
+        fill.addColorStop(0, dark ? '#60a5fa' : '#2563eb');
+        fill.addColorStop(1, dark ? 'rgba(96,165,250,.35)' : 'rgba(37,99,235,.35)');
         new Chart(el, {
             type: 'bar',
-            data: { labels: B.timeline.labels, datasets: [{ data: B.timeline.backup_sizes_mb, backgroundColor: '#2563eb', borderRadius: 4, maxBarThickness: 36 }] },
+            data: { labels: B.timeline.labels, datasets: [{ data: B.timeline.backup_sizes_mb, backgroundColor: fill, hoverBackgroundColor: dark ? '#93c5fd' : '#1d4ed8', borderRadius: 8, maxBarThickness: 42 }] },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => c.parsed.y + ' MB · ' + bn(B.timeline.archive_counts[c.dataIndex]) + 'টি' } } },
-                scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { callback: (v) => v + ' MB' } } },
+                scales: { x: { grid: { display: false }, ticks: { color: ink } }, y: { beginAtZero: true, grid: { color: grid }, border: { display: false }, ticks: { color: ink, callback: (v) => v + ' MB' } } },
             },
         });
     }
@@ -332,6 +340,14 @@
     document.addEventListener('DOMContentLoaded', () => {
         initUpload(); initList(); initSelective(); initChart();
         $('#emailSend')?.addEventListener('click', sendEmail);
+        // a restore can take a while: show it is working so nobody clicks twice
+        $('#restoreForm')?.addEventListener('submit', (e) => {
+            if (e.defaultPrevented) return;
+            e.submitter && (e.submitter.disabled = true);
+            modal('restoreModal').hide();
+            $('#progressTitle').textContent = 'Restore চলছে';
+            modal('progressModal').show();
+        });
         $('#tgTest')?.addEventListener('click', telegramTest);
         applyFilter();
     });

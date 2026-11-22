@@ -37,6 +37,8 @@ class AdminController extends Controller
         // the whole dashboard ending in LiteSpeed's "Request Timeout". Lifted again for the after-response work.
         \App\Support\QueryBudget::limit(6);
         app()->terminating(fn () => \App\Support\QueryBudget::clear());
+        // a due auto-backup runs after this page is sent (the cron may be missing or use another database)
+        app(\App\Services\Backup\BackupService::class)->runDueAfterResponse();
 
         $systemNotice = null;
         try {

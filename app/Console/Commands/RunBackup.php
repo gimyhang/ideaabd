@@ -17,8 +17,19 @@ class RunBackup extends Command
             return self::SUCCESS;
         }
 
-        $mode   = $this->option('mode') ?: $backups->settings()['backup_mode'];
-        $result = $backups->run($mode, $this->option('scheduled') ? 'auto' : 'manual');
+        // one automatic backup at a time (the admin pages can start one too)
+        if ($this->option('scheduled') && !\Illuminate\Support\Facades\Cache::add('backup:auto_lock', time(), 1800)) {
+            return self::SUCCESS;
+        }
+
+        $mode = $this->option('mode') ?: $backups->settings()['backup_mode'];
+        try {
+            $result = $backups->run($mode, $this->option('scheduled') ? 'auto' : 'manual');
+        } finally {
+            if ($this->option('scheduled')) {
+                \Illuminate\Support\Facades\Cache::forget('backup:auto_lock');
+            }
+        }
 
         if (!$result['ok']) {
             $this->error('ব্যাকআপ ব্যর্থ: ' . $result['message']);

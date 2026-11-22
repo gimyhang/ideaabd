@@ -289,9 +289,11 @@
             <a href="{{ route('admin.accounting.index') }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
                 <i class="fa-solid fa-calculator me-1"></i>Accounting
             </a>
+            @if(auth()->user()?->isAdmin())
             <a href="{{ route('admin.backup.index') }}" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold">
                 <i class="fa-solid fa-database me-1"></i>Backup
             </a>
+            @endif
             <a href="{{ route('admin.cache.manage') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
                 <i class="fa-solid fa-broom me-1"></i>Clear Cache
             </a>

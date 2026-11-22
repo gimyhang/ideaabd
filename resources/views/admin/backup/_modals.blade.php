@@ -3,8 +3,8 @@
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content text-center p-4">
             <div class="spinner-border text-primary mx-auto mb-3" role="status"></div>
-            <h6 class="mb-1" id="progressTitle">ব্যাকআপ হচ্ছে</h6>
-            <small class="text-muted">বন্ধ করবেন না</small>
+            <h6 class="mb-1" id="progressTitle">Backup চলছে</h6>
+            <small class="text-muted">পেজটি বন্ধ করবেন না</small>
         </div>
     </div>
 </div>
@@ -31,7 +31,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h6 class="modal-title mb-0">ইমেইলে পাঠান</h6>
+                <h6 class="modal-title mb-0"><i class="fa-solid fa-envelope me-2 text-primary"></i>Email</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="বন্ধ"></button>
             </div>
             <div class="modal-body">
@@ -41,8 +41,8 @@
                 <small class="text-muted">সর্বোচ্চ {{ $mailMaxMb }} MB পর্যন্ত সংযুক্ত হয়।</small>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">বাতিল</button>
-                <button type="button" class="btn btn-primary" id="emailSend">পাঠান</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="emailSend"><i class="fa-solid fa-paper-plane me-1"></i>Send</button>
             </div>
         </div>
     </div>
@@ -55,7 +55,7 @@
             <form id="restoreForm" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h6 class="modal-title mb-0 text-danger">রিস্টোর</h6>
+                    <h6 class="modal-title mb-0 text-danger"><i class="fa-solid fa-rotate-left me-2"></i>Restore</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="বন্ধ"></button>
                 </div>
                 <div class="modal-body">
@@ -64,8 +64,8 @@
                     <small class="text-muted"><i class="fa-solid fa-shield-halved me-1 text-success"></i>শুরুর আগে বর্তমান ডাটাবেজের সেফটি কপি নেওয়া হয়।</small>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-danger">রিস্টোর করুন</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-rotate-left me-1"></i>Restore</button>
                 </div>
             </form>
         </div>
@@ -78,15 +78,15 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div>
-                    <h6 class="modal-title mb-0">টেবিল বাছাই</h6>
+                    <h6 class="modal-title mb-0"><i class="fa-solid fa-table-list me-2 text-primary"></i>Tables</h6>
                     <small class="text-muted font-monospace" id="selectiveFile"></small>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="বন্ধ"></button>
             </div>
             <div class="modal-body">
                 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="selAll">সব</button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" id="selNone">কোনোটি না</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="selAll">All</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="selNone">None</button>
                     <span class="badge text-bg-light border" id="selCount">০ নির্বাচিত</span>
                     <input type="search" id="selSearch" class="form-control form-control-sm ms-auto" style="max-width:200px" placeholder="খুঁজুন">
                 </div>
@@ -101,8 +101,8 @@
             </div>
             <div class="modal-footer">
                 <small class="text-muted me-auto">শুধু বাছাই করা টেবিল বদলাবে</small>
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">বাতিল</button>
-                <button type="button" class="btn btn-danger" id="selectiveRun">রিস্টোর করুন</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="selectiveRun"><i class="fa-solid fa-rotate-left me-1"></i>Restore</button>
             </div>
         </div>
     </div>
@@ -115,7 +115,7 @@
             <form action="{{ route('admin.backup.settings') }}" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h6 class="modal-title mb-0">সেটিংস</h6>
+                    <h6 class="modal-title mb-0"><i class="fa-solid fa-gear me-2 text-primary"></i>Settings</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="বন্ধ"></button>
                 </div>
                 <div class="modal-body">
@@ -178,7 +178,7 @@
                                     <input type="text" name="telegram_chat_id" id="tgChat" class="form-control font-monospace" value="{{ $settings['telegram_chat_id'] }}" placeholder="-100123… বা @channel">
                                 </div>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary mt-3" id="tgTest"><i class="fa-solid fa-paper-plane me-1"></i>টেস্ট</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-3" id="tgTest"><i class="fa-solid fa-paper-plane me-1"></i>Test</button>
                         </div>
 
                         <div class="tab-pane fade" id="setOffsite">
@@ -208,8 +208,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-primary">সংরক্ষণ</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i>Save</button>
                 </div>
             </form>
         </div>

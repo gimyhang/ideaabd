@@ -110,6 +110,58 @@ class BackupService
         return $ready;
     }
 
+    /** Database the current process talks to ("mysql:ideaabd"), so web and cron can be compared. */
+    public static function databaseFingerprint(): string
+    {
+        $conn = (string) config('database.default');
+        $db = (string) config("database.connections.{$conn}.database");
+        return $conn . ':' . ($conn === 'sqlite' ? basename($db) : $db);
+    }
+
+    /**
+     * The database the server cron uses, when it differs from the site's. Then the
+     * cron cannot see the backup settings and auto-backups are run from admin pages.
+     */
+    public function cronDatabaseMismatch(): ?string
+    {
+        $cron = (string) \Illuminate\Support\Facades\Cache::get('backup:scheduler_db', '');
+        return $cron !== '' && $cron !== self::databaseFingerprint() ? $cron : null;
+    }
+
+    /**
+     * Run a due automatic backup after this web response is sent. The web side
+     * always sees the real database, so this keeps auto-backups going even when
+     * the server cron is missing or points at another database.
+     */
+    public function runDueAfterResponse(): bool
+    {
+        try {
+            if (!$this->isDue()) {
+                return false;
+            }
+        } catch (\Throwable) {
+            return false;
+        }
+        if (!\Illuminate\Support\Facades\Cache::add('backup:auto_lock', time(), 1800)) {
+            return false;
+        }
+        app()->terminating(function () {
+            try {
+                @set_time_limit(0);
+                @ignore_user_abort(true);
+                if ($this->isDue()) {
+                    $this->run($this->settings()['backup_mode'], 'auto');
+                }
+            } catch (\Throwable $e) {
+                Log::error('Web auto-backup failed: ' . $e->getMessage());
+            } finally {
+                \Illuminate\Support\Facades\Cache::forget('backup:auto_lock');
+            }
+        });
+
+        return true;
+    }
+
     /** The scheduler leaves a heartbeat every minute; automatic backups only run while it is alive. */
     public function schedulerAlive(): bool
     {

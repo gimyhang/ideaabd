@@ -223,7 +223,6 @@ class RoleMiddleware
         'admin.system-settings.history'            => 'settings.manage',
         'admin.system-settings.restore'            => 'settings.manage',
         'admin.cache.manage'                       => 'settings.manage',
-        'admin.backup.index'                       => 'settings.manage',
         'admin.currencies.index'                   => 'settings.manage',
         'admin.translations.index'                 => 'editorial.view',
         'admin.communication.index'                => 'support.broadcast',

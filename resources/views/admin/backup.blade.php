@@ -1,60 +1,33 @@
 @extends('layouts.admin')
 
-@section('title', 'ব্যাকআপ')
-@section('heading', 'ব্যাকআপ')
+@section('title', 'Backup')
+@section('heading', 'Backup')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none">ড্যাশবোর্ড</a></li>
-    <li class="breadcrumb-item active">ব্যাকআপ</li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+    <li class="breadcrumb-item active">Backup</li>
 @endsection
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/admin-backup.css') }}?v={{ @filemtime(public_path('css/admin-backup.css')) ?: 1 }}">
+@endpush
 
 @php
-    $freqLabel = ['daily' => 'প্রতিদিন', 'weekly' => 'প্রতি সপ্তাহে', 'monthly' => 'প্রতি মাসে'];
-    $tabs      = ['all' => 'সব', 'archive' => 'ডাটাবেজ + মিডিয়া', 'database' => 'ডাটাবেজ', 'safety' => 'সেফটি', 'masked' => 'মাস্কড'];
-    $healthTone = ['good' => ['success', 'ভালো'], 'fair' => ['warning', 'মাঝারি'], 'poor' => ['danger', 'ঝুঁকিপূর্ণ']][$health['level']];
-    $barTone   = ['safe' => 'bg-primary', 'warning' => 'bg-warning', 'critical' => 'bg-danger'][$space['level']];
+    $freqLabel  = ['daily' => 'প্রতিদিন', 'weekly' => 'প্রতি সপ্তাহে', 'monthly' => 'প্রতি মাসে'];
+    $tabs       = ['all' => 'All', 'archive' => 'Full', 'database' => 'Database', 'safety' => 'Safety', 'masked' => 'Masked'];
+    $catInfo    = [
+        'archive'  => ['Full', 'ডাটাবেজ + মিডিয়া', 'fa-box-archive', 'is-blue'],
+        'database' => ['Database', 'শুধু ডাটাবেজ', 'fa-database', 'is-green'],
+        'safety'   => ['Safety', 'রিস্টোরের আগের কপি', 'fa-shield-halved', 'is-amber'],
+        'masked'   => ['Masked', 'গোপন তথ্য বদলানো', 'fa-user-shield', 'is-violet'],
+    ];
+    $tone       = ['good' => 'is-good', 'fair' => 'is-fair', 'poor' => 'is-poor'][$health['level']];
+    $toneLabel  = ['good' => 'Healthy', 'fair' => 'Fair', 'poor' => 'At risk'][$health['level']];
+    $spaceTone  = ['safe' => 'is-good', 'warning' => 'is-fair', 'critical' => 'is-poor'][$space['level']];
+    $latest     = $backups[0] ?? null;
 @endphp
 
-@section('actions')
-    <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" data-backup="db_only">
-        <i class="fa-solid fa-database me-1"></i> ডাটাবেজ
-    </button>
-    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" data-backup="data_media">
-        <i class="fa-solid fa-box-archive me-1"></i> ডাটাবেজ + মিডিয়া
-    </button>
-    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" id="btnUpload">
-        <i class="fa-solid fa-cloud-arrow-up me-1"></i> আপলোড
-    </button>
-    <div class="dropdown">
-        <button class="btn btn-outline-secondary btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" aria-label="আরও">
-            <i class="fa-solid fa-ellipsis"></i>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-            <li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#settingsModal"><i class="fa-solid fa-gear me-2 text-muted"></i>সেটিংস</button></li>
-            <li><button type="button" class="dropdown-item" data-act="masked"><i class="fa-solid fa-user-shield me-2 text-muted"></i>মাস্কড ডাম্প</button></li>
-            <li>
-                <form action="{{ route('admin.backup.integrity') }}" method="POST">@csrf
-                    <button class="dropdown-item"><i class="fa-solid fa-stethoscope me-2 text-muted"></i>ডাটাবেজ পরীক্ষা</button>
-                </form>
-            </li>
-            <li>
-                <form action="{{ route('admin.backup.optimize') }}" method="POST" data-confirm="সব টেবিল অপটিমাইজ করবেন?" data-confirm-title="অপটিমাইজ" data-confirm-icon="info">@csrf
-                    <button class="dropdown-item"><i class="fa-solid fa-wand-magic-sparkles me-2 text-muted"></i>অপটিমাইজ</button>
-                </form>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-                <form action="{{ route('admin.backup.cleanup-storage') }}" method="POST" data-confirm="সেটিংসের সীমার বাইরের পুরনো ব্যাকআপ মুছে যাবে ({{ $settings['retention_days'] }}টি রাখা হবে)।" data-confirm-title="পুরনো মুছুন" data-confirm-icon="warning">@csrf
-                    <button class="dropdown-item text-danger"><i class="fa-solid fa-broom me-2"></i>পুরনো মুছুন</button>
-                </form>
-            </li>
-        </ul>
-    </div>
-@endsection
-
 @section('content')
-<link rel="stylesheet" href="{{ asset('css/admin-backup.css') }}?v={{ @filemtime(public_path('css/admin-backup.css')) ?: 1 }}">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script>
     window.BACKUP = {
         timeline: @json($timeline),
@@ -73,201 +46,255 @@
     };
 </script>
 
-<div class="d-flex flex-column gap-3">
-
+<div class="bk">
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show mb-0" role="alert">{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        <div class="bk-alert is-good" role="alert"><i class="fa-solid fa-circle-check"></i><span>{{ session('success') }}</span><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
     @endif
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show mb-0" role="alert">{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        <div class="bk-alert is-poor" role="alert"><i class="fa-solid fa-circle-exclamation"></i><span>{{ session('error') }}</span><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
     @endif
     @if($errors->any())
-        <div class="alert alert-danger mb-0">{{ $errors->first() }}</div>
+        <div class="bk-alert is-poor" role="alert"><i class="fa-solid fa-circle-exclamation"></i><span>{{ $errors->first() }}</span></div>
     @endif
-    <div id="toastBox"></div>
+
+    {{-- Overview --}}
+    <section class="bk-hero">
+        <div class="bk-ring {{ $tone }}" style="--p: {{ $health['score'] }}" title="Backup health">
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="bk-ring-track" cx="60" cy="60" r="52"/>
+                <circle class="bk-ring-value" cx="60" cy="60" r="52" pathLength="100" stroke-dasharray="{{ $health['score'] }} 100"/>
+            </svg>
+            <div class="bk-ring-text"><strong>{{ $health['score'] }}</strong><small>{{ $toneLabel }}</small></div>
+        </div>
+        <div class="bk-hero-main">
+            <h2>Backups</h2>
+            <p>
+                @if($latest)
+                    শেষ ব্যাকআপ <b>{{ $latest['created_at']->locale('bn')->diffForHumans() }}</b> · {{ $latest['size'] }}
+                @else
+                    এখনো কোনো ব্যাকআপ নেই — নিচের <b>Database</b> বাটনে প্রথমটি তৈরি করুন।
+                @endif
+            </p>
+            @if($health['issues'])
+                <ul class="bk-issues">
+                    @foreach($health['issues'] as $issue)<li><i class="fa-solid fa-triangle-exclamation"></i>{{ $issue }}</li>@endforeach
+                </ul>
+            @else
+                <ul class="bk-issues is-ok"><li><i class="fa-solid fa-circle-check"></i>সব ঠিক আছে</li></ul>
+            @endif
+        </div>
+        <div class="bk-hero-acts">
+            <button type="button" class="bk-btn is-primary" data-backup="db_only" title="শুধু ডাটাবেজ (.sql.gz)"><i class="fa-solid fa-database"></i><span>Database</span></button>
+            <button type="button" class="bk-btn" data-backup="data_media" title="ডাটাবেজ + আপলোড করা ছবি ও ফাইল (.zip)"><i class="fa-solid fa-box-archive"></i><span>Full</span></button>
+            <button type="button" class="bk-btn" id="btnUpload" title="ব্যাকআপ ফাইল আপলোড"><i class="fa-solid fa-cloud-arrow-up"></i><span>Upload</span></button>
+            <div class="dropdown">
+                <button class="bk-btn is-icon" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="More"><i class="fa-solid fa-ellipsis"></i></button>
+                <ul class="dropdown-menu dropdown-menu-end bk-menu">
+                    <li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#settingsModal"><i class="fa-solid fa-gear"></i><span><b>Settings</b><small>সময়সূচি, টেলিগ্রাম, অফসাইট</small></span></button></li>
+                    <li><button type="button" class="dropdown-item" data-act="masked"><i class="fa-solid fa-user-shield"></i><span><b>Masked</b><small>ডেভেলপারদের জন্য নিরাপদ কপি</small></span></button></li>
+                    <li>
+                        <form action="{{ route('admin.backup.integrity') }}" method="POST">@csrf
+                            <button class="dropdown-item"><i class="fa-solid fa-stethoscope"></i><span><b>Check</b><small>ডাটাবেজের টেবিল পরীক্ষা</small></span></button>
+                        </form>
+                    </li>
+                    <li>
+                        <form action="{{ route('admin.backup.optimize') }}" method="POST" data-confirm="সব টেবিল অপটিমাইজ করবেন?" data-confirm-title="Optimize" data-confirm-icon="info">@csrf
+                            <button class="dropdown-item"><i class="fa-solid fa-wand-magic-sparkles"></i><span><b>Optimize</b><small>টেবিল গুছিয়ে জায়গা খালি করে</small></span></button>
+                        </form>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form action="{{ route('admin.backup.cleanup-storage') }}" method="POST" data-confirm="সেটিংসের সীমার বাইরের পুরনো ব্যাকআপ মুছে যাবে ({{ $settings['retention_days'] }}টি রাখা হবে)।" data-confirm-title="Cleanup" data-confirm-icon="warning">@csrf
+                            <button class="dropdown-item text-danger"><i class="fa-solid fa-broom"></i><span><b>Cleanup</b><small>পুরনো ব্যাকআপ মুছুন</small></span></button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    @if($settings['auto_backup_enabled'] && $cronDb)
+        <div class="bk-alert is-fair"><i class="fa-solid fa-plug-circle-exclamation"></i>
+            <span>সার্ভারের ক্রন অন্য ডাটাবেজ (<code>{{ $cronDb }}</code>) ব্যবহার করছে, তাই সেখান থেকে অটো-ব্যাকআপ হয় না। সময় হলে Dashboard বা এই পেজ খোলার পর ব্যাকআপ নিজে থেকেই চলে। স্থায়ী সমাধানে সার্ভারের <code>.env</code>-এ CLI-এর ডাটাবেজ ঠিক করুন।</span></div>
+    @elseif($settings['auto_backup_enabled'] && !$schedulerOk)
+        <div class="bk-alert is-fair"><i class="fa-solid fa-clock"></i>
+            <span>সার্ভারের ক্রন চলছে না। সময় হলে Dashboard বা এই পেজ খোলার পর অটো-ব্যাকআপ চলে; নিয়মিত চালাতে cPanel-এ ক্রন দিন: <code>* * * * * php artisan schedule:run</code></span></div>
+    @endif
 
     {{-- Status --}}
-    <div class="bkp-grid">
-        <div class="bkp-tile">
-            <span class="bkp-label">শেষ ব্যাকআপ</span>
-            <strong class="bkp-value">{{ $backups ? $backups[0]['created_at']->locale('bn')->diffForHumans() : 'নেই' }}</strong>
-            <span class="badge rounded-pill text-bg-{{ $healthTone[0] }} align-self-start">{{ $healthTone[1] }} · {{ $health['score'] }}</span>
-            @foreach($health['issues'] as $issue)
-                <small class="text-muted">• {{ $issue }}</small>
-            @endforeach
+    <div class="bk-tiles">
+        <div class="bk-tile">
+            <div class="bk-tile-top"><i class="fa-solid fa-clock-rotate-left is-blue"></i><span>Last</span></div>
+            <strong>{{ $latest ? $latest['created_at']->format('d M, h:i A') : '—' }}</strong>
+            <small>{{ $latest ? $catInfo[$latest['category']][0] . ' · ' . $latest['size'] : 'কোনো ফাইল নেই' }}</small>
+            @if(!empty($last['at']))
+                <small class="{{ ($last['status'] ?? '') === 'ok' ? '' : 'text-danger' }}">Auto: {{ \Illuminate\Support\Carbon::parse($last['at'])->format('d M, h:i A') }} · {{ ($last['status'] ?? '') === 'ok' ? 'সফল' : 'ব্যর্থ' }}</small>
+            @endif
         </div>
 
-        <div class="bkp-tile">
-            <span class="bkp-label">স্টোরেজ</span>
-            <strong class="bkp-value">{{ $space['used'] }} <small class="text-muted fw-normal">/ {{ $space['total'] }}</small></strong>
-            <div class="progress bkp-progress"><div class="progress-bar {{ $barTone }}" style="width: {{ max(1, min(100, $space['pct'])) }}%"></div></div>
-            <small class="text-muted">বাকি {{ $space['remaining'] }}@if($space['is_quota']) · প্ল্যান কোটা@endif</small>
+        <div class="bk-tile">
+            <div class="bk-tile-top"><i class="fa-solid fa-hard-drive is-violet"></i><span>Storage</span></div>
+            <strong>{{ $space['used'] }} <em>/ {{ $space['total'] }}</em></strong>
+            <div class="bk-meter {{ $spaceTone }}"><i style="width: {{ max(1, min(100, $space['pct'])) }}%"></i></div>
+            <small>বাকি {{ $space['remaining'] }}@if($space['is_quota']) · প্ল্যান কোটা@endif</small>
         </div>
 
-        <div class="bkp-tile">
-            <span class="bkp-label">অটো-ব্যাকআপ</span>
+        <div class="bk-tile">
+            <div class="bk-tile-top"><i class="fa-solid fa-calendar-check is-green"></i><span>Auto</span>
+                <button type="button" class="bk-link" data-bs-toggle="modal" data-bs-target="#settingsModal">Edit</button></div>
             @if($settings['auto_backup_enabled'])
-                <strong class="bkp-value text-success">{{ $freqLabel[$settings['backup_frequency']] }} · {{ $settings['backup_time'] }}</strong>
-                <small class="text-muted">পরবর্তী: {{ $next?->format('d M, h:i A') }}</small>
+                <strong class="is-on">{{ $freqLabel[$settings['backup_frequency']] }} · {{ $settings['backup_time'] }}</strong>
+                <small>পরবর্তী: {{ $next?->format('d M, h:i A') }} · {{ $settings['backup_mode'] === 'db_only' ? 'Database' : 'Full' }}</small>
             @else
-                <strong class="bkp-value text-muted">বন্ধ</strong>
-                <button type="button" class="btn btn-link btn-sm p-0 align-self-start" data-bs-toggle="modal" data-bs-target="#settingsModal">চালু করুন</button>
+                <strong class="is-off">বন্ধ</strong>
+                <small>Settings থেকে চালু করুন</small>
             @endif
-            @if($settings['auto_backup_enabled'] && !$schedulerOk)
-                <small class="text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i>সিডিউলার চলছে না — সার্ভারে ক্রন সেট করুন (<code>php artisan schedule:run</code>)</small>
-            @endif
-            <div class="d-flex flex-wrap gap-1 mt-1">
-                @foreach(['telegram' => 'টেলিগ্রাম', 'email' => 'ইমেইল', 'offsite' => 'অফসাইট'] as $key => $label)
-                    <button type="button" class="badge rounded-pill border-0 text-bg-{{ $channels[$key] ? 'success' : 'light' }}" data-bs-toggle="modal" data-bs-target="#settingsModal" title="{{ $channels[$key] ? 'চালু' : 'বন্ধ — সেট করুন' }}">
-                        <i class="fa-solid {{ $channels[$key] ? 'fa-check' : 'fa-xmark' }} me-1"></i>{{ $label }}
-                    </button>
+            <div class="bk-chips">
+                @foreach(['telegram' => ['Telegram', 'fa-paper-plane'], 'email' => ['Email', 'fa-envelope'], 'offsite' => ['Offsite', 'fa-cloud']] as $key => [$label, $icon])
+                    <button type="button" class="bk-chip {{ $channels[$key] ? 'is-on' : '' }}" data-bs-toggle="modal" data-bs-target="#settingsModal" title="{{ $channels[$key] ? 'চালু' : 'বন্ধ — সেট করুন' }}"><i class="fa-solid {{ $icon }}"></i>{{ $label }}</button>
                 @endforeach
             </div>
-            @if(!empty($last['at']))
-                <small class="{{ ($last['status'] ?? '') === 'ok' ? 'text-muted' : 'text-danger' }}">
-                    শেষ রান: {{ \Illuminate\Support\Carbon::parse($last['at'])->format('d M, h:i A') }} · {{ ($last['status'] ?? '') === 'ok' ? 'সফল' : 'ব্যর্থ' }}
-                </small>
-            @endif
         </div>
 
-        <div class="bkp-tile">
-            <span class="bkp-label">ডাটাবেজ</span>
-            <strong class="bkp-value">{{ $db['size'] }}</strong>
-            <small class="text-muted">{{ $db['name'] }} ({{ strtoupper($db['driver']) }}) · {{ count($db['tables']) }} টেবিল · {{ number_format($db['rows']) }} রো</small>
+        <div class="bk-tile">
+            <div class="bk-tile-top"><i class="fa-solid fa-server is-amber"></i><span>Database</span></div>
+            <strong>{{ $db['size'] }}</strong>
+            <small>{{ strtoupper($db['driver']) }} · {{ count($db['tables']) }} tables · {{ number_format($db['rows']) }} rows</small>
+            <small class="bk-mono" title="{{ $db['name'] }}">{{ $db['name'] }}</small>
         </div>
     </div>
 
     {{-- Upload --}}
-    <div class="bkp-drop" id="dropZone">
+    <div class="bk-drop" id="dropZone" role="button" tabindex="0" aria-label="Upload a backup file">
         <input type="file" id="backupFileInput" class="d-none" accept=".zip,.sql,.gz,.sqlite">
-        <div id="dropIdle"><i class="fa-solid fa-cloud-arrow-up me-2"></i>ফাইল ছাড়ুন বা ক্লিক করুন <span class="text-muted">· .zip .sql .gz .sqlite · সর্বোচ্চ {{ $uploadMaxMb }} MB</span></div>
-        <div id="dropBusy" class="d-none">
-            <div class="d-flex justify-content-between small mb-1"><span id="uploadName"></span><span id="uploadPct">0%</span></div>
-            <div class="progress bkp-progress"><div class="progress-bar" id="uploadBar" style="width:0%"></div></div>
+        <div id="dropIdle" class="bk-drop-idle">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span><b>Upload</b> — ফাইল এখানে ছাড়ুন বা ক্লিক করুন <em>.zip .sql .gz .sqlite · সর্বোচ্চ {{ $uploadMaxMb }} MB</em></span>
+        </div>
+        <div id="dropBusy" class="d-none bk-drop-busy">
+            <div class="bk-drop-row"><span id="uploadName"></span><span id="uploadPct">0%</span></div>
+            <div class="bk-meter"><i id="uploadBar" style="width:0%"></i></div>
         </div>
     </div>
 
-    {{-- Bulk bar --}}
-    <div class="bkp-bulk" id="bulkBar">
-        <span id="bulkCount">০ নির্বাচিত</span>
-        <button type="button" class="btn btn-sm btn-danger rounded-pill px-3" data-act="bulk-delete"><i class="fa-solid fa-trash-can me-1"></i>মুছুন</button>
-    </div>
-
-    {{-- Backups --}}
-    <div class="card bkp-card">
-        <div class="bkp-head">
-            <ul class="nav bkp-tabs" id="bkTabs">
+    {{-- Files --}}
+    <section class="bk-card">
+        <div class="bk-card-head">
+            <div class="bk-seg" id="bkTabs" role="tablist">
                 @foreach($tabs as $key => $label)
-                    <li class="nav-item">
-                        <button type="button" class="nav-link {{ $loop->first ? 'active' : '' }}" data-cat="{{ $key }}">{{ $label }} <span class="bkp-count">{{ $counts[$key] }}</span></button>
-                    </li>
+                    <button type="button" class="nav-link {{ $loop->first ? 'active' : '' }}" data-cat="{{ $key }}">{{ $label }} <span class="bk-count">{{ $counts[$key] }}</span></button>
                 @endforeach
-            </ul>
-            <div class="d-flex align-items-center gap-2 ms-auto">
-                <input type="search" id="backupSearch" class="form-control form-control-sm" placeholder="খুঁজুন" aria-label="খুঁজুন">
-                <span class="text-muted small text-nowrap" id="shownCount">{{ count($backups) }}টি</span>
             </div>
+            <label class="bk-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" id="backupSearch" placeholder="Search file…" aria-label="Search">
+                <span id="shownCount">{{ count($backups) }}টি</span>
+            </label>
         </div>
 
         <div class="table-responsive">
-            <table class="table bkp-table align-middle mb-0">
+            <table class="table bk-table align-middle mb-0">
                 <thead>
                     <tr>
-                        <th style="width:36px"><input type="checkbox" class="form-check-input" id="selectAll" aria-label="সব বাছাই"></th>
-                        <th>ফাইল</th>
-                        <th>সাইজ</th>
-                        <th>তৈরি</th>
-                        <th class="text-end">অ্যাকশন</th>
+                        <th class="bk-col-check"><input type="checkbox" class="form-check-input" id="selectAll" aria-label="Select all"></th>
+                        <th>File</th><th>Size</th><th>Created</th><th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="backupRows">
                     @forelse($backups as $b)
-                        @php $f = $b['filename']; @endphp
+                        @php $f = $b['filename']; [$cLabel, $cSub, $cIcon, $cTone] = $catInfo[$b['category']]; @endphp
                         <tr data-name="{{ strtolower($f) }}" data-cat="{{ $b['category'] }}" data-file="{{ $f }}">
-                            <td><input type="checkbox" class="form-check-input row-check" value="{{ $f }}" aria-label="বাছাই"></td>
+                            <td class="bk-col-check"><input type="checkbox" class="form-check-input row-check" value="{{ $f }}" aria-label="Select {{ $f }}"></td>
                             <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="fa-solid {{ $b['is_zip'] ? 'fa-file-zipper text-primary' : ($b['extension'] === 'sqlite' ? 'fa-database text-success' : 'fa-file-code text-secondary') }}"></i>
+                                <div class="bk-file">
+                                    <span class="bk-file-icon {{ $cTone }}"><i class="fa-solid {{ $b['extension'] === 'sqlite' ? 'fa-database' : $cIcon }}"></i></span>
                                     <div class="min-w-0">
-                                        <div class="font-monospace text-truncate bkp-name" title="{{ $f }}">{{ $f }}</div>
-                                        <small class="text-muted">{{ ['archive' => 'ডাটাবেজ + মিডিয়া', 'database' => 'ডাটাবেজ', 'safety' => 'সেফটি কপি', 'masked' => 'মাস্কড ডাম্প'][$b['category']] }}</small>
+                                        <div class="bk-name" title="{{ $f }}">{{ $f }}</div>
+                                        <small><span class="bk-tag {{ $cTone }}">{{ $cLabel }}</span> {{ $cSub }} · .{{ $b['extension'] }}</small>
                                     </div>
                                 </div>
                             </td>
-                            <td class="text-nowrap">{{ $b['size'] }}</td>
+                            <td class="text-nowrap bk-size">{{ $b['size'] }}</td>
                             <td class="text-nowrap">
-                                {{ $b['created_at']->format('d M Y, h:i A') }}
+                                <span class="bk-date">{{ $b['created_at']->format('d M Y, h:i A') }}</span>
                                 <small class="d-block text-muted">{{ $b['created_at']->locale('bn')->diffForHumans() }}</small>
                             </td>
                             <td class="text-end text-nowrap">
                                 @if($b['category'] !== 'masked')
-                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" data-act="restore" data-file="{{ $f }}">রিস্টোর</button>
+                                    <button type="button" class="bk-btn is-sm is-danger-soft" data-act="restore" data-file="{{ $f }}"><i class="fa-solid fa-rotate-left"></i><span>Restore</span></button>
                                 @endif
-                                <a href="{{ route('admin.backup.download', $f) }}" class="btn btn-sm btn-light rounded-circle" title="ডাউনলোড"><i class="fa-solid fa-download"></i></a>
+                                <a href="{{ route('admin.backup.download', $f) }}" class="bk-icon" title="Download"><i class="fa-solid fa-download"></i></a>
                                 <div class="dropdown d-inline-block">
-                                    <button class="btn btn-sm btn-light rounded-circle" type="button" data-bs-toggle="dropdown" aria-label="আরও"><i class="fa-solid fa-ellipsis"></i></button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                        <li><button type="button" class="dropdown-item" data-act="verify" data-file="{{ $f }}">যাচাই</button></li>
+                                    <button class="bk-icon" type="button" data-bs-toggle="dropdown" aria-label="More"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                                    <ul class="dropdown-menu dropdown-menu-end bk-menu">
+                                        <li><button type="button" class="dropdown-item" data-act="verify" data-file="{{ $f }}"><i class="fa-solid fa-circle-check"></i><span><b>Verify</b><small>লাইভ ডাটাবেজ না ছুঁয়ে যাচাই</small></span></button></li>
                                         @if($b['category'] !== 'masked' && $b['extension'] !== 'sqlite')
-                                            <li><button type="button" class="dropdown-item" data-act="diff" data-file="{{ $f }}">তুলনা</button></li>
-                                            <li><button type="button" class="dropdown-item" data-act="selective" data-file="{{ $f }}">টেবিল বাছাই</button></li>
+                                            <li><button type="button" class="dropdown-item" data-act="diff" data-file="{{ $f }}"><i class="fa-solid fa-code-compare"></i><span><b>Compare</b><small>লাইভের সঙ্গে রো মিলিয়ে দেখুন</small></span></button></li>
+                                            <li><button type="button" class="dropdown-item" data-act="selective" data-file="{{ $f }}"><i class="fa-solid fa-table-list"></i><span><b>Tables</b><small>নির্দিষ্ট টেবিল রিস্টোর</small></span></button></li>
                                         @endif
                                         @if($b['is_zip'])
-                                            <li><button type="button" class="dropdown-item" data-act="preview" data-file="{{ $f }}">প্রিভিউ</button></li>
+                                            <li><button type="button" class="dropdown-item" data-act="preview" data-file="{{ $f }}"><i class="fa-solid fa-eye"></i><span><b>Preview</b><small>ZIP-এর ভেতরের ফাইল</small></span></button></li>
                                         @endif
-                                        <li><button type="button" class="dropdown-item" data-act="email" data-file="{{ $f }}">ইমেইল</button></li>
+                                        <li><button type="button" class="dropdown-item" data-act="email" data-file="{{ $f }}"><i class="fa-solid fa-envelope"></i><span><b>Email</b><small>{{ $mailMaxMb }} MB পর্যন্ত</small></span></button></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><button type="button" class="dropdown-item text-danger" data-act="delete" data-file="{{ $f }}">মুছুন</button></li>
+                                        <li><button type="button" class="dropdown-item text-danger" data-act="delete" data-file="{{ $f }}"><i class="fa-regular fa-trash-can"></i><span><b>Delete</b></span></button></li>
                                     </ul>
                                 </div>
                             </td>
                         </tr>
                     @empty
-                        <tr id="emptyRow"><td colspan="5" class="text-center text-muted py-5">কোনো ব্যাকআপ নেই। উপরের “ডাটাবেজ” বাটনে প্রথমটি তৈরি করুন।</td></tr>
+                        <tr id="emptyRow"><td colspan="5"><div class="bk-empty"><i class="fa-solid fa-box-open"></i><strong>No backups yet</strong><span>ওপরের <b>Database</b> বাটনে প্রথম ব্যাকআপ তৈরি করুন।</span></div></td></tr>
                     @endforelse
-                    <tr id="noMatchRow" class="d-none"><td colspan="5" class="text-center text-muted py-4">মিলছে না।</td></tr>
+                    <tr id="noMatchRow" class="d-none"><td colspan="5"><div class="bk-empty is-small"><i class="fa-solid fa-magnifying-glass"></i><span>কিছু মেলেনি।</span></div></td></tr>
                 </tbody>
             </table>
         </div>
-    </div>
+    </section>
 
-    {{-- Usage chart --}}
-    <div class="card bkp-card">
-        <div class="bkp-head"><strong>ব্যবহার · ৬ মাস</strong></div>
-        <div class="p-3"><div class="bkp-chart"><canvas id="usageChart"></canvas></div></div>
-    </div>
+    <div class="bk-cols">
+        {{-- Usage --}}
+        <section class="bk-card">
+            <div class="bk-card-head"><h3><i class="fa-solid fa-chart-column"></i>Usage</h3><span class="bk-muted">শেষ ৬ মাস</span></div>
+            <div class="bk-chart"><canvas id="usageChart" aria-label="Backup size by month"></canvas></div>
+        </section>
 
-    {{-- Tables --}}
-    @if(!empty($db['tables']))
-        <div class="card bkp-card">
-            <button type="button" class="bkp-head bkp-toggle" data-bs-toggle="collapse" data-bs-target="#tablesBox" aria-expanded="false">
-                <strong>টেবিল <span class="bkp-count">{{ count($db['tables']) }}</span></strong>
-                <i class="fa-solid fa-chevron-down ms-auto text-muted"></i>
-            </button>
-            <div class="collapse" id="tablesBox">
-                <div class="p-3 border-bottom"><input type="search" id="schemaSearch" class="form-control form-control-sm" placeholder="টেবিল খুঁজুন"></div>
-                <div class="table-responsive" style="max-height: 420px">
-                    <table class="table bkp-table mb-0" id="schemaTable">
-                        <thead><tr><th>নাম</th><th class="text-end">রো</th><th class="text-end">সাইজ</th></tr></thead>
-                        <tbody>
-                            @foreach($db['tables'] as $t)
-                                <tr data-name="{{ strtolower($t['name']) }}">
-                                    <td class="font-monospace">{{ $t['name'] }}</td>
-                                    <td class="text-end">{{ number_format($t['rows']) }}</td>
-                                    <td class="text-end text-muted">{{ $t['size'] }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+        {{-- Tables --}}
+        <section class="bk-card">
+            <div class="bk-card-head">
+                <h3><i class="fa-solid fa-table"></i>Tables <span class="bk-count">{{ count($db['tables']) }}</span></h3>
+                <label class="bk-search is-small"><i class="fa-solid fa-magnifying-glass"></i><input type="search" id="schemaSearch" placeholder="Search table…" aria-label="Search tables"></label>
             </div>
-        </div>
-    @endif
+            <div class="bk-schema">
+                <table class="table bk-table mb-0" id="schemaTable">
+                    <thead><tr><th>Name</th><th class="text-end">Rows</th><th class="text-end">Size</th></tr></thead>
+                    <tbody>
+                        @forelse($db['tables'] as $t)
+                            <tr data-name="{{ strtolower($t['name']) }}">
+                                <td class="bk-mono">{{ $t['name'] }}</td>
+                                <td class="text-end">{{ number_format($t['rows']) }}</td>
+                                <td class="text-end text-muted">{{ $t['size'] }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="3" class="text-center text-muted py-4">—</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
 </div>
+
+{{-- Bulk bar --}}
+<div class="bk-bulk" id="bulkBar">
+    <span id="bulkCount">০ নির্বাচিত</span>
+    <button type="button" class="bk-btn is-sm is-danger" data-act="bulk-delete"><i class="fa-regular fa-trash-can"></i><span>Delete</span></button>
+</div>
+<div id="toastBox" class="bk-toasts" aria-live="polite"></div>
 
 @include('admin.backup._modals')
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="{{ asset('js/admin-backup.js') }}?v={{ @filemtime(public_path('js/admin-backup.js')) ?: 1 }}"></script>
 @endpush
 @endsection

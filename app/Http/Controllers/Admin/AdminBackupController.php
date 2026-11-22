@@ -35,6 +35,9 @@ class AdminBackupController extends Controller
         $db       = $this->backups->dbStats();
         $space    = $this->backups->space($files);
 
+        // a due automatic backup runs after this page is sent (the server cron may be missing or use another database)
+        $this->backups->runDueAfterResponse();
+
         $phpLimit = min(
             $this->iniBytes((string) ini_get('upload_max_filesize')) ?: PHP_INT_MAX,
             $this->iniBytes((string) ini_get('post_max_size')) ?: PHP_INT_MAX,
@@ -55,6 +58,7 @@ class AdminBackupController extends Controller
             'disks'        => $this->backups->offsiteDisks(),
             'channels'     => $this->backups->channels($settings),
             'schedulerOk'  => $this->backups->schedulerAlive(),
+            'cronDb'       => $this->backups->cronDatabaseMismatch(),
             'uploadMaxMb'  => (int) floor($phpLimit / 1048576),
             'maxRetention' => (int) config('backup.max_retention', 30),
             'mailMaxMb'    => (int) config('backup.mail_attach_max_mb', 20),
