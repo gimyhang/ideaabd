@@ -31,13 +31,7 @@
     };
 
     var BASIS = {
-        Design: 'Qty', Paper: 'Reams', CTP: 'Plates', Press: 'Thousands',
-        Lamination: 'Copies', Cutting: 'Copies', Binding: 'Copies',
-        Packing: 'Qty', Transport: 'Qty', Other: 'Qty'
-    };
-
-    var BASIS_BN = {
-        Design: 'Qty', Paper: 'Reams', CTP: 'Plates', Press: 'Thousands',
+        Design: 'Qty', Paper: 'Reams', CTP: 'Plates', Press: '× 1,000',
         Lamination: 'Copies', Cutting: 'Copies', Binding: 'Copies',
         Packing: 'Qty', Transport: 'Qty', Other: 'Qty'
     };
@@ -543,8 +537,8 @@
         }
         $('pcColors').value = v && v.colors ? v.colors : String(d.colors || 4);
         $('pcSides').value = v && v.sides ? v.sides : '1';
-        $('pcOverhead').value = v && v.overhead !== undefined ? v.overhead : '0';
-        $('pcProfit').value = v && v.profit !== undefined ? v.profit : '20';
+        $('pcOverhead').value = v && v.overhead !== undefined && v.overhead !== '' ? v.overhead : '0';
+        $('pcProfit').value = v && v.profit !== undefined && v.profit !== '' ? v.profit : '20';
         $('pcRound').value = v && v.round !== undefined ? v.round : '0';
     }
 
@@ -582,11 +576,23 @@
     }
 
     // Cover spread (front + spine + back) pieces that fit one side of the stock sheet.
-    var SPINE = 0.3;
-    function coverUpsFor(size, sheet) {
+    // Spine width follows the book: leaves × paper caliper (offset paper ≈ 1.25 µm per GSM,
+    // i.e. 0.0000492" per GSM per leaf) plus ~0.02" for glue. Bleed is 0.125" on every edge.
+    var BLEED = 0.125;
+    var MIN_SPINE = 0.1;
+    function innerGsm() {
+        var row = state.rows.filter(function (x) { return x.on && x.g === 'Paper' && variantKey(x) === 'PaperInner' && num(x.a) > 0; })[0];
+        return row ? num(row.a) : 80;
+    }
+    function spineFor(pages) {
+        if (!(pages > 0)) return MIN_SPINE;
+        return Math.max(MIN_SPINE, round((pages / 2) * innerGsm() * 0.0000492 + 0.02, 3));
+    }
+    function coverUpsFor(size, sheet, pages) {
         var p = SIZES[size], s = SHEETS[sheet];
         if (!p || !s) return 0;
-        var spread = [p[0] * 2 + SPINE, p[1]];
+        // Flat cover with bleed: back + spine + front across, trim height down.
+        var spread = [p[0] * 2 + spineFor(pages) + BLEED * 2, p[1] + BLEED * 2];
         var a = Math.floor(s[0] / spread[0]) * Math.floor(s[1] / spread[1]);
         var b = Math.floor(s[0] / spread[1]) * Math.floor(s[1] / spread[0]);
         return Math.max(a, b);
@@ -641,7 +647,8 @@
             size: size,
             sheet: sheet,
             ups: upsFor(size, sheet),
-            coverUps: coverUpsFor(size, sheet),
+            coverUps: coverUpsFor(size, sheet, pages),
+            spine: spineFor(pages),
             leaves: (def.leaf && pages > 0) ? pages : 1,
             parts: 1
         };
@@ -696,13 +703,31 @@
     function pressRaw(r, j) {
         switch (r.auto) {
             case 'pressBook':
-            case 'pressCover':
             case 'pressLeaf':
                 return j.q / 1000;                       // every copy runs once per forma/layout
+            case 'pressCover':
+                return coverSheets(j) / 1000;            // covers print several-up: sheets, not copies, go through
             case 'pressJob':
                 return Math.ceil(j.q * j.leaves / pressUps(j)) / 1000; // flat work: sheets through the press
         }
         return 0;
+    }
+
+    // Cover sheets through the press: copies / covers per sheet (the cover board line's ups when it
+    // is in use, else the cover-spread geometry). Press waste is covered by the 1,000 minimum.
+    function coverSheets(j) {
+        var row = state.rows.filter(function (x) { return x.on && x.g === 'Paper' && x.auto === 'sheet' && x.spread; })[0];
+        var ups = row ? sheetUps(row, j) : Math.max(1, j.coverUps || 1);
+        return j.q > 0 ? Math.ceil(j.q / ups) : 0;
+    }
+
+    // Whole formas print sheetwise: 2 plates per colour (front + back). A part forma (half or less)
+    // is printed work-and-turn on one plate per colour; more than half needs both sides.
+    function formaPlateSets(j) {
+        var whole = Math.floor(j.formas + 1e-9);
+        var part = j.formas - whole;
+        if (part < 1e-6) return whole * PLATES_PER_FORMA;
+        return whole * PLATES_PER_FORMA + (part <= 0.5 + 1e-9 ? 1 : PLATES_PER_FORMA);
     }
 
     function isPress(r) { return r.auto === 'pressBook' || r.auto === 'pressCover' || r.auto === 'pressLeaf' || r.auto === 'pressJob'; }
@@ -721,17 +746,17 @@
                 // Inner paper: copies x formas / formas-per-sheet, plus waste.
                 if (!j.formas || q <= 0) return 0;
                 var perSheet = Math.max(1, Math.floor(pagesPerSheet(j.size, j.sheet, j.formaSize) / j.formaSize + 1e-9));
-                var bookSheets = (j.formas * q / perSheet) * (1 + num(r.waste) / 100);
+                var bookSheets = Math.ceil(j.formas * q / perSheet - 1e-9) * (1 + num(r.waste) / 100);
                 return paperQty(r, bookSheets / SHEETS_PER_REAM);
             }
             case 'sheet': {
                 // Cover board / flat stock: copies x leaves / ups, plus waste.
                 var mult = (!r.flat && j.pages > 0 && TYPES[state.type].pages) ? j.pages : 1;
-                var sheets = (q * mult / sheetUps(r, j)) * (1 + num(r.waste) / 100);
+                var sheets = Math.ceil(q * mult / sheetUps(r, j) - 1e-9) * (1 + num(r.waste) / 100);
                 return paperQty(r, sheets / SHEETS_PER_REAM);
             }
             case 'platesBook':
-                return Math.ceil(j.formas) * j.colors * PLATES_PER_FORMA;
+                return formaPlateSets(j) * j.colors;
             case 'platesLeaf':
                 return leafLayouts(j) * j.colors * (j.sides === 2 ? PLATES_PER_FORMA : 1);
             case 'platesCover':
@@ -923,9 +948,14 @@
             var up = round(Math.ceil(unit / step - 1e-9) * step, 4);
             rounded = Math.abs(up - unit) > 1e-9;
             unit = up;
-            total = round(unit * q, 2);
         } else {
             unit = round(unit, 2);
+        }
+        // The invoice line is qty × rate, so the total is exactly that; profit takes the rounding
+        // difference so Cost + Profit always equals the Total shown.
+        if (q > 0) {
+            total = round(round(unit, 2) * q, 2);
+            profit = round(total - cost, 2);
         }
         return { direct: direct, overhead: overhead, cost: cost, profit: profit, total: total, unit: round(unit, 2), rounded: rounded };
     }
@@ -987,7 +1017,11 @@
         switch (r.g) {
             case 'Paper': return r.unit === 'sheet' ? 'per sheet' : 'per ream';
             case 'CTP': return 'per plate';
-            case 'Press': return 'per 1,000';
+            case 'Press':
+                if (r.auto === 'pressBook') return 'forma / 1,000';
+                if (r.auto === 'pressCover') return 'side / 1,000';
+                if (r.auto === 'pressLeaf') return 'layout / 1,000';
+                return 'per 1,000';
             case 'Design': return r.b === 'Page' ? 'per page' : 'per job';
             case 'Packing':
             case 'Transport': return r.b ? 'per ' + String(r.b).toLowerCase() : '';
@@ -1047,16 +1081,36 @@
     function fmtK(n) { return String(Math.round(num(n) * 1000) / 1000); }
 
     // Production totals shown in the KPI strip, the summary text and the invoice spec.
+    // Text pages and cover board are different stocks, so they are counted apart (never added together).
     function totals() {
-        var t = { reams: 0, plates: 0, innerPlates: 0, coverPlates: 0, imp: 0 };
+        var t = { reams: 0, sheets: 0, coverReams: 0, coverSheets: 0, plates: 0, innerPlates: 0, coverPlates: 0, imp: 0, innerImp: 0, coverImp: 0 };
         state.rows.forEach(function (r) {
             if (!r.on) return;
             var q = num(r.qty);
-            if (r.g === 'Paper') t.reams += reamsOf(r);
-            else if (r.g === 'CTP') { t.plates += q; if (/cover/i.test(r.n)) t.coverPlates += q; else t.innerPlates += q; }
-            else if (r.g === 'Press') t.imp += q;
+            if (r.g === 'Paper') {
+                var rm = reamsOf(r);
+                if (variantKey(r) === 'PaperCover') { t.coverReams += rm; t.coverSheets += Math.round(rm * SHEETS_PER_REAM); }
+                else { t.reams += rm; t.sheets += Math.round(rm * SHEETS_PER_REAM); }
+            }
+            else if (r.g === 'CTP') { t.plates += q; if (/cover/i.test(r.n) || r.auto === 'platesCover') t.coverPlates += q; else t.innerPlates += q; }
+            else if (r.g === 'Press') { t.imp += q; if (r.auto === 'pressCover' || /cover/i.test(r.n)) t.coverImp += q; else t.innerImp += q; }
         });
         return t;
+    }
+
+    function reamText(reams) {
+        var rm = Math.floor(reams + 1e-9);
+        var dis = Math.round((reams - rm) * 20);
+        if (dis === 20) { rm++; dis = 0; }
+        var parts = [];
+        if (rm > 0) parts.push(rm + ' Rm');
+        if (dis > 0) parts.push(dis + ' Dista');
+        return parts.join(' ') || '0 Rm';
+    }
+
+    // True when the cover is part of the job (a cover plate or cover press line is switched on).
+    function hasCover() {
+        return state.rows.some(function (r) { return r.on && (r.auto === 'platesCover' || r.auto === 'pressCover'); });
     }
 
     // Short "how this number was reached" note under each automatic quantity.
@@ -1070,18 +1124,26 @@
             var parts = [];
             if (rm > 0) parts.push(rm + ' Ream' + (rm > 1 ? 's' : ''));
             if (dis > 0) parts.push(dis + ' Dista');
-            if (r.unit === 'sheet') return parts.length ? '= ' + parts.join(', ') : '';
+            var coverInfo = (r.spread && r.auto === 'sheet') ? sheetUps(r, j) + ' covers/sheet · spine ' + j.spine + '"' : '';
+            if (r.unit === 'sheet') return [coverInfo, parts.length ? '= ' + parts.join(', ') : ''].filter(Boolean).join('\n');
             return fmtInt(q * SHEETS_PER_REAM) + ' Sheets' + (parts.length ? '\n' + parts.join(', ') : '');
         }
         var pm = PLATES_PER_FORMA;
         switch (r.auto) {
-            case 'platesBook': return Math.ceil(j.formas) + ' formas × ' + j.colors + ' col × ' + pm;
+            case 'platesBook': {
+                var wholeF = Math.floor(j.formas + 1e-9), partF = j.formas - wholeF;
+                return wholeF + ' formas × ' + j.colors + ' col × ' + pm + (partF > 1e-6 ? ' + part forma ' + (partF <= 0.5 + 1e-9 ? j.colors + ' (work & turn)' : j.colors * pm) : '');
+            }
             case 'platesLeaf': return leafLayouts(j) + ' layouts × ' + j.colors + ' col' + (j.sides === 2 ? ' × ' + pm : '');
             case 'platesCover': return '4 col (CMYK)' + ((r.b === 'Both Sides' || j.sides === 2) ? ' × 2 sides' : '');
             case 'platesJob': return j.colors + ' col' + (j.sides === 2 ? ' × ' + pm : '');
             case 'pressBook': return j.q > 0 ? Math.ceil(j.formas) + ' formas × ' + fmtK(Math.max(1, pressRaw(r, j))) + 'k' + (pressRaw(r, j) < 1 ? ' (min)' : '') : '';
             case 'pressLeaf': return j.q > 0 ? leafLayouts(j) + ' layouts × ' + fmtK(Math.max(1, pressRaw(r, j))) + 'k' + (pressRaw(r, j) < 1 ? ' (min)' : '') : '';
-            case 'pressCover': return j.q > 0 ? fmtInt(q * 1000) + ' imp' + (pressRaw(r, j) < 1 ? ' (min)' : '') : '';
+            case 'pressCover': {
+                if (!(j.q > 0)) return '';
+                var cs = (r.b === 'Both Sides' || j.sides === 2) ? 2 : 1;
+                return fmtInt(coverSheets(j)) + ' sheets × ' + cs + ' side' + (cs > 1 ? 's' : '') + (pressRaw(r, j) < 1 ? ' (min 1k)' : '');
+            }
             case 'pressJob':
                 if (!(j.q > 0)) return '';
                 return fmtInt(Math.ceil(j.q * j.leaves / pressUps(j))) + ' sheets' + (pressRaw(r, j) < 1 ? ' (min 1k)' : '');
@@ -1129,6 +1191,7 @@
             var lacks = r.on && num(r.qty) > 0 && !num(r.rate);
             if (rate) {
                 rate.classList.toggle('is-invalid', lacks);
+                rate.classList.toggle('border-danger', lacks);   // drawn red when empty; clears once a rate is typed
             }
             if (lacks) missing++;
             pinState(rowEl.querySelector('.pc-pin'), r);
@@ -1161,23 +1224,26 @@
 
         // Live production strip
         if ($('pcKpiStrip')) {
-            var totalPaperSheets = Math.round(tot.reams * 500);
-            var rm = Math.floor(tot.reams + 1e-9);
-            var dis = Math.round((tot.reams - rm) * 20);
-            var pparts = [];
-            if (rm > 0) pparts.push(rm + ' Rm');
-            if (dis > 0) pparts.push(dis + ' Dis');
-
-            if ($('pcKpiPaperReams')) $('pcKpiPaperReams').textContent = tot.reams.toFixed(2) + ' Reams';
-            if ($('pcKpiPaperSheets')) $('pcKpiPaperSheets').textContent = totalPaperSheets.toLocaleString('en-US') + ' Sheets = ' + (pparts.join(' ') || '0 Rm');
+            // Main stock in reams; cover board (a different paper) shown beside it in sheets.
+            // Only board / card stock (cards, boxes): it is bought by the sheet, so sheets lead.
+            $('pcKpiStrip').hidden = !(tot.reams > 0 || tot.coverReams > 0 || tot.plates > 0 || tot.imp > 0);
+            if (tot.reams > 0) {
+                if ($('pcKpiPaperReams')) $('pcKpiPaperReams').textContent = tot.reams.toFixed(2) + ' Reams';
+                if ($('pcKpiPaperSheets')) $('pcKpiPaperSheets').textContent = tot.sheets.toLocaleString('en-US') + ' Sheets = ' + reamText(tot.reams)
+                    + (tot.coverSheets > 0 ? ' · Cover ' + tot.coverSheets.toLocaleString('en-US') + ' Sheets' : '');
+            } else {
+                if ($('pcKpiPaperReams')) $('pcKpiPaperReams').textContent = tot.coverSheets.toLocaleString('en-US') + ' Sheets';
+                if ($('pcKpiPaperSheets')) $('pcKpiPaperSheets').textContent = reamText(tot.coverReams);
+            }
             var paperRow = state.rows.filter(function (r) { return r.g === 'Paper' && r.on; })[0];
-            if ($('pcKpiPaperWaste')) $('pcKpiPaperWaste').textContent = (paperRow ? num(paperRow.waste) : 5) + '% Waste';
+            if ($('pcKpiPaperWaste')) $('pcKpiPaperWaste').textContent = (paperRow ? num(paperRow.waste) : 0) + '% Waste';
 
             var perForma = PLATES_PER_FORMA;
             if (isPaged && state.type !== 'calendar' && state.type !== 'memo') {
                 if ($('pcKpiFormasLbl')) $('pcKpiFormasLbl').textContent = 'Formas';
                 if ($('pcKpiFormas')) $('pcKpiFormas').textContent = formasStr + ' Formas';
-                if ($('pcKpiFormaSub')) $('pcKpiFormaSub').textContent = j.pages ? j.pages + ' Pages · ' + j.formaSize + 'p Forma · ' + (j.formaSize / 2) + 'p/Plate' : 'Enter pages';
+                if ($('pcKpiFormaSub')) $('pcKpiFormaSub').textContent = !j.pages ? 'Enter pages'
+                    : (j.pages % 4 !== 0 && !TYPES[state.type].leaf ? j.pages + ' Pages · not a multiple of 4' : j.pages + ' Pages · ' + j.formaSize + 'p Forma · ' + (j.formaSize / 2) + 'p/Side');
             } else {
                 if ($('pcKpiFormasLbl')) $('pcKpiFormasLbl').textContent = 'Layout';
                 if ($('pcKpiFormas')) $('pcKpiFormas').textContent = j.ups + ' Ups';
@@ -1185,14 +1251,19 @@
             }
             if ($('pcKpiUpsBadge')) $('pcKpiUpsBadge').textContent = SIZES_BN[j.size] ? SIZES_BN[j.size].split(' ')[0] : (j.size || '—');
 
+            var formaJob = isPaged && state.type !== 'calendar' && state.type !== 'memo';
             if ($('pcKpiPlates')) $('pcKpiPlates').textContent = fmtInt(tot.plates) + ' Plates';
-            if ($('pcKpiPlateSub')) $('pcKpiPlateSub').textContent = 'Inner ' + fmtInt(tot.innerPlates) + ' + Cover ' + fmtInt(tot.coverPlates);
-            if ($('pcKpiPlateMethodBadge')) $('pcKpiPlateMethodBadge').textContent = j.colors + (j.colors === 1 ? ' Color' : ' Colors') + (isPaged && state.type !== 'calendar' && state.type !== 'memo' ? ' · ' + perForma + (perForma > 1 ? ' Plates' : ' Plate') + '/Forma' : '');
+            if ($('pcKpiPlateSub')) $('pcKpiPlateSub').textContent = tot.coverPlates > 0 ? 'Inner ' + fmtInt(tot.innerPlates) + ' + Cover ' + fmtInt(tot.coverPlates) : fmtInt(tot.innerPlates) + ' for the job';
+            if ($('pcKpiPlateMethodBadge')) $('pcKpiPlateMethodBadge').textContent = j.colors + (j.colors === 1 ? ' Color' : ' Colors')
+                + (formaJob ? ' · ' + (j.colors * perForma) + ' per Forma' : '');
 
-            if ($('pcKpiImpressions')) $('pcKpiImpressions').textContent = fmtK(tot.imp) + ' K';
+            // Press lines are counted in units of 1,000 (a forma, a cover side or a flat run each).
+            if ($('pcKpiImpressions')) $('pcKpiImpressions').textContent = fmtK(tot.imp) + ' × 1,000';
             var minHit = state.rows.some(function (r) { return r.on && isPress(r) && j.q > 0 && pressRaw(r, j) < 1; });
-            if ($('pcKpiImpressionBadge')) $('pcKpiImpressionBadge').textContent = minHit ? 'Min 1,000' : 'Per 1,000';
-            if ($('pcKpiImpressionSub')) $('pcKpiImpressionSub').textContent = fmtInt(Math.round(tot.imp * 1000)) + ' impressions' + (minHit ? ' · min charge' : '');
+            if ($('pcKpiImpressionBadge')) $('pcKpiImpressionBadge').textContent = minHit ? 'Min 1,000 applied' : 'Per 1,000';
+            if ($('pcKpiImpressionSub')) $('pcKpiImpressionSub').textContent = formaJob
+                ? 'Inner ' + fmtK(tot.innerImp) + (tot.coverImp > 0 ? ' + Cover ' + fmtK(tot.coverImp) : '')
+                : fmtInt(Math.round(tot.imp * 1000)) + ' impressions';
         }
 
         $('pcMissing').hidden = missing === 0;
@@ -1243,7 +1314,9 @@
     // ── Live Specification Generator ────────────────────────────────────────
     function basisOf(r) {
         if (r.g === 'Paper') return r.unit === 'sheet' ? 'Sheets' : 'Reams';
-        return BASIS_BN[r.g] || BASIS[r.g];
+        if (r.g === 'Design') return r.b === 'Page' ? 'Pages' : 'Job';
+        if ((r.g === 'Packing' || r.g === 'Transport') && r.b) return r.b === 'Copy' ? 'Copies' : (r.b === 'Lot' ? 'Lot' : r.b + 's');
+        return BASIS[r.g];
     }
 
     // "Name (detail, detail)", never repeating something the name already says.
@@ -1269,17 +1342,18 @@
         if (j.pages) {
             if (def.leaf) parts.push('Leaves: ' + j.pages);
             else if (state.type === 'calendar') parts.push('Pages: ' + j.pages);
-            else parts.push('Pages: ' + j.pages + ' (' + fmtPages(Math.round(j.formas * 100) / 100) + ' Formas | ' + j.formaSize + 'p Forma, ' + (j.formaSize / 2) + 'p/Plate)');
-        }
-        if (isFormaType(state.type)) {
-            parts.push('Inner: ' + j.colors + (j.colors === 1 ? ' Color' : ' Colors') + ' | Cover: 4 Colors' + (j.sides === 2 ? ' (outside + inside)' : ''));
-        } else {
-            parts.push('Print: ' + j.colors + (j.colors === 1 ? ' Color' : ' Colors') + (j.sides === 2 ? ' (Both Sides)' : ' (1 Side)'));
+            else parts.push('Pages: ' + j.pages + ' (' + fmtPages(Math.round(j.formas * 100) / 100) + ' Formas | ' + j.formaSize + 'p Forma, ' + (j.formaSize / 2) + 'p/Side)');
         }
         var t = totals();
-        var pm = PLATES_PER_FORMA + ' Plates/Forma';
-        parts.push('Plates: ' + (t.plates > 0 ? fmtInt(t.plates) + ' (' + pm + ')' : pm));
-        if (t.imp > 0) parts.push('Press: ' + fmtInt(Math.round(t.imp * 1000)) + ' Impressions');
+        if (isFormaType(state.type)) {
+            parts.push('Inner: ' + j.colors + (j.colors === 1 ? ' Color' : ' Colors')
+                + (hasCover() ? ' | Cover: 4 Colors' + (j.sides === 2 ? ' (outside + inside)' : '') : ''));
+            if (t.plates > 0) parts.push('Plates: ' + fmtInt(t.plates) + (t.coverPlates > 0 ? ' (Inner ' + fmtInt(t.innerPlates) + ' + Cover ' + fmtInt(t.coverPlates) + ')' : ''));
+        } else {
+            parts.push('Print: ' + j.colors + (j.colors === 1 ? ' Color' : ' Colors') + (j.sides === 2 ? ' (Both Sides)' : ' (1 Side)'));
+            if (t.plates > 0) parts.push('Plates: ' + fmtInt(t.plates));
+            if (t.imp > 0) parts.push('Impressions: ' + fmtInt(Math.round(t.imp * 1000)));
+        }
         return parts;
     }
 
@@ -1467,29 +1541,32 @@
         var count = 0;
         var markup = (s.direct > 0 && s.total > 0) ? (s.total / s.direct) : 1;
 
-        activeRows.forEach(function (r) {
+        // 1) Each part carries its share of overhead + profit. A share that cannot be written as
+        //    copies × a 2-decimal price (within half a taka) is billed as one lot instead.
+        var lines = activeRows.map(function (r) {
             var gTitle = GROUP_TITLES_BN[r.g] || r.g;
-            var itemTitle = jobTitle + ' — ' + gTitle + ': ' + r.n;
-            var specDetail = label(r) + ' (' + r.qty + ' ' + basisOf(r) + ' @ ৳' + r.rate + ')';
-
             var itemType = 'Printing & Binding';
             if (r.g === 'Paper') itemType = 'Paper / Raw Materials';
             else if (r.g === 'Design') itemType = 'Service';
             else if (r.g === 'Transport' || r.g === 'Other') itemType = 'Product';
-
-            var compTotal = round(lineTotal(r) * markup, 2);
-            var unitPrice = round(compTotal / s.j.q, 2);
-            var lineQty = s.j.q;
-            var lineUnit = $('pcUnit').value || 'Pcs';
-            // A tiny per-copy share (e.g. one-off design fee over thousands of copies) cannot be
-            // expressed in 2 decimals; bill it as a single lot so the invoice total stays exact.
-            if (Math.abs(unitPrice * lineQty - compTotal) > 0.5) {
-                lineQty = 1;
-                lineUnit = 'Lot';
-                unitPrice = compTotal;
-            }
-
-            window.addPresetItem(itemTitle, specDetail, itemType, lineUnit, unitPrice, unitPrice, lineQty);
+            var share = round(lineTotal(r) * markup, 2);
+            var unitPrice = round(share / s.j.q, 2);
+            var line = { title: jobTitle + ' — ' + gTitle + ': ' + r.n, spec: label(r) + ' (' + r.qty + ' ' + basisOf(r) + ' @ ৳' + r.rate + ')',
+                type: itemType, unit: $('pcUnit').value || 'Pcs', qty: s.j.q, price: unitPrice };
+            if (Math.abs(unitPrice * s.j.q - share) > 0.5) { line.qty = 1; line.unit = 'Lot'; line.price = share; }
+            return line;
+        });
+        // 2) The paisa left over goes to the biggest lot line, so the lines add up to exactly the total.
+        var placed = lines.reduce(function (sum, l) { return round(sum + round(l.price * l.qty, 2), 2); }, 0);
+        var diff = round(s.total - placed, 2);
+        if (Math.abs(diff) >= 0.01) {
+            var lots = lines.filter(function (l) { return l.qty === 1; });
+            var host = (lots.length ? lots : lines).reduce(function (a, b) { return a.price * a.qty >= b.price * b.qty ? a : b; });
+            if (host.qty !== 1) { host.price = round(host.price * host.qty, 2); host.qty = 1; host.unit = 'Lot'; }
+            host.price = round(host.price + diff, 2);
+        }
+        lines.forEach(function (l) {
+            window.addPresetItem(l.title, l.spec, l.type, l.unit, l.price, l.price, l.qty);
             count++;
         });
 
