@@ -112,7 +112,7 @@
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
         <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-light bg-opacity-50">
             <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                <i class="fas fa-heart text-danger"></i>
+                
                 <span>Honorarium Records</span>
                 <span class="badge bg-danger-subtle text-danger-emphasis rounded-pill">{{ $honorariums->total() }}</span>
             </h6>

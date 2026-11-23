@@ -161,7 +161,7 @@
 <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
     <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between">
         <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-            <i class="fa-solid fa-list-check text-primary"></i> Orders Directory 
+            Orders Directory 
             <span class="badge bg-light text-dark border font-monospace">{{ $orders->total() }}</span>
         </h6>
         <div class="form-check form-switch mb-0" title="স্ট্যাটাস বদলালে গ্রাহককে SMS যাবে (প্রতিটি ধাপে একবার)">
@@ -386,7 +386,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-primary text-white border-0 py-3">
                 <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2" id="orderViewModalLabel">
-                    <i class="fa-solid fa-receipt"></i> Order Details: <span id="modalViewOrderNo" class="font-monospace"></span>
+                    Order Details: <span id="modalViewOrderNo" class="font-monospace"></span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -408,7 +408,7 @@
                     <!-- Customer Details -->
                     <div class="col-md-6">
                         <div class="p-3 border rounded-3 h-100 bg-white shadow-xs">
-                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-2"><i class="fa-solid fa-user text-primary me-1"></i> Customer Information</h6>
+                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">Customer Information</h6>
                             <div class="mb-1"><strong>Name:</strong> <span id="modalViewCustName"></span></div>
                             <div class="mb-1"><strong>Phone:</strong> <span id="modalViewCustPhone" class="text-primary fw-bold"></span></div>
                             <div class="mb-1"><strong>Full Address:</strong> <span id="modalViewCustAddress"></span></div>
@@ -420,7 +420,7 @@
                     <!-- Payment & Courier Info -->
                     <div class="col-md-6">
                         <div class="p-3 border rounded-3 h-100 bg-white shadow-xs">
-                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-2"><i class="fa-solid fa-truck-ramp-box text-success me-1"></i> Payment & Delivery</h6>
+                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">Payment & Delivery</h6>
                             <div class="mb-1"><strong>Payment Method:</strong> <span id="modalViewPaymentMethod"></span></div>
                             <div class="mb-1"><strong>Payment Status:</strong> <span id="modalViewPaymentStatus" class="badge bg-success"></span></div>
                             <div class="mb-1"><strong>Courier Service:</strong> <span id="modalViewCourier"></span></div>
@@ -432,7 +432,7 @@
 
                 <!-- Gift Info Section (if Gift) -->
                 <div id="modalViewGiftSection" class="p-3 bg-amber-50 rounded-3 border border-amber-200 mb-3 d-none">
-                    <h6 class="fw-bold text-amber-900 mb-2"><i class="fa-solid fa-gift text-warning me-1"></i> Gift Parcel Details</h6>
+                    <h6 class="fw-bold text-amber-900 mb-2">Gift Parcel Details</h6>
                     <div class="row g-2 small">
                         <div class="col-6"><strong>Recipient Name:</strong> <span id="modalViewGiftName"></span></div>
                         <div class="col-6"><strong>Recipient Phone:</strong> <span id="modalViewGiftPhone"></span></div>
@@ -489,7 +489,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-dark text-white border-0 py-3">
                 <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2" id="orderEditModalLabel">
-                    <i class="fa-solid fa-pen-to-square text-warning"></i> Edit Order: <span id="modalEditOrderNo" class="font-monospace text-warning"></span>
+                    Edit Order: <span id="modalEditOrderNo" class="font-monospace text-warning"></span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

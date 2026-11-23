@@ -369,9 +369,7 @@
              aria-controls="quickDraftCollapse" 
              style="cursor: pointer;">
             <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                <span class="badge bg-warning bg-opacity-20 text-warning-emphasis rounded-circle p-1.5">
-                    <i class="fas fa-pen-to-square"></i>
-                </span>
+                
                 <span class="small fw-bold">Quick Draft</span>
             </h6>
             <div class="d-flex align-items-center gap-2">
@@ -418,7 +416,7 @@
             <div class="author-card p-3 p-md-4 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                     <h6 class="fw-bold mb-0 text-dark">
-                        <i class="fas fa-receipt text-primary me-1.5"></i> Recent Sales
+                        Recent Sales
                     </h6>
                     <a href="{{ route('author.royalties') }}" class="small text-primary text-decoration-none fw-semibold">
                         View All <i class="fas fa-arrow-right small"></i>
@@ -513,7 +511,7 @@
             <div class="author-card p-3 p-md-4 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                     <h6 class="fw-bold mb-0 text-dark">
-                        <i class="fas fa-book text-info me-1.5"></i> My E-Books
+                        My E-Books
                     </h6>
                     <a href="{{ route('author.ebooks.index') }}" class="small text-primary text-decoration-none fw-semibold">
                         Manage
@@ -568,9 +566,7 @@
         <div class="author-card p-3 p-md-4 bg-white border-start border-4 border-danger">
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                 <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-circle p-1.5">
-                        <i class="fas fa-heart"></i>
-                    </span>
+                    
                     <span class="small fw-bold">Recent Reader Tips</span>
                 </h6>
                 <a href="{{ route('author.honorariums') }}" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-0.5 fw-semibold" style="font-size: 11px;">
@@ -618,9 +614,7 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
             <div>
                 <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                    <span class="badge bg-warning bg-opacity-20 text-warning-emphasis rounded-circle p-1.5">
-                        <i class="fas fa-feather-pointed"></i>
-                    </span>
+                    
                     <span class="small fw-bold">My Posts</span>
                 </h6>
             </div>
@@ -790,7 +784,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header border-0 pb-0 pt-3 px-4 bg-light">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="authorPhotoStudioModalLabel">
-                    <i class="fas fa-camera text-primary"></i>
+                    
                     <span>Photo Studio</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -893,7 +887,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header border-0 pb-0 pt-3.5 px-4 bg-light">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="authorBioEditModalLabel">
-                    <i class="fas fa-user-pen text-primary"></i>
+                    
                     <span>Edit Profile</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

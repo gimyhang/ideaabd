@@ -99,7 +99,7 @@
                     {{-- Customer & Client Details --}}
                     <div class="p-3 bg-white rounded-3 border">
                         <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
-                            <i class="fas fa-user-tag text-primary"></i>
+                            
                             <span>Customer Information</span>
                         </h6>
                         <div class="row g-3">
@@ -155,7 +155,7 @@
                 <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <div>
                         <h5 class="fw-bold mb-0 text-dark">
-                            <i class="fas fa-book-open text-primary me-2"></i>Items Table
+                            Items Table
                         </h5>
                     </div>
                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 shadow-xs" id="addItemBtn">
@@ -232,7 +232,7 @@
                 <div class="col-12 col-lg-6">
                     <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-md-4 bg-white">
                         <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
-                            <i class="fas fa-clipboard-list text-primary"></i>
+                            
                             <span>Notes & Terms</span>
                         </h6>
                         <div class="mb-3">
@@ -252,7 +252,7 @@
                 <div class="col-12 col-lg-6">
                     <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
                         <h6 class="fw-bold text-dark mb-3 d-flex align-items-center justify-content-between border-bottom pb-2">
-                            <span><i class="fas fa-calculator text-success me-2"></i>Financial Summary</span>
+                            <span>Financial Summary</span>
                             <span class="badge bg-success-subtle text-success border">Summary</span>
                         </h6>
 

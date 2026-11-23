@@ -16,7 +16,7 @@
         </nav>
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <h2 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                <i class="fa-solid fa-cart-shopping text-primary"></i>
+                
                 <span>আমার শপিং কার্ট ও চেকআউট</span>
             </h2>
             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5 fw-bold small" id="headerCartCountBadge">
@@ -126,7 +126,7 @@
             <div class="card border-0 shadow-sm rounded-4 bg-white p-3.5 mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-2.5">
                     <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-ticket text-warning"></i> কুপন কোড ব্যবহার করুন
+                        কুপন কোড ব্যবহার করুন
                     </h6>
                     <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2.5 py-0.5 small">
                         অফার চলছে
@@ -195,7 +195,7 @@
         <div class="col-12 col-lg-5">
             <div class="card border-0 shadow-sm rounded-4 bg-white p-4 sticky-top" style="top: 90px; z-index: 10;">
                 <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-clipboard-check text-primary"></i>
+                    
                     <span>ডেলিভারি ও চেকআউট তথ্য</span>
                 </h5>
 
@@ -360,7 +360,7 @@
                     <!-- Bill Summary Box -->
                     <div class="bg-light rounded-4 p-3.5 mb-4 border">
                         <h6 class="fw-bold text-dark small mb-3 border-bottom pb-2 d-flex align-items-center justify-content-between">
-                            <span><i class="fa-solid fa-receipt text-primary me-1"></i> খরচের বিস্তারিত হিসাব (Bill Summary)</span>
+                            <span>খরচের বিস্তারিত হিসাব (Bill Summary)</span>
                             <span class="badge bg-white text-muted border rounded-pill small" id="fullCartSummaryItemCount">০ আইটেম</span>
                         </h6>
 

@@ -66,7 +66,7 @@
                 <div class="col-lg-4">
                     <div class="card border-0 rounded-4 p-3.5 shadow-lg" style="background: rgba(255,255,255,0.08); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.18) !important;">
                         <h6 class="text-warning fw-bold mb-2.5 small text-uppercase tracking-wider">
-                            <i class="fa-solid fa-shield-halved me-1.5"></i> প্রধান অঙ্গীকার ও নিরাপত্তা
+                            প্রধান অঙ্গীকার ও নিরাপত্তা
                         </h6>
                         <ul class="list-unstyled mb-0 d-flex flex-column gap-2 text-white small" style="font-size: 12.5px; line-height: 1.5;">
                             <li class="d-flex align-items-start gap-2">
@@ -280,7 +280,7 @@
                         <div class="row g-3 mt-2">
                             <div class="col-md-6">
                                 <div class="p-3.5 bg-light rounded-3 border h-100">
-                                    <h6 class="fw-bold text-success mb-2"><i class="fa-solid fa-check-double me-1"></i> যেক্ষেত্রে রিটার্ন ও প্রতিস্থাপন প্রযোজ্য:</h6>
+                                    <h6 class="fw-bold text-success mb-2">যেক্ষেত্রে রিটার্ন ও প্রতিস্থাপন প্রযোজ্য:</h6>
                                     @if(!empty($termsReturnConditions))
                                         <div class="small text-muted ps-1" style="line-height: 1.7; white-space: pre-line;">{!! nl2br(e($termsReturnConditions)) !!}</div>
                                     @else
@@ -295,7 +295,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="p-3.5 bg-light rounded-3 border h-100">
-                                    <h6 class="fw-bold text-danger mb-2"><i class="fa-solid fa-ban me-1"></i> যেক্ষেত্রে রিটার্ন প্রযোজ্য নয়:</h6>
+                                    <h6 class="fw-bold text-danger mb-2">যেক্ষেত্রে রিটার্ন প্রযোজ্য নয়:</h6>
                                     @if(!empty($termsReturnExcluded))
                                         <div class="small text-muted ps-1" style="line-height: 1.7; white-space: pre-line;">{!! nl2br(e($termsReturnExcluded)) !!}</div>
                                     @else

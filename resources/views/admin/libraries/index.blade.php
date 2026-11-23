@@ -541,7 +541,7 @@
                 @csrf
                 <div class="modal-header border-bottom p-3.5 bg-success text-white rounded-top-4">
                     <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-boxes-stacked"></i> Book Allocation & Dispatch Entry
+                        Book Allocation & Dispatch Entry
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -649,7 +649,7 @@
                 @csrf
                 <div class="modal-header border-bottom p-3.5 bg-primary text-white rounded-top-4">
                     <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-signature"></i> Book Receipt Acknowledgment & Verification
+                        Book Receipt Acknowledgment & Verification
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -699,7 +699,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header border-bottom p-3.5 bg-light rounded-top-4">
                 <h5 class="modal-title fw-bold fs-6 text-dark d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-landmark text-success"></i> Library Profile & Full Details
+                    Library Profile & Full Details
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -911,7 +911,7 @@ function openDetailsModal(lib) {
         <div class="row g-3">
             <div class="col-md-6">
                 <div class="card bg-light border-0 p-3 rounded-3 h-100">
-                    <h6 class="fw-bold text-success mb-2"><i class="fa-solid fa-landmark me-1"></i> Library Details</h6>
+                    <h6 class="fw-bold text-success mb-2">Library Details</h6>
                     <div class="small mb-1"><strong>Name:</strong> ${lib.institution_or_org || fd.library_name || '—'}</div>
                     <div class="small mb-1"><strong>Type:</strong> ${fd.library_type || lib.designation_or_class || '—'}</div>
                     <div class="small mb-1"><strong>Reg No:</strong> ${fd.reg_no || 'N/A'}</div>
@@ -922,7 +922,7 @@ function openDetailsModal(lib) {
             </div>
             <div class="col-md-6">
                 <div class="card bg-light border-0 p-3 rounded-3 h-100">
-                    <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-user-shield me-1"></i> Representative & Leadership</h6>
+                    <h6 class="fw-bold text-primary mb-2">Representative & Leadership</h6>
                     <div class="small mb-1"><strong>Representative:</strong> ${lib.name || '—'} (${lib.designation_or_class || fd.designation_or_class || '—'})</div>
                     <div class="small mb-1"><strong>Phone:</strong> <a href="tel:${lib.phone}" class="fw-semibold text-dark">${lib.phone || '—'}</a></div>
                     <div class="small mb-1"><strong>President (সভাপতি):</strong> ${fd.president_name || '—'} ${fd.president_phone ? '(<a href="tel:'+fd.president_phone+'">'+fd.president_phone+'</a>)' : ''}</div>
@@ -934,7 +934,7 @@ function openDetailsModal(lib) {
             </div>
             <div class="col-md-6">
                 <div class="card bg-light border-0 p-3 rounded-3 h-100">
-                    <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-book-bookmark me-1"></i> Statistics & Requirements</h6>
+                    <h6 class="fw-bold text-dark mb-2">Statistics & Requirements</h6>
                     <div class="small mb-1"><strong>Reader Count:</strong> ${fd.reader_count || '—'}</div>
                     <div class="small mb-1"><strong>Current Books:</strong> ${fd.current_book_count || '—'}</div>
                     <div class="small mb-1"><strong>পূর্বে বই পেয়েছে কিনা:</strong> ${lib.has_previous_books || fd.has_previous_books || 'না'}</div>
@@ -948,7 +948,7 @@ function openDetailsModal(lib) {
             </div>
             <div class="col-md-6">
                 <div class="card bg-light border-0 p-3 rounded-3 h-100">
-                    <h6 class="fw-bold text-warning text-dark mb-2"><i class="fa-solid fa-boxes-stacked me-1"></i> Allocation & Acknowledgment</h6>
+                    <h6 class="fw-bold text-warning text-dark mb-2">Allocation & Acknowledgment</h6>
                     <div class="small mb-1"><strong>Allocated Books:</strong> <span class="fw-bold text-success">${fd.books_allocated || 0} Books</span></div>
                     <div class="small mb-1"><strong>Dispatch Date:</strong> ${fd.dispatched_date || 'Not yet dispatched'}</div>
                     <div class="small mb-1"><strong>Received Books:</strong> <span class="fw-bold text-primary">${fd.received_books_count || 0} Books</span></div>

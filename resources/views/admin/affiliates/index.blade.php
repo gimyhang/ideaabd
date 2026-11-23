@@ -48,7 +48,7 @@
     <!-- Affiliates Table -->
     <div class="adm-card bg-white">
         <div class="adm-card__head">
-            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-users-viewfinder me-2 text-primary"></i> Registered Affiliate Partners</h6>
+            <h6 class="mb-0 fw-bold">Registered Affiliate Partners</h6>
         </div>
         <div class="adm-card__body p-0">
             <div class="table-responsive">
@@ -110,7 +110,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-circle-plus me-1.5"></i> Register Affiliate / Influencer</h6>
+                <h6 class="modal-title fw-bold text-white mb-0">Register Affiliate / Influencer</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.affiliates.store') }}" method="POST">
@@ -159,7 +159,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-success text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-hand-holding-dollar me-1.5"></i> Disburse Commission Payout</h6>
+                <h6 class="modal-title fw-bold text-white mb-0">Disburse Commission Payout</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form id="payoutForm" method="POST">

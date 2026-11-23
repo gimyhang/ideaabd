@@ -874,9 +874,7 @@ body.dark-mode .modal-body textarea {
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-light border-0 py-3 px-4">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="addAuthorModalLabel">
-                    <span class="rounded-circle bg-primary-subtle text-primary p-2 d-inline-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
-                        <i class="fa-solid fa-user-pen small"></i>
-                    </span>
+                    
                     <span>নতুন লেখক প্রোফাইল তৈরি করুন</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -958,9 +956,7 @@ body.dark-mode .modal-body textarea {
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-light border-0 py-3 px-4">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="editAuthorModalLabel">
-                    <span class="rounded-circle bg-primary-subtle text-primary p-2 d-inline-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
-                        <i class="fa-solid fa-pen-to-square small"></i>
-                    </span>
+                    
                     <span>লেখকের তথ্য সম্পাদনা করুন</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1043,7 +1039,7 @@ body.dark-mode .modal-body textarea {
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-primary text-white border-0 py-3 px-4">
                 <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2" id="authorDetailsModalLabel">
-                    <i class="fa-solid fa-address-card"></i> <span>লেখক প্রোফাইল ৩৬০° ভিউ</span>
+                    <span>লেখক প্রোফাইল ৩৬০° ভিউ</span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1068,9 +1064,7 @@ body.dark-mode .modal-body textarea {
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-light border-0 py-3 px-4">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="authorPasswordResetModalLabel">
-                    <span class="rounded-circle bg-warning-subtle text-warning-emphasis p-2 d-inline-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
-                        <i class="fa-solid fa-key small"></i>
-                    </span>
+                    
                     <span>লেখক পোর্টাল পাসওয়ার্ড রিসেট</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1543,7 +1537,7 @@ window.openAuthorDetailsModal = async function(id) {
                     <div class="col-md-8 ps-md-3">
                         <div class="mb-3">
                             <h6 class="fw-bold text-dark mb-2 d-flex align-items-center gap-1.5">
-                                <i class="fa-solid fa-align-left text-primary"></i> <span>লেখকের পরিচিতি (Bio)</span>
+                                <span>লেখকের পরিচিতি (Bio)</span>
                             </h6>
                             <div class="p-3 bg-light rounded-3 small text-secondary" style="max-height: 130px; overflow-y: auto;">
                                 ${a.bio ? a.bio.replace(/\n/g, '<br>') : 'কোনো পরিচিতি বিবরণ যুক্ত করা হয়নি।'}
@@ -1553,7 +1547,7 @@ window.openAuthorDetailsModal = async function(id) {
                         <div>
                             <h6 class="fw-bold text-dark mb-2 d-flex align-items-center justify-content-between">
                                 <span class="d-inline-flex align-items-center gap-1.5">
-                                    <i class="fa-solid fa-book-open text-warning"></i> <span>প্রকাশিত বইসমূহ (${books.length})</span>
+                                    <span>প্রকাশিত বইসমূহ (${books.length})</span>
                                 </span>
                                 <a href="/admin/books?author_id=${a.id}" class="small text-primary text-decoration-none">সকল বই পরিচালনা &rarr;</a>
                             </h6>

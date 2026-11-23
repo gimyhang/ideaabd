@@ -42,7 +42,7 @@
     <!-- Tickets Table -->
     <div class="adm-card bg-white">
         <div class="adm-card__head d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-ticket me-2 text-primary"></i> Customer Issues & Inquiries</h6>
+            <h6 class="mb-0 fw-bold">Customer Issues & Inquiries</h6>
             <div class="btn-group btn-group-sm">
                 <a href="{{ route('admin.tickets.index') }}" class="btn {{ empty($status) ? 'btn-primary' : 'btn-outline-secondary' }}">All</a>
                 <a href="{{ route('admin.tickets.index', ['status' => 'open']) }}" class="btn {{ $status === 'open' ? 'btn-primary' : 'btn-outline-secondary' }}">Open</a>

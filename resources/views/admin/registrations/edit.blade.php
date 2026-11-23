@@ -39,7 +39,7 @@
         <div class="card-header bg-light border-0 py-3.5 px-4 d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div>
                 <h5 class="fw-bold mb-0 text-dark">
-                    <i class="fa-solid fa-user-pen text-primary me-2"></i> Edit Applicant & Profile Information
+                    Edit Applicant & Profile Information
                 </h5>
                 <small class="text-muted">User ID: #{{ $user->id }} • Submitted: {{ $user->created_at ? $user->created_at->format('d M, Y') : 'N/A' }}</small>
             </div>
@@ -157,7 +157,7 @@
                 {{-- ========================================================= --}}
                 <div class="mb-4">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-id-card-clip text-primary"></i>
+                        
                         <span>Account</span>
                     </h6>
 
@@ -254,7 +254,7 @@
                 {{-- ========================================================= --}}
                 <div id="authorDetailsCard" class="mb-4" style="{{ old('role', $user->role) === 'author' ? '' : 'display:none;' }}">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-file-lines text-success"></i>
+                        
                         <span>Information</span>
                     </h6>
 
@@ -372,7 +372,7 @@
                 {{-- ========================================================= --}}
                 <div class="mb-4">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-share-nodes text-info"></i>
+                        
                         <span>Social</span>
                     </h6>
 
@@ -402,7 +402,7 @@
                 {{-- ========================================================= --}}
                 <div id="businessDetailsCard" class="mb-4" style="{{ in_array(old('role', $user->role), ['publisher', 'seller']) ? '' : 'display:none;' }}">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-store text-warning"></i>
+                        
                         <span>Business & Commercial Details</span>
                     </h6>
 
@@ -477,7 +477,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header border-0 pb-0 pt-3.5 px-4 bg-light">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="adminAvatarStudioModalLabel">
-                    <i class="fa-solid fa-camera text-primary"></i>
+                    
                     <span>Photo Editor & Studio</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

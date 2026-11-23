@@ -359,7 +359,7 @@
     <div class="modal fade" id="autoPasswordModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 shadow-lg">
-                <div class="modal-header"><h6 class="modal-title fw-bold"><i class="fa-solid fa-key text-warning me-2"></i>Password generator</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header"><h6 class="modal-title fw-bold">Password generator</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <form action="{{ route('admin.users.security.auto-generate-password') }}" method="POST" autocomplete="off">@csrf
                     <input type="hidden" name="user_id" id="modalAutoPassUserId" data-pick-id>
                     <div class="modal-body">
@@ -389,7 +389,7 @@
 
     <div class="modal fade" id="quickOtpModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 shadow-lg">
-            <div class="modal-header"><h6 class="modal-title fw-bold"><i class="fa-solid fa-shield-halved text-primary me-2"></i>One-time password</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header"><h6 class="modal-title fw-bold">One-time password</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <form action="{{ route('admin.users.security.generate-otp') }}" method="POST" autocomplete="off">@csrf
                 <input type="hidden" name="user_id" data-pick-id>
                 <div class="modal-body">
@@ -403,7 +403,7 @@
 
     <div class="modal fade" id="forceLogoutModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 shadow-lg">
-            <div class="modal-header"><h6 class="modal-title fw-bold"><i class="fa-solid fa-right-from-bracket text-warning me-2"></i>Force logout</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header"><h6 class="modal-title fw-bold">Force logout</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <form action="{{ route('admin.users.security.force-logout') }}" method="POST" autocomplete="off">@csrf
                 <div class="modal-body">
                     <p class="muted small">Signs the selected user out of every device and "remember me" session. Use it if an account may be compromised.</p>
@@ -417,7 +417,7 @@
 
     <div class="modal fade" id="manualBlockIpModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 shadow-lg">
-            <div class="modal-header"><h6 class="modal-title fw-bold text-danger"><i class="fa-solid fa-ban me-2"></i>Block IP</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header"><h6 class="modal-title fw-bold text-danger">Block IP</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <form action="{{ route('admin.users.security.block-ip') }}" method="POST">@csrf
                 <div class="modal-body">
                     <label class="form-label small fw-bold">IP address (IPv4 or IPv6)</label>

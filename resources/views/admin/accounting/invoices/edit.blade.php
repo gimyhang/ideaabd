@@ -876,7 +876,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0" id="quickAddBookModalLabel">
-                    <i class="fa-solid fa-book-medical me-2"></i>Add New Book to Bookshop
+                    Add New Book to Bookshop
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1789,7 +1789,7 @@
 
             rightHeader.className = 'card-header text-white py-3 rounded-top-4';
             rightHeader.style.backgroundColor = '#582be8';
-            rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fa-solid fa-landmark me-2"></i>Tender Evaluation & BoQ Financials</h5>';
+            rightHeader.innerHTML = '<h5 class="fw-bold mb-0">Tender Evaluation & BoQ Financials</h5>';
         } else if (docType === 'quotation') {
             if (tenderPanel) tenderPanel.className = 'p-3 rounded-3 border mb-3 bg-warning-subtle bg-opacity-25 border-warning-subtle';
             if (tenderPanelIcon) tenderPanelIcon.className = 'fa-solid fa-file-invoice text-warning-emphasis fs-5';
@@ -1815,7 +1815,7 @@
 
             rightHeader.className = 'card-header bg-warning text-dark py-3 rounded-top-4';
             rightHeader.style.backgroundColor = '#eab308';
-            rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fa-solid fa-calculator me-2"></i>Quotation Financial Summary</h5>';
+            rightHeader.innerHTML = '<h5 class="fw-bold mb-0">Quotation Financial Summary</h5>';
         } else if (docType === 'challan') {
             if (tenderPanel) tenderPanel.className = 'p-3 rounded-3 border mb-3 bg-info-subtle bg-opacity-25 border-info-subtle';
             if (tenderPanelIcon) tenderPanelIcon.className = 'fa-solid fa-truck text-info fs-5';
@@ -1841,7 +1841,7 @@
 
             rightHeader.className = 'card-header text-white py-3 rounded-top-4';
             rightHeader.style.backgroundColor = '#0891b2';
-            rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fa-solid fa-truck-ramp-box me-2"></i>Challan Dispatch Summary</h5>';
+            rightHeader.innerHTML = '<h5 class="fw-bold mb-0">Challan Dispatch Summary</h5>';
         } else {
             // Bill / Invoice Mode
             if (tenderPanel) tenderPanel.className = 'p-3 rounded-3 border mb-3 bg-light border-primary-subtle';
@@ -1868,7 +1868,7 @@
 
             rightHeader.className = 'card-header bg-primary text-white py-3 rounded-top-4';
             rightHeader.style.backgroundColor = '';
-            rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fa-solid fa-receipt me-2"></i>Pricing & Financials</h5>';
+            rightHeader.innerHTML = '<h5 class="fw-bold mb-0">Pricing & Financials</h5>';
         }
     }
 

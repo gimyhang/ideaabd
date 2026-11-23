@@ -665,7 +665,7 @@ body.dark-mode .modal-body textarea {
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-danger text-white border-0 py-3 px-4">
                 <h6 class="modal-title fw-bold text-white mb-0 d-flex align-items-center gap-2" id="rejectReasonModalLabel">
-                    <i class="fa-solid fa-circle-xmark"></i>
+                    
                     <span>Reject</span>
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -699,7 +699,7 @@ body.dark-mode .modal-body textarea {
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header py-3 px-4 bg-dark text-white border-0">
                 <h6 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-crown text-warning"></i>
+                    
                     <span>Role</span>
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>

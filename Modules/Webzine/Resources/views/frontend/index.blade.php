@@ -39,7 +39,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                     <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
                         <span class="badge bg-primary rounded-pill px-3 py-1 small">
-                            <i class="fa-solid fa-book-journal-whills me-1"></i> {{ $categoryName }}
+                            {{ $categoryName }}
                         </span>
                     </h4>
                     <span class="badge bg-light text-muted border">মোট @bn($issues->count())টি সংখ্যা</span>

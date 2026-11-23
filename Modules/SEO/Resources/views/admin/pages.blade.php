@@ -30,7 +30,7 @@
         <div class="col-lg-5">
             <div class="card border-0 rounded-4 bg-white shadow-xs border p-3.5 mb-4">
                 <h6 class="fw-bold text-dark mb-3 d-flex align-items-center justify-content-between">
-                    <span><i class="fa-solid fa-list-check text-primary me-2"></i>প্রধান স্ট্যাটিক পেজসমূহ</span>
+                    <span>প্রধান স্ট্যাটিক পেজসমূহ</span>
                     <span class="badge bg-light text-dark border rounded-pill">{{ count($pages) }}টি পেজ</span>
                 </h6>
                 <div class="list-group list-group-flush gap-2" id="pagesList">
@@ -74,7 +74,7 @@
         <div class="col-lg-7">
             <div class="card border-0 rounded-4 bg-white shadow-xs border p-4">
                 <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-pen-nib text-primary"></i>
+                    
                     <span id="editorPageLabel">হোম পেজ (Home)</span>
                 </h5>
                 <p class="text-muted small mb-4">এই পেজের মেটা টাইটেল, বিবরণ, ওপেনগ্রাফ ব্যানার ও ক্যানোনিকাল ট্যাগ পরিচালনা করুন।</p>

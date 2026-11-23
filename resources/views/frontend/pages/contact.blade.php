@@ -381,9 +381,6 @@
                     <div class="modern-card p-4 flex-grow-1">
                         <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom border-slate-100">
                             <div class="d-flex align-items-center gap-2.5">
-                                <div class="dept-main-icon">
-                                    <i class="fa-solid fa-sitemap text-emerald-600"></i>
-                                </div>
                                 <div>
                                     <h3 class="h6 fw-bold text-slate-900 mb-0">বিভাগভিত্তিক সরাসরি হেল্পডেস্ক</h3>
                                     <span class="text-slate-500 small">সুনির্দিষ্ট বিষয়ে দ্রুত পরামর্শ</span>
@@ -445,9 +442,6 @@
                     {{-- 2. FAQ Callout Box --}}
                     <div class="faq-callout-card p-4 rounded-4 position-relative overflow-hidden text-white">
                         <div class="d-flex align-items-start gap-3 position-relative z-2">
-                            <div class="faq-callout-icon flex-shrink-0">
-                                <i class="fa-solid fa-circle-question fs-4"></i>
-                            </div>
                             <div>
                                 <h4 class="h6 fw-bold text-white mb-1.5">কোনো সাধারণ জিজ্ঞাসা রয়েছে?</h4>
                                 <p class="text-white-50 small mb-3 leading-relaxed">
@@ -513,9 +507,6 @@
 
                         {{-- Email & Hotline --}}
                         <div class="d-flex align-items-start gap-3">
-                            <div class="location-item-icon bg-indigo-50 text-indigo-600 flex-shrink-0">
-                                <i class="fa-solid fa-headset"></i>
-                            </div>
                             <div>
                                 <strong class="text-slate-800 small d-block mb-0.5">জরুরি হেল্পলাইন ও সাপোর্ট:</strong>
                                 <span class="text-slate-600 small font-monospace">{{ $helplinePhone }}</span>
@@ -538,9 +529,6 @@
                 {{-- Right: Visual Map Container --}}
                 <div class="col-lg-6">
                     <div class="map-visual-box rounded-4 overflow-hidden position-relative p-4 p-md-5 text-center d-flex flex-column align-items-center justify-content-center">
-                        <div class="map-icon-halo mb-3">
-                            <i class="fa-solid fa-map-location-dot"></i>
-                        </div>
                         <h4 class="h5 fw-bold text-slate-900 mb-1.5">{{ $siteName }} হেড অফিস</h4>
                         <p class="text-slate-500 small mb-4 max-w-sm">{{ $officeAddress }}</p>
 

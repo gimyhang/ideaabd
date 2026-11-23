@@ -47,7 +47,7 @@
             <div class="author-card p-3 p-md-4 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                     <h6 class="fw-bold mb-0 text-dark">
-                        <i class="fas fa-money-bill-transfer text-primary me-1.5"></i> Request Payout
+                        Request Payout
                     </h6>
                     <span class="badge bg-primary-subtle text-primary rounded-pill small">Payout</span>
                 </div>
@@ -114,7 +114,7 @@
             <div class="author-card p-3 p-md-4 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                     <h6 class="fw-bold mb-0 text-dark">
-                        <i class="fas fa-list-check text-info me-1.5"></i> Payout History
+                        Payout History
                     </h6>
                 </div>
 

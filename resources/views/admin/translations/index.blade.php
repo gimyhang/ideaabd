@@ -107,7 +107,6 @@
     <div class="modal-dialog modal-dialog-centered">
         <form class="modal-content tr-modal" id="trAddForm" novalidate>
             <div class="tr-modal-head">
-                <span class="tr-modal-icon"><i class="fa-solid fa-plus"></i></span>
                 <div><h5 id="trAddTitle">Add key</h5><p>A new text you can use in pages.</p></div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

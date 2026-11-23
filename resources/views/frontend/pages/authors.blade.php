@@ -5,7 +5,7 @@
 @section('content')
     <section class="px-6 py-10 mx-auto max-w-7xl">
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-slate-900">📖 লেখক ডিরেক্টরি</h1>
+            <h1 class="text-3xl font-bold text-slate-900">লেখক ডিরেক্টরি</h1>
             <p class="mt-2 text-slate-600">আইডিয়া প্রকাশনের সকল লেখক ও সাহিত্যিক</p>
         </div>
 

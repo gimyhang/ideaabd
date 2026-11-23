@@ -63,7 +63,7 @@
 <div class="row g-3">
     <div class="col-xl-6">
         <section class="card lc-card h-100">
-            <header class="lc-card-head"><h3><i class="fa-solid fa-print"></i> ছাপার চালান</h3><span class="lc-dim">প্রথমে ছাপা কপি আগে বাঁধাই ধরা হয়</span></header>
+            <header class="lc-card-head"><h3>ছাপার চালান</h3><span class="lc-dim">প্রথমে ছাপা কপি আগে বাঁধাই ধরা হয়</span></header>
             <div class="table-responsive">
                 <table class="table align-middle lc-table">
                     <thead><tr><th>তারিখ</th><th>প্রেস / চালান</th><th class="text-end">ছাপা</th><th class="text-end">বাঁধাই/নষ্ট</th><th class="text-end">বাকি</th></tr></thead>
@@ -89,7 +89,7 @@
     </div>
     <div class="col-xl-6">
         <section class="card lc-card h-100">
-            <header class="lc-card-head"><h3><i class="fa-solid fa-book"></i> বাঁধাইয়ের লট</h3><span class="lc-dim">বাঁধাইখানা থেকে স্টোরে আসা পর্যন্ত</span></header>
+            <header class="lc-card-head"><h3>বাঁধাইয়ের লট</h3><span class="lc-dim">বাঁধাইখানা থেকে স্টোরে আসা পর্যন্ত</span></header>
             <div class="table-responsive">
                 <table class="table align-middle lc-table">
                     <thead><tr><th>তারিখ</th><th>বাঁধাইখানা</th><th class="text-end">বাঁধাই</th><th class="text-end">স্টোরে/নষ্ট</th><th class="text-end">পড়ে আছে</th></tr></thead>
@@ -134,7 +134,7 @@
 </section>
 
 <section class="card lc-card">
-    <header class="lc-card-head"><h3><i class="fa-solid fa-clock-rotate-left"></i> পুরো ইতিহাস</h3><span class="lc-dim">{{ BPS::bn($timeline->count()) }} এন্ট্রি</span></header>
+    <header class="lc-card-head"><h3>পুরো ইতিহাস</h3><span class="lc-dim">{{ BPS::bn($timeline->count()) }} এন্ট্রি</span></header>
     <div class="table-responsive">
         <table class="table align-middle lc-table">
             <thead><tr><th>তারিখ</th><th>ধাপ</th><th class="text-end">কপি</th><th>কোথায়</th><th>চালান / কারণ</th><th>কে</th><th></th></tr></thead>

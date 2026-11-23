@@ -1178,7 +1178,7 @@
                         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
                             <div>
                                 <h5 class="fw-bold mb-1 text-dark">
-                                    <i class="fa-solid fa-list-ol text-primary me-2"></i>Table of Contents & Page Indexer
+                                    Table of Contents & Page Indexer
                                 </h5>
                                 <p class="text-muted small mb-0">
                                     Add article titles, authors, and page numbers. Readers can jump directly to any page from the interactive Table of Contents.
@@ -1280,7 +1280,7 @@
         @if ($isBookOrEbook)
             <div class="adm-card p-3 mb-3">
                 <h6 class="fw-bold mb-2 text-dark d-flex align-items-center justify-content-between">
-                    <span><i class="fa-solid fa-eye me-1.5 text-primary"></i> Live Card Preview</span>
+                    <span>Live Card Preview</span>
                     <span class="badge bg-success-subtle text-success small rounded-pill">Real-Time</span>
                 </h6>
                 <div class="p-3 bg-light rounded-3 border text-center">
@@ -1313,7 +1313,7 @@
         @if ($spec['key'] === 'blog')
             <div class="adm-card p-3 mb-3">
                 <h6 class="fw-bold mb-2 text-dark d-flex align-items-center justify-content-between">
-                    <span><i class="fa-solid fa-feather-pointed me-1.5 text-primary"></i> Article & Card Preview</span>
+                    <span>Article & Card Preview</span>
                     <span class="badge bg-success-subtle text-success small rounded-pill">Real-Time</span>
                 </h6>
                 <div class="p-3 bg-light rounded-3 border text-start">
@@ -1348,7 +1348,7 @@
         @if ($spec['key'] === 'webzines')
             <div class="adm-card p-3 mb-3">
                 <h6 class="fw-bold mb-2 text-dark d-flex align-items-center justify-content-between">
-                    <span><i class="fa-solid fa-newspaper me-1.5 text-info"></i> Webzine Card & Reader</span>
+                    <span>Webzine Card & Reader</span>
                     <span class="badge bg-info-subtle text-info small rounded-pill">Live Status</span>
                 </h6>
                 <div class="p-3 bg-light rounded-3 border text-center">
@@ -1386,7 +1386,7 @@
             <div class="adm-card p-3 mb-3">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <h6 class="fw-bold mb-0 text-dark">
-                        <i class="fa-solid fa-image me-1.5 text-success"></i> Blog Cover / Photocard
+                        Blog Cover / Photocard
                     </h6>
                     <span class="badge bg-success-subtle text-success border border-success-subtle small rounded-pill px-2">
                         <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Auto .avif
@@ -1419,7 +1419,7 @@
 
         {{-- Posting on behalf of someone --}}
         <div class="adm-card p-3 mb-3">
-            <h2 class="h6 fw-bold mb-3"><i class="fa-solid fa-user-pen me-1 text-muted"></i> On Behalf of (Contributor Credit)</h2>
+            <h2 class="h6 fw-bold mb-3">On Behalf of (Contributor Credit)</h2>
 
             <div class="mb-2.5">
                 <label for="f-submitted_by" class="form-label small fw-semibold mb-1">Registered User</label>
@@ -1455,7 +1455,7 @@
 
         {{-- Moderation & Slug --}}
         <div class="adm-card p-3 mb-3">
-            <h2 class="h6 fw-bold mb-2.5"><i class="fa-solid fa-circle-check me-1 text-muted"></i> Moderation & URL</h2>
+            <h2 class="h6 fw-bold mb-2.5">Moderation & URL</h2>
 
             <div class="mb-3">
                 <label for="f-mod_status" class="form-label small fw-semibold mb-1">Status</label>

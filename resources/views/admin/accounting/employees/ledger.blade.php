@@ -557,7 +557,7 @@
     <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden mb-3">
         <div class="card-header bg-white border-bottom p-2.5 p-md-3 d-flex align-items-center justify-content-between">
             <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 13.5px;">
-                <i class="fa-solid fa-receipt text-primary"></i> Date-Wise Daily Ledger Statement & Running Balance
+                Date-Wise Daily Ledger Statement & Running Balance
             </h6>
             <span class="badge bg-light text-dark border px-2.5 py-1 small">
                 Showing {{ $workLogs->count() }} of {{ $workLogs->total() }} Records
@@ -850,7 +850,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-success text-white border-0 py-3 px-4">
                 <h5 class="modal-title fw-bold text-white mb-0" id="addWithdrawalModalLabel">
-                    <i class="fa-solid fa-hand-holding-dollar me-2"></i> Record Cash Payout
+                    Record Cash Payout
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

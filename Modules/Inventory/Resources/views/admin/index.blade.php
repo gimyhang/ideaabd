@@ -68,7 +68,7 @@
 </section>
 
 <a href="{{ route('admin.inventory.wastages') }}" class="lc-waste">
-    <span class="lc-waste-title"><i class="fa-solid fa-triangle-exclamation"></i> মোট নষ্ট <b>{{ BPS::bn($stats['waste']) }}</b> কপি</span>
+    <span class="lc-waste-title">মোট নষ্ট <b>{{ BPS::bn($stats['waste']) }}</b> কপি</span>
     <span>প্রেসে <b>{{ BPS::bn($stats['press_waste']) }}</b></span>
     <span>বাঁধাইয়ে <b>{{ BPS::bn($stats['binder_waste']) }}</b></span>
     <span>স্টোরে <b>{{ BPS::bn($stats['store_waste']) }}</b></span>

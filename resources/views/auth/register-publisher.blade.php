@@ -28,7 +28,7 @@
                         
                         {{-- Publisher / Company Information --}}
                         <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                            <i class="fas fa-building text-danger"></i>
+                            
                             <span>Publisher Information</span>
                         </h6>
 
@@ -60,7 +60,7 @@
 
                         {{-- Contact Person & Login Credentials --}}
                         <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                            <i class="fas fa-user-shield text-danger"></i>
+                            
                             <span>Account Details</span>
                         </h6>
 

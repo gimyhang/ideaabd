@@ -640,7 +640,7 @@
 
                 <div class="mb-4">
                     <h6 class="fw-bold text-dark mb-2.5 d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-circle-check text-success"></i>
+                        
                         <span>অন্তর্ভুক্ত প্রধান তথ্যাবলী ও চেকলিস্ট:</span>
                     </h6>
                     <ul class="list-unstyled mb-0 d-flex flex-column gap-2" id="previewModalChecklist">

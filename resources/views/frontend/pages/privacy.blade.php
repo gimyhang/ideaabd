@@ -51,7 +51,7 @@
                 <div class="col-lg-4">
                     <div class="card border-0 rounded-4 p-3.5 shadow-lg" style="background: rgba(255,255,255,0.08); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.18) !important;">
                         <h6 class="text-warning fw-bold mb-2.5 small text-uppercase tracking-wider">
-                            <i class="fa-solid fa-key me-1.5"></i> আমাদের মূল প্রতিশ্রুতি
+                            আমাদের মূল প্রতিশ্রুতি
                         </h6>
                         <ul class="list-unstyled mb-0 d-flex flex-column gap-2 text-white small" style="font-size: 12.5px; line-height: 1.5;">
                             <li class="d-flex align-items-start gap-2">
@@ -85,7 +85,7 @@
                     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                         <div class="card-header bg-white py-3 px-3.5 border-bottom">
                             <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-list-check text-success"></i>
+                                
                                 <span>সূচিপত্র (Contents)</span>
                             </h6>
                         </div>
@@ -128,7 +128,7 @@
                             <div class="row g-3 my-2">
                                 <div class="col-md-6">
                                     <div class="p-3 bg-light rounded-3 border">
-                                        <h6 class="fw-bold text-dark mb-1.5"><i class="fa-solid fa-user me-1.5 text-primary"></i> ব্যক্তিগত পরিচিতি তথ্য:</h6>
+                                        <h6 class="fw-bold text-dark mb-1.5">ব্যক্তিগত পরিচিতি তথ্য:</h6>
                                         <ul class="mb-0 small text-muted ps-3">
                                             <li>গ্রাহকের পূর্ণ নাম</li>
                                             <li>সচল মোবাইল নম্বর ও অল্টারনেট ফোন</li>
@@ -139,7 +139,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="p-3 bg-light rounded-3 border">
-                                        <h6 class="fw-bold text-dark mb-1.5"><i class="fa-solid fa-laptop-code me-1.5 text-success"></i> প্রযুক্তিগত তথ্য ও লগ:</h6>
+                                        <h6 class="fw-bold text-dark mb-1.5">প্রযুক্তিগত তথ্য ও লগ:</h6>
                                         <ul class="mb-0 small text-muted ps-3">
                                             <li>IP অ্যাড্রেস ও ব্রাউজারের ধরন</li>
                                             <li>ডিভাইস টাইপ ও অপারেটিং সিস্টেম</li>

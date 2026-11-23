@@ -231,7 +231,7 @@
 
             <div class="dispatch-box">
                 <h4 style="font-size: 15px; font-weight: 800; color: #854d0e; margin-bottom: 12px;">
-                    <i class="fa-solid fa-boxes-stacked me-1"></i> Book Grant Allocation & Status
+                    Book Grant Allocation & Status
                 </h4>
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                     <div>

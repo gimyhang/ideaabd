@@ -287,7 +287,7 @@
     {{-- ===== Modals ===== --}}
     <div class="modal fade" id="iamRoleModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content rounded-4 shadow-lg">
-            <div class="modal-header"><h6 class="modal-title fw-bold"><i class="fa-solid fa-user-plus me-2"></i><span>New role</span></h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header"><h6 class="modal-title fw-bold"><span>New role</span></h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <form method="POST" action="{{ route('admin.roles.store') }}">
                 @csrf
                 <input type="hidden" name="_method" value="PUT" disabled>
@@ -317,7 +317,7 @@
 
     <div class="modal fade" id="iamCloneModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 shadow-lg">
-            <div class="modal-header"><h6 class="modal-title fw-bold"><i class="fa-solid fa-copy me-2"></i>Clone <span class="iam-clone-from"></span></h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header"><h6 class="modal-title fw-bold">Clone <span class="iam-clone-from"></span></h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <form method="POST" action="">
                 @csrf
                 <div class="modal-body"><p class="iam-muted small">Creates a new custom role with the same permissions.</p>
@@ -329,7 +329,7 @@
 
     <div class="modal fade" id="iamStaffModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 shadow-lg">
-            <div class="modal-header"><h6 class="modal-title fw-bold"><i class="fa-solid fa-user-shield me-2"></i><span class="iam-staff-name"></span></h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header"><h6 class="modal-title fw-bold"><span class="iam-staff-name"></span></h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <form method="POST" action="">
                 @csrf
                 <div class="modal-body">
@@ -349,7 +349,7 @@
 
     <div class="modal fade" id="iamInspector" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable"><div class="modal-content rounded-4 shadow-lg">
-            <div class="modal-header"><div><h6 class="modal-title fw-bold mb-0"><i class="fa-solid fa-user-gear me-2"></i>Override · <span class="iam-insp-name"></span></h6><small class="iam-muted iam-insp-sub"></small></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header"><div><h6 class="modal-title fw-bold mb-0">Override · <span class="iam-insp-name"></span></h6><small class="iam-muted iam-insp-sub"></small></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <form method="POST" action="">
                 @csrf
                 <div class="modal-body">

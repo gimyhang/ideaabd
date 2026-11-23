@@ -73,7 +73,7 @@
         <div class="adm-card__head d-flex flex-wrap justify-content-between align-items-center gap-2 p-3.5 border-bottom bg-light bg-opacity-50">
             <div>
                 <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-layer-group text-primary"></i> 
+                    
                     আইডিয়া মেম্বারশিপ ও রিডিং প্যাকেজসমূহ (Membership Plans)
                 </h6>
                 <small class="text-muted">পাঠকদের জন্য আনলিমিটেড ই-বুক ও ডিজিটাল পড়ার প্ল্যান তালিকা</small>
@@ -176,7 +176,7 @@
                             <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
                                 <div class="modal-header bg-primary text-white py-3 px-4">
                                     <h6 class="modal-title fw-bold text-white mb-0">
-                                        <i class="fa-solid fa-pen-to-square me-1.5"></i> প্ল্যান সম্পাদনা: {{ $plan->name }}
+                                        প্ল্যান সম্পাদনা: {{ $plan->name }}
                                     </h6>
                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
@@ -261,7 +261,7 @@
         <div class="adm-card__head d-flex flex-wrap justify-content-between align-items-center gap-3 p-3.5 border-bottom bg-light bg-opacity-50">
             <div>
                 <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-users-gear text-primary"></i> 
+                    
                     পাঠক মেম্বারশিপ তালিকা (Active Subscriber Enrollments)
                 </h6>
                 <small class="text-muted">বর্তমানে রেজিস্টার্ড সাবস্ক্রাইবার ও রিডিং মেম্বারশিপ রেকর্ড</small>
@@ -415,7 +415,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-primary text-white py-3 px-4">
                 <h6 class="modal-title fw-bold text-white mb-0">
-                    <i class="fa-solid fa-circle-plus me-1.5"></i> নতুন রিডিং সাবস্ক্রিপশন প্ল্যান তৈরি করুন
+                    নতুন রিডিং সাবস্ক্রিপশন প্ল্যান তৈরি করুন
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -488,7 +488,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-primary text-white py-3 px-4">
                 <h6 class="modal-title fw-bold text-white mb-0">
-                    <i class="fa-solid fa-user-plus me-1.5"></i> ব্যবহারকারীকে সাবস্ক্রিপশন প্রদান করুন
+                    ব্যবহারকারীকে সাবস্ক্রিপশন প্রদান করুন
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

@@ -27,7 +27,7 @@
 @section('title', $pageTitle)
 @section('heading')
     <div class="d-flex align-items-center gap-2 flex-wrap">
-        <span class="fs-5 fw-bold text-dark"><i class="fa-solid fa-book-bookmark text-primary me-2"></i>{{ $activeCustomer ? "Customer Ledger — {$activeCustomer['name']}" : "Customer Ledger & Running Statement" }}</span>
+        <span class="fs-5 fw-bold text-dark">{{ $activeCustomer ? "Customer Ledger — {$activeCustomer['name']}" : "Customer Ledger & Running Statement" }}</span>
         @if($activeCustomer)
             <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1 font-monospace">
                 ID: {{ $activeCustomer['phone'] !== '—' ? $activeCustomer['phone'] : 'ACC-' . substr(md5($activeCustomer['name']), 0, 6) }}
@@ -684,7 +684,7 @@
             <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <div class="d-flex align-items-center gap-2">
                     <h5 class="card-title fw-bold mb-0 text-dark">
-                        <i class="fa-solid fa-users-viewfinder text-primary me-2"></i>Customers List
+                        Customers List
                     </h5>
                     <span class="badge bg-light text-dark border px-3 py-1 rounded-pill font-monospace">
                         {{ count($allSummaries) }} Customers
@@ -823,7 +823,7 @@
                 @csrf
                 <div class="modal-header bg-success text-white py-3">
                     <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="collectLedgerPaymentModalLabel">
-                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                        
                         <span>Record Payment</span>
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>

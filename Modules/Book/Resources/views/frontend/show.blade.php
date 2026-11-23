@@ -594,7 +594,7 @@
                                 <div class="card bg-white border shadow-xs rounded-4 p-4" id="writeReviewCard">
                                     <div class="d-flex align-items-center justify-content-between mb-3">
                                         <h6 class="fw-bold text-dark mb-0">
-                                            <i class="fa-solid fa-star text-warning me-1.5"></i>আপনার অভিজ্ঞতা ও রিভিউ শেয়ার করুন
+                                            আপনার অভিজ্ঞতা ও রিভিউ শেয়ার করুন
                                         </h6>
                                         @guest
                                             <span class="badge bg-light text-secondary border rounded-pill small">
@@ -867,14 +867,14 @@
                             </div>
                             
                             <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-feather text-primary"></i> বই পরিচিতি ও ফ্ল্যাপ
+                                বই পরিচিতি ও ফ্ল্যাপ
                             </h5>
                             <div class="mb-4 text-justify" style="text-align: justify;">
                                 {!! nl2br(e($book->description ?: 'এই বইটি সমকালীন চিন্তা, দর্শন ও গভীর ভাবনার এক অপূর্ব সংকলন। লেখকের প্রাঞ্জল ভাষা ও সাবলীল উপস্থাপনা পাঠককে প্রথম থেকে শেষ অবধি মুগ্ধ করে রাখবে। জীবনের নানা বাঁকে পাওয়া অভিজ্ঞতা, ইতিহাস ও মননশীলতার মেলবন্ধনে রচিত হয়েছে এই অনন্য সৃষ্টি।')) !!}
                             </div>
                             
                             <div class="p-3 bg-light bg-opacity-75 rounded-4 border border-secondary border-opacity-25 mt-4">
-                                <h6 class="fw-bold mb-1 text-primary"><i class="fa-solid fa-quote-left me-1"></i> প্রকাশকের কথা:</h6>
+                                <h6 class="fw-bold mb-1 text-primary">প্রকাশকের কথা:</h6>
                                 <p class="small text-muted mb-0">
                                     আইডিয়া প্রকাশন সবসময় সৃজনশীল ও মানসম্মত সাহিত্য পাঠকের কাছে পৌঁছে দিতে প্রতিশ্রুতিবদ্ধ। সম্পূর্ণ বইটি সংগ্রহ করে উপভোগ করুন এক অনন্য পাঠ-অভিজ্ঞতা।
                                 </p>

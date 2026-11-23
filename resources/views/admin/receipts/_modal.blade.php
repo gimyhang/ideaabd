@@ -123,7 +123,6 @@
 
             {{-- done --}}
             <div class="modal-body mr-done" id="mrDone" hidden>
-                <div class="mr-done-icon"><i class="fa-solid fa-circle-check"></i></div>
                 <h5 id="mrDoneTitle">রসিদ তৈরি হয়েছে</h5>
                 <p id="mrDoneText"></p>
                 <div class="mr-done-acts">

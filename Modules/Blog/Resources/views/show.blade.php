@@ -766,7 +766,7 @@
             </button>
 
             {{-- Copy Link --}}
-            <button type="button" class="lit-tool-btn" onclick="copyArticleLink()" title="লিংক কপি করুন">
+            <button type="button" class="lit-tool-btn" onclick="(function(b){b?b.click():copyArticleLink()})(document.querySelector('.sh-bar [data-share-open]'))" title="শেয়ার করুন">
                 <i class="fa-solid fa-link"></i>
             </button>
         </div>
@@ -948,27 +948,8 @@
                     </div>
                 @endif
 
-                <!-- Share & Social Links (No Print) -->
-                <div class="p-3 bg-light rounded-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4 no-print border">
-                    <span class="small fw-bold text-dark"><i class="fa-solid fa-share-nodes text-primary me-1.5"></i>পড়ুন এবং বন্ধুদের সাথে শেয়ার করুন</span>
-                    <div class="d-flex align-items-center gap-2">
-                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}" target="_blank" rel="noopener" class="btn btn-sm btn-primary rounded-circle" style="width: 36px; height: 36px; display: grid; place-items: center;" title="ফেসবুকে শেয়ার">
-                            <i class="fa-brands fa-facebook-f"></i>
-                        </a>
-                        <a href="https://twitter.com/intent/tweet?text={{ urlencode($post->title) }}&url={{ urlencode(url()->current()) }}" target="_blank" rel="noopener" class="btn btn-sm btn-dark rounded-circle" style="width: 36px; height: 36px; display: grid; place-items: center;" title="টুইটার/X এ শেয়ার">
-                            <i class="fa-brands fa-x-twitter"></i>
-                        </a>
-                        <a href="https://wa.me/?text={{ urlencode($post->title . ' - ' . url()->current()) }}" target="_blank" rel="noopener" class="btn btn-sm btn-success rounded-circle" style="width: 36px; height: 36px; display: grid; place-items: center;" title="হোয়াটসঅ্যাপে শেয়ার">
-                            <i class="fa-brands fa-whatsapp"></i>
-                        </a>
-                        <a href="https://t.me/share/url?url={{ urlencode(url()->current()) }}&text={{ urlencode($post->title) }}" target="_blank" rel="noopener" class="btn btn-sm btn-info text-white rounded-circle" style="width: 36px; height: 36px; display: grid; place-items: center;" title="টেলিগ্রামে শেয়ার">
-                            <i class="fa-brands fa-telegram"></i>
-                        </a>
-                        <button type="button" class="btn btn-sm btn-secondary rounded-circle" style="width: 36px; height: 36px; display: grid; place-items: center;" onclick="copyArticleLink()" title="লিংক কপি করুন">
-                            <i class="fa-solid fa-link"></i>
-                        </button>
-                    </div>
-                </div>
+                <!-- Share (No Print) -->
+                <x-share variant="bar" class="mb-4 no-print" type="post" :id="$post->id" :url="route('blog.show', $post->slug)" :title="$post->title" :text="$post->title . ' — ' . $authorName . ' | আইডিয়া প্রকাশন'" :image="$ogCover" :subtitle="$authorName" heading="লেখাটি বন্ধুদের সাথে শেয়ার করুন" />
 
                 {{-- ═════════════════════════════════════════════════════════════════════════ --}}
                 {{-- READER APPRECIATION HONORARIUM / পড়ে ভালো লাগা সম্মানি প্রদান সেকশন       --}}
@@ -1234,7 +1215,7 @@
                 <div class="pt-4 border-top no-print comment-box-wrapper" id="readerCommentsSection">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                            <i class="fa-solid fa-comments text-primary"></i>
+                            
                             <span>পাঠক মন্তব্য ও পর্যালোচনা</span>
                             <span class="badge bg-primary bg-opacity-10 text-primary border rounded-pill" id="blogCommentCountBadge">@bn($blogComments->count())টি</span>
                         </h5>
@@ -1244,7 +1225,7 @@
                     <div class="card p-3.5 mb-4 border shadow-xs rounded-4 bg-white">
                         <div class="d-flex align-items-center justify-content-between mb-2.5">
                             <h6 class="fw-bold text-dark mb-0">
-                                <i class="fa-solid fa-pen-fancy text-success me-1.5"></i>আপনার মূল্যবান মতামত বা রিভিউ দিন
+                                আপনার মূল্যবান মতামত বা রিভিউ দিন
                             </h6>
                             @guest
                                 <span class="badge bg-light text-secondary border rounded-pill small" style="font-size: 11px;">
@@ -1347,7 +1328,7 @@
             @if(isset($related) && $related->isNotEmpty())
             <div class="card p-4 border-0 shadow-sm rounded-4 mb-4 no-print">
                 <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom d-flex align-items-center justify-content-between">
-                    <span><i class="fa-solid fa-book-open-reader text-primary me-2"></i>আরও পড়ুন</span>
+                    <span>আরও পড়ুন</span>
                     <a href="{{ route('blog.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">আইডিয়াপত্র হোম</a>
                 </h5>
                 <div class="row row-cols-1 row-cols-md-3 g-3">
@@ -1420,7 +1401,7 @@
                     </div>
                     <h6 class="fw-bold text-dark mb-1">
                         {{ $authorName }}
-                        <i class="fa-solid fa-circle-check text-primary ms-1" style="font-size: 0.85rem;" title="ভেরিফاید লেখক"></i>
+                        
                     </h6>
                     <p class="text-muted small mb-3">আইডিয়া সাহিত্যপত্র লেখক ও গবেষক</p>
                     <div class="d-flex justify-content-center gap-2">
@@ -1445,7 +1426,7 @@
                 @if($sidebarPosts->isNotEmpty())
                     <div class="card p-3.5 border-0 shadow-sm rounded-4 bg-white">
                         <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                            <i class="fa-solid fa-fire text-danger"></i>
+                            
                             <span>সাম্প্রতিক সাহিত্যকর্ম</span>
                         </h6>
                         <div class="d-flex flex-column gap-2.5">
@@ -1479,7 +1460,7 @@
                 @if($sidebarCats->isNotEmpty())
                     <div class="card p-3.5 border-0 shadow-sm rounded-4 bg-white">
                         <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                            <i class="fa-solid fa-shapes text-primary"></i>
+                            
                             <span>আইডিয়াপত্র ক্যাটাগরি</span>
                         </h6>
                         <div class="d-flex flex-wrap gap-1.5">

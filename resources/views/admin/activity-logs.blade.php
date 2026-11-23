@@ -14,7 +14,7 @@
         <div class="adm-card bg-white rounded-4 shadow-sm border-0">
             <div class="adm-card__head d-flex flex-wrap align-items-center justify-content-between gap-2 p-3 border-bottom">
                 <div>
-                    <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i> System Activity Audit Trail</h6>
+                    <h6 class="mb-0 fw-bold text-dark">System Activity Audit Trail</h6>
                     <small class="text-muted">Real-time audit log of administrative actions, moderation, and system updates</small>
                 </div>
                 <form class="d-flex gap-2" action="{{ route('admin.activity-logs') }}" method="GET">

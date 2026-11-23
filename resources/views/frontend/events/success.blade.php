@@ -136,9 +136,6 @@
                 
                 {{-- Festive Header --}}
                 <div class="thankyou-header">
-                    <div class="celebrate-icon-wrap">
-                        <i class="fa-solid fa-check"></i>
-                    </div>
                     <h1 class="thankyou-title">{{ $isSch ? 'Thank you!' : 'ধন্যবাদ!' }}</h1>
                     <p class="thankyou-subtitle">
                         @if($isSch)

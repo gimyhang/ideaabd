@@ -88,6 +88,7 @@
                             <a href="{{ route('webzine.index') }}" class="btn btn-outline-secondary btn-lg rounded-pill px-4 py-2.5">
                                 <i class="fa-solid fa-list me-1"></i>সকল সংখ্যা
                             </a>
+                            <x-share type="webzine" :id="$webzine->id" :url="route('webzine.show', $webzine->slug)" :title="$webzine->title" :text="$webzine->title . ' — আইডিয়া সাহিত্য সাময়িকী'" :image="$webzineCover" :subtitle="$webzine->category ?: 'আইডিয়া সাহিত্য সাময়িকী'" heading="সংখ্যাটি শেয়ার করুন" />
                         </div>
                     </div>
                 </div>
@@ -100,7 +101,7 @@
                 <div class="card border-0 shadow-sm rounded-4 p-4 p-md-4.5 mb-4">
                     <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
                         <h4 class="fw-bold mb-0 text-dark">
-                            <i class="fa-solid fa-feather-pointed text-primary me-2"></i>সূচিপত্র ও নিবন্ধসমূহ
+                            সূচিপত্র ও নিবন্ধসমূহ
                         </h4>
                         <span class="badge bg-light text-dark border px-3 py-1.5 rounded-pill font-monospace">
                             মোট {{ $articles->count() }} টি লেখা
@@ -168,7 +169,7 @@
                 @if($webzine->publisher)
                     <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                         <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
-                            <i class="fa-solid fa-building text-primary me-2"></i>প্রকাশনা তথ্য
+                            প্রকাশনা তথ্য
                         </h6>
                         <p class="mb-1 fw-semibold text-dark">{{ $webzine->publisher->name }}</p>
                         @if($webzine->publisher->address)
@@ -180,7 +181,7 @@
                 @if($relatedIssues && $relatedIssues->count())
                     <div class="card border-0 shadow-sm rounded-4 p-4">
                         <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
-                            <i class="fa-solid fa-layer-group text-primary me-2"></i>এই বিভাগের অন্যান্য সংখ্যা
+                            এই বিভাগের অন্যান্য সংখ্যা
                         </h6>
                         <div class="d-flex flex-column gap-3">
                             @foreach($relatedIssues as $issue)

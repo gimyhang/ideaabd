@@ -575,7 +575,7 @@
 
                                 <div class="col-12 col-lg-5">
                                     <div class="p-3 bg-light rounded-4 border">
-                                        <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-circle-info text-primary me-1.5"></i> ইমেইল ব্রডকাস্টের বৈশিষ্ট্য</h6>
+                                        <h6 class="fw-bold text-dark mb-2">ইমেইল ব্রডকাস্টের বৈশিষ্ট্য</h6>
                                         <ul class="small text-muted ps-3 mb-0 d-flex flex-column gap-2">
                                             <li>রেসপনসিভ ব্র্যান্ডেড এইচটিএমএল লেআউট।</li>
                                             <li>ডেলিভারি ট্র্যাকিং ও লগিং ব্যবস্থা।</li>
@@ -881,7 +881,7 @@
             <div class="sms-card mb-4">
                 <div class="sms-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
                     <div>
-                        <h5 class="fw-bold text-dark mb-1"><i class="fa-solid fa-bookmark text-purple me-1.5"></i> প্রি-সেভড মেসেজ ও ইমেইল টেমপ্লেট লাইব্রেরি</h5>
+                        <h5 class="fw-bold text-dark mb-1">প্রি-সেভড মেসেজ ও ইমেইল টেমপ্লেট লাইব্রেরি</h5>
                         <p class="text-muted small mb-0">বারবার টাইপ না করে এক ক্লিকে ফর্মগুলোতে টেমপ্লেট ইনসার্ট করুন অথবা নতুন টেমপ্লেট তৈরি করুন।</p>
                     </div>
                     <button type="button" class="btn btn-primary rounded-pill px-3 shadow-xs" onclick="openNewTemplateModal()">
@@ -993,7 +993,7 @@
             <div class="sms-card mb-4">
                 <div class="sms-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
                     <div>
-                        <h5 class="fw-bold text-dark mb-1"><i class="fa-solid fa-clock-rotate-left text-primary me-1.5"></i> ক্যাম্পেইন হিস্ট্রি ও অডিট ট্রায়াল</h5>
+                        <h5 class="fw-bold text-dark mb-1">ক্যাম্পেইন হিস্ট্রি ও অডিট ট্রায়াল</h5>
                         <p class="text-muted small mb-0">অতীতে পাঠানো সকল ব্রডকাস্ট, ওটিপি ও ক্যাম্পেইনের বিস্তারিত রেকর্ড।</p>
                     </div>
 
@@ -1101,7 +1101,7 @@
                 <input type="hidden" name="id" id="templateId">
 
                 <div class="modal-header border-bottom px-4 py-3">
-                    <h5 class="modal-title fw-bold text-dark"><i class="fa-solid fa-bookmark text-purple me-2"></i> মেসেজ ও ইমেইল টেমপ্লেট</h5>
+                    <h5 class="modal-title fw-bold text-dark">মেসেজ ও ইমেইল টেমপ্লেট</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
@@ -1173,7 +1173,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header border-bottom px-4 py-3">
-                <h5 class="modal-title fw-bold text-dark"><i class="fa-solid fa-file-lines text-primary me-2"></i> ক্যাম্পেইন বিস্তারিত রেকর্ড</h5>
+                <h5 class="modal-title fw-bold text-dark">ক্যাম্পেইন বিস্তারিত রেকর্ড</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">

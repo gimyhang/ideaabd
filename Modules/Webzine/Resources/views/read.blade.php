@@ -575,7 +575,7 @@
 
                 @if(!empty($webzine->description))
                     <div class="article-card" id="editorial-section">
-                        <h2><i class="fa-solid fa-pen-nib me-2"></i>সম্পাদকের কথা / পরিচিতি</h2>
+                        <h2>সম্পাদকের কথা / পরিচিতি</h2>
                         <div class="text-muted small mb-3">আইডিয়া সাহিত্য প্রকাশনা বিভাগ</div>
                         <div class="article-body">
                             {!! nl2br(e($webzine->description)) !!}

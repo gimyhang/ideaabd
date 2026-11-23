@@ -161,14 +161,13 @@
                     <!-- Tab 1: Branding & Visuals (Logo, Banners, Favicon + Cropper) -->
                     <div class="tab-pane fade show active" id="tab-brand" role="tabpanel">
                         <header class="st-pane-head">
-                            <span class="st-pane-icon"><i class="fa-solid fa-crop-simple"></i></span>
                             <div><h2>Brand</h2><p>নাম, লোগো, ফেভিকন, ব্যানার ও শেয়ারের ছবি</p></div>
                         </header>
                         <div class="row g-4">
                             
                             <!-- Left: Site Name & Tagline & Favicon -->
                             <div class="col-lg-6">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-signature text-primary me-2"></i>Identity</h6>
+                                <h6 class="fw-bold text-dark mb-3">Identity</h6>
                                 
                                 <div class="mb-3">
                                     <label class="form-label small fw-semibold text-muted">Name</label>
@@ -327,7 +326,7 @@
                             <div class="col-lg-6">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                                        <i class="fa-solid fa-image text-primary"></i>
+                                        
                                         <span>Logo</span>
                                     </h6>
                                     <div class="btn-group btn-group-sm shadow-2xs rounded-pill p-0.5 bg-light border" role="group" aria-label="Logo Preview Background">
@@ -498,7 +497,7 @@
                             <div class="col-12 pt-3 border-top">
                                 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
                                     <div>
-                                        <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-rectangle-ad text-primary me-2"></i>Banners</h6>
+                                        <h6 class="fw-bold text-dark mb-1">Banners</h6>
                                         <p class="small text-muted mb-0">3:1</p>
                                     </div>
                                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5 fw-bold">
@@ -564,7 +563,7 @@
                                     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
                                         <div>
                                             <h6 class="fw-bold text-dark mb-1">
-                                                <i class="fa-solid fa-share-nodes text-primary me-2"></i>Share
+                                                Share
                                             </h6>
                                             <p class="small text-muted mb-0"></p>
                                         </div>
@@ -614,13 +613,12 @@
                     <!-- Tab: Hero Carousel & Slides Customizer -->
                     <div class="tab-pane fade" id="tab-hero" role="tabpanel">
                         <header class="st-pane-head">
-                            <span class="st-pane-icon"><i class="fa-solid fa-images"></i></span>
                             <div><h2>Hero</h2><p>হোমপেজের স্লাইডার</p></div>
                         </header>
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
                             <div>
                                 <h6 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-images text-warning"></i>
+                                    
                                     <span>Slides</span>
                                 </h6>
                                 <p class="text-muted small mb-0"></p>
@@ -710,13 +708,12 @@
                     <!-- Tab: Dynamic Header & Navigation Menu Builder -->
                     <div class="tab-pane fade" id="tab-menu" role="tabpanel">
                         <header class="st-pane-head">
-                            <span class="st-pane-icon"><i class="fa-solid fa-compass"></i></span>
                             <div><h2>Menu</h2><p>হেডারের মেনু ও লিংক</p></div>
                         </header>
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
                             <div>
                                 <h6 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-compass text-success"></i>
+                                    
                                     <span>Menu</span>
                                 </h6>
                                 <p class="text-muted small mb-0"></p>
@@ -801,13 +798,12 @@
                     <!-- Tab 2: Theme & Colors Customizer -->
                     <div class="tab-pane fade" id="tab-theme" role="tabpanel">
                         <header class="st-pane-head">
-                            <span class="st-pane-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
                             <div><h2>Theme</h2><p>রং ও লাইট/ডার্ক মোড</p></div>
                         </header>
                         <div class="row g-4">
                             
                             <div class="col-lg-6">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-swatchbook text-primary me-2"></i>Colors</h6>
+                                <h6 class="fw-bold text-dark mb-3">Colors</h6>
                                 <p class="small text-muted mb-3">Theme</p>
 
                                 <div class="d-flex flex-column gap-2 mb-4">
@@ -881,7 +877,7 @@
 
                             <!-- Right: Live Theme Mode & Sidebar Switch -->
                             <div class="col-lg-6">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-moon text-primary me-2"></i>Mode</h6>
+                                <h6 class="fw-bold text-dark mb-3">Mode</h6>
                                 
                                 <div class="p-3 bg-light rounded-4 border mb-3">
                                     <div class="row g-2">
@@ -940,13 +936,12 @@
                     <!-- Tab 3: System Notice & Announcement -->
                     <div class="tab-pane fade" id="tab-notice" role="tabpanel">
                         <header class="st-pane-head">
-                            <span class="st-pane-icon"><i class="fa-solid fa-bullhorn"></i></span>
                             <div><h2>Notice</h2><p>সাইটজুড়ে ঘোষণার বার</p></div>
                         </header>
                         <div class="row g-4">
                             
                             <div class="col-lg-7">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-bullhorn text-warning me-2"></i>Notice</h6>
+                                <h6 class="fw-bold text-dark mb-3">Notice</h6>
                                 
                                 <div class="mb-3">
                                     <label class="form-label small fw-semibold text-muted">Text</label>
@@ -977,7 +972,7 @@
 
                             <!-- Right: Live Notice Preview -->
                             <div class="col-lg-5">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-eye text-primary me-2"></i>Preview</h6>
+                                <h6 class="fw-bold text-dark mb-3">Preview</h6>
                                 
                                 <div class="p-4 bg-light rounded-4 border">
                                     <div id="noticePreviewBox" class="alert alert-{{ $noticeSetting['type'] ?? 'info' }} rounded-3 shadow-xs d-flex align-items-center gap-2 mb-0 {{ empty($noticeSetting['active']) ? 'opacity-50' : '' }}">
@@ -996,14 +991,13 @@
                     <!-- Tab 4: E-commerce & Delivery Configuration -->
                     <div class="tab-pane fade" id="tab-ecom" role="tabpanel">
                         <header class="st-pane-head">
-                            <span class="st-pane-icon"><i class="fa-solid fa-truck-fast"></i></span>
                             <div><h2>Shop</h2><p>ডেলিভারি চার্জ, হেল্পলাইন, কুপন ও অফার</p></div>
                         </header>
                         <div class="row g-4">
                             
                             <!-- Delivery Charges -->
                             <div class="col-lg-6">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-truck-ramp-box text-success me-2"></i>Delivery</h6>
+                                <h6 class="fw-bold text-dark mb-3">Delivery</h6>
                                 
                                 <div class="mb-3">
                                     <label class="form-label small fw-semibold text-muted">Dhaka (৳)</label>
@@ -1049,7 +1043,7 @@
 
                             <!-- Customer Support Contacts -->
                             <div class="col-lg-6">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-headset text-primary me-2"></i>Helpline</h6>
+                                <h6 class="fw-bold text-dark mb-3">Helpline</h6>
                                 
                                 <div class="mb-3">
                                     <label class="form-label small fw-semibold text-muted">Helpline</label>
@@ -1111,7 +1105,7 @@
                                 <div class="p-3.5 bg-light rounded-4 border">
                                     <div class="d-flex align-items-center justify-content-between mb-3">
                                         <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                                            <i class="fa-solid fa-ticket text-warning"></i> Coupon
+                                            Coupon
                                         </h6>
                                         <div class="form-check form-switch mb-0">
                                             <input class="form-check-input cursor-pointer" type="checkbox" name="coupon_enabled" value="1" id="couponEnabledSwitch" {{ !empty($ecomSetting['coupon_enabled']) ? 'checked' : '' }}>
@@ -1157,7 +1151,7 @@
                                 <div class="p-3.5 bg-light rounded-4 border">
                                     <div class="d-flex align-items-center justify-content-between mb-3">
                                         <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                                            <i class="fa-solid fa-gift text-primary"></i> Offers
+                                            Offers
                                         </h6>
                                         <div class="form-check form-switch mb-0">
                                             <input class="form-check-input cursor-pointer" type="checkbox" name="threshold_offer_enabled" value="1" id="thresholdOfferSwitch" {{ !empty($ecomSetting['threshold_offer_enabled']) ? 'checked' : '' }}>
@@ -1198,14 +1192,13 @@
                     <!-- Tab: Invoice & Sender Details -->
                     <div class="tab-pane fade" id="tab-invoice" role="tabpanel">
                         <header class="st-pane-head">
-                            <span class="st-pane-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>
                             <div><h2>Invoice</h2><p>ইনভয়েসের প্রেরক, শিরোনাম ও শর্ত</p></div>
                         </header>
                         <div class="row g-4">
                             
                             <!-- Sender Information Form -->
                             <div class="col-lg-7">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-building-user text-primary me-2"></i>Sender</h6>
+                                <h6 class="fw-bold text-dark mb-3">Sender</h6>
                                 <p class="small text-muted mb-3"></p>
 
                                 <div class="mb-3">
@@ -1268,7 +1261,7 @@
 
                             <!-- Live Invoice Sender Preview -->
                             <div class="col-lg-5">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-file-invoice text-primary me-2"></i>Preview</h6>
+                                <h6 class="fw-bold text-dark mb-3">Preview</h6>
                                 <div class="p-4 bg-light rounded-4 border">
                                     <div class="card border border-2 border-primary-subtle rounded-3 shadow-xs overflow-hidden">
                                         <div class="card-header bg-primary text-white py-2 px-3 d-flex justify-content-between align-items-center">
@@ -1490,7 +1483,6 @@
                     <!-- Tab 6: Server Diagnostics & Maintenance -->
                     <div class="tab-pane fade" id="tab-system" role="tabpanel">
                         <header class="st-pane-head">
-                            <span class="st-pane-icon"><i class="fa-solid fa-server"></i></span>
                             <div><h2>System</h2><p>স্বাস্থ্য পরীক্ষা, মেইনটেন্যান্স, ক্যাশ, ব্যাকআপ ও হিস্ট্রি</p></div>
                         </header>
                         <div class="row g-4">
@@ -1498,7 +1490,7 @@
                             <!-- Health (live) -->
                             <div class="col-lg-7">
                                 <div class="d-flex align-items-center justify-content-between mb-3">
-                                    <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-heart-pulse text-danger me-2"></i>Health <span class="st-score" id="stScore"></span></h6>
+                                    <h6 class="fw-bold text-dark mb-0">Health <span class="st-score" id="stScore"></span></h6>
                                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" id="stHealthRefresh" data-health-url="{{ route('admin.system-settings.health') }}"><i class="fa-solid fa-rotate me-1"></i> Refresh</button>
                                 </div>
                                 <div id="stHealth" class="st-health"><div class="st-skel"></div><div class="st-skel"></div><div class="st-skel"></div><div class="st-skel"></div></div>
@@ -1509,7 +1501,7 @@
 
                                 <!-- Maintenance -->
                                 <div>
-                                    <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-screwdriver-wrench text-danger me-2"></i>Maintenance</h6>
+                                    <h6 class="fw-bold text-dark mb-3">Maintenance</h6>
                                     <div class="p-4 bg-light rounded-4 border">
                                         <div class="form-check form-switch mb-3">
                                             <input class="form-check-input cursor-pointer" type="checkbox" name="maintenance_mode" value="1" id="maintSwitch" {{ !empty($maintSetting['enabled']) ? 'checked' : '' }}>
@@ -1525,7 +1517,7 @@
 
                                 <!-- Cache -->
                                 <div>
-                                    <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-broom text-warning me-2"></i>Cache</h6>
+                                    <h6 class="fw-bold text-dark mb-3">Cache</h6>
                                     <div class="d-flex flex-wrap gap-2" id="stCache" data-url="{{ route('admin.system-settings.clear-cache') }}">
                                         <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold" data-cache="all"><i class="fa-solid fa-broom me-1"></i> All</button>
                                         <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-cache="views">Views</button>
@@ -1537,7 +1529,7 @@
 
                                 <!-- Backup -->
                                 <div>
-                                    <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-box-archive text-primary me-2"></i>Backup</h6>
+                                    <h6 class="fw-bold text-dark mb-3">Backup</h6>
                                     <div class="p-3 bg-light rounded-4 border d-flex flex-column gap-2">
                                         <a href="{{ route('admin.system-settings.export') }}" class="btn btn-sm btn-outline-primary rounded-pill fw-semibold"><i class="fa-solid fa-download me-1"></i> Export</a>
                                         <div class="d-flex gap-2">
@@ -1552,7 +1544,7 @@
                             <!-- History -->
                             <div class="col-12">
                                 <div class="d-flex align-items-center justify-content-between mb-3">
-                                    <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>History <span class="text-muted fw-normal small"></span></h6>
+                                    <h6 class="fw-bold text-dark mb-0">History <span class="text-muted fw-normal small"></span></h6>
                                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" id="stHistoryRefresh" data-url="{{ route('admin.system-settings.history') }}" data-restore-url="{{ url('/admin/system-settings/history') }}"><i class="fa-solid fa-rotate me-1"></i> Refresh</button>
                                 </div>
                                 <div id="stHistory" class="st-history"><div class="st-skel"></div></div>
@@ -1563,12 +1555,11 @@
                     <!-- Tab: Editorial & Publishing Board (আইডিয়াপত্র ও সম্পাদনা পরিষদ) -->
                     <div class="tab-pane fade" id="tab-editorial" role="tabpanel">
                         <header class="st-pane-head">
-                            <span class="st-pane-icon"><i class="fa-solid fa-feather-pointed"></i></span>
                             <div><h2>Editorial</h2><p>প্রকাশক, সম্পাদক ও সম্পাদনা পরিষদ</p></div>
                         </header>
                         <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
                             <div>
-                                <h5 class="fw-bold text-dark mb-1"><i class="fa-solid fa-feather-pointed text-primary me-2"></i>Board</h5>
+                                <h5 class="fw-bold text-dark mb-1">Board</h5>
                                 <p class="small text-muted mb-0"></p>
                             </div>
                         </div>
@@ -1630,7 +1621,7 @@
                         <!-- Ideapatra Homepage Section Customization -->
                         <div class="mt-4 pt-4 border-top">
                             <h6 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-newspaper text-primary"></i> Section
+                                Section
                             </h6>
                             <p class="small text-muted mb-3"></p>
 
@@ -1671,13 +1662,12 @@
                     <!-- Tab: Terms, Return Policy & Legal Framework (ব্যবহারের শর্তাবলী ও প্রাতিষ্ঠানিক পলিসি) -->
                     <div class="tab-pane fade" id="tab-terms" role="tabpanel">
                         <header class="st-pane-head">
-                            <span class="st-pane-icon"><i class="fa-solid fa-scale-balanced"></i></span>
                             <div><h2>Terms</h2><p>শর্তাবলি, রিটার্ন ও রিফান্ড নীতি</p></div>
                         </header>
                         <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom flex-wrap gap-2">
                             <div>
                                 <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-scale-balanced text-success"></i> Policies
+                                    Policies
                                 </h5>
                                 <p class="small text-muted mb-0">
                                      <a href="{{ route('terms') }}" target="_blank" class="text-decoration-none fw-bold text-primary">/terms</a>, 
@@ -1695,7 +1685,7 @@
                         <!-- 1. Header & Version Banner -->
                         <div class="card border-0 rounded-4 bg-light p-3.5 mb-4 border">
                             <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-heading text-primary"></i> Header
+                                Header
                             </h6>
                             <div class="row g-3">
                                 <div class="col-md-4">
@@ -1790,7 +1780,7 @@
                         <!-- 3. Section: শিপিং, ই-বুক ও রয়্যালটি বিশেষ নীতিমালা -->
                         <div class="card border-0 rounded-4 bg-light p-3.5 mb-4 border">
                             <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-sliders text-info"></i> Other
+                                Other
                             </h6>
                             <div class="row g-3">
                                 <div class="col-md-6">
@@ -1829,13 +1819,12 @@
                     <!-- Tab: আমাদের সম্পর্কে কাস্টমাইজার (#tab-about) -->
                     <div class="tab-pane fade" id="tab-about" role="tabpanel">
                         <header class="st-pane-head">
-                            <span class="st-pane-icon"><i class="fa-solid fa-circle-info"></i></span>
                             <div><h2>About</h2><p>"আমাদের সম্পর্কে" পেজ</p></div>
                         </header>
                         <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
                             <div>
                                 <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-circle-info text-info"></i> About
+                                    About
                                 </h5>
                                 <p class="text-muted small mb-0"></p>
                             </div>
@@ -1847,7 +1836,7 @@
                         <!-- 1. Hero Header & Overview -->
                         <div class="card border-0 rounded-4 bg-light p-3.5 mb-4 border">
                             <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-heading text-primary"></i> Header
+                                Header
                             </h6>
                             <div class="row g-3">
                                 <div class="col-md-4">
@@ -1879,7 +1868,7 @@
                         <!-- 2. KPI Stat Cards -->
                         <div class="card border-0 rounded-4 bg-white p-3.5 mb-4 border shadow-2xs">
                             <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-chart-simple text-success"></i> Stats
+                                Stats
                             </h6>
                             <div class="row g-3">
                                 <div class="col-md-3">
@@ -1924,7 +1913,7 @@
                         <!-- 3. Publisher & Signature Info -->
                         <div class="card border-0 rounded-4 bg-light p-3.5 mb-4 border">
                             <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-signature text-primary"></i> Publisher
+                                Publisher
                             </h6>
                             <div class="row g-3">
                                 <div class="col-md-3">
@@ -1953,7 +1942,7 @@
                         <!-- 4. Full Statement Paragraphs -->
                         <div class="card border-0 rounded-4 bg-white p-3.5 mb-4 border shadow-2xs">
                             <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-newspaper text-teal" style="color: #0d9488;"></i> Statement
+                                Statement
                             </h6>
                             <div class="row g-3">
                                 <div class="col-12">
@@ -2002,13 +1991,12 @@
                     <!-- Tab: যোগাযোগ ও হেল্পডেস্ক কাস্টমাইজার (#tab-contact) -->
                     <div class="tab-pane fade" id="tab-contact" role="tabpanel">
                         <header class="st-pane-head">
-                            <span class="st-pane-icon"><i class="fa-solid fa-headset"></i></span>
                             <div><h2>Contact</h2><p>যোগাযোগ পেজ</p></div>
                         </header>
                         <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
                             <div>
                                 <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-headset text-success"></i> Contact
+                                    Contact
                                 </h5>
                                 <p class="text-muted small mb-0"></p>
                             </div>
@@ -2074,7 +2062,7 @@
                         <!-- 2. Department Direct Directory -->
                         <div class="card border-0 rounded-4 bg-white p-3.5 mb-4 border shadow-2xs">
                             <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-sitemap text-info"></i> Departments
+                                Departments
                             </h6>
                             <div class="row g-3">
                                 <div class="col-md-4">
@@ -2114,13 +2102,12 @@
                     <!-- Tab: ওয়েবজিন ও সাহিত্য সাময়িকী কাস্টমাইজার (#tab-webzine) -->
                     <div class="tab-pane fade" id="tab-webzine" role="tabpanel">
                         <header class="st-pane-head">
-                            <span class="st-pane-icon"><i class="fa-solid fa-newspaper"></i></span>
                             <div><h2>Webzine</h2><p>ওয়েবজিন পেজ</p></div>
                         </header>
                         <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
                             <div>
                                 <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-newspaper text-warning"></i> Webzine
+                                    Webzine
                                 </h5>
                                 <p class="text-muted small mb-0"></p>
                             </div>
@@ -2132,7 +2119,7 @@
                         <!-- 1. Header & Overview -->
                         <div class="card border-0 rounded-4 bg-light p-3.5 mb-4 border">
                             <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-heading text-primary"></i> Header
+                                Header
                             </h6>
                             <div class="row g-3">
                                 <div class="col-md-4">
@@ -2155,7 +2142,7 @@
                         <!-- 2. Editorial Note & CTA -->
                         <div class="card border-0 rounded-4 bg-white p-3.5 mb-4 border shadow-2xs">
                             <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-feather-pointed text-success"></i> Editorial
+                                Editorial
                             </h6>
                             <div class="row g-3">
                                 <div class="col-md-6">
@@ -2210,7 +2197,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-dark text-white border-0 py-3">
                 <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2" id="imageCropperModalLabel">
-                    <i class="fa-solid fa-crop-simple text-primary"></i> Crop
+                    Crop
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

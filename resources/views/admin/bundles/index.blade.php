@@ -40,7 +40,7 @@
     <!-- Book Bundles Grid -->
     <div class="adm-card bg-white">
         <div class="adm-card__head">
-            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-layer-group me-2 text-primary"></i> Special Book Combos & Bundles</h6>
+            <h6 class="mb-0 fw-bold">Special Book Combos & Bundles</h6>
         </div>
         <div class="adm-card__body">
             <div class="row g-3">
@@ -86,7 +86,7 @@
     <!-- Pre-Orders Pipeline Table -->
     <div class="adm-card bg-white">
         <div class="adm-card__head">
-            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-bullhorn me-2 text-warning"></i> Customer Book Pre-Orders Pipeline</h6>
+            <h6 class="mb-0 fw-bold">Customer Book Pre-Orders Pipeline</h6>
         </div>
         <div class="adm-card__body p-0">
             <div class="table-responsive">
@@ -143,7 +143,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-boxes-stacked me-1.5"></i> Create Book Combo</h6>
+                <h6 class="modal-title fw-bold text-white mb-0">Create Book Combo</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.bundles.store') }}" method="POST">

@@ -166,7 +166,7 @@
                 @csrf
                 <div class="modal-header border-bottom">
                     <h6 class="modal-title fw-bold text-dark">
-                        <i class="fa-solid fa-plus-minus text-primary me-1.5"></i> ম্যানুয়াল রয়্যালটি এডজাস্টমেন্ট (Credit / Debit)
+                        ম্যানুয়াল রয়্যালটি এডজাস্টমেন্ট (Credit / Debit)
                     </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>

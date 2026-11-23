@@ -762,7 +762,7 @@
     <div class="modal-dialog">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header border-bottom py-3 bg-light">
-                <h5 class="modal-title fw-bold text-success"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Record Installment / Payment</h5>
+                <h5 class="modal-title fw-bold text-success">Record Installment / Payment</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.purchases.payments.store') }}" method="POST">

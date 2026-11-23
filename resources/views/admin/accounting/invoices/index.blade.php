@@ -53,7 +53,7 @@
         {{-- Filter Document Type Dropdown --}}
         <div class="dropdown">
             <button class="btn btn-white border shadow-2xs dropdown-toggle fw-bold text-dark rounded-pill px-3 py-1.5 fs-6 d-inline-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fa-solid fa-file-invoice-dollar text-primary"></i>
+                
                 <span>{{ $currentTypeLabel }}</span>
                 <span class="badge bg-primary-subtle text-primary border rounded-pill fs-7 px-2.5 py-0.5">{{ number_format($currentCount) }}</span>
             </button>
@@ -95,7 +95,7 @@
         {{-- Sales Category Dropdown --}}
         <div class="dropdown">
             <button class="btn btn-white border shadow-2xs dropdown-toggle fw-bold text-dark rounded-pill px-3 py-1.5 fs-6 d-inline-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fa-solid fa-tags text-info"></i>
+                
                 <span>{{ $currentCategoryLabel }}</span>
                 <span class="badge bg-light text-dark border rounded-pill fs-7 px-2 py-0.5">{{ number_format($currentCategoryCount) }}</span>
             </button>
@@ -825,7 +825,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-success text-white py-3">
                 <h5 class="modal-title fw-bold" id="quickPaymentModalLabel">
-                    <i class="fa-solid fa-hand-holding-dollar me-1.5"></i>Quick Payment Receipt
+                    Quick Payment Receipt
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -901,7 +901,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3">
                 <h5 class="modal-title fw-bold" id="quickSmsModalLabel">
-                    <i class="fa-solid fa-comment-sms me-1.5"></i>Send Invoice SMS
+                    Send Invoice SMS
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -934,7 +934,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-danger text-white py-3">
                 <h5 class="modal-title fw-bold">
-                    <i class="fa-solid fa-triangle-exclamation me-1.5"></i>Bulk Delete Confirmation
+                    Bulk Delete Confirmation
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -965,7 +965,7 @@
 
                 <div class="modal-header border-bottom py-3">
                     <h5 class="modal-title fw-bold text-primary" id="invoiceSettingsModalLabel">
-                        <i class="fa-solid fa-sliders me-2"></i>Invoice & Memo Settings
+                        Invoice & Memo Settings
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>

@@ -5,7 +5,7 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div>
                 <h4 class="fw-bold mb-1 text-white d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-newspaper text-warning"></i> লিটিলম্যাগাজিন ডিরেক্টরি ও সম্পাদক তালিকা
+                    লিটিলম্যাগাজিন ডিরেক্টরি ও সম্পাদক তালিকা
                 </h4>
                 <p class="text-white-50 small mb-0 font-monospace">
                     {{ $campaign->title }} &bull; মোট নিবন্ধিত লিটিলম্যাগ সম্পাদক: {{ $totalLittleMagCount }} জন
@@ -306,7 +306,7 @@
                                             <div class="row g-3">
                                                 <div class="col-md-6">
                                                     <div class="p-3 bg-white rounded-3 border">
-                                                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-2"><i class="fa-solid fa-id-card text-primary me-1"></i> ব্যক্তিগত ও যোগাযোগ তথ্য</h6>
+                                                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">ব্যক্তিগত ও যোগাযোগ তথ্য</h6>
                                                         <div class="small mb-1"><strong>পূর্ণ নাম:</strong> {{ $lm->name }}</div>
                                                         <div class="small mb-1"><strong>মোবাইল নম্বর:</strong> <a href="tel:{{ $lm->phone }}">{{ $lm->phone }}</a></div>
                                                         <div class="small mb-1"><strong>ইমেইল:</strong> {{ $lm->email ?: 'উল্লেখ নেই' }}</div>
@@ -316,7 +316,7 @@
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="p-3 bg-white rounded-3 border">
-                                                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-2"><i class="fa-solid fa-book-open text-warning me-1"></i> লিটিলম্যাগাজিন ও সাহিত্যিক তথ্য</h6>
+                                                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">লিটিলম্যাগাজিন ও সাহিত্যিক তথ্য</h6>
                                                         <div class="small mb-1"><strong>পত্রিকার নাম:</strong> <span class="badge bg-warning-subtle text-dark border">{{ $magName }}</span></div>
                                                         <div class="small mb-1"><strong>প্রকাশিত সংখ্যা:</strong> {{ $issueCount }}</div>
                                                         <div class="small mb-1"><strong>ক্যাটাগরি:</strong> {{ $lm->form_data['author_category'] ?? 'লিটিলম্যাগাজিন সম্পাদক' }}</div>
@@ -326,7 +326,7 @@
                                                 </div>
                                                 <div class="col-12">
                                                     <div class="p-3 bg-white rounded-3 border">
-                                                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-2"><i class="fa-solid fa-receipt text-success me-1"></i> পেমেন্ট ও নিবন্ধন স্থিতি</h6>
+                                                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">পেমেন্ট ও নিবন্ধন স্থিতি</h6>
                                                         <div class="d-flex flex-wrap gap-4 small">
                                                             <div><strong>স্ট্যাটাস:</strong> {{ ucfirst($lm->status) }}</div>
                                                             <div><strong>পরিশোধিত ফি:</strong> ৳{{ number_format($lm->amount_paid) }}</div>

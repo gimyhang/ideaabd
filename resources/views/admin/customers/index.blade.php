@@ -159,7 +159,7 @@
     <div class="card bg-white rounded-4 shadow-xs border-0 overflow-hidden">
         <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-2 p-3 border-bottom">
             <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-                <i class="fa-solid fa-user-tag text-primary"></i> 
+                
                 Customer Registrations Directory
                 <span class="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1">{{ number_format($customers->total()) }} customers</span>
             </h6>
@@ -387,7 +387,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3 px-4">
                 <h6 class="modal-title fw-bold text-white mb-0" id="customerProfileModalLabel">
-                    <i class="fa-solid fa-user-circle me-1.5"></i> Customer Profile & Registration Details
+                    Customer Profile & Registration Details
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -420,7 +420,7 @@
 
                     <!-- Verification Details Box -->
                     <div class="p-3 rounded-3 bg-white border">
-                        <h6 class="fw-bold text-dark mb-2 small"><i class="fa-solid fa-shield-halved text-primary me-1"></i> Order Eligibility & Verification</h6>
+                        <h6 class="fw-bold text-dark mb-2 small">Order Eligibility & Verification</h6>
                         <div class="row g-2">
                             <div class="col-sm-4">
                                 <div class="p-2 bg-light rounded-2 text-center" id="cModalPhoneVerBox">
@@ -468,7 +468,7 @@
                     <!-- Recent Orders Section -->
                     <div>
                         <h6 class="fw-bold text-dark mb-2 d-flex align-items-center gap-1.5">
-                            <i class="fa-solid fa-bag-shopping text-primary"></i> Recent Order History
+                            Recent Order History
                         </h6>
                         <div class="table-responsive border rounded-3">
                             <table class="table table-sm align-middle mb-0" style="font-size: 12px;">
@@ -504,7 +504,7 @@
             
             <div class="modal-header bg-primary text-white py-3 px-4">
                 <h6 class="modal-title fw-bold text-white mb-0" id="bulkMessageModalLabel">
-                    <i class="fa-solid fa-paper-plane me-1.5"></i> Broadcast Customer Campaign / Announcement
+                    Broadcast Customer Campaign / Announcement
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

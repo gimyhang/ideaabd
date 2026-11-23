@@ -542,35 +542,8 @@
                         <i class="fas fa-qrcode text-warning me-1"></i> মোবাইলে পড়ুন
                     </button>
 
-                    <!-- Share Dropdown -->
-                    <div class="dropdown">
-                        <button class="btn btn-action-outline btn-sm dropdown-toggle" type="button" id="shareMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-share-alt text-primary me-1"></i> শেয়ার
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg rounded-3" aria-labelledby="shareMenu" style="background: #1e293b; border: 1px solid rgba(255,255,255,0.1);">
-                            <li>
-                                <a class="dropdown-item py-2" href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(request()->url()) }}" target="_blank" rel="noopener">
-                                    <i class="fab fa-facebook text-primary me-2"></i> ফেসবুকে শেয়ার
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item py-2" href="https://api.whatsapp.com/send?text={{ urlencode($ebook->title . ' - আইডিয়া ই-বুক: ' . request()->url()) }}" target="_blank" rel="noopener">
-                                    <i class="fab fa-whatsapp text-success me-2"></i> হোয়াটসঅ্যাপে পাঠান
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item py-2" href="https://twitter.com/intent/tweet?text={{ urlencode($ebook->title) }}&url={{ urlencode(request()->url()) }}" target="_blank" rel="noopener">
-                                    <i class="fab fa-twitter text-info me-2"></i> টুইটার / এক্স (X)
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider border-secondary opacity-25"></li>
-                            <li>
-                                <button class="dropdown-item py-2" onclick="copyBookLink()">
-                                    <i class="fas fa-link text-warning me-2"></i> লিংক কপি করুন
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
+                    <!-- Share -->
+                    <x-share type="ebook" :id="$ebook->id" :url="route('ebook.show', $ebook->slug)" :title="$ebook->title" :text="$ebook->title . ' — ' . $authorName . ' | আইডিয়া ই-বুক'" :image="$cover" :subtitle="$authorName" heading="ই-বুকটি শেয়ার করুন" />
                 </div>
 
                 <!-- AI Bengali Audio Synopsis Player -->
@@ -853,7 +826,7 @@
             <div class="tab-pane fade show active" id="tab-synopsis" role="tabpanel">
                 <div class="ebook-content-card">
                     <h3 class="h4 text-white fw-bold mb-4 d-flex align-items-center gap-2">
-                        <i class="fas fa-file-lines text-primary"></i> বইটির ভূমিকা ও মূল বিষয়বস্তু
+                        বইটির ভূমিকা ও মূল বিষয়বস্তু
                     </h3>
                     <div class="ebook-rich-text text-light" style="font-size: 1.02rem; line-height: 1.9; color: #d1d5db !important;">
                         @if($ebook->description)
@@ -894,7 +867,7 @@
             <div class="tab-pane fade" id="tab-toc" role="tabpanel">
                 <div class="ebook-content-card">
                     <h3 class="h4 text-white fw-bold mb-4 d-flex align-items-center gap-2">
-                        <i class="fas fa-list-ol text-info"></i> সূচিপত্র ও পরিচ্ছেদ তালিকা
+                        সূচিপত্র ও পরিচ্ছেদ তালিকা
                     </h3>
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -989,7 +962,7 @@
                     @if($authorOtherEbooks->isNotEmpty())
                         <div class="mt-5 pt-4 border-top border-secondary border-opacity-10">
                             <h5 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
-                                <i class="fas fa-books text-warning"></i> লেখকের অন্যান্য ই-বুক
+                                লেখকের অন্যান্য ই-বুক
                             </h5>
                             <div class="row g-3">
                                 @foreach($authorOtherEbooks as $otherBook)
@@ -1011,37 +984,37 @@
             <div class="tab-pane fade" id="tab-specs" role="tabpanel">
                 <div class="ebook-content-card">
                     <h3 class="h4 text-white fw-bold mb-4 d-flex align-items-center gap-2">
-                        <i class="fas fa-sliders text-success"></i> প্রযুক্তিগত বিবরণ ও কপিরাইট লাইসেন্স
+                        প্রযুক্তিগত বিবরণ ও কপিরাইট লাইসেন্স
                     </h3>
                     <div class="table-responsive">
                         <table class="table table-dark table-borderless align-middle mb-0" style="background: transparent;">
                             <tbody>
                                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
-                                    <th style="width: 35%; color: #9ca3af;"><i class="fas fa-barcode text-primary me-2"></i> আন্তর্জাতিক স্ট্যান্ডার্ড বুক নম্বর (ISBN)</th>
+                                    <th style="width: 35%; color: #9ca3af;">আন্তর্জাতিক স্ট্যান্ডার্ড বুক নম্বর (ISBN)</th>
                                     <td class="text-light fw-bold">{{ $ebook->isbn ?: 'উপলব্ধ নয় (Digital Direct Edition)' }}</td>
                                 </tr>
                                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
-                                    <th style="color: #9ca3af;"><i class="fas fa-file-code text-info me-2"></i> ডিজিটাল ফাইল ফরম্যাট</th>
+                                    <th style="color: #9ca3af;">ডিজিটাল ফাইল ফরম্যাট</th>
                                     <td class="text-light fw-bold">{{ $formatBadge }}</td>
                                 </tr>
                                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
-                                    <th style="color: #9ca3af;"><i class="fas fa-file-lines text-warning me-2"></i> মোট পৃষ্ঠা সংখ্যা</th>
+                                    <th style="color: #9ca3af;">মোট পৃষ্ঠা সংখ্যা</th>
                                     <td class="text-light fw-bold">{{ $pageCount }} পৃষ্ঠা</td>
                                 </tr>
                                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
-                                    <th style="color: #9ca3af;"><i class="fas fa-hdd text-success me-2"></i> ফাইল সাইজ</th>
+                                    <th style="color: #9ca3af;">ফাইল সাইজ</th>
                                     <td class="text-light fw-bold">{{ $ebook->formatted_file_size ?: '৪.২ MB' }}</td>
                                 </tr>
                                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
-                                    <th style="color: #9ca3af;"><i class="fas fa-language text-secondary me-2"></i> প্রকাশনার ভাষা</th>
+                                    <th style="color: #9ca3af;">প্রকাশনার ভাষা</th>
                                     <td class="text-light fw-bold">বাংলা (Bengali - UTF-8 Compliant)</td>
                                 </tr>
                                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
-                                    <th style="color: #9ca3af;"><i class="fas fa-shield-halved text-danger me-2"></i> ডিআরএম ও ডিজিটাল অধিকার সুরক্ষা</th>
+                                    <th style="color: #9ca3af;">ডিআরএম ও ডিজিটাল অধিকার সুরক্ষা</th>
                                     <td class="text-success fw-bold"><i class="fas fa-lock me-1"></i> আইডিয়া এনক্রিপ্টেড ওয়াটারমার্ক ও কপিরাইট সুরক্ষিত</td>
                                 </tr>
                                 <tr>
-                                    <th style="color: #9ca3af;"><i class="fas fa-desktop text-primary me-2"></i> সাপোর্টেড ডিভাইস ও প্ল্যাটফর্ম</th>
+                                    <th style="color: #9ca3af;">সাপোর্টেড ডিভাইস ও প্ল্যাটফর্ম</th>
                                     <td class="text-light">অ্যান্ড্রয়েড, আইওএস (iPhone/iPad), ম্যাক, উইন্ডোজ, কিন্ডল ব্রাউজার ও ক্রোমবুক</td>
                                 </tr>
                             </tbody>
@@ -1088,7 +1061,7 @@
                     <!-- Review Submission Form -->
                     <div class="p-4 rounded-4 mb-5" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);">
                         <h4 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
-                            <i class="fas fa-pen text-primary"></i> এই ই-বুক সম্পর্কে আপনার মতামত দিন
+                            এই ই-বুক সম্পর্কে আপনার মতামত দিন
                         </h4>
 
                         <form id="ebookReviewForm" onsubmit="handleReviewSubmit(event)">
@@ -1138,7 +1111,7 @@
 
                     <!-- Reviews List -->
                     <h5 class="text-white fw-bold mb-4 d-flex align-items-center gap-2">
-                        <i class="fas fa-comments text-info"></i> পাঠকদের পর্যালোচনা তালিকা
+                        পাঠকদের পর্যালোচনা তালিকা
                     </h5>
 
                     <div id="reviewsContainer">
@@ -1187,7 +1160,7 @@
             <div class="d-flex align-items-center justify-content-between mb-4">
                 <div>
                     <h3 class="h4 text-white fw-bold mb-1">
-                        <i class="fas fa-layer-group text-primary me-2"></i> সম্পর্কিত জনপ্রিয় ই-বুক
+                        সম্পর্কিত জনপ্রিয় ই-বুক
                     </h3>
                     <p class="text-secondary small mb-0">{{ $categoryName }} ক্যাটাগরির পাঠকদের পছন্দ</p>
                 </div>

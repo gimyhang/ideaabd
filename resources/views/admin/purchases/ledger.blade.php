@@ -23,7 +23,7 @@
 @section('title', $pageTitle)
 @section('heading')
     <div class="d-flex align-items-center gap-2 flex-wrap">
-        <span class="fs-5 fw-bold text-dark"><i class="fa-solid fa-truck-ramp-box text-primary me-2"></i>{{ $activeParty ? "সরবরাহকারী খতিয়ান — {$activeParty['name']}" : "পাওনাদার, প্রেস ও সরবরাহকারী খতিয়ান" }}</span>
+        <span class="fs-5 fw-bold text-dark">{{ $activeParty ? "সরবরাহকারী খতিয়ান — {$activeParty['name']}" : "পাওনাদার, প্রেস ও সরবরাহকারী খতিয়ান" }}</span>
         @if($activeParty)
             <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1 font-monospace">
                 {{ $activeParty['type'] === 'publisher' ? 'বই প্রকাশনী' : 'প্রেস ও ম্যাটেরিয়ালস' }}
@@ -643,7 +643,7 @@
             <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <div class="d-flex align-items-center gap-2">
                     <h5 class="card-title fw-bold mb-0 text-dark">
-                        <i class="fa-solid fa-boxes-stacked text-primary me-2"></i>সকল সরবরাহকারী ও প্রেসের খাতা ও পাওনা বকেয়া তালিকা
+                        সকল সরবরাহকারী ও প্রেসের খাতা ও পাওনা বকেয়া তালিকা
                     </h5>
                     <span class="badge bg-light text-dark border px-3 py-1 rounded-pill font-monospace">
                         মোট {{ count($allSummaries) }} জন সরবরাহকারী
@@ -785,7 +785,7 @@
                 @csrf
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title fw-bold" id="recordVendorPaymentModalLabel">
-                        <i class="fa-solid fa-hand-holding-dollar me-2"></i>সরবরাহকারী / প্রেসের কিস্তি বা বিল পরিশোধ
+                        সরবরাহকারী / প্রেসের কিস্তি বা বিল পরিশোধ
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>

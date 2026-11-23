@@ -57,7 +57,7 @@
         <div class="col-lg-4">
             <div class="card border-0 rounded-4 bg-white shadow-xs border p-4">
                 <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-plus-circle text-primary"></i>
+                    
                     <span>নতুন রিডাইরেক্ট তৈরি করুন</span>
                 </h5>
                 <form action="{{ route('admin.seo.redirects.store') }}" method="POST">
@@ -102,7 +102,7 @@
             <div class="card border-0 rounded-4 bg-white shadow-xs border overflow-hidden">
                 <div class="card-header bg-white border-bottom p-3.5 d-flex align-items-center justify-content-between">
                     <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-list-check text-success"></i> সক্রিয় রিডাইরেক্ট রুলস
+                        সক্রিয় রিডাইরেক্ট রুলস
                     </h6>
                     <span class="badge bg-light text-dark border">{{ $redirects->total() }}টি নিয়ম</span>
                 </div>

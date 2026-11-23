@@ -25,7 +25,7 @@
         <div class="card-body p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
             <div>
                 <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-coins text-warning"></i> Multi-Currency & Worldwide Pricing Engine
+                    Multi-Currency & Worldwide Pricing Engine
                 </h5>
                 <p class="text-muted small mb-0">Control real-time currency conversion rates (USD, EUR, GBP, AED, SAR, BDT) for worldwide buyers, e-book sales, and international author payouts.</p>
             </div>
@@ -38,7 +38,7 @@
     <!-- Currency Rates Table -->
     <div class="adm-card bg-white">
         <div class="adm-card__head">
-            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-globe me-2 text-primary"></i> Active Supported Currencies</h6>
+            <h6 class="mb-0 fw-bold">Active Supported Currencies</h6>
         </div>
         <div class="adm-card__body p-0">
             <div class="table-responsive">
@@ -105,7 +105,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-circle-plus me-1.5"></i> Add New Currency</h6>
+                <h6 class="modal-title fw-bold text-white mb-0">Add New Currency</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.currencies.store') }}" method="POST">
@@ -148,7 +148,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-pen-to-square me-1.5"></i> Edit Currency Rate</h6>
+                <h6 class="modal-title fw-bold text-white mb-0">Edit Currency Rate</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form id="editCurrencyForm" method="POST">

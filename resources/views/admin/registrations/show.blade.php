@@ -239,7 +239,7 @@
                     @endif
 
                     <hr class="my-4">
-                    <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-sliders text-primary me-1"></i> Administrative Actions & Approval Control</h6>
+                    <h6 class="fw-bold text-dark mb-3">Administrative Actions & Approval Control</h6>
                     <div class="d-flex flex-wrap gap-2 mb-3">
                         {{-- Approve Button --}}
                         <form method="POST" action="{{ route('admin.registrations.approve', $user) }}" class="flex-grow-1">

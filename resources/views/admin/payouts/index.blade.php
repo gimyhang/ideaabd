@@ -145,7 +145,7 @@
                                                     @csrf
                                                     <div class="modal-header border-bottom">
                                                         <h6 class="modal-title fw-bold text-dark">
-                                                            <i class="fa-solid fa-money-bill-transfer text-primary me-1.5"></i> Process Payout Request #{{ $payout->id }}
+                                                            Process Payout Request #{{ $payout->id }}
                                                         </h6>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>

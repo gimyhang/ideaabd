@@ -84,7 +84,7 @@
                 <!-- Abstract Highlight Box -->
                 @if($paper->abstract)
                     <div class="p-4 mb-4 rounded-4 bg-light border-start border-4 border-teal" style="border-left-color: #0f766e !important;">
-                        <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-quote-left text-primary me-2"></i>সারসংক্ষেপ (Abstract)</h6>
+                        <h6 class="fw-bold text-dark mb-2">সারসংক্ষেপ (Abstract)</h6>
                         <p class="text-secondary mb-0 leading-relaxed" style="font-size: 1.02rem; line-height: 1.8;">
                             {{ $paper->abstract }}
                         </p>

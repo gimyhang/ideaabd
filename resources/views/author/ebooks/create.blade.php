@@ -283,7 +283,7 @@
                 <div class="author-card p-3 p-md-4 shadow-sm">
                     <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                         <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-1.5">
-                            <i class="fas fa-wand-magic-sparkles text-warning"></i> Cover Preview
+                            Cover Preview
                         </h6>
                     </div>
 
@@ -357,7 +357,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header border-bottom py-3">
                 <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="quickCategoryModalLabel">
-                    <span class="p-1.5 bg-primary-subtle text-primary rounded-circle"><i class="fas fa-folder-plus"></i></span>
+                    
                     <span>নতুন বিষয়শ্রেণী যুক্ত করুন</span>
                 </h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

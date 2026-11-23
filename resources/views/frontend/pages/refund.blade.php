@@ -57,7 +57,7 @@
                 <div class="col-lg-4">
                     <div class="card border-0 rounded-4 p-3.5 shadow-lg" style="background: rgba(255,255,255,0.08); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.18) !important;">
                         <h6 class="text-warning fw-bold mb-2.5 small text-uppercase tracking-wider">
-                            <i class="fa-solid fa-circle-info me-1.5"></i> এক নজরে রিটার্ন নিয়ম
+                            এক নজরে রিটার্ন নিয়ম
                         </h6>
                         <ul class="list-unstyled mb-0 d-flex flex-column gap-2 text-white small" style="font-size: 12.5px; line-height: 1.5;">
                             <li class="d-flex align-items-start gap-2">
@@ -230,7 +230,7 @@
                 <div class="sticky-top" style="top: 90px; z-index: 10;">
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-3">
                         <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                            <i class="fa-solid fa-headset text-success"></i>
+                            
                             <span>সরাসরি রিফান্ড সাপোর্ট</span>
                         </h6>
                         <p class="small text-muted mb-3" style="line-height: 1.6;">
@@ -253,7 +253,7 @@
                     </div>
 
                     <div class="card border-0 shadow-sm rounded-4 p-3.5 bg-light">
-                        <h6 class="fw-bold text-dark mb-2 small"><i class="fa-solid fa-book-bookmark text-primary me-1.5"></i> সম্পর্কিত অন্যান্য পাতা</h6>
+                        <h6 class="fw-bold text-dark mb-2 small">সম্পর্কিত অন্যান্য পাতা</h6>
                         <ul class="list-unstyled mb-0 small d-flex flex-column gap-1.5">
                             <li><a href="{{ route('terms') }}" class="text-decoration-none text-dark fw-semibold hover-primary">› ব্যবহারের শর্তাবলী (Terms & Conditions)</a></li>
                             <li><a href="{{ route('privacy') }}" class="text-decoration-none text-dark fw-semibold hover-primary">› গোপনীয়তা নীতিমালা (Privacy Policy)</a></li>

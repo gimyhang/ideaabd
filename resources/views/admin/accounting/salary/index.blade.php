@@ -209,7 +209,7 @@
             @csrf
             <div class="modal-header bg-dark text-white border-0 py-3">
                 <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-hand-holding-dollar text-success"></i> Employee & Artisan Payroll Voucher
+                    Employee & Artisan Payroll Voucher
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>

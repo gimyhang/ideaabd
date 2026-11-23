@@ -412,7 +412,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-success text-white py-3 px-4">
                 <h6 class="modal-title fw-bold mb-0" id="quickPayModalLabel">
-                    <i class="fa-solid fa-hand-holding-dollar me-2"></i>Record Purchase Payment
+                    Record Purchase Payment
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -776,7 +776,7 @@ function openQuickInvoicePreview(purchaseId) {
         if (payments.length > 0) {
             paymentsHtml = `
                 <div class="mt-3.5 pt-3 border-top">
-                    <h6 class="fw-bold text-dark mb-2 small"><i class="fa-solid fa-history me-1 text-primary"></i>Payment History:</h6>
+                    <h6 class="fw-bold text-dark mb-2 small">Payment History:</h6>
                     <div class="table-responsive">
                         <table class="table table-sm table-bordered small mb-0">
                             <thead class="bg-light">

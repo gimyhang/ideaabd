@@ -1232,7 +1232,7 @@
 
                 {{-- Installment Payments History Table --}}
                 <h6 class="fw-bold text-dark mb-2.5">
-                    <i class="fa-solid fa-clock-rotate-left text-primary me-1.5"></i>Payment History
+                    Payment History
                 </h6>
 
                 <div class="table-responsive">
@@ -2774,7 +2774,7 @@ function updateCalcDisplays(net, deductions, gross) {
 
                 <div class="modal-header border-bottom py-3">
                     <h5 class="modal-title fw-bold text-primary" id="invoiceSettingsModalLabel">
-                        <i class="fa-solid fa-sliders me-2"></i>Invoice & Memo Settings
+                        Invoice & Memo Settings
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>

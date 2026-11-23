@@ -28,7 +28,7 @@
 
                         {{-- Shop / Business Information --}}
                         <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                            <i class="fas fa-shop text-primary"></i>
+                            
                             <span>Business Information</span>
                         </h6>
 
@@ -60,7 +60,7 @@
 
                         {{-- Contact Person & Account Information --}}
                         <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                            <i class="fas fa-user-shield text-primary"></i>
+                            
                             <span>Account Details</span>
                         </h6>
 

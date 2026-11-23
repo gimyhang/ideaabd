@@ -276,23 +276,23 @@
     <!-- 2. Quick Access / Favorites Chip Bar -->
     <div class="adm-side__favorites">
         <a href="{{ route('admin.pos.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.pos.*') ? 'is-active' : '' }}" title="POS" data-tooltip="POS">
-            <i class="fa-solid fa-cash-register text-warning"></i>
+            
             <span>POS</span>
         </a>
         <a href="{{ route('admin.ecommerce-orders') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.ecommerce-orders*') ? 'is-active' : '' }}" title="Orders" data-tooltip="Orders">
-            <i class="fa-solid fa-cart-shopping text-info"></i>
+            
             <span>Orders</span>
         </a>
         <a href="{{ route('admin.books') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.books*') ? 'is-active' : '' }}" title="Books" data-tooltip="Books">
-            <i class="fa-solid fa-book text-success"></i>
+            
             <span>Books</span>
         </a>
         <a href="{{ route('admin.currencies.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.currencies.*') ? 'is-active' : '' }}" title="Currencies" data-tooltip="Currencies">
-            <i class="fa-solid fa-coins text-warning"></i>
+            
             <span>FX</span>
         </a>
         <a href="{{ route('admin.tickets.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.tickets.*') ? 'is-active' : '' }}" title="Tickets" data-tooltip="Tickets">
-            <i class="fa-solid fa-ticket text-danger"></i>
+            
             <span>Tickets</span>
         </a>
     </div>
@@ -382,7 +382,8 @@
                                    data-tooltip="{{ $t($item['label']) }}"
                                    @isset($item['target']) target="{{ $item['target'] }}" rel="noopener" @endisset
                                    @if ($active) id="activeNavItem" aria-current="page" @endif>
-                                    <i class="fa-solid fa-{{ $item['icon'] }}"></i>
+                                    
+                                    <span class="adm-nav__mini" aria-hidden="true">{{ \App\Support\NavMini::of($item['label']) }}</span>
                                     <span class="adm-nav__text">{{ $t($item['label']) }}</span>
                                     @if (! empty($item['badge']))
                                         <span class="badge {{ $item['badgeClass'] ?? 'bg-primary' }}">{{ $item['badge'] }}</span>
@@ -403,7 +404,8 @@
                            data-label="{{ strtolower($item['label'] . ' ' . $t($item['label'])) }}"
                            data-tooltip="{{ $t($item['label']) }}"
                            @if ($active) id="activeNavItem" aria-current="page" @endif>
-                            <i class="fa-solid fa-{{ $item['icon'] }}"></i>
+                            
+                            <span class="adm-nav__mini" aria-hidden="true">{{ \App\Support\NavMini::of($item['label']) }}</span>
                             <span class="adm-nav__text">{{ $t($item['label']) }}</span>
                         </a>
                     @endforeach
@@ -415,7 +417,7 @@
     <div class="adm-side__foot adm-brand__text d-flex justify-content-between align-items-center">
         <span>v2.0</span>
         <button type="button" class="btn btn-xs p-0 text-white-50 text-decoration-none" onclick="toggleAllNavGroups()" title="Toggle">
-            <i class="fa-solid fa-up-down-left-right" style="font-size: 10px;"></i> Toggle
+            Toggle
         </button>
     </div>
 </aside>

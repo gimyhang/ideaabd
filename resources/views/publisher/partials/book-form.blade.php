@@ -7,7 +7,7 @@
                 </div>
                 <div>
                     <h6 class="fw-bold text-dark mb-1 d-flex align-items-center gap-1.5">
-                        <i class="fas fa-circle-info text-primary"></i> 
+                        
                         <span>প্রকাশনা ও অ্যাডমিন মডারেশন পলিসি</span>
                     </h6>
                     <p class="small text-muted mb-0">নতুন বই বা সম্পাদনা করা বই অ্যাডমিন যাচাইয়ের পর প্রকাশিত হয়; যাচাই শেষ না হওয়া পর্যন্ত অবস্থা “অপেক্ষমান” থাকে। সংশোধন লাগলে কারণসহ জানানো হবে, তখন বইটি সম্পাদনা করে আবার জমা দিন।</p>

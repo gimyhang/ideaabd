@@ -42,7 +42,7 @@
     <!-- Active Communication Templates -->
     <div class="adm-card bg-white">
         <div class="adm-card__head">
-            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-robot me-2 text-primary"></i> Automated Transactional & Recovery Triggers</h6>
+            <h6 class="mb-0 fw-bold">Automated Transactional & Recovery Triggers</h6>
         </div>
         <div class="adm-card__body p-0">
             <div class="table-responsive">
@@ -111,7 +111,7 @@
     <!-- Recent Dispatch Logs -->
     <div class="adm-card bg-white">
         <div class="adm-card__head">
-            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i> Live Dispatch Logs</h6>
+            <h6 class="mb-0 fw-bold">Live Dispatch Logs</h6>
         </div>
         <div class="adm-card__body p-0">
             <div class="table-responsive">
@@ -154,7 +154,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-pen-to-square me-1.5"></i> Edit Automation Template</h6>
+                <h6 class="modal-title fw-bold text-white mb-0">Edit Automation Template</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form id="editTemplateForm" method="POST">
@@ -192,7 +192,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-success text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-paper-plane me-1.5"></i> Send Test Message</h6>
+                <h6 class="modal-title fw-bold text-white mb-0">Send Test Message</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.communication.test-send') }}" method="POST">

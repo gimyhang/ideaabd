@@ -32,7 +32,7 @@
     <!-- Header bar -->
     <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
         <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-            <i class="fa-solid fa-scroll text-primary"></i> প্রকাশিত সকল গবেষণা ও প্রবন্ধ
+            প্রকাশিত সকল গবেষণা ও প্রবন্ধ
         </h5>
         @if(isset($papers) && $papers instanceof \Illuminate\Pagination\LengthAwarePaginator)
             <span class="badge bg-light text-muted border">মোট @bn($papers->total())টি নিবন্ধ</span>

@@ -663,7 +663,7 @@
             <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
                 <div class="card-header bg-white py-3 px-4 border-bottom">
                     <h6 class="fw-bold mb-0 text-dark">
-                        <i class="fa-solid fa-note-sticky text-warning me-2"></i>ইনভয়েস মন্তব্য ও শর্তাবলী (Invoice Notes & Remarks)
+                        ইনভয়েস মন্তব্য ও শর্তাবলী (Invoice Notes & Remarks)
                     </h6>
                 </div>
                 <div class="card-body p-4">
@@ -682,7 +682,7 @@
         <div class="col-12 col-lg-5">
             <div class="card border-0 shadow-sm rounded-4 sticky-top bg-white" style="top: 80px;">
                 <div class="card-header bg-dark text-white py-3 px-4 rounded-top-4 d-flex align-items-center justify-content-between">
-                    <h5 class="fw-bold mb-0"><i class="fa-solid fa-calculator text-warning me-2"></i>হিসাব ও আর্থিক বিবরণী</h5>
+                    <h5 class="fw-bold mb-0">হিসাব ও আর্থিক বিবরণী</h5>
                     <span class="badge bg-light text-dark px-2.5 py-1 rounded-pill small">Edit Mode</span>
                 </div>
 
@@ -814,7 +814,7 @@
 
                 <div class="modal-header bg-success text-white py-3 px-4">
                     <h5 class="modal-title fw-bold" id="recordPaymentModalLabel">
-                        <i class="fa-solid fa-hand-holding-dollar me-2"></i> টাকা পরিশোধ রেকর্ড করুন (Payment Voucher)
+                        টাকা পরিশোধ রেকর্ড করুন (Payment Voucher)
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>

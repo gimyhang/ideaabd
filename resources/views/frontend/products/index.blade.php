@@ -131,11 +131,11 @@
                         </div>
                         <div class="d-flex flex-column gap-2.5">
                             <div class="hero-feature-item">
-                                <div class="feature-title"><i class="fa-solid fa-circle-check text-success me-1.5"></i>{{ $currentMeta['guarantee_title'] }}</div>
+                                <div class="feature-title">{{ $currentMeta['guarantee_title'] }}</div>
                                 <div class="feature-desc">{{ $currentMeta['guarantee_desc'] }}</div>
                             </div>
                             <div class="hero-feature-item">
-                                <div class="feature-title"><i class="fa-solid fa-truck-fast text-primary me-1.5"></i>ক্যাশ অন ডেলিভারি</div>
+                                <div class="feature-title">ক্যাশ অন ডেলিভারি</div>
                                 <div class="feature-desc">সারা দেশে দ্রুত ডেলিভারি ও পার্সেল চেক করার সুবিধা</div>
                             </div>
                         </div>

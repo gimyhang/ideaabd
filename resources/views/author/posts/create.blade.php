@@ -9,7 +9,7 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-2 border-bottom">
         <div>
             <h4 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
-                <i class="fas fa-pen-nib text-warning"></i>
+                
                 <span>Write Post</span>
             </h4>
         </div>
@@ -179,7 +179,7 @@
                 {{-- Cover Image & AI Photocard Card --}}
                 <div class="author-card p-3 mb-4">
                     <h6 class="fw-bold mb-2 text-dark d-flex align-items-center gap-1.5">
-                        <i class="fas fa-image text-primary"></i>
+                        
                         <span>Cover Image</span>
                     </h6>
 

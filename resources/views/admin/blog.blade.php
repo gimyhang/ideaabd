@@ -424,7 +424,7 @@
                         <tr>
                             <th class="ps-3" style="width: 40px;"></th>
                             <th style="width: 40px;">#</th>
-                            <th style="width: 40px;" class="text-center" title="Featured Post">★</th>
+                            <th style="width: 40px;" class="text-center" title="Featured Post"></th>
                             <th style="min-width: 260px;">Post Title & Cover</th>
                             <th>Author / Submitter</th>
                             <th>Category</th>
@@ -734,7 +734,7 @@
                                 <div class="tab-pane fade show active" id="tab-banner" role="tabpanel">
                                     <div class="card border-0 shadow-xs rounded-3 p-3.5 bg-white mb-3">
                                         <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                                            <i class="fa-solid fa-share-nodes text-primary"></i>
+                                            
                                             <span>Banner</span>
                                         </h6>
 
@@ -818,7 +818,7 @@
                                 <div class="tab-pane fade" id="tab-typography" role="tabpanel">
                                     <div class="card border-0 shadow-xs rounded-3 p-3.5 bg-white mb-3">
                                         <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                                            <i class="fa-solid fa-text-height text-primary"></i>
+                                            
                                             <span>Typography</span>
                                         </h6>
 
@@ -905,7 +905,7 @@
                                 <div class="tab-pane fade" id="tab-reading" role="tabpanel">
                                     <div class="card border-0 shadow-xs rounded-3 p-3.5 bg-white mb-3">
                                         <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                                            <i class="fa-solid fa-layer-group text-primary"></i>
+                                            
                                             <span>Reader</span>
                                         </h6>
 
@@ -1091,7 +1091,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header bg-dark text-white py-2.5 px-4">
                 <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2" id="bannerCropperModalLabel">
-                    <i class="fa-solid fa-crop-simple text-warning"></i>
+                    
                     <span>Crop</span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1136,7 +1136,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-danger text-white py-2.5 px-4">
                 <h5 class="modal-title fs-6 fw-bold">
-                    <i class="fa-solid fa-triangle-exclamation me-1.5"></i> Review
+                    Review
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

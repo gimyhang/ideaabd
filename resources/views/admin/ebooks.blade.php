@@ -394,7 +394,7 @@
                 <div class="modal-content rounded-4 border-0 shadow-lg">
                     <div class="modal-header border-bottom py-3">
                         <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="ebookSettingsModalLabel">
-                            <span class="p-2 bg-primary-subtle text-primary rounded-circle"><i class="fa-solid fa-sliders"></i></span>
+                            
                             <span>Settings</span>
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

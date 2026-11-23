@@ -9,7 +9,7 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-2 border-bottom">
         <div>
             <h4 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
-                <i class="fas fa-feather-pointed text-warning"></i>
+                
                 <span>আমার আইডিয়াপত্র (আমার ব্লগ ও কলামসমূহ)</span>
             </h4>
             <p class="text-muted small mb-0">আপনার রচিত সাহিত্যকর্ম, কলাম, প্রবন্ধ ও আইডিয়াপত্র ব্লগ পোস্ট পরিচালনা করুন</p>

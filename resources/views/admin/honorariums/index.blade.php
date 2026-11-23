@@ -115,7 +115,7 @@
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
         <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-light bg-opacity-50">
             <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                <i class="fa-solid fa-receipt text-danger"></i>
+                
                 <span>পাঠক সম্মানি লেনদেন লগ (Author Honorariums Ledger)</span>
                 <span class="badge bg-danger text-white rounded-pill">Total: {{ $honorariums->total() }}</span>
             </h6>

@@ -170,7 +170,7 @@
 
     <!-- Recent Orders in this timeframe -->
     <div class="mb-4">
-        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fa-solid fa-receipt me-1.5 text-primary"></i> Recent Orders Breakdown</h6>
+        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Recent Orders Breakdown</h6>
         <div class="table-responsive">
             <table class="table table-bordered table-sm align-middle mb-0">
                 <thead class="table-light">

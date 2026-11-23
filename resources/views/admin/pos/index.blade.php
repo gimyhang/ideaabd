@@ -587,7 +587,7 @@
     <div class="adm-card bg-white mt-3 shadow-sm rounded-4 border-0">
         <div class="p-2.5 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
-                <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-clock-rotate-left text-primary me-1"></i> Today's Transactions</h6>
+                <h6 class="mb-0 fw-bold text-dark">Today's Transactions</h6>
                 <small class="text-muted">Total Completed: <strong>{{ $todayOrdersCount }}</strong> | Void: <strong class="text-danger">{{ $todayVoidCount }}</strong></small>
             </div>
             <div style="max-width: 240px;">
@@ -702,7 +702,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header bg-warning text-dark py-2.5 px-3">
                 <h6 class="modal-title fw-bold mb-0">
-                    <i class="fa-solid fa-pause-circle me-1"></i> Held Bills Queue (F9)
+                    Held Bills Queue (F9)
                 </h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -721,7 +721,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header bg-dark text-white py-2.5 px-3">
                 <h6 class="modal-title fw-bold mb-0">
-                    <i class="fa-solid fa-file-invoice-dollar me-1 text-info"></i> Daily Shift Report (Z-Report)
+                    Daily Shift Report (Z-Report)
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>

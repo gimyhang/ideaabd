@@ -10,7 +10,7 @@
 @section('actions')
     <div class="d-flex align-items-center gap-2">
         <a href="{{ route('admin.reports.print', request()->all()) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
-            <i class="fa-solid fa-print me-1.5"></i> Print Report
+            Print Report
         </a>
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5" data-theme-toggle title="Theme Switcher">
             <i class="fa-solid fa-moon"></i>
@@ -58,9 +58,6 @@
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-1" id="dashboardPendingAlertsHub">
         <div class="card-header bg-warning-subtle bg-opacity-40 py-2.5 px-3 px-md-4 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div class="d-flex align-items-center gap-2">
-                <span class="badge {{ $totalAlertsCount > 0 ? 'bg-warning text-dark badge-pulse' : 'bg-success text-white' }} p-2 rounded-circle shadow-xs">
-                    <i class="fa-solid {{ $totalAlertsCount > 0 ? 'fa-bell' : 'fa-circle-check' }}"></i>
-                </span>
                 <div class="d-flex align-items-center gap-2">
                     <h6 class="fw-bold mb-0 text-dark">Pending Hub</h6>
                     <span class="badge {{ $totalAlertsCount > 0 ? 'bg-danger text-white' : 'bg-success text-white' }} rounded-pill font-monospace" id="totalPendingCountBadge">
@@ -76,7 +73,7 @@
 
                 <button class="btn btn-warning btn-sm rounded-pill px-3 py-1.5 fw-bold text-dark shadow-xs d-flex align-items-center gap-1.5 hover-lift" 
                         type="button" data-bs-toggle="modal" data-bs-target="#pendingActionCenterModal">
-                    <i class="fa-solid fa-bolt-lightning text-danger"></i>
+                    
                     <span>Action Center</span>
                     <span class="badge bg-danger text-white rounded-pill ms-1" id="actionPanelCountBadge">{{ $totalAlertsCount }}</span>
                 </button>
@@ -92,9 +89,6 @@
                     <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
                         <div class="d-flex align-items-center justify-content-between mb-2.5">
                             <div class="d-flex align-items-center gap-2.5">
-                                <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                    <i class="fa-solid fa-user-clock"></i>
-                                </div>
                                 <div>
                                     <div class="fw-bold text-dark small">Registrations</div>
                                     <span class="text-danger fw-bold font-monospace small" id="pendingCardCount-users">{{ $regCount }} Pending</span>
@@ -102,7 +96,7 @@
                             </div>
                         </div>
                         <button type="button" onclick="openPendingCenterTab('users')" class="btn btn-danger btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
-                            <i class="fa-solid fa-user-check"></i> Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
+                            Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
                         </button>
                     </div>
                 </div>
@@ -112,9 +106,6 @@
                     <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
                         <div class="d-flex align-items-center justify-content-between mb-2.5">
                             <div class="d-flex align-items-center gap-2.5">
-                                <div class="rounded-circle bg-warning bg-opacity-20 text-dark p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                    <i class="fa-solid fa-cart-shopping"></i>
-                                </div>
                                 <div>
                                     <div class="fw-bold text-dark small">Orders</div>
                                     <span class="text-warning-emphasis fw-bold font-monospace small" id="pendingCardCount-orders">{{ $orderCount }} Pending</span>
@@ -122,7 +113,7 @@
                             </div>
                         </div>
                         <button type="button" onclick="openPendingCenterTab('orders')" class="btn btn-warning btn-sm rounded-pill w-100 py-1 fw-bold small text-dark mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
-                            <i class="fa-solid fa-boxes-packing"></i> Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
+                            Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
                         </button>
                     </div>
                 </div>
@@ -132,9 +123,6 @@
                     <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
                         <div class="d-flex align-items-center justify-content-between mb-2.5">
                             <div class="d-flex align-items-center gap-2.5">
-                                <div class="rounded-circle bg-success bg-opacity-10 text-success p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                    <i class="fa-solid fa-feather-pointed"></i>
-                                </div>
                                 <div>
                                     <div class="fw-bold text-dark small">Blogs</div>
                                     <span class="text-success fw-bold font-monospace small" id="pendingCardCount-blogs">{{ $blogCount }} Pending</span>
@@ -142,7 +130,7 @@
                             </div>
                         </div>
                         <button type="button" onclick="openPendingCenterTab('blogs')" class="btn btn-success btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
-                            <i class="fa-solid fa-spell-check"></i> Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
+                            Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
                         </button>
                     </div>
                 </div>
@@ -152,9 +140,6 @@
                     <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
                         <div class="d-flex align-items-center justify-content-between mb-2.5">
                             <div class="d-flex align-items-center gap-2.5">
-                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                    <i class="fa-solid fa-book-open"></i>
-                                </div>
                                 <div>
                                     <div class="fw-bold text-dark small">Books</div>
                                     <span class="text-primary fw-bold font-monospace small" id="pendingCardCount-books">{{ $bookCount }} Pending</span>
@@ -162,7 +147,7 @@
                             </div>
                         </div>
                         <button type="button" onclick="openPendingCenterTab('books')" class="btn btn-primary btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
-                            <i class="fa-solid fa-circle-check"></i> Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
+                            Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
                         </button>
                     </div>
                 </div>
@@ -172,9 +157,6 @@
                     <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
                         <div class="d-flex align-items-center justify-content-between mb-2.5">
                             <div class="d-flex align-items-center gap-2.5">
-                                <div class="rounded-circle bg-secondary bg-opacity-10 text-secondary p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                    <i class="fa-solid fa-tablet-screen-button"></i>
-                                </div>
                                 <div>
                                     <div class="fw-bold text-dark small">E-Books</div>
                                     <span class="text-secondary fw-bold font-monospace small" id="pendingCardCount-ebooks">{{ $ebookCount }} Pending</span>
@@ -182,7 +164,7 @@
                             </div>
                         </div>
                         <button type="button" onclick="openPendingCenterTab('books')" class="btn btn-secondary btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
-                            <i class="fa-solid fa-tablet"></i> Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
+                            Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
                         </button>
                     </div>
                 </div>
@@ -192,9 +174,6 @@
                     <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
                         <div class="d-flex align-items-center justify-content-between mb-2.5">
                             <div class="d-flex align-items-center gap-2.5">
-                                <div class="rounded-circle bg-info bg-opacity-10 text-info p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                    <i class="fa-solid fa-book-bookmark"></i>
-                                </div>
                                 <div>
                                     <div class="fw-bold text-dark small">Book Requests</div>
                                     <span class="text-info-emphasis fw-bold font-monospace small" id="pendingCardCount-requests">{{ $bookReqCount }} Pending</span>
@@ -202,7 +181,7 @@
                             </div>
                         </div>
                         <button type="button" onclick="openPendingCenterTab('requests')" class="btn btn-info btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
-                            <i class="fa-solid fa-magnifying-glass"></i> Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
+                            Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
                         </button>
                     </div>
                 </div>
@@ -212,9 +191,6 @@
                     <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
                         <div class="d-flex align-items-center justify-content-between mb-2.5">
                             <div class="d-flex align-items-center gap-2.5">
-                                <div class="rounded-circle bg-dark bg-opacity-10 text-dark p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                    <i class="fa-solid fa-file-signature"></i>
-                                </div>
                                 <div>
                                     <div class="fw-bold text-dark small">Submissions</div>
                                     <span class="text-dark fw-bold font-monospace small" id="pendingCardCount-submissions">{{ $submissionCount + $authorUpdateCount }} Pending</span>
@@ -222,7 +198,7 @@
                             </div>
                         </div>
                         <button type="button" onclick="openPendingCenterTab('submissions')" class="btn btn-dark btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
-                            <i class="fa-solid fa-file-pen"></i> Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
+                            Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
                         </button>
                     </div>
                 </div>
@@ -231,7 +207,7 @@
         </div>
 
         <div class="card-body p-4 text-center text-muted small" id="pendingEmptyState" style="display: {{ $totalAlertsCount > 0 ? 'none' : 'block' }};">
-            <i class="fa-solid fa-circle-check text-success fs-4 me-1 align-middle"></i>
+            
             <span class="fw-semibold text-dark">All pending requests cleared!</span> No pending requests at this moment.
         </div>
     </div>
@@ -242,7 +218,6 @@
     {{-- ========================================================================= --}}
     <div class="adm-command-bar d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div class="d-flex align-items-center gap-2 small fw-bold text-dark ps-1">
-            <span class="badge bg-primary text-white rounded-circle p-1.5 shadow-2xs"><i class="fa-solid fa-bolt"></i></span>
             <span class="fs-6">Quick Actions:</span>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-2.5">
@@ -277,33 +252,33 @@
             </div>
 
             <a href="{{ route('admin.sms.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold shadow-xs">
-                <i class="fa-solid fa-comment-sms me-1 text-primary"></i>Bulk SMS
+                Bulk SMS
                 <span class="badge bg-primary text-white rounded-pill ms-1 font-monospace" id="admDashboardSmsBalanceBadge" style="{{ isset($smsInfo['balance']) && $smsInfo['balance'] !== null ? '' : 'display:none;' }}">{{ isset($smsInfo['balance']) && $smsInfo['balance'] !== null ? number_format((float)$smsInfo['balance']) : '' }}</span>
             </a>
             <a href="{{ route('admin.pos.index') }}" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3 fw-semibold">
-                <i class="fa-solid fa-cash-register me-1"></i>POS
+                POS
             </a>
             <a href="{{ route('admin.content.create', 'books') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
-                <i class="fa-solid fa-circle-plus me-1"></i>New Book
+                New Book
             </a>
             <a href="{{ route('admin.accounting.index') }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
-                <i class="fa-solid fa-calculator me-1"></i>Accounting
+                Accounting
             </a>
             @if($canReceipts = (auth()->user()?->hasPermission('accounting.ledger_manage') ?? false))
                 <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold adm-mr-btn is-pay" @if($receiptsReady = \App\Models\MoneyReceipt::ready()) data-mr-open="honorarium" @else onclick="location.href='{{ route('admin.receipts.index') }}'" @endif title="লেখককে সম্মানী প্রদান — রসিদসহ">
-                    <i class="fa-solid fa-hand-holding-dollar me-1"></i>Honorarium
+                    Honorarium
                 </button>
                 <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold adm-mr-btn is-get" @if($receiptsReady) data-mr-open="bill" @else onclick="location.href='{{ route('admin.receipts.index') }}'" @endif title="বিলের অর্থ গ্রহণ — মানি রিসিট">
-                    <i class="fa-solid fa-receipt me-1"></i>Receipt
+                    Receipt
                 </button>
             @endif
             @if(auth()->user()?->isAdmin())
             <a href="{{ route('admin.backup.index') }}" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold">
-                <i class="fa-solid fa-database me-1"></i>Backup
+                Backup
             </a>
             @endif
             <a href="{{ route('admin.cache.manage') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
-                <i class="fa-solid fa-broom me-1"></i>Clear Cache
+                Clear Cache
             </a>
         </div>
     </div>
@@ -365,7 +340,6 @@
         <!-- Active Filter Indicator -->
         <div class="d-flex align-items-center justify-content-between mt-2.5 pt-2.5 border-top small text-muted">
             <div>
-                <i class="fa-solid fa-clock-rotate-left me-1 text-primary"></i> 
                 Period: <strong>{{ $stats['filter_label'] ?? 'All Time' }}</strong>
             </div>
             <div>
@@ -375,13 +349,13 @@
         </div>
         @if (($stats['visitor']['pending_days'] ?? 0) > 0)
             <div class="small mt-2 px-2 py-1 rounded-2 bg-warning-subtle text-warning-emphasis">
-                <i class="fa-solid fa-hourglass-half me-1"></i>
+                
                 পুরনো ভিজিটরের হিসাব সাজানো হচ্ছে — আরও {{ $stats['visitor']['pending_days'] }} দিন বাকি। ততক্ষণ ভিজিটরের সংখ্যা কম দেখাতে পারে; পেজ খোলার পর পেছনে কাজটি চলছে।
             </div>
         @endif
         @if (!empty($dbUpdate['pending']) || in_array($dbUpdate['status']['state'] ?? '', ['running', 'failed'], true))
             <div class="small mt-2 px-2 py-2 rounded-2 d-flex flex-wrap align-items-center gap-2 {{ ($dbUpdate['status']['state'] ?? '') === 'failed' ? 'bg-danger-subtle text-danger-emphasis' : 'bg-info-subtle text-info-emphasis' }}">
-                <i class="fa-solid fa-database"></i>
+                
                 @if (($dbUpdate['status']['state'] ?? '') === 'running')
                     <span>ডাটাবেস আপডেট চলছে (শুরু {{ $dbUpdate['status']['at'] }})… কিছুক্ষণ পর রিফ্রেশ করুন।</span>
                 @else
@@ -410,9 +384,6 @@
         <!-- 1. Today's Revenue & Worldwide Multi-Currency -->
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi" style="--bar: var(--ok);">
-                <div class="kpi__icon bg-success-subtle text-success">
-                    <i class="fa-solid fa-sack-dollar"></i>
-                </div>
                 <p class="kpi__label">Today Sales</p>
                 <h3 class="kpi__value text-dark">৳{{ number_format($stats['today_revenue'] ?? 0, 2) }}</h3>
                 <p class="kpi__foot d-flex align-items-center justify-content-between">
@@ -429,9 +400,6 @@
         <!-- 2. Selected Period Orders -->
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi" style="--bar: var(--brand);">
-                <div class="kpi__icon bg-primary-subtle text-primary">
-                    <i class="fa-solid fa-cart-shopping"></i>
-                </div>
                 <p class="kpi__label">Orders</p>
                 <h3 class="kpi__value text-dark">{{ $stats['filtered_orders'] ?? 0 }}</h3>
                 <p class="kpi__foot">
@@ -444,9 +412,6 @@
         <!-- 3. Boi Mela Stall POS & Subscriptions Pulse -->
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi" style="--bar: #ff6b35;">
-                <div class="kpi__icon bg-warning-subtle text-warning">
-                    <i class="fa-solid fa-cash-register"></i>
-                </div>
                 <p class="kpi__label">POS Sales</p>
                 <h3 class="kpi__value text-dark">৳{{ number_format($stats['pos']['today_sales'] ?? 0, 2) }}</h3>
                 <p class="kpi__foot">
@@ -458,9 +423,6 @@
         <!-- 4. Total Billed / Paid Collection (Global Multi-Currency) -->
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi" style="--bar: #7048e8;">
-                <div class="kpi__icon bg-primary-subtle text-primary">
-                    <i class="fa-solid fa-globe"></i>
-                </div>
                 <p class="kpi__label">Total Revenue</p>
                 <h3 class="kpi__value text-dark">৳{{ number_format($stats['filtered_revenue'] ?? 0, 2) }}</h3>
                 <p class="kpi__foot">
@@ -485,7 +447,7 @@
                             <span class="position-absolute w-100 h-100 rounded-circle bg-success opacity-75 animate-ping" style="animation: pulse 1.5s cubic-bezier(0,0,.2,1) infinite;"></span>
                             <span class="position-relative w-100 h-100 rounded-circle bg-success"></span>
                         </span>
-                        <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-tower-broadcast me-1.5 text-success"></i>Live Sales Feed</h6>
+                        <h6 class="mb-0 fw-bold text-dark">Live Sales Feed</h6>
                     </div>
                     <span class="badge bg-light text-muted border small">Realtime</span>
                 </div>
@@ -506,7 +468,7 @@
                                     <tr>
                                         <td class="ps-3.5">
                                             <span class="badge {{ $tx['badge_bg'] }} rounded-pill px-2.5 py-1">
-                                                <i class="fas {{ $tx['channel_icon'] }} me-1"></i>{{ $tx['channel'] }}
+                                                {{ $tx['channel'] }}
                                             </span>
                                         </td>
                                         <td class="fw-semibold text-dark">{{ $tx['customer'] }}</td>
@@ -532,7 +494,7 @@
         <div class="col-12 col-xl-5">
             <div class="adm-card h-100 bg-white">
                 <div class="adm-card__head">
-                    <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-bullseye me-2 text-danger"></i>Sales Target & Channels</h6>
+                    <h6 class="mb-0 fw-bold text-dark">Sales Target & Channels</h6>
                 </div>
                 <div class="adm-card__body p-3.5">
                     @php
@@ -560,7 +522,7 @@
                     <div class="d-flex flex-column gap-2 small">
                         <div>
                             <div class="d-flex justify-content-between mb-0.5">
-                                <span><i class="fa-solid fa-cart-shopping text-primary me-1"></i>E-Commerce Store</span>
+                                <span>E-Commerce Store</span>
                                 <span class="fw-bold font-monospace">{{ $channels['ecom']['share'] ?? 0 }}%</span>
                             </div>
                             <div class="progress" style="height: 5px;">
@@ -569,7 +531,7 @@
                         </div>
                         <div>
                             <div class="d-flex justify-content-between mb-0.5">
-                                <span><i class="fa-solid fa-cash-register text-success me-1"></i>POS & Showroom</span>
+                                <span>POS & Showroom</span>
                                 <span class="fw-bold font-monospace">{{ $channels['pos']['share'] ?? 0 }}%</span>
                             </div>
                             <div class="progress" style="height: 5px;">
@@ -578,7 +540,7 @@
                         </div>
                         <div>
                             <div class="d-flex justify-content-between mb-0.5">
-                                <span><i class="fa-solid fa-tablet-screen-button text-info me-1"></i>E-Book Subscriptions</span>
+                                <span>E-Book Subscriptions</span>
                                 <span class="fw-bold font-monospace">{{ $channels['ebook']['share'] ?? 0 }}%</span>
                             </div>
                             <div class="progress" style="height: 5px;">
@@ -601,7 +563,7 @@
         <div class="col-12 col-xl-8">
             <div class="adm-card h-100">
                 <div class="adm-card__head flex-wrap gap-2">
-                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-chart-line me-2 text-primary"></i>Sales Trend</h6>
+                    <h6 class="mb-0 fw-bold">Sales Trend</h6>
                     <div class="btn-group btn-group-sm">
                         <a href="{{ request()->fullUrlWithQuery(['sales_period' => 'daily']) }}" 
                            class="btn {{ ($salesPeriod === 'daily') ? 'btn-primary' : 'btn-outline-secondary' }}">Daily</a>
@@ -623,7 +585,7 @@
         <div class="col-12 col-xl-4">
             <div class="adm-card h-100">
                 <div class="adm-card__head">
-                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-credit-card me-2 text-purple"></i>Payment Methods</h6>
+                    <h6 class="mb-0 fw-bold">Payment Methods</h6>
                     <a href="{{ route('admin.payments.index') }}" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 small">Gateways</a>
                 </div>
                 <div class="adm-card__body d-flex flex-column align-items-center justify-content-center">
@@ -634,15 +596,15 @@
                     @else
                         {{-- Nothing to draw: say so instead of leaving a blank box --}}
                         <div class="text-center text-muted small py-4">
-                            <i class="fa-solid fa-chart-pie fs-2 opacity-25 d-block mb-2"></i>
+                            
                             এই সময়ে কোনো পেমেন্ট নেই
                         </div>
                     @endif
                     <div class="d-flex flex-wrap justify-content-center gap-2 mt-3 small">
-                        <span class="badge bg-danger"><i class="fa-solid fa-circle me-1"></i> bKash (৳{{ number_format($stats['payment_split']['bkash'] ?? 0, 0) }})</span>
-                        <span class="badge bg-warning text-dark"><i class="fa-solid fa-circle me-1"></i> Nagad (৳{{ number_format($stats['payment_split']['nagad'] ?? 0, 0) }})</span>
-                        <span class="badge bg-info text-dark"><i class="fa-solid fa-circle me-1"></i> Rocket (৳{{ number_format($stats['payment_split']['rocket'] ?? 0, 0) }})</span>
-                        <span class="badge bg-success"><i class="fa-solid fa-circle me-1"></i> COD (৳{{ number_format($stats['payment_split']['cod'] ?? 0, 0) }})</span>
+                        <span class="badge bg-danger">bKash (৳{{ number_format($stats['payment_split']['bkash'] ?? 0, 0) }})</span>
+                        <span class="badge bg-warning text-dark">Nagad (৳{{ number_format($stats['payment_split']['nagad'] ?? 0, 0) }})</span>
+                        <span class="badge bg-info text-dark">Rocket (৳{{ number_format($stats['payment_split']['rocket'] ?? 0, 0) }})</span>
+                        <span class="badge bg-success">COD (৳{{ number_format($stats['payment_split']['cod'] ?? 0, 0) }})</span>
                     </div>
                 </div>
             </div>
@@ -652,7 +614,7 @@
         <div class="col-12 col-xl-8">
             <div class="adm-card h-100">
                 <div class="adm-card__head flex-wrap gap-2">
-                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-users-viewfinder me-2 text-info"></i>Visitor Traffic</h6>
+                    <h6 class="mb-0 fw-bold">Visitor Traffic</h6>
                     <div class="d-flex align-items-center gap-2">
                         <div class="btn-group btn-group-sm">
                             <a href="{{ request()->fullUrlWithQuery(['traffic_period' => 'daily']) }}" 
@@ -677,7 +639,7 @@
             <div class="adm-card h-100 d-flex flex-column border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                 <div class="adm-card__head py-3 px-3.5 border-bottom bg-white d-flex align-items-center justify-content-between">
                     <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-                        <span class="badge bg-primary-subtle text-primary p-1.5 rounded-circle"><i class="fa-solid fa-earth-americas"></i></span>
+                        
                         <span>Global Traffic</span>
                     </h6>
                     <div class="d-flex align-items-center gap-1.5">
@@ -727,8 +689,8 @@
                     </svg>
                     
                     <div class="d-flex justify-content-between align-items-center text-white-50 px-1 font-monospace" style="font-size: 10px;">
-                        <span><i class="fa-solid fa-signal text-success me-1"></i> Live Geo Stream</span>
-                        <span><i class="fa-solid fa-globe text-info me-1"></i> Worldwide</span>
+                        <span>Live Geo Stream</span>
+                        <span>Worldwide</span>
                     </div>
                 </div>
 
@@ -737,8 +699,8 @@
                 <div class="px-3 pb-2 pt-1">
                     <div class="d-flex justify-content-between text-muted small mb-1" style="font-size: 11px;">
                         <span><i class="fa-solid fa-mobile-screen text-primary me-1"></i>Mobile: <strong>{{ $devSplit['mobile'] }}%</strong></span>
-                        <span><i class="fa-solid fa-desktop text-success me-1"></i>Desktop: <strong>{{ $devSplit['desktop'] }}%</strong></span>
-                        <span><i class="fa-solid fa-tablet-screen-button text-warning me-1"></i>Tablet: <strong>{{ $devSplit['tablet'] }}%</strong></span>
+                        <span>Desktop: <strong>{{ $devSplit['desktop'] }}%</strong></span>
+                        <span>Tablet: <strong>{{ $devSplit['tablet'] }}%</strong></span>
                     </div>
                     <div class="progress rounded-pill" style="height: 5px;">
                         <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $devSplit['mobile'] }}%"></div>
@@ -780,16 +742,16 @@
 
                 <div class="adm-card__foot text-center py-2.5 bg-light border-top d-flex justify-content-around small">
                     <a href="{{ route('admin.currencies.index') }}" class="text-decoration-none fw-semibold text-secondary">
-                        <i class="fa-solid fa-coins me-1 text-warning"></i> Multi-Currency
+                        Multi-Currency
                     </a>
                     <span class="text-muted">|</span>
                     <a href="{{ route('admin.translations.index') }}" class="text-decoration-none fw-semibold text-secondary">
-                        <i class="fa-solid fa-language me-1 text-info"></i> Translations
+                        Translations
                     </a>
                     @if(Route::has('admin.analytics'))
                         <span class="text-muted">|</span>
                         <a href="{{ route('admin.analytics') }}" class="text-decoration-none fw-bold text-primary">
-                            <i class="fa-solid fa-chart-line me-1"></i> Full Hub
+                            Full Hub
                         </a>
                     @endif
                 </div>
@@ -807,7 +769,7 @@
         <div class="col-12 col-xl-8">
             <div class="adm-card h-100">
                 <div class="adm-card__head flex-wrap gap-2">
-                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-receipt me-2 text-primary"></i>Recent Orders</h6>
+                    <h6 class="mb-0 fw-bold">Recent Orders</h6>
                     <a href="{{ route('admin.ecommerce-orders') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                         View All <i class="fa-solid fa-arrow-right ms-1"></i>
                     </a>
@@ -845,9 +807,9 @@
                                         </td>
                                         <td>
                                             @if($order->status === 'delivered')
-                                                <span class="pill pill--ok"><i class="fa-solid fa-check"></i> Delivered</span>
+                                                <span class="pill pill--ok">Delivered</span>
                                             @elseif($order->status === 'pending')
-                                                <span class="pill pill--pending"><i class="fa-solid fa-clock"></i> Pending</span>
+                                                <span class="pill pill--pending">Pending</span>
                                             @else
                                                 <span class="pill pill--info">{{ ucfirst($order->status) }}</span>
                                             @endif
@@ -863,7 +825,6 @@
                                     <tr>
                                         <td colspan="6">
                                             <div class="empty-state py-4">
-                                                <i class="fa-solid fa-receipt"></i>
                                                 <p class="mb-0 fw-semibold">No recent orders</p>
                                             </div>
                                         </td>
@@ -881,7 +842,7 @@
             <div class="adm-card h-100 border-start border-4 border-warning">
                 <div class="adm-card__head">
                     <h6 class="mb-0 fw-bold text-warning-emphasis">
-                        <i class="fa-solid fa-triangle-exclamation me-1.5 text-warning"></i>Low Stock Alert
+                        Low Stock Alert
                     </h6>
                 </div>
                 <div class="adm-card__body p-0">
@@ -905,7 +866,7 @@
                             </div>
                         @empty
                             <div class="p-4 text-center text-muted small">
-                                <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
+                                
                                 All inventory stock levels are healthy!
                             </div>
                         @endforelse
@@ -931,9 +892,7 @@
             <div class="card border shadow-sm rounded-4 overflow-hidden bg-white h-100" style="border: 1px solid #e2e8f0 !important;">
                 <div class="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center justify-content-between" style="border-bottom: 1px solid #f1f5f9 !important;">
                     <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-                        <span class="badge bg-warning-subtle text-warning p-1.5 rounded-circle fs-6">
-                            <i class="fa-solid fa-trophy"></i>
-                        </span>
+                        
                         <span>Top Selling Books</span>
                     </h6>
                     <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small" style="border: 1px solid #e2e8f0 !important;">Top Sellers</span>
@@ -946,7 +905,7 @@
                                 <div>
                                     <div class="fw-semibold text-dark fs-6">{{ $tb->title }}</div>
                                     <small class="text-muted d-flex align-items-center gap-1.5" style="font-size: 12px;">
-                                        <i class="fa-solid fa-user-pen" style="font-size: 10px;"></i>
+                                        
                                         {{ $tb->author_name ?? 'Idea Prokashon' }}
                                     </small>
                                 </div>
@@ -959,7 +918,7 @@
                             </div>
                         @empty
                             <div class="p-5 text-center text-muted small">
-                                <i class="fa-solid fa-book-open text-muted fs-3 mb-2 d-block opacity-50"></i>
+                                
                                 No sales records found
                             </div>
                         @endforelse
@@ -973,9 +932,7 @@
             <div class="card border shadow-sm rounded-4 overflow-hidden bg-white h-100" style="border: 1px solid #e2e8f0 !important;">
                 <div class="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center justify-content-between" style="border-bottom: 1px solid #f1f5f9 !important;">
                     <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-                        <span class="badge bg-primary-subtle text-primary p-1.5 rounded-circle fs-6">
-                            <i class="fa-solid fa-bullhorn"></i>
-                        </span>
+                        
                         <span>Book Requests</span>
                     </h6>
                     <a href="{{ route('admin.book-requests.index') }}" class="btn btn-sm btn-outline-primary rounded-pill py-1 px-3 small fw-semibold" style="border: 1px solid #93c5fd;">View All</a>
@@ -988,18 +945,18 @@
                                 <div>
                                     <div class="fw-semibold text-dark fs-6">{{ $req->book_title }}</div>
                                     <small class="text-muted d-flex align-items-center gap-1.5" style="font-size: 12px;">
-                                        <i class="fa-regular fa-user" style="font-size: 10px;"></i>
+                                        
                                         {{ $req->customer_name ?? ($req->name ?? 'Customer') }} ({{ $req->customer_phone ?? ($req->phone ?? '—') }})
                                     </small>
                                 </div>
                                 <a href="{{ route('admin.content.create', 'books') }}?title={{ urlencode($req->book_title) }}" 
                                    class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-semibold" title="Add to Catalog" style="border: 1px solid #86efac;">
-                                    <i class="fa-solid fa-plus me-1"></i> Add
+                                    Add
                                 </a>
                             </div>
                         @empty
                             <div class="p-5 text-center text-muted small">
-                                <i class="fa-regular fa-message text-muted fs-3 mb-2 d-block opacity-50"></i>
+                                
                                 No pending book requests
                             </div>
                         @endforelse
@@ -1033,26 +990,26 @@
             <div>
                 <div class="d-flex align-items-center gap-2 mb-1.5 flex-wrap">
                     <span class="badge bg-gradient text-white rounded-pill px-3 py-1 small fw-bold shadow-2xs" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 0.375rem 1rem !important;">
-                        <i class="fa-solid fa-crown me-1 text-warning"></i> Team & HR Hub
+                        Team & HR Hub
                     </span>
                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-semibold" style="padding: 0.375rem 0.625rem !important;">
-                        <i class="fa-solid fa-circle-check me-1"></i> Active
+                        Active
                     </span>
                 </div>
                 <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                    <span class="badge bg-primary-subtle text-primary p-2 rounded-circle fs-6" style="padding: 0.5rem !important;"><i class="fa-solid fa-sitemap"></i></span>
+                    
                     <span>Staff & Departments</span>
                 </h5>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <button type="button" class="btn btn-primary rounded-pill px-3.5 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#dashboardQuickAddEmployeeModal">
-                    <i class="fa-solid fa-user-plus me-1.5"></i> Add Staff
+                    Add Staff
                 </button>
                 <a href="{{ route('admin.accounting.employees.index') }}" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-semibold" style="border: 1px solid #cbd5e1;">
-                    <i class="fa-solid fa-users me-1.5"></i> Directory ({{ $empStats['total_employees'] }})
+                    Directory ({{ $empStats['total_employees'] }})
                 </a>
                 <a href="{{ route('admin.accounting.salary.index') }}" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold" style="border: 1px solid #86efac;">
-                    <i class="fa-solid fa-money-check-dollar me-1.5"></i> Payroll
+                    Payroll
                 </a>
             </div>
         </div>
@@ -1070,7 +1027,7 @@
                         <div class="d-flex flex-column gap-2 mb-3">
                             <div class="d-flex align-items-center justify-content-between">
                                 <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe;">
-                                    <i class="fa-solid fa-bullhorn me-1"></i> Digital Marketing
+                                    Digital Marketing
                                 </span>
                                 <span class="badge bg-white text-primary border rounded-pill small font-monospace px-2 py-0.5" style="border-color: #dbeafe !important;">{{ $dm['share_percent'] }}%</span>
                             </div>
@@ -1086,7 +1043,7 @@
                         </div>
                         <div class="pt-2.5 mt-auto border-top" style="border-top: 1px solid rgba(37, 99, 235, 0.12) !important;">
                             <button type="button" onclick="filterDashboardStaffTable('digital_marketing')" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1.5 fw-semibold w-100" style="font-size: 11px; border: 1px solid #93c5fd;">
-                                Filter <i class="fa-solid fa-filter ms-1"></i>
+                                Filter 
                             </button>
                         </div>
                     </div>
@@ -1100,7 +1057,7 @@
                         <div class="d-flex flex-column gap-2 mb-3">
                             <div class="d-flex align-items-center justify-content-between">
                                 <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #fef08a; color: #854d0e; border: 1px solid #fef08a;">
-                                    <i class="fa-solid fa-feather-pointed me-1"></i> Editorial
+                                    Editorial
                                 </span>
                                 <span class="badge bg-white text-dark border rounded-pill small font-monospace px-2 py-0.5" style="border-color: #fef08a !important;">{{ $ce['share_percent'] }}%</span>
                             </div>
@@ -1116,7 +1073,7 @@
                         </div>
                         <div class="pt-2.5 mt-auto border-top" style="border-top: 1px solid rgba(202, 138, 4, 0.15) !important;">
                             <button type="button" onclick="filterDashboardStaffTable('content_editorial')" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2 py-1.5 fw-semibold w-100" style="font-size: 11px; border: 1px solid #fde047;">
-                                Filter <i class="fa-solid fa-filter ms-1"></i>
+                                Filter 
                             </button>
                         </div>
                     </div>
@@ -1130,7 +1087,7 @@
                         <div class="d-flex flex-column gap-2 mb-3">
                             <div class="d-flex align-items-center justify-content-between">
                                 <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;">
-                                    <i class="fa-solid fa-laptop-code me-1"></i> Tech & IT
+                                    Tech & IT
                                 </span>
                                 <span class="badge bg-white text-success border rounded-pill small font-monospace px-2 py-0.5" style="border-color: #bbf7d0 !important;">{{ $ti['share_percent'] }}%</span>
                             </div>
@@ -1146,7 +1103,7 @@
                         </div>
                         <div class="pt-2.5 mt-auto border-top" style="border-top: 1px solid rgba(22, 163, 74, 0.15) !important;">
                             <button type="button" onclick="filterDashboardStaffTable('technical_it')" class="btn btn-sm btn-outline-success rounded-pill px-2 py-1.5 fw-semibold w-100" style="font-size: 11px; border: 1px solid #86efac;">
-                                Filter <i class="fa-solid fa-filter ms-1"></i>
+                                Filter 
                             </button>
                         </div>
                     </div>
@@ -1160,7 +1117,7 @@
                         <div class="d-flex flex-column gap-2 mb-3">
                             <div class="d-flex align-items-center justify-content-between">
                                 <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #ffedd5; color: #c2410c; border: 1px solid #fed7aa;">
-                                    <i class="fa-solid fa-headset me-1"></i> Operations
+                                    Operations
                                 </span>
                                 <span class="badge bg-white text-danger border rounded-pill small font-monospace px-2 py-0.5" style="border-color: #fed7aa !important;">{{ $os['share_percent'] }}%</span>
                             </div>
@@ -1176,7 +1133,7 @@
                         </div>
                         <div class="pt-2.5 mt-auto border-top" style="border-top: 1px solid rgba(234, 88, 12, 0.15) !important;">
                             <button type="button" onclick="filterDashboardStaffTable('operations_support')" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2 py-1.5 fw-semibold w-100" style="font-size: 11px; border: 1px solid #fdba74;">
-                                Filter <i class="fa-solid fa-filter ms-1"></i>
+                                Filter 
                             </button>
                         </div>
                     </div>
@@ -1190,7 +1147,7 @@
                         <div class="d-flex flex-column gap-2 mb-3">
                             <div class="d-flex align-items-center justify-content-between">
                                 <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;">
-                                    <i class="fa-solid fa-book-bookmark me-1"></i> Press & Artisans
+                                    Press & Artisans
                                 </span>
                                 <span class="badge bg-white text-dark border rounded-pill small font-monospace px-2 py-0.5" style="border-color: #e9d5ff !important;">{{ $pa['share_percent'] }}%</span>
                             </div>
@@ -1206,7 +1163,7 @@
                         </div>
                         <div class="pt-2.5 mt-auto border-top" style="border-top: 1px solid rgba(147, 51, 234, 0.15) !important;">
                             <button type="button" onclick="filterDashboardStaffTable('press_artisans')" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1.5 fw-semibold w-100" style="font-size: 11px; border: 1px solid #d8b4fe;">
-                                Filter <i class="fa-solid fa-filter ms-1"></i>
+                                Filter 
                             </button>
                         </div>
                     </div>
@@ -1221,9 +1178,7 @@
                     <div class="p-4 bg-white rounded-4 border h-100 d-flex flex-column justify-content-between shadow-2xs" style="border: 1px solid #e2e8f0 !important;">
                         <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom" style="border-bottom: 1px solid #f1f5f9 !important;">
                             <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                                <span class="badge bg-primary-subtle text-primary p-1.5 rounded-circle fs-6">
-                                    <i class="fa-solid fa-chart-pie"></i>
-                                </span>
+                                
                                 <span>Department & Payroll</span>
                             </h6>
                             <div class="btn-group btn-group-sm rounded-pill p-0.5 bg-light border" role="group" style="border: 1px solid #e2e8f0 !important;">
@@ -1259,9 +1214,7 @@
                         <div>
                             <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom" style="border-bottom: 1px solid #f1f5f9 !important;">
                                 <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                                    <span class="badge bg-secondary-subtle text-secondary p-1.5 rounded-circle fs-6">
-                                        <i class="fa-solid fa-table-columns"></i>
-                                    </span>
+                                    
                                     <span>Budget & Departments</span>
                                 </h6>
                                 <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small" style="border: 1px solid #e2e8f0 !important;">5 Categories</span>
@@ -1282,9 +1235,6 @@
                                             <tr style="border-bottom: 1px solid #f1f5f9 !important;">
                                                 <td class="ps-3 py-2.5">
                                                     <div class="d-flex align-items-center gap-2">
-                                                        <span class="badge p-1.5 rounded-circle flex-shrink-0" style="background-color: {{ $dData['bg_light'] }}; color: {{ $dData['color'] }}; border: 1px solid {{ $dData['border_color'] ?? '#e2e8f0' }};">
-                                                            <i class="{{ $dData['icon'] }}" style="font-size: 11px;"></i>
-                                                        </span>
                                                         <strong class="text-dark">{{ $dData['short'] ?? ($dData['title'] ?? $dKey) }}</strong>
                                                     </div>
                                                 </td>
@@ -1318,22 +1268,22 @@
                     {{-- Live Filter Tabs --}}
                     <div class="d-flex flex-wrap gap-2" id="dashboardStaffFilterTabs">
                         <button type="button" onclick="filterDashboardStaffTable('all')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-bold btn-dark text-white staff-filter-btn" data-filter="all">
-                            <i class="fa-solid fa-users me-1.5"></i> All ({{ $empStats['total_employees'] }})
+                            All ({{ $empStats['total_employees'] }})
                         </button>
                         <button type="button" onclick="filterDashboardStaffTable('digital_marketing')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="digital_marketing" style="border: 1px solid #cbd5e1 !important;">
-                            <i class="fa-solid fa-bullhorn me-1.5 text-primary"></i> Digital Marketing ({{ $dm['count'] }})
+                            Digital Marketing ({{ $dm['count'] }})
                         </button>
                         <button type="button" onclick="filterDashboardStaffTable('content_editorial')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="content_editorial" style="border: 1px solid #cbd5e1 !important;">
-                            <i class="fa-solid fa-feather-pointed me-1.5 text-warning"></i> Content & Editorial ({{ $ce['count'] }})
+                            Content & Editorial ({{ $ce['count'] }})
                         </button>
                         <button type="button" onclick="filterDashboardStaffTable('technical_it')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="technical_it" style="border: 1px solid #cbd5e1 !important;">
-                            <i class="fa-solid fa-laptop-code me-1.5 text-success"></i> Technical & IT ({{ $ti['count'] }})
+                            Technical & IT ({{ $ti['count'] }})
                         </button>
                         <button type="button" onclick="filterDashboardStaffTable('operations_support')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="operations_support" style="border: 1px solid #cbd5e1 !important;">
-                            <i class="fa-solid fa-headset me-1.5 text-danger"></i> Operations ({{ $os['count'] }})
+                            Operations ({{ $os['count'] }})
                         </button>
                         <button type="button" onclick="filterDashboardStaffTable('press_artisans')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="press_artisans" style="border: 1px solid #cbd5e1 !important;">
-                            <i class="fa-solid fa-book-bookmark me-1.5" style="color: #9333ea;"></i> Press & Artisans ({{ $pa['count'] }})
+                            Press & Artisans ({{ $pa['count'] }})
                         </button>
                     </div>
 
@@ -1368,10 +1318,6 @@
                                 <tr class="staff-row" data-bucket="{{ $catKey }}" data-search="{{ mb_strtolower($emp->name . ' ' . $emp->designation . ' ' . $emp->department . ' ' . $emp->phone . ' ' . $emp->email) }}" style="border-bottom: 1px solid #f1f5f9 !important;">
                                     <td class="py-3.5 ps-4">
                                         <div class="d-flex align-items-center gap-2.5">
-                                            <div class="rounded-circle fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-2xs" 
-                                                 style="width: 40px; height: 40px; background-color: {{ $cfg['bg_color'] }}; color: {{ $cfg['text_color'] }}; font-size: 15px; border: 1.5px solid {{ $cfg['border_color'] }};">
-                                                <i class="{{ $cfg['icon'] }}"></i>
-                                            </div>
                                             <div>
                                                 <div class="fw-bold text-dark fs-6">{{ $emp->name }}</div>
                                                 @if($emp->email)
@@ -1383,7 +1329,7 @@
                                     <td class="py-3.5 px-3">
                                         <span class="badge rounded-pill px-3 py-1.5 fw-semibold" 
                                               style="background-color: {{ $cfg['bg_color'] }}; color: {{ $cfg['text_color'] }}; border: 1px solid {{ $cfg['border_color'] }};">
-                                            <i class="{{ $cfg['icon'] }} me-1.5"></i>{{ $emp->department }}
+                                            {{ $emp->department }}
                                         </span>
                                     </td>
                                     <td class="py-3.5 px-3">
@@ -1416,17 +1362,17 @@
                                             <button class="btn btn-sm rounded-pill px-3 py-1.5 border dropdown-toggle fw-semibold status-toggle-btn-{{ $emp->id }} shadow-2xs" 
                                                     type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 11.5px;">
                                                 @if($emp->status === 'active')
-                                                    <span class="text-success"><i class="fa-solid fa-circle-check me-1.5"></i>Active</span>
+                                                    <span class="text-success">Active</span>
                                                 @elseif($emp->status === 'on_leave')
-                                                    <span class="text-warning"><i class="fa-solid fa-clock me-1.5"></i>On Leave</span>
+                                                    <span class="text-warning">On Leave</span>
                                                 @else
-                                                    <span class="text-secondary"><i class="fa-solid fa-circle-xmark me-1.5"></i>Inactive</span>
+                                                    <span class="text-secondary">Inactive</span>
                                                 @endif
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 py-2 rounded-3" style="font-size: 12.5px; min-width: 140px;">
-                                                <li><a class="dropdown-item py-1.5 px-3 text-success fw-semibold" href="javascript:void(0)" onclick="quickToggleStaffStatus({{ $emp->id }}, 'active')"><i class="fa-solid fa-circle-check me-2"></i> Active</a></li>
-                                                <li><a class="dropdown-item py-1.5 px-3 text-warning fw-semibold" href="javascript:void(0)" onclick="quickToggleStaffStatus({{ $emp->id }}, 'on_leave')"><i class="fa-solid fa-clock me-2"></i> On Leave</a></li>
-                                                <li><a class="dropdown-item py-1.5 px-3 text-danger fw-semibold" href="javascript:void(0)" onclick="quickToggleStaffStatus({{ $emp->id }}, 'inactive')"><i class="fa-solid fa-circle-xmark me-2"></i> Inactive</a></li>
+                                                <li><a class="dropdown-item py-1.5 px-3 text-success fw-semibold" href="javascript:void(0)" onclick="quickToggleStaffStatus({{ $emp->id }}, 'active')">Active</a></li>
+                                                <li><a class="dropdown-item py-1.5 px-3 text-warning fw-semibold" href="javascript:void(0)" onclick="quickToggleStaffStatus({{ $emp->id }}, 'on_leave')">On Leave</a></li>
+                                                <li><a class="dropdown-item py-1.5 px-3 text-danger fw-semibold" href="javascript:void(0)" onclick="quickToggleStaffStatus({{ $emp->id }}, 'inactive')">Inactive</a></li>
                                             </ul>
                                         </div>
                                     </td>
@@ -1436,7 +1382,7 @@
                                                 <i class="fa-solid fa-eye"></i>
                                             </button>
                                             <a href="{{ route('admin.accounting.employees.ledger', $emp->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold shadow-2xs" style="font-size: 11.5px;" title="Ledger">
-                                                <i class="fa-solid fa-book-bookmark me-1.5"></i>Ledger
+                                                Ledger
                                             </a>
                                             <a href="{{ route('admin.accounting.salary.index', ['employee_id' => $emp->id]) }}" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1.5 text-success shadow-2xs" style="font-size: 11.5px;" title="Salary History">
                                                 <i class="fa-solid fa-money-check-dollar"></i>
@@ -1447,7 +1393,7 @@
                             @empty
                                 <tr id="noStaffFoundRow">
                                     <td colspan="7" class="text-center py-5 text-muted">
-                                        <i class="fa-solid fa-users-slash text-muted fs-2 mb-2 d-block opacity-50"></i>
+                                        
                                         No staff records found.
                                     </td>
                                 </tr>
@@ -1468,7 +1414,7 @@
             <div class="modal-content rounded-4 border-0 shadow-lg">
                 <div class="modal-header bg-dark text-white border-0 py-3">
                     <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-id-card-clip text-primary"></i> Staff Profile & Work Status
+                        Staff Profile & Work Status
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -1480,7 +1426,7 @@
                 </div>
                 <div class="modal-footer bg-light border-top p-3 d-flex justify-content-between">
                     <a href="#" id="quickStaffLedgerLink" class="btn btn-sm btn-primary rounded-pill px-3.5 fw-semibold">
-                        <i class="fa-solid fa-book-bookmark me-1"></i> Full Work Ledger
+                        Full Work Ledger
                     </a>
                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Close</button>
                 </div>
@@ -1497,7 +1443,7 @@
                 @csrf
                 <div class="modal-header bg-dark text-white border-0 py-3">
                     <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-user-plus text-primary"></i> Add New Employee
+                        Add New Employee
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -1505,7 +1451,7 @@
                     {{-- 1-Click Role Presets --}}
                     <div class="mb-3 p-3 bg-light rounded-3 border">
                         <label class="small fw-bold text-dark mb-1.5 d-block">
-                            <i class="fa-solid fa-bolt text-warning me-1"></i> Quick Role Presets:
+                            Quick Role Presets:
                         </label>
                         <select class="form-select form-select-sm rounded-pill border-primary fw-semibold" id="dashRolePresetSelect" onchange="applyDashEmployeePreset(this.value)">
                             <option value="">-- Select Preset Role & Salary Scale --</option>
@@ -1625,7 +1571,7 @@
                 <div class="modal-footer bg-light border-top p-3">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">
-                        <i class="fa-solid fa-circle-check me-1"></i> Save
+                        Save
                     </button>
                 </div>
             </form>
@@ -1643,19 +1589,19 @@
         <div class="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div>
                 <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                    <span class="badge bg-success-subtle text-success p-2 rounded-circle"><i class="fa-solid fa-store"></i></span>
+                    
                     <span>Sellers Accounting</span>
                 </h5>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <a href="{{ route('subadmin.dashboard') }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
-                    <i class="fa-solid fa-gauge-high me-1"></i> Seller Central
+                    Seller Central
                 </a>
                 <a href="{{ route('subadmin.bills.index') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
-                    <i class="fa-solid fa-file-invoice-dollar me-1"></i> All Bills ({{ $sSummary['total_bills'] ?? 0 }})
+                    All Bills ({{ $sSummary['total_bills'] ?? 0 }})
                 </a>
                 <a href="{{ route('subadmin.accounts') }}" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold">
-                    <i class="fa-solid fa-wallet me-1"></i> Statements
+                    Statements
                 </a>
             </div>
         </div>
@@ -1716,9 +1662,6 @@
                             <tr>
                                 <td class="ps-3.5">
                                     <div class="d-flex align-items-center gap-2">
-                                        <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 34px; height: 34px; font-size: 13px;">
-                                            <i class="fa-solid fa-store"></i>
-                                        </div>
                                         <div>
                                             <a href="{{ route('subadmin.dashboard', ['seller_id' => $sb->seller_id]) }}" class="fw-bold text-dark text-decoration-none">
                                                 {{ $sName }}
@@ -1745,13 +1688,13 @@
                                     @if($sb->due_amount > 0)
                                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle font-monospace px-2.5 py-1">৳{{ number_format($sb->due_amount, 2) }}</span>
                                     @else
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5"><i class="fa-solid fa-check"></i> Paid</span>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5">Paid</span>
                                     @endif
                                 </td>
                                 <td class="text-end pe-3.5">
                                     <div class="btn-group btn-group-sm">
                                         <a href="{{ route('subadmin.dashboard', ['seller_id' => $sb->seller_id]) }}" class="btn btn-outline-primary" title="View Dashboard">
-                                            <i class="fa-solid fa-gauge-high me-1"></i> Dashboard
+                                            Dashboard
                                         </a>
                                         <a href="{{ route('subadmin.bills.index', ['seller_id' => $sb->seller_id]) }}" class="btn btn-outline-secondary" title="View Bills">
                                             <i class="fa-solid fa-file-invoice"></i>
@@ -1762,7 +1705,7 @@
                         @empty
                             <tr>
                                 <td colspan="7" class="text-center py-4 text-muted">
-                                    <i class="fa-solid fa-store-slash text-muted fs-3 mb-2 d-block"></i>
+                                    
                                     No seller billing records found.
                                 </td>
                             </tr>
@@ -1781,20 +1724,20 @@
         <div class="col-12 col-md-6">
             <div class="adm-card h-100 bg-white">
                 <div class="adm-card__head d-flex align-items-center justify-content-between">
-                    <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-server me-2 text-primary"></i>System Health</h6>
+                    <h6 class="mb-0 fw-bold text-dark">System Health</h6>
                     @php
                         $hLevel = $stats['system_health']['status_level'] ?? 'unknown';
                         $hTone = ['ok' => 'success', 'warning' => 'warning', 'danger' => 'danger'][$hLevel] ?? 'secondary';
                         $hIcon = ['ok' => 'fa-circle-check', 'warning' => 'fa-triangle-exclamation', 'danger' => 'fa-circle-exclamation'][$hLevel] ?? 'fa-circle-question';
                     @endphp
                     <span class="badge bg-{{ $hTone }}-subtle text-{{ $hTone }}-emphasis border border-{{ $hTone }}-subtle rounded-pill">
-                        <i class="fa-solid {{ $hIcon }} me-1"></i>{{ $stats['system_health']['status'] ?? '—' }}
+                        {{ $stats['system_health']['status'] ?? '—' }}
                     </span>
                 </div>
                 <div class="adm-card__body p-3.5">
                     @php $health = $stats['system_health'] ?? []; @endphp
                     <div class="d-flex justify-content-between align-items-center mb-1.5 small">
-                        <span class="text-muted"><i class="fa-solid fa-hard-drive me-1 text-secondary"></i>Disk Usage:</span>
+                        <span class="text-muted">Disk Usage:</span>
                         <span class="fw-bold text-dark font-monospace">@if (($health['disk_total_gb'] ?? 0) > 0){{ $health['disk_used_gb'] }} GB / {{ $health['disk_total_gb'] }} GB ({{ $health['disk_used_percent'] }}%)@else — @endif</span>
                     </div>
                     <div class="progress mb-3" style="height: 7px;">
@@ -1827,7 +1770,7 @@
         <div class="col-12 col-md-6">
             <div class="adm-card h-100 bg-white">
                 <div class="adm-card__head d-flex align-items-center justify-content-between">
-                    <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-pen-nib me-2 text-warning"></i>Author Royalties</h6>
+                    <h6 class="mb-0 fw-bold text-dark">Author Royalties</h6>
                     <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-outline-warning rounded-pill py-0 px-2.5 small">Authors List</a>
                 </div>
                 <div class="adm-card__body p-3.5">
@@ -1853,7 +1796,7 @@
                         </div>
                     </div>
                     <div class="p-2.5 bg-light rounded-3 border d-flex align-items-center justify-content-between small">
-                        <span class="text-muted"><i class="fa-solid fa-money-bill-transfer text-primary me-1"></i>Total Authors:</span>
+                        <span class="text-muted">Total Authors:</span>
                         <span class="fw-bold text-dark">{{ $stats['total_authors'] ?? 0 }}</span>
                     </div>
                 </div>
@@ -1871,7 +1814,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
                 <h6 class="modal-title fw-bold text-white mb-0" id="quickStockModalLabel">
-                    <i class="fa-solid fa-boxes-stacked me-1.5"></i> Refill Inventory Stock
+                    Refill Inventory Stock
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1895,7 +1838,7 @@
                 <div class="modal-footer bg-light py-2">
                     <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="quickStockBtn" class="btn btn-sm btn-primary">
-                        <i class="fa-solid fa-circle-check me-1"></i> Save Stock
+                        Save Stock
                     </button>
                 </div>
             </form>
@@ -1913,16 +1856,13 @@
             {{-- Header --}}
             <div class="modal-header text-white border-0 py-3 px-4" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
                 <div class="d-flex align-items-center gap-2.5">
-                    <div class="rounded-circle bg-warning bg-opacity-20 text-warning p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                        <i class="fa-solid fa-bolt-lightning fs-5"></i>
-                    </div>
                     <h5 class="modal-title fw-bold text-white mb-0" id="pendingActionCenterModalLabel">
                         Pending Action Center
                     </h5>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 fw-semibold" onclick="reloadPendingData()" title="Refresh">
-                        <i class="fa-solid fa-rotate me-1"></i> Refresh
+                        Refresh
                     </button>
                     <button type="button" class="btn-close btn-close-white ms-1" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -1939,7 +1879,7 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link rounded-pill py-2 px-3 fw-bold small text-nowrap active d-flex align-items-center justify-content-center gap-1.5" 
                                     id="tab-users-btn" data-bs-toggle="pill" data-bs-target="#pane-pending-users" type="button" role="tab">
-                                <i class="fa-solid fa-user-clock text-danger"></i>
+                                
                                 <span>Users</span>
                                 <span class="badge bg-danger text-white rounded-pill ms-1" id="tabBadge-users">{{ $regCount }}</span>
                             </button>
@@ -1949,7 +1889,7 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link rounded-pill py-2 px-3 fw-bold small text-nowrap d-flex align-items-center justify-content-center gap-1.5" 
                                     id="tab-orders-btn" data-bs-toggle="pill" data-bs-target="#pane-pending-orders" type="button" role="tab">
-                                <i class="fa-solid fa-cart-shopping text-warning"></i>
+                                
                                 <span>Orders</span>
                                 <span class="badge bg-warning-subtle text-dark border rounded-pill ms-1" id="tabBadge-orders">{{ $orderCount }}</span>
                             </button>
@@ -1959,7 +1899,7 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link rounded-pill py-2 px-3 fw-bold small text-nowrap d-flex align-items-center justify-content-center gap-1.5" 
                                     id="tab-blogs-btn" data-bs-toggle="pill" data-bs-target="#pane-pending-blogs" type="button" role="tab">
-                                <i class="fa-solid fa-feather-pointed text-success"></i>
+                                
                                 <span>Blogs</span>
                                 <span class="badge bg-success-subtle text-success border rounded-pill ms-1" id="tabBadge-blogs">{{ $blogCount }}</span>
                             </button>
@@ -1969,7 +1909,7 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link rounded-pill py-2 px-3 fw-bold small text-nowrap d-flex align-items-center justify-content-center gap-1.5" 
                                     id="tab-books-btn" data-bs-toggle="pill" data-bs-target="#pane-pending-books" type="button" role="tab">
-                                <i class="fa-solid fa-book-open text-primary"></i>
+                                
                                 <span>Books</span>
                                 <span class="badge bg-primary-subtle text-primary border rounded-pill ms-1" id="tabBadge-books">{{ $bookCount + $ebookCount }}</span>
                             </button>
@@ -1979,7 +1919,7 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link rounded-pill py-2 px-3 fw-bold small text-nowrap d-flex align-items-center justify-content-center gap-1.5" 
                                     id="tab-requests-btn" data-bs-toggle="pill" data-bs-target="#pane-pending-requests" type="button" role="tab">
-                                <i class="fa-solid fa-book-bookmark text-info"></i>
+                                
                                 <span>Requests</span>
                                 <span class="badge bg-info-subtle text-info border rounded-pill ms-1" id="tabBadge-requests">{{ $bookReqCount }}</span>
                             </button>
@@ -1989,7 +1929,7 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link rounded-pill py-2 px-3 fw-bold small text-nowrap d-flex align-items-center justify-content-center gap-1.5" 
                                     id="tab-submissions-btn" data-bs-toggle="pill" data-bs-target="#pane-pending-submissions" type="button" role="tab">
-                                <i class="fa-solid fa-file-signature text-dark"></i>
+                                
                                 <span>Submissions</span>
                                 <span class="badge bg-dark text-white rounded-pill ms-1" id="tabBadge-submissions">{{ $submissionCount + $authorUpdateCount }}</span>
                             </button>
@@ -2052,7 +1992,7 @@
                                                 <div class="d-flex align-items-center gap-3 mt-1 small text-muted flex-wrap" style="font-size: 12px;">
                                                     <span><i class="fa-solid fa-phone text-secondary me-1"></i>{{ $pUser->phone ?: '—' }}</span>
                                                     <span><i class="fa-solid fa-envelope text-secondary me-1"></i>{{ $pUser->email }}</span>
-                                                    <span><i class="fa-solid fa-clock text-secondary me-1"></i>{{ $pUser->created_at ? $pUser->created_at->diffForHumans() : '' }}</span>
+                                                    <span>{{ $pUser->created_at ? $pUser->created_at->diffForHumans() : '' }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -2061,15 +2001,15 @@
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
                                             <button type="button" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1" 
                                                     onclick="viewPendingUserDetails({{ $pUser->id }})" title="Preview KYC Profile">
-                                                <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
+                                                <span>Preview</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
                                                     onclick="executeDashboardQuickAction('user', {{ $pUser->id }}, 'approve', '', this)" title="Approve">
-                                                <i class="fa-solid fa-check"></i> <span>Approve</span>
+                                                <span>Approve</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1" 
                                                     onclick="promptRejectReason('user', {{ $pUser->id }}, '{{ addslashes($pUser->name) }}')" title="Reject">
-                                                <i class="fa-solid fa-ban text-warning"></i> <span>Reject</span>
+                                                <span>Reject</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
                                                     onclick="executeDashboardQuickAction('user', {{ $pUser->id }}, 'delete', '', this)" title="Delete">
@@ -2081,7 +2021,7 @@
                                 </div>
                             @empty
                                 <div class="p-4 text-center text-muted bg-white rounded-3 border">
-                                    <i class="fa-solid fa-user-check text-success fs-3 mb-2 d-block"></i>
+                                    
                                     No pending user registrations.
                                 </div>
                             @endforelse
@@ -2113,26 +2053,26 @@
                                             <div class="small text-muted d-flex align-items-center gap-3 flex-wrap" style="font-size: 12px;">
                                                 <span><i class="fa-solid fa-phone text-secondary me-1"></i>{{ $pOrder->customer_phone ?: ($pOrder->user?->phone ?: '—') }}</span>
                                                 <span><i class="fa-solid fa-location-dot text-secondary me-1"></i>{{ Str::limit($pOrder->customer_address ?: ($pOrder->full_address ?: '—'), 35) }}</span>
-                                                <span><i class="fa-solid fa-boxes-stacked text-secondary me-1"></i>{{ $pOrder->quantity ?? 1 }} Book(s) {{ $pOrder->book ? '('.$pOrder->book->title.')' : '' }}</span>
-                                                <span><i class="fa-solid fa-clock text-secondary me-1"></i>{{ $pOrder->created_at ? $pOrder->created_at->diffForHumans() : '' }}</span>
+                                                <span>{{ $pOrder->quantity ?? 1 }} Book(s) {{ $pOrder->book ? '('.$pOrder->book->title.')' : '' }}</span>
+                                                <span>{{ $pOrder->created_at ? $pOrder->created_at->diffForHumans() : '' }}</span>
                                             </div>
                                         </div>
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
                                             <a href="{{ route('admin.ecommerce-orders.show', $pOrder->id) }}" target="_blank" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold" title="Preview Order Details">
-                                                <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
+                                                <span>Preview</span>
                                             </a>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
                                                     onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'approve', '', this)" title="Confirm Order">
-                                                <i class="fa-solid fa-check"></i> <span>Confirm</span>
+                                                <span>Confirm</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1" 
                                                     onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'complete', '', this)" title="Mark Delivered">
-                                                <i class="fa-solid fa-circle-check"></i> <span>Complete</span>
+                                                <span>Complete</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
                                                     onclick="promptRejectReason('order', {{ $pOrder->id }}, 'Order #{{ $pOrder->order_number }}')" title="Cancel Order">
-                                                <i class="fa-solid fa-xmark"></i> <span>Cancel</span>
+                                                <span>Cancel</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
                                                     onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'delete', '', this)" title="Delete Order">
@@ -2144,7 +2084,7 @@
                                 </div>
                             @empty
                                 <div class="p-4 text-center text-muted bg-white rounded-3 border">
-                                    <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
+                                    
                                     No pending orders.
                                 </div>
                             @endforelse
@@ -2174,22 +2114,22 @@
                                                 @endif
                                             </div>
                                             <div class="small text-muted d-flex align-items-center gap-3 flex-wrap" style="font-size: 12px;">
-                                                <span><i class="fa-solid fa-pen-nib text-secondary me-1"></i>{{ $pBlog->owner_name ?: ($pBlog->author?->name ?: ($pBlog->submitter?->name ?: 'Author')) }}</span>
-                                                <span><i class="fa-solid fa-clock text-secondary me-1"></i>{{ $pBlog->created_at ? $pBlog->created_at->diffForHumans() : '' }}</span>
+                                                <span>{{ $pBlog->owner_name ?: ($pBlog->author?->name ?: ($pBlog->submitter?->name ?: 'Author')) }}</span>
+                                                <span>{{ $pBlog->created_at ? $pBlog->created_at->diffForHumans() : '' }}</span>
                                             </div>
                                         </div>
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
                                             <a href="{{ route('blog.show', $pBlog->slug ?: $pBlog->id) }}" target="_blank" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold" title="Preview Blog Post">
-                                                <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
+                                                <span>Preview</span>
                                             </a>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
                                                     onclick="executeDashboardQuickAction('blog', {{ $pBlog->id }}, 'approve', '', this)" title="Approve & Publish">
-                                                <i class="fa-solid fa-check"></i> <span>Approve</span>
+                                                <span>Approve</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
                                                     onclick="promptRejectReason('blog', {{ $pBlog->id }}, '{{ addslashes($pBlog->title) }}')" title="Reject">
-                                                <i class="fa-solid fa-ban"></i> <span>Reject</span>
+                                                <span>Reject</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
                                                     onclick="executeDashboardQuickAction('blog', {{ $pBlog->id }}, 'delete', '', this)" title="Delete">
@@ -2201,7 +2141,7 @@
                                 </div>
                             @empty
                                 <div class="p-4 text-center text-muted bg-white rounded-3 border">
-                                    <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
+                                    
                                     No pending blog posts.
                                 </div>
                             @endforelse
@@ -2230,23 +2170,23 @@
                                                 <span class="badge bg-light text-primary border font-monospace">৳{{ number_format((float)$pBook->price, 2) }}</span>
                                             </div>
                                             <div class="small text-muted d-flex align-items-center gap-3 flex-wrap" style="font-size: 12px;">
-                                                <span><i class="fa-solid fa-user text-secondary me-1"></i>{{ $pBook->author_name ?: '—' }}</span>
-                                                <span><i class="fa-solid fa-building text-secondary me-1"></i>{{ $pBook->publisher?->name ?: 'Idea Prokashon' }}</span>
-                                                <span><i class="fa-solid fa-clock text-secondary me-1"></i>{{ $pBook->created_at ? $pBook->created_at->diffForHumans() : '' }}</span>
+                                                <span>{{ $pBook->author_name ?: '—' }}</span>
+                                                <span>{{ $pBook->publisher?->name ?: 'Idea Prokashon' }}</span>
+                                                <span>{{ $pBook->created_at ? $pBook->created_at->diffForHumans() : '' }}</span>
                                             </div>
                                         </div>
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
                                             <a href="{{ route('book.show', $pBook->slug ?: $pBook->id) }}" target="_blank" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold" title="Preview Book">
-                                                <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
+                                                <span>Preview</span>
                                             </a>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
                                                     onclick="executeDashboardQuickAction('book', {{ $pBook->id }}, 'approve', '', this)" title="Approve & Publish">
-                                                <i class="fa-solid fa-check"></i> <span>Approve</span>
+                                                <span>Approve</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
                                                     onclick="promptRejectReason('book', {{ $pBook->id }}, '{{ addslashes($pBook->title) }}')" title="Reject">
-                                                <i class="fa-solid fa-ban"></i> <span>Reject</span>
+                                                <span>Reject</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
                                                     onclick="executeDashboardQuickAction('book', {{ $pBook->id }}, 'delete', '', this)" title="Delete">
@@ -2268,22 +2208,22 @@
                                                 <span class="badge bg-light text-primary border font-monospace">৳{{ number_format((float)$pEbook->price, 2) }}</span>
                                             </div>
                                             <div class="small text-muted d-flex align-items-center gap-3 flex-wrap" style="font-size: 12px;">
-                                                <span><i class="fa-solid fa-user text-secondary me-1"></i>{{ $pEbook->author_name ?: '—' }}</span>
-                                                <span><i class="fa-solid fa-clock text-secondary me-1"></i>{{ $pEbook->created_at ? $pEbook->created_at->diffForHumans() : '' }}</span>
+                                                <span>{{ $pEbook->author_name ?: '—' }}</span>
+                                                <span>{{ $pEbook->created_at ? $pEbook->created_at->diffForHumans() : '' }}</span>
                                             </div>
                                         </div>
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
                                             <a href="{{ route('ebook.show', $pEbook->slug ?: $pEbook->id) }}" target="_blank" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold" title="Preview E-Book">
-                                                <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
+                                                <span>Preview</span>
                                             </a>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
                                                     onclick="executeDashboardQuickAction('ebook', {{ $pEbook->id }}, 'approve', '', this)" title="Approve">
-                                                <i class="fa-solid fa-check"></i> <span>Approve</span>
+                                                <span>Approve</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
                                                     onclick="promptRejectReason('ebook', {{ $pEbook->id }}, '{{ addslashes($pEbook->title) }}')" title="Reject">
-                                                <i class="fa-solid fa-ban"></i> <span>Reject</span>
+                                                <span>Reject</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
                                                     onclick="executeDashboardQuickAction('ebook', {{ $pEbook->id }}, 'delete', '', this)" title="Delete">
@@ -2297,7 +2237,7 @@
 
                             @if($pBooks->isEmpty() && $pEbooks->isEmpty())
                                 <div class="p-4 text-center text-muted bg-white rounded-3 border">
-                                    <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
+                                    
                                     No pending books or e-books.
                                 </div>
                             @endif
@@ -2318,25 +2258,25 @@
                                         <div>
                                             <h6 class="fw-bold text-dark mb-1">{{ $pReq->book_title }}</h6>
                                             <div class="small text-muted d-flex align-items-center gap-3 flex-wrap" style="font-size: 12px;">
-                                                <span><i class="fa-solid fa-pen-nib text-secondary me-1"></i>{{ $pReq->author_name ?: 'Author Unknown' }}</span>
-                                                <span><i class="fa-solid fa-user text-secondary me-1"></i>{{ $pReq->name ?: 'Customer' }}</span>
+                                                <span>{{ $pReq->author_name ?: 'Author Unknown' }}</span>
+                                                <span>{{ $pReq->name ?: 'Customer' }}</span>
                                                 <span><i class="fa-solid fa-phone text-secondary me-1"></i>{{ $pReq->phone ?: '—' }}</span>
-                                                <span><i class="fa-solid fa-clock text-secondary me-1"></i>{{ $pReq->created_at ? $pReq->created_at->diffForHumans() : '' }}</span>
+                                                <span>{{ $pReq->created_at ? $pReq->created_at->diffForHumans() : '' }}</span>
                                             </div>
                                         </div>
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
                                             <button type="button" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1" 
                                                     onclick="previewBookRequestModal({{ $pReq->id }}, '{{ addslashes($pReq->book_title) }}', '{{ addslashes($pReq->author_name ?? '') }}', '{{ addslashes($pReq->name ?? '') }}', '{{ addslashes($pReq->phone ?? '') }}', '{{ addslashes(str_replace(["\r", "\n"], ' ', $pReq->notes ?? '')) }}', '{{ $pReq->created_at ? $pReq->created_at->format('M d, Y h:i A') : '' }}')" title="Preview Request Details">
-                                                <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
+                                                <span>Preview</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
                                                     onclick="executeDashboardQuickAction('book_request', {{ $pReq->id }}, 'approve', '', this)" title="Start Sourcing">
-                                                <i class="fa-solid fa-check"></i> <span>Sourcing</span>
+                                                <span>Sourcing</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
                                                     onclick="promptRejectReason('book_request', {{ $pReq->id }}, '{{ addslashes($pReq->book_title) }}')" title="Reject">
-                                                <i class="fa-solid fa-ban"></i> <span>Reject</span>
+                                                <span>Reject</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
                                                     onclick="executeDashboardQuickAction('book_request', {{ $pReq->id }}, 'delete', '', this)" title="Delete">
@@ -2347,7 +2287,7 @@
                                 </div>
                             @empty
                                 <div class="p-4 text-center text-muted bg-white rounded-3 border">
-                                    <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
+                                    
                                     No pending book requests.
                                 </div>
                             @endforelse
@@ -2378,11 +2318,11 @@
                                                 @endif
                                             </div>
                                             <div class="small text-muted d-flex align-items-center gap-3 flex-wrap" style="font-size: 12px;">
-                                                <span><i class="fa-solid fa-user text-secondary me-1"></i>{{ $pSub->author?->name ?: 'Author' }}</span>
+                                                <span>{{ $pSub->author?->name ?: 'Author' }}</span>
                                                 @if($pSub->author?->phone)
                                                     <span><i class="fa-solid fa-phone text-secondary me-1"></i>{{ $pSub->author->phone }}</span>
                                                 @endif
-                                                <span><i class="fa-solid fa-clock text-secondary me-1"></i>{{ $pSub->created_at ? $pSub->created_at->diffForHumans() : '' }}</span>
+                                                <span>{{ $pSub->created_at ? $pSub->created_at->diffForHumans() : '' }}</span>
                                             </div>
                                             @if($pSub->excerpt)
                                                 <div class="small text-secondary mt-1" style="font-size: 11.5px;">{{ Str::limit($pSub->excerpt, 150) }}</div>
@@ -2392,15 +2332,15 @@
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
                                             <button type="button" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1" 
                                                     onclick="previewSubmissionModal({{ $pSub->id }}, '{{ addslashes($pSub->title) }}', '{{ addslashes($pSub->author?->name ?? 'Author') }}', '{{ addslashes($pSub->author?->phone ?? '') }}', '{{ addslashes($pSub->category?->name ?? '') }}', '{{ addslashes(str_replace(["\r", "\n"], ' ', $pSub->excerpt ?? '')) }}', '{{ $pSub->file_path ? asset('storage/' . $pSub->file_path) : '' }}', '{{ $pSub->created_at ? $pSub->created_at->format('M d, Y h:i A') : '' }}')" title="Preview Manuscript">
-                                                <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
+                                                <span>Preview</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
                                                     onclick="executeDashboardQuickAction('submission', {{ $pSub->id }}, 'approve', '', this)" title="Approve">
-                                                <i class="fa-solid fa-check"></i> <span>Approve</span>
+                                                <span>Approve</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
                                                     onclick="promptRejectReason('submission', {{ $pSub->id }}, '{{ addslashes($pSub->title) }}')" title="Reject">
-                                                <i class="fa-solid fa-ban"></i> <span>Reject</span>
+                                                <span>Reject</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
                                                     onclick="executeDashboardQuickAction('submission', {{ $pSub->id }}, 'delete', '', this)" title="Delete">
@@ -2420,9 +2360,6 @@
                                 <div class="card p-3 border rounded-3 bg-white shadow-2xs pending-row-item" id="pendingRow-author_update-{{ $pAuthorUser->id }}">
                                     <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                                         <div class="d-flex align-items-center gap-3">
-                                            <div class="rounded-circle bg-info bg-opacity-10 text-info fw-bold d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" style="width: 44px; height: 44px;">
-                                                <i class="fa-solid fa-user-pen fs-5"></i>
-                                            </div>
                                             <div>
                                                 <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
                                                     <span class="badge bg-info text-dark rounded-pill px-2 py-0.5 small">Profile Update</span>
@@ -2432,7 +2369,7 @@
                                                     <span><i class="fa-solid fa-phone text-secondary me-1"></i>{{ $pAuthorUser->phone ?: '—' }}</span>
                                                     <span><i class="fa-solid fa-envelope text-secondary me-1"></i>{{ $pAuthorUser->email }}</span>
                                                     @if(!empty($uRegData['bio']))
-                                                        <span><i class="fa-solid fa-quote-left text-secondary me-1"></i>{{ Str::limit($uRegData['bio'], 60) }}</span>
+                                                        <span>{{ Str::limit($uRegData['bio'], 60) }}</span>
                                                     @endif
                                                 </div>
                                             </div>
@@ -2441,15 +2378,15 @@
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
                                             <button type="button" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1" 
                                                     onclick="viewPendingUserDetails({{ $pAuthorUser->id }})" title="Preview Profile Changes">
-                                                <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
+                                                <span>Preview</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
                                                     onclick="executeDashboardQuickAction('author_update', {{ $pAuthorUser->id }}, 'approve', '', this)" title="Approve Profile Update">
-                                                <i class="fa-solid fa-check"></i> <span>Approve</span>
+                                                <span>Approve</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
                                                     onclick="promptRejectReason('author_update', {{ $pAuthorUser->id }}, '{{ addslashes($pAuthorUser->name) }}')" title="Reject">
-                                                <i class="fa-solid fa-ban"></i> <span>Reject</span>
+                                                <span>Reject</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
                                                     onclick="executeDashboardQuickAction('author_update', {{ $pAuthorUser->id }}, 'delete', '', this)" title="Delete">
@@ -2463,7 +2400,7 @@
 
                             @if($pSubmissions->isEmpty() && $pAuthorUpdates->isEmpty())
                                 <div class="p-4 text-center text-muted bg-white rounded-3 border">
-                                    <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
+                                    
                                     No pending submissions or author updates.
                                 </div>
                             @endif
@@ -2475,7 +2412,7 @@
 
             {{-- Footer --}}
             <div class="modal-footer bg-white border-top py-2.5 px-4 d-flex align-items-center justify-content-between">
-                <small class="text-muted"><i class="fa-solid fa-shield-halved text-success me-1"></i> Actions sync live to database and notifications</small>
+                <small class="text-muted">Actions sync live to database and notifications</small>
                 <button type="button" class="btn btn-sm btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
             </div>
 
@@ -2491,7 +2428,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-dark text-white py-3 px-4 border-0">
                 <h6 class="modal-title fw-bold text-white mb-0">
-                    <i class="fa-solid fa-id-card text-primary me-2"></i>User KYC & Profile Details
+                    User KYC & Profile Details
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -2516,7 +2453,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-dark text-white py-3 px-4 border-0">
                 <h6 class="modal-title fw-bold text-white mb-0" id="pendingItemPreviewModalTitle">
-                    <i class="fa-solid fa-eye text-primary me-2"></i>Item Preview
+                    Item Preview
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -2536,7 +2473,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-danger text-white py-3 px-4">
                 <h6 class="modal-title fw-bold mb-0">
-                    <i class="fa-solid fa-ban me-1.5"></i> Reject Reason
+                    Reject Reason
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -2568,7 +2505,7 @@
                 <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between">
                     <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3.5" data-bs-dismiss="modal">Close</button>
                     <button type="submit" id="rejectSubmitBtn" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fa-solid fa-circle-xmark me-1"></i> Confirm Reject
+                        Confirm Reject
                     </button>
                 </div>
             </form>

@@ -365,7 +365,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-primary text-white py-3 px-4">
                 <h5 class="modal-title fw-bold" id="addRequestModalLabel">
-                    <i class="fa-solid fa-circle-plus me-1.5"></i> New Book Request Entry
+                    New Book Request Entry
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -441,7 +441,7 @@
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-dark text-white py-2.5 px-3">
-                <h6 class="modal-title fw-bold mb-0"><i class="fa-solid fa-note-sticky text-warning me-1.5"></i>Admin Notes</h6>
+                <h6 class="modal-title fw-bold mb-0">Admin Notes</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form id="notesForm" onsubmit="saveAdminNotes(event)">
@@ -466,7 +466,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-light py-3 px-4 border-bottom">
                 <h5 class="modal-title fw-bold text-dark mb-0">
-                    <i class="fa-solid fa-circle-info text-primary me-1.5"></i>Request Details (#<span id="vReqId"></span>)
+                    Request Details (#<span id="vReqId"></span>)
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>

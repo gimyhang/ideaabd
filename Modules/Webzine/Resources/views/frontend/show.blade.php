@@ -127,7 +127,7 @@
 
                 <div class="mb-4">
                     <h5 class="fw-bold text-dark mb-3">
-                        <i class="fa-solid fa-feather-pointed text-primary me-2"></i>সম্পাদকীয় ও বিষয়বস্তু
+                        সম্পাদকীয় ও বিষয়বস্তু
                     </h5>
                     <div class="text-secondary leading-relaxed" style="font-size: 1.05rem; line-height: 1.8;">
                         @if($webzine->description)

@@ -824,7 +824,7 @@
 
                             <div class="col-12 col-xl-4">
                                 <div class="pay-gw-card p-3 bg-light">
-                                    <h6 class="fw-bold text-dark small mb-2"><i class="fa-solid fa-shield-halved text-success me-1"></i> Checkout Notice & Helpline</h6>
+                                    <h6 class="fw-bold text-dark small mb-2">Checkout Notice & Helpline</h6>
                                     <div class="mb-2">
                                         <label class="form-label small fw-semibold text-muted mb-1">Notice Text</label>
                                         <textarea class="form-control form-control-sm pay-form-control" name="payment_gateways[global_scripts][checkout_notice]" rows="4">{{ $paymentGateways['global_scripts']['checkout_notice'] ?? 'For secure payment assistance, call our helpline: 01726-976982.' }}</textarea>

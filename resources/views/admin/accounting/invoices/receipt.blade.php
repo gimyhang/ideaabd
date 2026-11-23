@@ -370,7 +370,7 @@
             </div>
             <div class="col-4 text-end">
                 <div class="receipt-title-badge mb-0.5">
-                    <i class="fa-solid fa-receipt me-1"></i> MONEY RECEIPT
+                    MONEY RECEIPT
                 </div>
                 <div class="fw-bold text-dark fs-6 font-monospace">#{{ $payment->payment_no }}</div>
                 <div class="text-muted small" style="font-size: 11px;">Date: <strong class="text-dark">{{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}</strong></div>

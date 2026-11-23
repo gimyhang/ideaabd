@@ -114,7 +114,7 @@
                         
                         <div class="card p-3 border-0 shadow-sm rounded-4 bg-white">
                             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-filter text-primary me-1"></i> ফিল্টার</h6>
+                                <h6 class="fw-bold text-dark mb-0">ফিল্টার</h6>
                                 <a href="{{ route('book.index') }}" class="btn btn-sm btn-link text-danger text-decoration-none p-0 small">রিসেট</a>
                             </div>
 
@@ -274,7 +274,7 @@
                         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3 pb-2 border-bottom">
                             <div class="d-flex align-items-center gap-2">
                                 <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-book-open text-primary"></i> 
+                                    
                                     {{ $activeFilterTitle ?? 'বইয়ের তালিকা' }}
                                     @if(isset($books) && $books instanceof \Illuminate\Pagination\LengthAwarePaginator)
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill ms-1 px-2.5 py-1" style="font-size: 12px;">@bn($books->total())টি বই</span>

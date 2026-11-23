@@ -650,7 +650,7 @@
             </a>
             <div>
                 <h1 class="batch-title">
-                    <i class="fa-solid fa-file-zipper text-success"></i>
+                    
                     <span>অনুমোদিত কার্ড জিপ ডাউনলোড</span>
                     <span class="batch-badge">{{ $totalCount }} টি অনুমোদিত কার্ড</span>
                 </h1>

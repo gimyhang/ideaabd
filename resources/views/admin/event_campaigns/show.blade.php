@@ -900,7 +900,7 @@
         <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div class="d-flex align-items-center gap-2">
                 <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-1.5">
-                    <i class="fa-solid fa-users-line text-primary"></i> <span>Entries</span>
+                    <span>Entries</span>
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill font-monospace px-2.5 py-0.5">{{ $registrations->total() }}</span>
                 </h6>
                 <span class="badge bg-light text-secondary border font-monospace">{{ $perPage }} / page</span>
@@ -1551,7 +1551,7 @@
                                                                     {{-- ১. প্রাথমিক ও ব্যক্তিগত তথ্য --}}
                                                                     <div class="p-3 bg-light rounded-3 border">
                                                                         <h6 class="fw-bold text-dark border-bottom pb-2 mb-2" style="font-size: 13.5px;">
-                                                                            <i class="fa-solid fa-user text-primary me-1.5"></i> ১. ব্যক্তিগত ও যোগাযোগের তথ্য
+                                                                            ১. ব্যক্তিগত ও যোগাযোগের তথ্য
                                                                         </h6>
                                                                         <div class="table-responsive">
                                                                             <table class="table table-sm table-borderless mb-0" style="font-size: 13px;">
@@ -1669,7 +1669,7 @@
                                                                 <div class="col-12">
                                                                     <div class="p-3 bg-light rounded-3 border">
                                                                         <h6 class="fw-bold text-dark border-bottom pb-2 mb-2" style="font-size: 13.5px;">
-                                                                            <i class="fa-solid fa-feather-pointed text-warning me-1.5"></i> ৩. সাহিত্য, শিল্প ও প্রকাশনা সংক্রান্ত তথ্য
+                                                                            ৩. সাহিত্য, শিল্প ও প্রকাশনা সংক্রান্ত তথ্য
                                                                         </h6>
                                                                         <div class="row g-2" style="font-size: 13px;">
                                                                             @if(!empty($reg->form_data['author_categories']) || !empty($reg->form_data['author_category']))
@@ -1737,7 +1737,7 @@
                                                                 <div class="p-3 bg-light rounded-3 border">
                                                                     <div class="border-bottom pb-2 mb-2">
                                                                         <h6 class="fw-bold text-dark mb-0" style="font-size: 13.5px;">
-                                                                            <i class="fa-solid fa-money-check-dollar text-success me-1.5"></i> ৪. স্ট্যাটাস, পেমেন্ট ও এডমিন মন্তব্য
+                                                                            ৪. স্ট্যাটাস, পেমেন্ট ও এডমিন মন্তব্য
                                                                         </h6>
                                                                     </div>
                                                                     <div class="row g-2" style="font-size: 13px;">
@@ -2032,7 +2032,7 @@
                                                     <div class="modal-header border-bottom py-3 bg-light">
                                                         <div>
                                                             <h6 class="modal-title fw-bold mb-0 text-dark">
-                                                                <i class="fa-solid fa-clipboard-check text-primary me-1"></i> Viva (50 marks)
+                                                                Viva (50 marks)
                                                             </h6>
                                                             <small class="text-muted">#{{ $reg->registration_number }} — {{ $reg->name }}</small>
                                                         </div>
@@ -2258,7 +2258,7 @@
                 <div class="modal-header border-bottom py-3 bg-light d-flex align-items-center justify-content-between">
                     <div>
                         <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2 mb-0">
-                            <i class="fa-solid fa-stamp text-warning"></i> ফরম লোগো আপলোড ও হেডার প্যাড এডিটর
+                            ফরম লোগো আপলোড ও হেডার প্যাড এডিটর
                         </h5>
                         <small class="text-muted">পাবলিক রেজিস্ট্রেশন ফরমের (যেমন: /rsu) শীর্ষ লেটারহেড প্যাড, লোগো ও টেক্সট কাস্টমাইজেশন</small>
                     </div>
@@ -2278,7 +2278,7 @@
                             {{-- ১. ফরম লোগো আপলোড ও সাইজ --}}
                             <div class="card border rounded-3 p-3 mb-3 bg-white shadow-xs">
                                 <h6 class="fw-bold text-dark d-flex align-items-center justify-content-between mb-3">
-                                    <span><i class="fa-solid fa-image text-primary me-1"></i> ফরম লোগো আপলোড ও সাইজ</span>
+                                    <span>ফরম লোগো আপলোড ও সাইজ</span>
                                     <span class="badge bg-light text-secondary border font-monospace" id="fhlModalLogoSizeBadge">{{ $modalLogoSize }}px</span>
                                 </h6>
 
@@ -2326,7 +2326,7 @@
                             {{-- ২. ফরম হেডার টেক্সট ও পরিচিতি এডিট --}}
                             <div class="card border rounded-3 p-3 bg-white shadow-xs">
                                 <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-pen-nib text-success"></i> ফরম হেডার ও লেটারহেড টেক্সট এডিট
+                                    ফরম হেডার ও লেটারহেড টেক্সট এডিট
                                 </h6>
 
                                 <div class="mb-2.5">
@@ -2374,7 +2374,7 @@
                             <div class="sticky-top" style="top: 15px;">
                                 <div class="d-flex align-items-center justify-content-between mb-2">
                                     <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">
-                                        <i class="fa-solid fa-eye text-primary"></i> লাইভ প্যাড প্রিভিউ (Live Header Pad)
+                                        লাইভ প্যাড প্রিভিউ (Live Header Pad)
                                     </h6>
                                     <span class="badge bg-success-subtle text-success border border-success-subtle small">
                                         <i class="fa-solid fa-bolt me-1"></i> রিয়েল-টাইম আপডেট
@@ -2497,7 +2497,7 @@
                 @csrf
                 <div class="modal-header border-bottom py-3">
                     <h6 class="modal-title fw-bold d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-table-columns text-primary"></i> Customize Table
+                        Customize Table
                     </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -2768,7 +2768,7 @@
                 <div class="modal-header border-bottom py-2.5 px-3 px-lg-4 bg-light d-flex align-items-center justify-content-between">
                     <div>
                         <h5 class="modal-title fw-bold d-flex align-items-center gap-2 text-dark mb-0 fs-6">
-                            <i class="fa-solid fa-wand-magic-sparkles text-primary"></i> কার্ড ডিজাইন স্টুডিও ও ফটো এডিটর
+                            কার্ড ডিজাইন স্টুডিও ও ফটো এডিটর
                         </h5>
                         <small class="text-muted" style="font-size: 11px;">আন্তর্জাতিক মানের ডাইনামিক লাইভ কাস্টমাইজার</small>
                     </div>

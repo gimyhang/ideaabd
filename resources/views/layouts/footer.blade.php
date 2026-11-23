@@ -69,6 +69,7 @@
                         </a>
                     @endforeach
                 </div>
+                <x-share class="sh-bar--dark mt-3" type="page" id="home" :url="route('home')" :title="$footerName" :text="$footerName . ' — বই, ই-বুক, ব্লগ ও সাহিত্য সাময়িকী এক জায়গায়'" :image="\App\Support\SiteSetting::blogOgBannerUrl() ?: asset('images/og-banner.jpg')" label="সাইটটি শেয়ার করুন" heading="আইডিয়া ওয়েবসাইট শেয়ার করুন" />
             </div>
 
             {{-- Column 2: Dynamic Catalog & Menu --}}

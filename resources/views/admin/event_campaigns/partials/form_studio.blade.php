@@ -102,7 +102,7 @@
     <div class="card-header bg-dark text-white py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
             <h5 class="fw-bold mb-0 text-white d-flex align-items-center gap-2">
-                <i class="fa-solid fa-file-pen text-warning"></i> রেজিস্ট্রেশন ফরম ও লোগো কাস্টমাইজার স্টুডিও
+                রেজিস্ট্রেশন ফরম ও লোগো কাস্টমাইজার স্টুডিও
             </h5>
             <small class="text-light opacity-75">লাইভ ফর্ম কাস্টমাইজেশন — লোগো, হেডার টেক্সট, ক্যাটাগরি, কালার, নোটিশ ও সকল ফিচার নিয়ন্ত্রণ</small>
         </div>

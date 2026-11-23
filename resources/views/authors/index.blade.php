@@ -194,7 +194,7 @@
                 {{-- Quick Filter Box --}}
                 <div class="card p-3 border-0 shadow-sm rounded-4 bg-white">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center justify-content-between">
-                        <span><i class="fa-solid fa-sliders text-primary me-2"></i>ফিল্টার মেনু</span>
+                        <span>ফিল্টার মেনু</span>
                     </h6>
                     <div class="d-flex flex-column gap-2">
                         <a href="{{ route('authors.index', array_merge(request()->except('page'), ['filter' => 'most_books'])) }}" 
@@ -219,7 +219,7 @@
                 @if(isset($topAuthors) && $topAuthors->isNotEmpty())
                 <div class="card p-3 border-0 shadow-sm rounded-4 bg-white">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center">
-                        <i class="fa-solid fa-crown text-warning me-2 fs-5"></i>
+                        
                         <span>শীর্ষ লেখক র‍্যাঙ্কিং</span>
                     </h6>
                     <div class="d-flex flex-column gap-2.5">
@@ -258,7 +258,7 @@
                 @if(isset($popularCategories) && $popularCategories->isNotEmpty())
                 <div class="card p-3 border-0 shadow-sm rounded-4 bg-white">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center">
-                        <i class="fa-solid fa-layer-group text-primary me-2"></i>
+                        
                         <span>বইয়ের ক্যাটাগরি</span>
                     </h6>
                     <div class="d-flex flex-wrap gap-1.5">

@@ -935,7 +935,7 @@
                         @if($campaign->isScholarship())
                             {{-- Academic Results & Details for Scholarship --}}
                             <div class="info-section-title">
-                                <i class="fa-solid fa-graduation-cap text-primary"></i> ২. শিক্ষাগত ফলাফল ও পরিবারের তথ্য
+                                ২. শিক্ষাগত ফলাফল ও পরিবারের তথ্য
                             </div>
                             <table class="info-grid-table">
                                 <tr>
@@ -970,7 +970,7 @@
                         @else
                             {{-- Publication / Category / Magazine Details for Writers & General Events --}}
                             <div class="info-section-title">
-                                <i class="fa-solid fa-book-bookmark text-primary"></i> ২. সাহিত্য ও প্রকাশনা তথ্য
+                                ২. সাহিত্য ও প্রকাশনা তথ্য
                             </div>
                             <table class="info-grid-table">
                                 <tr>
@@ -997,7 +997,7 @@
                         {{-- Fee & Payment Info (If Applicable) --}}
                         @if($campaign->has_fee_or_donation)
                             <div class="info-section-title">
-                                <i class="fa-solid fa-receipt text-success"></i> ৩. ফি ও পেমেন্ট বিবরণী
+                                ৩. ফি ও পেমেন্ট বিবরণী
                             </div>
                             <table class="info-grid-table">
                                 <tr>

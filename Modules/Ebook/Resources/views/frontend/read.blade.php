@@ -373,7 +373,7 @@
             <div class="modal-content">
                 <div class="modal-header py-2.5">
                     <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2 mb-0" style="font-size: 0.9rem;">
-                        <i class="fa-solid fa-book-open-reader text-primary"></i> পৃষ্ঠায় জাম্প করুন
+                        পৃষ্ঠায় জাম্প করুন
                     </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -394,7 +394,7 @@
             <div class="modal-content">
                 <div class="modal-header py-2.5">
                     <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2 mb-0" style="font-size: 0.9rem;">
-                        <i class="fa-solid fa-note-sticky text-warning"></i> নোট যুক্ত করুন
+                        নোট যুক্ত করুন
                     </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>

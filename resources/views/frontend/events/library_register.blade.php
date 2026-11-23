@@ -181,7 +181,7 @@
                 <div class="lib-auth-gate-header">
                     <div>
                         <h3 class="lib-auth-gate-title">
-                            <i class="fa-solid fa-user-shield text-warning"></i>
+                            
                             <span>পাঠাগার প্রতিনিধি একাউন্ট লগইন / নিবন্ধন</span>
                         </h3>
                         <div class="small text-white-50 mt-1">বই অনুদান আবেদন ফরম পূরণ করতে একাউন্টে লগইন করুন বা মোবাইল ভেরিফাই করে নতুন একাউন্ট খুলুন</div>
@@ -507,7 +507,6 @@
                                     </button>
                                     <img id="libPreviewImg" class="lib-photo-preview" alt="পাঠাগারের ছবি">
                                     <div id="libUploadPrompt" class="lib-photo-placeholder">
-                                        <div class="icon"><i class="fa-solid fa-camera"></i></div>
                                         <div class="prompt-title">ছবি আপলোড করুন</div>
                                     </div>
                                 </div>

@@ -97,7 +97,7 @@
     {{-- ── Distribution ─────────────────────────────────────── --}}
     @if($o['total'] > 0)
         <section class="seo-card seo-dist">
-            <div class="seo-card-head"><h3><i class="fa-solid fa-chart-simple"></i> Score spread</h3><small>{{ number_format($o['total']) }} pages</small></div>
+            <div class="seo-card-head"><h3>Score spread</h3><small>{{ number_format($o['total']) }} pages</small></div>
             <div class="seo-dist-bar" role="img" aria-label="Score spread">
                 @foreach($o['buckets'] as $label => $n)
                     @if($n > 0)
@@ -135,7 +135,7 @@
     @if($o['total'] > 0)
         <div class="seo-split">
             <section class="seo-card">
-                <div class="seo-card-head"><h3><i class="fa-solid fa-stethoscope"></i> Issues</h3><small>six checks · 100 points</small></div>
+                <div class="seo-card-head"><h3>Issues</h3><small>six checks · 100 points</small></div>
                 @php $anyIssue = array_sum($o['issues']) > 0; @endphp
                 @if($anyIssue)
                     <ul class="seo-issues">
@@ -157,7 +157,7 @@
             </section>
 
             <section class="seo-card">
-                <div class="seo-card-head"><h3><i class="fa-solid fa-shapes"></i> By type</h3><small>average score</small></div>
+                <div class="seo-card-head"><h3>By type</h3><small>average score</small></div>
                 <ul class="seo-types">
                     @foreach($o['types'] as $t)
                         @php $tt = $t['avg'] >= 100 ? 'perfect' : ($t['avg'] >= 80 ? 'good' : ($t['avg'] >= 50 ? 'fair' : 'poor')); @endphp

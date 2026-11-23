@@ -75,7 +75,7 @@
 
         <div class="adm-card bg-white rounded-4 shadow-sm border-0 overflow-hidden">
             <div class="adm-card__head p-3 border-bottom">
-                <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-receipt me-2 text-primary"></i> Recent Invoices & Bills</h6>
+                <h6 class="mb-0 fw-bold text-dark">Recent Invoices & Bills</h6>
             </div>
 
             @if ($bills->isEmpty())

@@ -29,7 +29,6 @@
     <section class="md-hero">
         <div class="md-hero-main">
             <div class="md-hero-title">
-                <span class="md-hero-icon"><i class="fa-solid fa-photo-film"></i></span>
                 <div>
                     <h2>Media library</h2>
                     <p><span data-stat="count">—</span> images · <span data-stat="bytes">—</span></p>
@@ -173,7 +172,6 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content md-modal">
             <div class="md-modal-head">
-                <span class="md-modal-icon"><i class="fa-solid fa-cloud-arrow-up"></i></span>
                 <div><h5 id="mdUploadTitle">Upload</h5><p>Drop, choose or paste images. They are resized and compressed for the web.</p></div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -215,7 +213,6 @@
     <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content md-modal">
             <div class="md-modal-head">
-                <span class="md-modal-icon"><i class="fa-solid fa-sliders"></i></span>
                 <div><h5 id="mdEditorTitle">Edit</h5><p id="mdEdMeta">—</p></div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

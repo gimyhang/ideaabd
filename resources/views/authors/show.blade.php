@@ -194,11 +194,7 @@
 
                     {{-- Action Buttons --}}
                     <div class="d-grid gap-2 mt-3">
-                        <button type="button" class="btn btn-warning rounded-pill fw-bold text-dark shadow-xs btn-sm py-2 d-flex align-items-center justify-content-center gap-2" 
-                                onclick="openShareAuthorModal()">
-                            <i class="fa-solid fa-share-nodes"></i>
-                            <span>প্রোফাইল শেয়ার করুন</span>
-                        </button>
+                        <x-share class="w-100" type="author" :id="$author->id" :url="route('authors.show', $author->slug ?: $author->id)" :title="$authorName . ' — লেখক প্রোফাইল'" :text="'আইডিয়া প্রকাশনে ' . $authorName . '-এর লেখক প্রোফাইল ও রচনাসমগ্র দেখুন'" :image="$photoUrl ?: null" :subtitle="$authorPenName ?: null" label="প্রোফাইল শেয়ার করুন" heading="লেখক প্রোফাইল শেয়ার করুন" />
                         
                         <div class="btn-group w-100">
                             <button type="button" class="btn btn-outline-primary btn-sm rounded-start-pill fw-semibold py-1.5" 
@@ -260,7 +256,7 @@
                 @if(isset($relatedAuthors) && $relatedAuthors->isNotEmpty())
                     <div class="card p-3.5 border-0 shadow-sm rounded-4 bg-white">
                         <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                            <h6 class="fw-bold text-dark mb-0 fs-6"><i class="fa-solid fa-users-line text-primary me-2"></i>অন্যান্য লেখকবৃন্দ</h6>
+                            <h6 class="fw-bold text-dark mb-0 fs-6">অন্যান্য লেখকবৃন্দ</h6>
                             <a href="{{ route('authors.index') }}" class="text-primary text-decoration-none small fw-semibold" style="font-size: 0.76rem;">সব দেখুন →</a>
                         </div>
                         <div class="d-flex flex-column gap-2.5">
@@ -301,7 +297,7 @@
                     
                     <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                         <h4 class="fw-bold text-dark mb-0 fs-5 d-flex align-items-center gap-2">
-                            <i class="fa-solid fa-book-open-reader text-primary"></i>
+                            
                             <span>লেখক পরিচিতি ও সাহিত্য জীবনবৃত্তান্ত</span>
                         </h4>
                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 small">
@@ -332,7 +328,7 @@
                         <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom gap-2">
                             <div class="d-flex align-items-center gap-2">
                                 <h4 class="fw-bold text-dark mb-0 fs-5 d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-book-bookmark text-primary"></i>
+                                    
                                     <span>প্রকাশিত মুদ্রিত গ্রন্থসমূহ</span>
                                 </h4>
                                 <span class="badge bg-primary text-white rounded-pill px-2.5 py-1 small">
@@ -371,7 +367,7 @@
                         <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
                             <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                                 <h4 class="fw-bold text-dark mb-0 fs-5 d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-tablet-screen-button text-info"></i>
+                                    
                                     <span>ডিজিটাল ই-বুক সম্ভার</span>
                                 </h4>
                                 <span class="badge bg-info text-dark rounded-pill px-2.5 py-1 small">
@@ -422,7 +418,7 @@
                         <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
                             <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                                 <h4 class="fw-bold text-dark mb-0 fs-5 d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-feather-pointed text-warning"></i>
+                                    
                                     <span>আইডিয়াপত্র ও প্রবন্ধসমূহ</span>
                                 </h4>
                                 <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1 small">
@@ -495,7 +491,7 @@
                         <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
                             <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                                 <h4 class="fw-bold text-dark mb-0 fs-5 d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-feather-pointed text-warning"></i>
+                                    
                                     <span>আইডিয়াপত্র ও প্রবন্ধসমূহ</span>
                                 </h4>
                                 <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1 small">
@@ -576,7 +572,7 @@
                         <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
                             <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                                 <h4 class="fw-bold text-dark mb-0 fs-5 d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-tablet-screen-button text-info"></i>
+                                    
                                     <span>ডিজিটাল ই-বুক সম্ভার</span>
                                 </h4>
                                 <span class="badge bg-info text-dark rounded-pill px-2.5 py-1 small">
@@ -619,7 +615,7 @@
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
                         <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                             <h4 class="fw-bold text-dark mb-0 fs-5 d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-book-journal-whills text-info"></i>
+                                
                                 <span>ওয়েবম্যাগাজিন ও সাময়িকীর প্রকাশনা</span>
                             </h4>
                             <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1 small">
@@ -669,52 +665,6 @@
 
     </div>
 
-</div>
-
-{{-- ========================================================================= --}}
-{{-- SHARE AUTHOR MODAL                                                        --}}
-{{-- ========================================================================= --}}
-<div class="modal fade" id="shareAuthorModal" tabindex="-1" aria-labelledby="shareAuthorModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header border-0 pb-0 pt-3.5 px-3.5 bg-light">
-                <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="shareAuthorModalLabel">
-                    <i class="fa-solid fa-share-nodes text-primary"></i>
-                    <span>লেখক প্রোফাইল শেয়ার করুন</span>
-                </h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-3.5 text-center">
-                <p class="text-muted small mb-3">সোশ্যাল মিডিয়ায় লেখকের প্রোফাইল শেয়ার করুন অথবা লিঙ্কটি কপি করুন:</p>
-                
-                @php
-                    $shareUrl = route('authors.show', $author->slug ?: $author->id);
-                    $shareText = urlencode("আইডিয়া প্রকাশনে {$authorName}-এর লেখক প্রোফাইল ও রচনাসমগ্র দেখুন: ");
-                    $shareUrlEncoded = urlencode($shareUrl);
-                @endphp
-
-                <div class="d-flex justify-content-center gap-2 mb-3">
-                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrlEncoded }}" target="_blank" class="btn btn-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width:42px;height:42px;" title="Facebook">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                    <a href="https://api.whatsapp.com/send?text={{ $shareText }}{{ $shareUrlEncoded }}" target="_blank" class="btn btn-success rounded-circle p-2 d-flex align-items-center justify-content-center" style="width:42px;height:42px;" title="WhatsApp">
-                        <i class="fab fa-whatsapp"></i>
-                    </a>
-                    <a href="https://twitter.com/intent/tweet?text={{ $shareText }}&url={{ $shareUrlEncoded }}" target="_blank" class="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center" style="width:42px;height:42px;" title="X (Twitter)">
-                        <i class="fab fa-x-twitter"></i>
-                    </a>
-                </div>
-
-                <div class="input-group input-group-sm">
-                    <input type="text" class="form-control rounded-start-pill bg-light" id="shareProfileUrlInput" value="{{ $shareUrl }}" readonly>
-                    <button class="btn btn-primary rounded-end-pill px-3 fw-bold" type="button" onclick="copyAuthorProfileLink()">কপি</button>
-                </div>
-                <div id="copySuccessAlert" class="small text-success fw-semibold mt-2 d-none">
-                    <i class="fas fa-circle-check me-1"></i> লিঙ্ক কপি করা হয়েছে!
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 {{-- ========================================================================= --}}
@@ -817,19 +767,7 @@
 
 <script>
 function openShareAuthorModal() {
-    if (navigator.share) {
-        navigator.share({
-            title: "{{ $authorName }} — লেখক প্রোফাইল | আইডিয়া প্রকাশন",
-            text: "{{ $authorBioOg }}",
-            url: "{{ route('authors.show', $author->slug ?: $author->id) }}"
-        }).catch(err => {
-            const modalEl = document.getElementById('shareAuthorModal');
-            if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
-        });
-    } else {
-        const modalEl = document.getElementById('shareAuthorModal');
-        if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
-    }
+    document.querySelector('[data-share][data-share-open]')?.click();
 }
 
 function copyAuthorProfileLink() {

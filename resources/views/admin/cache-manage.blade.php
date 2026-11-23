@@ -85,7 +85,6 @@
     {{-- Main actions --}}
     <section class="ck-main">
         <div class="ck-main-item">
-            <div class="ck-main-icon is-blue"><i class="fa-solid fa-gauge-high"></i></div>
             <div class="ck-main-text">
                 <h3>সাইট দ্রুত করুন</h3>
                 <p>রুট, ভিউ ও ইভেন্ট আগে থেকে তৈরি রাখে। কোড আপডেটের পর একবার চাপুন। কনফিগ ক্যাশ করা হয় না, তাই পেমেন্ট ও SMS নিরাপদ।</p>
@@ -93,7 +92,6 @@
             <button type="button" class="btn btn-primary" data-ck-action="{{ route('admin.cache.optimize') }}" data-busy="দ্রুত করা হচ্ছে…">দ্রুত করুন</button>
         </div>
         <div class="ck-main-item">
-            <div class="ck-main-icon is-green"><i class="fa-solid fa-fire"></i></div>
             <div class="ck-main-text">
                 <h3>ওয়ার্ম-আপ</h3>
                 <p>হোমপেজ, বইয়ের পাতা ও সাইটম্যাপ একবার খুলে ক্যাশ তৈরি করে, যাতে প্রথম ভিজিটরও দ্রুত পেজ পান।</p>
@@ -101,7 +99,6 @@
             <button type="button" class="btn btn-success" data-ck-action="{{ route('admin.cache.warmup') }}" data-busy="পেজ লোড হচ্ছে…">ওয়ার্ম-আপ</button>
         </div>
         <div class="ck-main-item">
-            <div class="ck-main-icon is-red"><i class="fa-solid fa-broom"></i></div>
             <div class="ck-main-text">
                 <h3>সব ক্যাশ পরিষ্কার</h3>
                 <p>কোনো পরিবর্তন সাইটে না দেখালে এটি শেষ উপায়। পরে “দ্রুত করুন” ও “ওয়ার্ম-আপ” চাপলে আবার দ্রুত হবে।</p>

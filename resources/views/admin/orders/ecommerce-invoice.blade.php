@@ -780,7 +780,7 @@
             <div class="modal-content border-0 shadow-lg rounded-3">
                 <div class="modal-header border-bottom p-3">
                     <h6 class="modal-title fw-bold text-dark" id="modalQuickEditLabel">
-                        <i class="fa-solid fa-pen-to-square me-1.5"></i> Edit Order Information
+                        Edit Order Information
                     </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>

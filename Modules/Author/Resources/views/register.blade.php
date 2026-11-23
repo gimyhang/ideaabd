@@ -529,9 +529,6 @@
 
                         <!-- Key Benefits List -->
                         <div class="benefit-card-clean">
-                            <div class="benefit-icon-clean" style="background: #ecfdf5; color: #059669;">
-                                <i class="fas fa-hand-holding-dollar"></i>
-                            </div>
                             <div>
                                 <h6 class="text-dark fw-bold mb-1" style="font-size: 0.96rem;">৫০%+ আকর্ষণীয় রয়্যালটি</h6>
                                 <p class="text-secondary small mb-0">ডিজিটাল ই-বুক ও মুদ্রিত বই বিক্রির ওপর নিয়মিত ও স্বচ্ছ রয়্যালটি অর্জন করুন।</p>
@@ -539,9 +536,6 @@
                         </div>
 
                         <div class="benefit-card-clean">
-                            <div class="benefit-icon-clean" style="background: #e0f2fe; color: #0284c7;">
-                                <i class="fas fa-shield-halved"></i>
-                            </div>
                             <div>
                                 <h6 class="text-dark fw-bold mb-1" style="font-size: 0.96rem;">কপিরাইট ও ডিআরএম সুরক্ষা</h6>
                                 <p class="text-secondary small mb-0">পাইরেসি প্রতিরোধক এনক্রিপ্টেড ওয়াটারমার্ক এবং আপনার স্বত্বাধিকারের শতভাগ নিশ্চয়তা।</p>
@@ -549,9 +543,6 @@
                         </div>
 
                         <div class="benefit-card-clean">
-                            <div class="benefit-icon-clean" style="background: #fef3c7; color: #d97706;">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
                             <div>
                                 <h6 class="text-dark fw-bold mb-1" style="font-size: 0.96rem;">স্বতন্ত্র লেখক ড্যাশবোর্ড</h6>
                                 <p class="text-secondary small mb-0">রিয়েলটাইম রিডার অ্যানালিটিক্স, রেটিং, বিক্রি ট্র্যাকিং এবং পেমেন্ট উইথড্র সুবিধা।</p>
@@ -623,7 +614,7 @@
                         <div class="wizard-step-section active" id="stepSection1">
                             <div class="d-flex align-items-center justify-content-between mb-4 pb-2.5 border-bottom">
                                 <h5 class="fw-bold text-dark mb-0">
-                                    <i class="fas fa-user-pen text-primary me-2"></i> লেখকের প্রাথমিক ও যোগাযোগের তথ্য
+                                    লেখকের প্রাথমিক ও যোগাযোগের তথ্য
                                 </h5>
                                 <span class="badge bg-light text-secondary border px-2.5 py-1">ধাপ ১ / ৩</span>
                             </div>
@@ -708,7 +699,7 @@
                         <div class="wizard-step-section" id="stepSection2">
                             <div class="d-flex align-items-center justify-content-between mb-4 pb-2.5 border-bottom">
                                 <h5 class="fw-bold text-dark mb-0">
-                                    <i class="fas fa-feather text-primary me-2"></i> সাহিত্যধারা ও লেখক পরিচিতি
+                                    সাহিত্যধারা ও লেখক পরিচিতি
                                 </h5>
                                 <span class="badge bg-light text-secondary border px-2.5 py-1">ধাপ ২ / ৩</span>
                             </div>
@@ -782,7 +773,7 @@
                         <div class="wizard-step-section" id="stepSection3">
                             <div class="d-flex align-items-center justify-content-between mb-4 pb-2.5 border-bottom">
                                 <h5 class="fw-bold text-dark mb-0">
-                                    <i class="fas fa-lock text-primary me-2"></i> সিকিউরিটি ও রয়্যালটি সেটিংস
+                                    সিকিউরিটি ও রয়্যালটি সেটিংস
                                 </h5>
                                 <span class="badge bg-light text-secondary border px-2.5 py-1">ধাপ ৩ / ৩</span>
                             </div>
@@ -887,7 +878,7 @@
         <div class="modal-content border-0 rounded-4 shadow-lg bg-white">
             <div class="modal-header border-bottom px-4 py-3 bg-light">
                 <h5 class="modal-title fw-bold text-dark" id="termsModalLabel">
-                    <i class="fas fa-file-contract text-primary me-2"></i> আইডিয়া প্রকাশন লেখক নীতিমালা ও রয়্যালটি চুক্তি
+                    আইডিয়া প্রকাশন লেখক নীতিমালা ও রয়্যালটি চুক্তি
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

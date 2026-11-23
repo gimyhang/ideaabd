@@ -346,6 +346,8 @@ Route::post('/author-honorarium/send', [\App\Http\Controllers\AuthorHonorariumCo
 // Static & Information Pages
 Route::view('/hub', 'frontend.pages.hub')->name('hub');
 Route::view('/about', 'frontend.pages.about')->name('about');
+// Share sheet counter for posts, e-books, webzines, authors and site pages (App\Support\Share)
+Route::post('/share/{type}/{key}', [\App\Http\Controllers\ShareController::class, 'track'])->where(['type' => 'post|ebook|webzine|author|page', 'key' => '[A-Za-z0-9_-]{1,60}'])->middleware('throttle:40,1,share')->name('share.track');
 Route::view('/faq', 'frontend.pages.faq')->name('faq');
 Route::view('/terms', 'frontend.pages.terms')->name('terms');
 Route::view('/terms-and-conditions', 'frontend.pages.terms')->name('terms.conditions');

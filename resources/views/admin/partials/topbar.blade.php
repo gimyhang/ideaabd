@@ -38,16 +38,16 @@
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                 <li><h6 class="dropdown-header text-uppercase small text-muted">Catalog</h6></li>
-                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'books') }}"><i class="fa-solid fa-book me-2 text-primary"></i>Book</a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'ebooks') }}"><i class="fa-solid fa-tablet-screen-button me-2 text-info"></i>Ebook</a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'blog') }}"><i class="fa-solid fa-blog me-2 text-success"></i>Post</a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'webzines') }}"><i class="fa-solid fa-newspaper me-2 text-warning"></i>Webzine</a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'authors') }}"><i class="fa-solid fa-pen-fancy me-2 text-secondary"></i>Author</a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'publishers') }}"><i class="fa-solid fa-building me-2 text-dark"></i>Publisher</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'books') }}">Book</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'ebooks') }}">Ebook</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'blog') }}">Post</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'webzines') }}">Webzine</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'authors') }}">Author</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'publishers') }}">Publisher</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><h6 class="dropdown-header text-uppercase small text-muted">Orders</h6></li>
-                <li><a class="dropdown-item" href="{{ route('admin.purchases.create') }}"><i class="fa-solid fa-cart-plus me-2 text-primary"></i>Purchase</a></li>
-                <li><a class="dropdown-item text-danger fw-bold" href="{{ route('subadmin.bills.create') }}"><i class="fa-solid fa-receipt me-2"></i>Bill</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.purchases.create') }}">Purchase</a></li>
+                <li><a class="dropdown-item text-danger fw-bold" href="{{ route('subadmin.bills.create') }}">Bill</a></li>
             </ul>
         </div>
 
@@ -79,7 +79,7 @@
             <div class="dropdown-menu dropdown-menu-end shadow-lg rounded-4 p-0 border-0 overflow-hidden" style="width: 330px;">
                 <div class="p-3 bg-primary text-white d-flex align-items-center justify-content-between">
                     <div>
-                        <h6 class="fw-bold mb-0 text-white"><i class="fa-solid fa-bell me-1.5"></i>Alerts</h6>
+                        <h6 class="fw-bold mb-0 text-white">Alerts</h6>
                         <small class="text-white-50" style="font-size: 0.72rem;">Pending</small>
                     </div>
                     @if($totalAlertCount > 0)
@@ -92,7 +92,6 @@
                     @if(($alerts['orders'] ?? 0) > 0)
                         <a href="{{ route('admin.ecommerce-orders', ['status' => 'pending']) }}" class="dropdown-item d-flex align-items-center justify-content-between p-2.5 rounded-3 mb-1 bg-light">
                             <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-warning text-dark p-2 rounded-circle"><i class="fa-solid fa-cart-shopping"></i></span>
                                 <div>
                                     <div class="fw-bold text-dark small">Orders</div>
                                 </div>
@@ -105,7 +104,6 @@
                     @if(($alerts['registrations'] ?? 0) > 0)
                         <a href="{{ route('admin.registrations.index', ['status' => 'pending']) }}" class="dropdown-item d-flex align-items-center justify-content-between p-2.5 rounded-3 mb-1 bg-light">
                             <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-danger text-white p-2 rounded-circle"><i class="fa-solid fa-user-clock"></i></span>
                                 <div>
                                     <div class="fw-bold text-dark small">Registrations</div>
                                 </div>
@@ -118,7 +116,6 @@
                     @if(($alerts['author_updates'] ?? 0) > 0)
                         <a href="{{ route('admin.registrations.index', ['type' => 'author']) }}" class="dropdown-item d-flex align-items-center justify-content-between p-2.5 rounded-3 mb-1 bg-warning-subtle">
                             <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-warning text-dark p-2 rounded-circle"><i class="fa-solid fa-user-pen"></i></span>
                                 <div>
                                     <div class="fw-bold text-dark small">Profiles</div>
                                 </div>
@@ -131,7 +128,6 @@
                     @if(($alerts['blogs'] ?? 0) > 0)
                         <a href="{{ route('admin.blog', ['status' => 'pending']) }}" class="dropdown-item d-flex align-items-center justify-content-between p-2.5 rounded-3 mb-1 bg-light">
                             <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-success text-white p-2 rounded-circle"><i class="fa-solid fa-feather-pointed"></i></span>
                                 <div>
                                     <div class="fw-bold text-dark small">Posts</div>
                                 </div>
@@ -144,7 +140,6 @@
                     @if(($alerts['book_requests'] ?? 0) > 0)
                         <a href="{{ route('admin.book-requests.index', ['status' => 'pending']) }}" class="dropdown-item d-flex align-items-center justify-content-between p-2.5 rounded-3 mb-1 bg-light">
                             <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-info text-white p-2 rounded-circle"><i class="fa-solid fa-book-bookmark"></i></span>
                                 <div>
                                     <div class="fw-bold text-dark small">Requests</div>
                                 </div>
@@ -157,7 +152,6 @@
                     @if(($alerts['submissions'] ?? 0) > 0)
                         <a href="{{ route('admin.authors') }}" class="dropdown-item d-flex align-items-center justify-content-between p-2.5 rounded-3 mb-1 bg-light">
                             <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-secondary text-white p-2 rounded-circle"><i class="fa-solid fa-file-lines"></i></span>
                                 <div>
                                     <div class="fw-bold text-dark small">Submissions</div>
                                 </div>
@@ -168,7 +162,7 @@
 
                     @if($totalAlertCount === 0)
                         <div class="p-3 text-center text-muted">
-                            <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
+                            
                             <div class="fw-bold small text-dark">Clear</div>
                         </div>
                     @endif
@@ -176,7 +170,7 @@
 
                 <div class="p-2 border-top bg-light text-center">
                     <a href="{{ route('admin.dashboard') }}" class="small fw-semibold text-primary text-decoration-none">
-                        <i class="fa-solid fa-chart-pie me-1"></i> Dashboard
+                        Dashboard
                     </a>
                 </div>
             </div>
@@ -229,46 +223,46 @@
                 @if (Route::has('admin.profile'))
                     <li>
                         <a class="dropdown-item py-1.5" href="{{ route('admin.profile') }}">
-                            <i class="fa-solid fa-user-gear me-2 text-primary"></i>Profile
+                            Profile
                         </a>
                     </li>
                     <li>
                         <a class="dropdown-item py-1.5" href="{{ route('admin.profile') }}#security">
-                            <i class="fa-solid fa-key me-2 text-danger"></i>Security
+                            Security
                         </a>
                     </li>
                     <li>
                         <a class="dropdown-item py-1.5" href="{{ route('admin.profile') }}#preferences">
-                            <i class="fa-solid fa-sliders me-2 text-success"></i>Preferences
+                            Preferences
                         </a>
                     </li>
                     <li><hr class="dropdown-divider my-1"></li>
                 @endif
 
                 @if (Route::has('admin.roles.index'))
-                    <li><a class="dropdown-item py-1.5" href="{{ route('admin.roles.index') }}"><i class="fa-solid fa-shield-halved me-2 text-info"></i>Roles</a></li>
+                    <li><a class="dropdown-item py-1.5" href="{{ route('admin.roles.index') }}">Roles</a></li>
                 @endif
                 @if (Route::has('admin.users'))
-                    <li><a class="dropdown-item py-1.5" href="{{ route('admin.users') }}"><i class="fa-solid fa-users me-2 text-secondary"></i>Users</a></li>
+                    <li><a class="dropdown-item py-1.5" href="{{ route('admin.users') }}">Users</a></li>
                 @endif
 
                 @if($me && $me->isAdmin())
                     <li><hr class="dropdown-divider my-1"></li>
                     <li class="dropdown-header text-uppercase small text-muted px-3" style="font-size: 10px;">Portals</li>
-                    <li><a class="dropdown-item py-1.5 text-success fw-semibold" href="{{ route('author.dashboard') }}"><i class="fa-solid fa-feather-pointed me-2"></i>Author</a></li>
-                    <li><a class="dropdown-item py-1.5 text-primary fw-semibold" href="{{ route('publisher.dashboard') }}"><i class="fa-solid fa-building me-2"></i>Publisher</a></li>
-                    <li><a class="dropdown-item py-1.5 text-warning fw-semibold" href="{{ route('subadmin.dashboard') }}"><i class="fa-solid fa-store me-2"></i>Seller</a></li>
-                    <li><a class="dropdown-item py-1.5 text-dark fw-semibold" href="{{ route('my-account') }}"><i class="fa-solid fa-user-tag me-2"></i>Buyer</a></li>
+                    <li><a class="dropdown-item py-1.5 text-success fw-semibold" href="{{ route('author.dashboard') }}">Author</a></li>
+                    <li><a class="dropdown-item py-1.5 text-primary fw-semibold" href="{{ route('publisher.dashboard') }}">Publisher</a></li>
+                    <li><a class="dropdown-item py-1.5 text-warning fw-semibold" href="{{ route('subadmin.dashboard') }}">Seller</a></li>
+                    <li><a class="dropdown-item py-1.5 text-dark fw-semibold" href="{{ route('my-account') }}">Buyer</a></li>
                 @endif
 
                 <li><hr class="dropdown-divider my-1"></li>
-                <li><a class="dropdown-item py-1.5" href="{{ route('home') }}" target="_blank" rel="noopener"><i class="fa-solid fa-globe me-2 text-muted"></i>Website</a></li>
+                <li><a class="dropdown-item py-1.5" href="{{ route('home') }}" target="_blank" rel="noopener">Website</a></li>
                 <li><hr class="dropdown-divider my-1"></li>
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="dropdown-item py-1.5 text-danger fw-semibold">
-                            <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Logout
+                            Logout
                         </button>
                     </form>
                 </li>

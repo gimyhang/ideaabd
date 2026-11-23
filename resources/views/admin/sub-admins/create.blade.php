@@ -15,7 +15,7 @@
             @csrf
 
             <div class="adm-card__head p-3 border-bottom">
-                <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-user-plus me-2 text-primary"></i> Account Information</h6>
+                <h6 class="mb-0 fw-bold text-dark">Account Information</h6>
             </div>
 
             <div class="adm-card__body p-4">

@@ -7,7 +7,7 @@
 </head>
 <body class="bg-gray-100 p-8">
     <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow">
-        <h1 class="text-2xl font-bold text-gray-800 mb-4">📚 আইডিয়া প্রকাশন ক্যাটালগ</h1>
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">আইডিয়া প্রকাশন ক্যাটালগ</h1>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @forelse($books as $book)

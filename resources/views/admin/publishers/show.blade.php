@@ -433,7 +433,7 @@
                     <thead class="table-light">
                         <tr>
                             <th class="ps-3" style="width: 40px;">
-                                <i class="fa-solid fa-check-square text-muted"></i>
+                                
                             </th>
                             <th style="min-width: 250px;">Book Info & Cover</th>
                             <th style="min-width: 130px;">Edition / Category</th>
@@ -674,7 +674,7 @@
     @if($activeTab === 'purchases')
         <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4 bg-white">
             <div class="p-3 bg-light bg-opacity-75 border-bottom d-flex align-items-center justify-content-between">
-                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-file-invoice-dollar me-1.5 text-primary"></i> Purchase Invoices & History</h6>
+                <h6 class="fw-bold text-dark mb-0">Purchase Invoices & History</h6>
                 <a href="{{ route('admin.purchases.create') }}?publisher_id={{ $publisher->id }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
                     <i class="fa-solid fa-plus me-1"></i> Create New Purchase Invoice
                 </a>
@@ -751,7 +751,7 @@
     @if($activeTab === 'payments')
         <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4 bg-white">
             <div class="p-3 bg-light bg-opacity-75 border-bottom d-flex align-items-center justify-content-between">
-                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-receipt me-1.5 text-success"></i> Payment Receipts & Financial Statement</h6>
+                <h6 class="fw-bold text-dark mb-0">Payment Receipts & Financial Statement</h6>
                 <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold" onclick="openMakePaymentModal()">
                     <i class="fa-solid fa-plus me-1"></i> Record New Payment
                 </button>
@@ -822,7 +822,7 @@
     {{-- ========================================================================= --}}
     @if($activeTab === 'analytics')
         <div class="adm-card p-4 shadow-sm border-0 rounded-4 bg-white">
-            <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-chart-line me-2 text-primary"></i> Top Performing & Bestselling Books</h5>
+            <h5 class="fw-bold text-dark mb-3">Top Performing & Bestselling Books</h5>
             
             <div class="table-responsive">
                 <table class="table adm-table align-middle mb-0">
@@ -912,7 +912,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0" id="purchaseOrderModalLabel">
-                    <i class="fa-solid fa-file-invoice-dollar me-2"></i> Send Purchase Order (PO) to Publisher
+                    Send Purchase Order (PO) to Publisher
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1000,7 +1000,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-success text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0" id="makePaymentModalLabel">
-                    <i class="fa-solid fa-hand-holding-dollar me-2"></i> Record Payment to Publisher
+                    Record Payment to Publisher
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1067,7 +1067,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0" id="editPublisherModalLabel">
-                    <i class="fa-solid fa-pen-to-square me-2"></i> Edit Publisher Information
+                    Edit Publisher Information
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

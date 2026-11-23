@@ -513,6 +513,28 @@ body.side-open .adm-backdrop {
     body.side-mini .adm-nav__group-items {
         display: flex !important;
     }
+
+    body.side-mini .adm-nav__mini {
+        display: inline-flex;
+    }
+}
+
+/* Menu initials: only the collapsed sidebar shows them (menu links carry no icons) */
+.adm-nav__mini {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .08);
+    font-size: .74rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+}
+
+.adm-nav__link.is-active .adm-nav__mini {
+    background: rgba(255, 255, 255, .2);
 }
 
 /* ── Shell ─────────────────────────────────────────────────── */

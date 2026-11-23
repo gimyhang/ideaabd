@@ -246,7 +246,7 @@
             <div class="mt-5">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-layer-group text-primary"></i>
+                        
                         <span>সম্পর্কিত অন্যান্য আকর্ষণীয় পণ্য</span>
                     </h4>
                     <a href="{{ route($product->shop_route) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">

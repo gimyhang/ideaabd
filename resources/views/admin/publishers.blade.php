@@ -432,7 +432,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0">
-                    <i class="fa-solid fa-building-circle-arrow-right me-1.5"></i> Add New Publisher / Imprint
+                    Add New Publisher / Imprint
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -507,7 +507,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-dark text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0">
-                    <i class="fa-solid fa-pen-to-square me-1.5 text-primary-subtle"></i> Edit Publisher Information
+                    Edit Publisher Information
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -588,7 +588,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-success text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0">
-                    <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> Record Payment Settlement to Publisher
+                    Record Payment Settlement to Publisher
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

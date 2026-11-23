@@ -65,7 +65,7 @@
                 {{-- Basics --}}
                 <div class="card border-0 shadow-xs rounded-4 bg-white p-4 mb-4">
                     <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-bullhorn text-primary"></i> Basics
+                        Basics
                     </h5>
 
                     <div class="mb-3">
@@ -245,7 +245,7 @@
                 <div class="card border-0 shadow-xs rounded-4 bg-white p-4 mb-4">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                            <i class="fa-solid fa-list-check text-success"></i> Standard Fields Settings
+                            Standard Fields Settings
                         </h5>
                         <span class="badge bg-light text-muted border">Title & Visibility</span>
                     </div>
@@ -334,7 +334,7 @@
                 <div class="card border-0 shadow-xs rounded-4 bg-white p-4 mb-4">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                            <i class="fa-solid fa-sliders text-primary"></i> Custom Fields (কমানো / বাড়ানো)
+                            Custom Fields (কমানো / বাড়ানো)
                         </h5>
                         <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold" onclick="addCustomField()">
                             <i class="fa-solid fa-plus me-1"></i> Add Field (বাড়ানো)
@@ -355,7 +355,7 @@
                 {{-- Fee & Donation Settings --}}
                 <div class="card border-0 shadow-xs rounded-4 bg-white p-4 mb-4">
                     <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-hand-holding-dollar text-success"></i> Fee & Donation
+                        Fee & Donation
                     </h5>
 
                     <div class="form-check form-switch mb-3">
@@ -407,7 +407,7 @@
                 {{-- Visual Theme & Colors --}}
                 <div class="card border-0 shadow-xs rounded-4 bg-white p-4 mb-4">
                     <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-palette text-warning"></i> Theme & Color
+                        Theme & Color
                     </h5>
 
                     <label class="form-label fw-semibold text-dark small mb-2">Accent Color</label>
@@ -430,7 +430,7 @@
                 {{-- Scheduling & Limits --}}
                 <div class="card border-0 shadow-xs rounded-4 bg-white p-4 mb-4">
                     <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-clock text-info"></i> Schedule & Limits
+                        Schedule & Limits
                     </h5>
 
                     <div class="mb-3">
@@ -457,7 +457,7 @@
                 {{-- Contact & Support --}}
                 <div class="card border-0 shadow-xs rounded-4 bg-white p-4 mb-4">
                     <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-headset text-secondary"></i> Contact & Support
+                        Contact & Support
                     </h5>
 
                     <div class="mb-3">
@@ -474,7 +474,7 @@
                 {{-- Post Submission & Actions --}}
                 <div class="card border-0 shadow-xs rounded-4 bg-white p-4 mb-4">
                     <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-paper-plane text-success"></i> Completion
+                        Completion
                     </h5>
 
                     <div class="mb-3">

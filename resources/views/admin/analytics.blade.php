@@ -150,7 +150,7 @@
         <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div>
                 <h6 class="fw-bold text-dark mb-0">
-                    <i class="fa-solid fa-chart-area text-primary me-1.5"></i> 14-Day Traffic & Engagement Trend
+                    14-Day Traffic & Engagement Trend
                 </h6>
                 <span class="text-muted small">Daily pageviews and unique user volume graph</span>
             </div>
@@ -179,7 +179,7 @@
             <div class="card border-0 shadow-xs rounded-4 bg-white h-100 overflow-hidden">
                 <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
                     <div>
-                        <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-earth-americas text-primary me-1.5"></i> Worldwide Geographic Reach</h6>
+                        <h6 class="fw-bold text-dark mb-0">Worldwide Geographic Reach</h6>
                         <span class="text-muted small" style="font-size: 11px;">Visitors classified by Country & Region</span>
                     </div>
                     <span class="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1 fw-bold">Global Scale</span>
@@ -295,7 +295,7 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-xs rounded-4 bg-white h-100 overflow-hidden">
                 <div class="card-header bg-white border-bottom py-3">
-                    <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-book-bookmark text-primary me-1.5"></i> Top Performing Books</h6>
+                    <h6 class="fw-bold text-dark mb-0">Top Performing Books</h6>
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush" style="font-size: 12.5px;">
@@ -325,7 +325,7 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-xs rounded-4 bg-white h-100 overflow-hidden">
                 <div class="card-header bg-white border-bottom py-3">
-                    <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-fire text-danger me-1.5"></i> Top Pages & Articles</h6>
+                    <h6 class="fw-bold text-dark mb-0">Top Pages & Articles</h6>
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush" style="font-size: 12.5px;">
@@ -355,7 +355,7 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-xs rounded-4 bg-white h-100 overflow-hidden">
                 <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
-                    <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-laptop-code text-success me-1.5"></i> Device Hardware & Tech</h6>
+                    <h6 class="fw-bold text-dark mb-0">Device Hardware & Tech</h6>
                     <span class="badge bg-success-subtle text-success rounded-pill px-2 py-0.5 small">Models</span>
                 </div>
                 <div class="card-body p-3">
@@ -442,7 +442,7 @@
     <div class="card border-0 shadow-xs rounded-4 bg-white overflow-hidden">
         <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
             <div>
-                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-tower-broadcast text-primary me-1.5"></i> Live Real-Time Activity Stream</h6>
+                <h6 class="fw-bold text-dark mb-0">Live Real-Time Activity Stream</h6>
                 <span class="text-muted small">Chronological stream of visitor clicks, device models, locations & referral sources</span>
             </div>
 
@@ -606,7 +606,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3 px-4">
                 <h6 class="modal-title fw-bold text-white mb-0" id="visitorDetailModalLabel">
-                    <i class="fa-solid fa-user-gear me-1.5"></i> Visitor Session Intelligence
+                    Visitor Session Intelligence
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

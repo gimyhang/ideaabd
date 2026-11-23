@@ -289,9 +289,6 @@
         <div class="row g-3 mb-5">
             <div class="col-6 col-md-3">
                 <div class="about-kpi-card">
-                    <div class="about-kpi-icon bg-primary bg-opacity-10 text-primary">
-                        <i class="fa-solid fa-book-open"></i>
-                    </div>
                     <h3 class="fw-bold mb-1 text-dark">{{ $about['stat_books_count'] ?? '৪৫০+' }}</h3>
                     <div class="small text-muted fw-semibold">{{ $about['stat_books_label'] ?? 'প্রকাশিত বই' }}</div>
                     <div class="text-muted opacity-75" style="font-size: 12px;">{{ $about['stat_books_sub'] ?? 'গবেষণা ও সাহিত্য' }}</div>
@@ -299,9 +296,6 @@
             </div>
             <div class="col-6 col-md-3">
                 <div class="about-kpi-card">
-                    <div class="about-kpi-icon bg-success bg-opacity-10 text-success">
-                        <i class="fa-solid fa-book-bookmark"></i>
-                    </div>
                     <h3 class="fw-bold mb-1 text-dark">{{ $about['stat_lib_count'] ?? '২৭,০০০+' }}</h3>
                     <div class="small text-muted fw-semibold">{{ $about['stat_lib_label'] ?? 'বিনামূল্যে বই বিতরণ' }}</div>
                     <div class="text-muted opacity-75" style="font-size: 12px;">{{ $about['stat_lib_sub'] ?? 'পাঠাগার আন্দোলন' }}</div>
@@ -309,9 +303,6 @@
             </div>
             <div class="col-6 col-md-3">
                 <div class="about-kpi-card">
-                    <div class="about-kpi-icon bg-warning bg-opacity-10 text-warning">
-                        <i class="fa-solid fa-award"></i>
-                    </div>
                     <h3 class="fw-bold mb-1 text-dark">{{ $about['stat_years_count'] ?? '২ দশক' }}</h3>
                     <div class="small text-muted fw-semibold">{{ $about['stat_years_label'] ?? 'নিরবচ্ছিন্ন প্রকাশনা' }}</div>
                     <div class="text-muted opacity-75" style="font-size: 12px;">{{ $about['stat_years_sub'] ?? 'জ্ঞানচর্চা ও বিকাশ' }}</div>
@@ -319,9 +310,6 @@
             </div>
             <div class="col-6 col-md-3">
                 <div class="about-kpi-card">
-                    <div class="about-kpi-icon bg-info bg-opacity-10 text-info">
-                        <i class="fa-solid fa-landmark"></i>
-                    </div>
                     <h3 class="fw-bold mb-1 text-dark">{{ $about['stat_fair_count'] ?? '১ দশক' }}</h3>
                     <div class="small text-muted fw-semibold">{{ $about['stat_fair_label'] ?? 'অমর একুশে বইমেলা' }}</div>
                     <div class="text-muted opacity-75" style="font-size: 12px;">{{ $about['stat_fair_sub'] ?? 'জাতীয় পরিসরে আঞ্চলিক স্বর' }}</div>
@@ -472,7 +460,7 @@
 
                     <!-- Table of Contents Links -->
                     <h6 class="fw-bold text-dark mb-2.5 small text-uppercase" style="letter-spacing: 0.5px;">
-                        <i class="fa-solid fa-list-ol text-info me-1"></i> বিষয়সূচি ও অনুচ্ছেদ
+                        বিষয়সূচি ও অনুচ্ছেদ
                     </h6>
                     <nav class="d-flex flex-column gap-1 mb-4" id="aboutTocNav">
                         <a href="#sec-philosophy" class="about-toc-link active">১. মূল দর্শন ও বুদ্ধিবৃত্তিক সেতু</a>
@@ -487,14 +475,7 @@
                     <!-- Quick Share -->
                     <div class="pt-3 border-top">
                         <div class="small fw-bold text-muted mb-2">এই প্রত্যয়পত্রটি শেয়ার করুন:</div>
-                        <div class="d-flex gap-2">
-                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url('/about')) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill flex-fill">
-                                <i class="fa-brands fa-facebook me-1"></i> ফেসবুক
-                            </a>
-                            <a href="https://api.whatsapp.com/send?text={{ urlencode($pageTitle . ' ' . url('/about')) }}" target="_blank" class="btn btn-outline-success btn-sm rounded-pill flex-fill">
-                                <i class="fa-brands fa-whatsapp me-1"></i> হোয়াটসঅ্যাপ
-                            </a>
-                        </div>
+                        <x-share class="w-100" type="page" id="about" :url="url('/about')" :title="$pageTitle" :image="$ogBanner" heading="পাতাটি শেয়ার করুন" />
                     </div>
 
                 </div>

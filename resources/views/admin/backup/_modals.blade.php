@@ -55,7 +55,7 @@
             <form id="restoreForm" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h6 class="modal-title mb-0 text-danger"><i class="fa-solid fa-rotate-left me-2"></i>Restore</h6>
+                    <h6 class="modal-title mb-0 text-danger">Restore</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="বন্ধ"></button>
                 </div>
                 <div class="modal-body">
@@ -78,7 +78,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div>
-                    <h6 class="modal-title mb-0"><i class="fa-solid fa-table-list me-2 text-primary"></i>Tables</h6>
+                    <h6 class="modal-title mb-0">Tables</h6>
                     <small class="text-muted font-monospace" id="selectiveFile"></small>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="বন্ধ"></button>
@@ -115,7 +115,7 @@
             <form action="{{ route('admin.backup.settings') }}" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h6 class="modal-title mb-0"><i class="fa-solid fa-gear me-2 text-primary"></i>Settings</h6>
+                    <h6 class="modal-title mb-0">Settings</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="বন্ধ"></button>
                 </div>
                 <div class="modal-body">

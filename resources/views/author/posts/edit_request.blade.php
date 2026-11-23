@@ -9,7 +9,7 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-2 border-bottom">
         <div>
             <h4 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
-                <i class="fas fa-file-pen text-warning"></i>
+                
                 <span>Post Edit Request</span>
             </h4>
         </div>
@@ -205,7 +205,7 @@
                 {{-- Notes / Reason Card --}}
                 <div class="author-card p-3 mb-4 border-start border-3 border-warning">
                     <h6 class="fw-bold mb-2 text-dark d-flex align-items-center gap-1.5">
-                        <i class="fas fa-clipboard-list text-warning"></i>
+                        
                         <span>Revision Notes <span class="text-danger">*</span></span>
                     </h6>
                     <textarea name="notes" id="editNotes" rows="3" 
@@ -219,7 +219,7 @@
                 {{-- Cover Image Card --}}
                 <div class="author-card p-3 mb-4">
                     <h6 class="fw-bold mb-2 text-dark d-flex align-items-center gap-1.5">
-                        <i class="fas fa-image text-primary"></i>
+                        
                         <span>Cover Image</span>
                     </h6>
 

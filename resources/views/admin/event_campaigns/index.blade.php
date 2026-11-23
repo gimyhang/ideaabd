@@ -32,7 +32,7 @@
                     </ol>
                 </nav>
                 <h1 class="h3 fw-bolder mb-1 text-white d-flex align-items-center gap-2.5">
-                    <i class="fa-solid fa-bullhorn text-warning fs-3"></i> Campaigns & Registration Studio
+                    Campaigns & Registration Studio
                 </h1>
                 <p class="text-white-50 small mb-0 font-monospace">
 
@@ -402,7 +402,7 @@
                 @method('PATCH')
                 <div class="modal-header border-bottom py-3 px-4 bg-light">
                     <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-pen-to-square text-primary"></i> <span id="quickEditModalTitleText">Change Campaign Title & Slug</span>
+                        <span id="quickEditModalTitleText">Change Campaign Title & Slug</span>
                     </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>

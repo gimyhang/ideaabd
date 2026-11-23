@@ -26,7 +26,7 @@
 @section('heading')
     <div class="d-flex align-items-center gap-2 flex-wrap">
         <span class="fs-5 fw-bold text-dark">
-            <i class="fa-solid fa-scale-balanced text-primary me-2"></i>TDS & VDS Deduction Register
+            TDS & VDS Deduction Register
         </span>
         @if($monthNameFormatted)
             <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1 font-monospace">
@@ -360,7 +360,7 @@
         <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
                 <h6 class="fw-bold mb-0 text-dark">
-                    <i class="fa-solid fa-table-list text-primary me-2"></i>TDS & VDS Deductions Register ({{ $deductions->count() }} records)
+                    TDS & VDS Deductions Register ({{ $deductions->count() }} records)
                 </h6>
                 <small class="text-muted">
                     Period: <strong class="text-dark">{{ $monthNameFormatted ?: ($dateFrom ? "{$dateFrom} to {$dateTo}" : 'All-Time Summary') }}</strong>
@@ -543,7 +543,7 @@
                 
                 <div class="modal-header bg-dark text-white py-3">
                     <h5 class="modal-title fw-bold" id="customPercentPresetsModalLabel">
-                        <i class="fa-solid fa-sliders text-warning me-2"></i>Customize VAT & Tax (%) Presets
+                        Customize VAT & Tax (%) Presets
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>

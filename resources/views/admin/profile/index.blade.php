@@ -79,7 +79,7 @@
 
             {{-- Quick System Shortcuts --}}
             <div class="adm-card p-3 shadow-sm border-0">
-                <h6 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-bolt text-warning me-2"></i>Quick Links</h6>
+                <h6 class="fw-bold mb-3 text-dark">Quick Links</h6>
                 <div class="d-flex flex-column gap-2">
                     <a href="{{ route('admin.roles.index') }}" class="btn btn-light text-start btn-sm py-2 d-flex justify-content-between align-items-center">
                         <span><i class="fa-solid fa-key text-primary me-2"></i>Roles & Permissions Matrix</span>
@@ -183,7 +183,7 @@
                             @csrf
                             
                             {{-- 1. UI Layout & View Customization --}}
-                            <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-desktop me-2 text-primary"></i>Display & Navigation</h6>
+                            <h6 class="fw-bold text-dark mb-3">Display & Navigation</h6>
                             <div class="row g-3 mb-4">
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold small text-dark">Default Landing Page</label>
@@ -234,7 +234,7 @@
                             <hr class="my-4">
 
                             {{-- 2. Instant Alerts & External Messaging --}}
-                            <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-bell me-2 text-warning"></i>Instant Alerts & Messaging</h6>
+                            <h6 class="fw-bold text-dark mb-3">Instant Alerts & Messaging</h6>
                             <div class="row g-3 mb-4">
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold small text-dark">Telegram Bot Chat ID</label>
@@ -278,7 +278,7 @@
                             <hr class="my-4">
 
                             {{-- 3. IP Whitelist Security Binding --}}
-                            <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-network-wired me-2 text-danger"></i>IP Whitelist & Restrictions</h6>
+                            <h6 class="fw-bold text-dark mb-2">IP Whitelist & Restrictions</h6>
                             <p class="text-muted small mb-2">Restrict access to specific IPs (comma separated, leave empty to allow all):</p>
                             <input type="text" name="ip_whitelist" class="form-control font-monospace mb-4" placeholder="e.g. 103.145.12.5, 127.0.0.1" value="{{ $preferences['ip_whitelist'] ?? '' }}">
 
@@ -320,7 +320,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-md-7">
-                                <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-signature text-info me-2"></i>Upload Digital Signature & Seal</h6>
+                                <h6 class="fw-bold text-dark mb-2">Upload Digital Signature & Seal</h6>
                                 <p class="text-muted small mb-3">
                                     Your uploaded signature or seal will automatically be printed on official customer invoices, receipts, delivery challans, and payroll vouchers.
                                 </p>
@@ -343,7 +343,7 @@
                     <div class="tab-pane fade" id="security" role="tabpanel">
                         <form method="POST" action="{{ route('admin.profile.password') }}">
                             @csrf
-                            <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-key me-2 text-danger"></i>Change Password</h6>
+                            <h6 class="fw-bold text-dark mb-3">Change Password</h6>
                             <div class="row g-3">
                                 <div class="col-12">
                                     <label class="form-label fw-bold small text-dark">Current Password <span class="text-danger">*</span></label>
@@ -369,7 +369,7 @@
 
                         {{-- Logout from Other Devices --}}
                         <div class="p-3 bg-light rounded-3 border">
-                            <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-laptop-code me-2 text-primary"></i>Logout Other Sessions & Devices</h6>
+                            <h6 class="fw-bold text-dark mb-1">Logout Other Sessions & Devices</h6>
                             <p class="text-muted small mb-3">Terminate all active login sessions on other computers and mobile devices.</p>
                             
                             <form method="POST" action="{{ route('admin.profile.logout-others') }}" class="d-flex flex-wrap gap-2"
@@ -389,7 +389,7 @@
                     {{-- Tab 5: Login Audit Trail --}}
                     <div class="tab-pane fade" id="logs" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Recent Login & Security Logs</h6>
+                            <h6 class="fw-bold text-dark mb-0">Recent Login & Security Logs</h6>
                             <span class="badge bg-light text-muted border">Last 8 Activities</span>
                         </div>
 

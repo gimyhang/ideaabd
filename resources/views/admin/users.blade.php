@@ -779,7 +779,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-dark text-white border-0 py-3 px-4">
                 <h6 class="modal-title fw-bold text-white d-flex align-items-center gap-2" id="quickPasswordResetModalLabel">
-                    <i class="fa-solid fa-key text-warning"></i>
+                    
                     <span>Password Reset</span>
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -867,7 +867,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header py-3 px-4 bg-dark text-white">
                 <h6 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-crown text-warning"></i>
+                    
                     <span>Assign Role</span>
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>

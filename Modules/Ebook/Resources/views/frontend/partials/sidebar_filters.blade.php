@@ -4,7 +4,7 @@
         {{-- Header & Reset --}}
         <div class="d-flex align-items-center justify-content-between pb-2 border-bottom">
             <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">
-                <i class="fa-solid fa-filter text-primary"></i>
+                
                 <span>ফিল্টার ও বাছাই</span>
             </h6>
             @if(request()->hasAny(['category', 'author', 'publisher', 'format', 'free_only', 'search', 'min_price', 'max_price', 'sort']))

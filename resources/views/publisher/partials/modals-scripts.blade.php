@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header border-bottom py-2.5 px-3">
-                <h6 class="modal-title fw-bold text-dark mb-0"><i class="fas fa-folder-plus text-primary me-1.5"></i> Add New Category</h6>
+                <h6 class="modal-title fw-bold text-dark mb-0">Add New Category</h6>
                 <button type="button" class="btn-close btn-close-xs" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-3">
@@ -27,7 +27,7 @@
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header border-bottom py-2.5 px-3">
-                <h6 class="modal-title fw-bold text-dark mb-0"><i class="fas fa-user-plus text-success me-1.5"></i> Add New Author</h6>
+                <h6 class="modal-title fw-bold text-dark mb-0">Add New Author</h6>
                 <button type="button" class="btn-close btn-close-xs" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-3">

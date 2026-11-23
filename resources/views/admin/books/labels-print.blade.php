@@ -214,7 +214,7 @@
 
     <div class="no-print-bar">
         <div>
-            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 2px;">🔖 বইমেলা ও শপ বারকোড / কিউআর স্টিকার লেবেল</h3>
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 2px;">বইমেলা ও শপ বারকোড / কিউআর স্টিকার লেবেল</h3>
             <p style="font-size: 12px; color: #64748b;">মোট {{ count($books) }} টি বইয়ের লেবেল জেনারেট হয়েছে (কপি: {{ $copies }} প্রতি বই)। থার্মাল স্টিকার রোল অথবা A4 শিটে প্রিন্ট করা যাবে।</p>
         </div>
         <div style="display: flex; gap: 10px; align-items: center;">

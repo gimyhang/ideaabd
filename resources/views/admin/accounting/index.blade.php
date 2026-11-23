@@ -452,9 +452,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-3 pb-2.5 border-bottom" style="border-bottom: 1px solid #f1f5f9 !important;">
                     <div>
                         <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                            <span class="badge bg-primary-subtle text-primary p-1.5 rounded-circle fs-6">
-                                <i class="fa-solid fa-chart-line"></i>
-                            </span>
+                            
                             <span>Cashflow</span>
                         </h6>
                     </div>
@@ -469,9 +467,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-3 pb-2.5 border-bottom" style="border-bottom: 1px solid #f1f5f9 !important;">
                     <div>
                         <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                            <span class="badge bg-danger-subtle text-danger p-1.5 rounded-circle fs-6">
-                                <i class="fa-solid fa-chart-pie"></i>
-                            </span>
+                            
                             <span>Expenses</span>
                         </h6>
                     </div>

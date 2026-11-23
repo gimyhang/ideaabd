@@ -66,7 +66,7 @@
     <div class="card p-4 p-md-5 mb-5 border-0 shadow-sm rounded-4 bg-white">
         <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
             <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                <i class="fa-solid fa-newspaper text-primary"></i>
+                
                 সর্বশেষ আইডিয়াপত্র ও সাহিত্য নিবন্ধ
             </h4>
             <a href="{{ route('blog.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">সকল আইডিয়াপত্র দেখুন</a>
@@ -117,7 +117,7 @@
     <div class="card p-4 p-md-5 mb-5 border-0 shadow-sm rounded-4 bg-white">
         <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
             <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                <i class="fa-solid fa-feather-pointed text-primary"></i>
+                
                 বৈশিষ্ট্যযুক্ত লেখকগণ
             </h4>
             <a href="{{ route('authors.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">সকল লেখক</a>

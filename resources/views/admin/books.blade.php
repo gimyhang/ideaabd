@@ -877,7 +877,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header text-white py-3" style="background: linear-gradient(135deg, #10b981, #059669);">
                 <h5 class="modal-title fw-bold text-white mb-0 fs-6" id="quickAddBookModalLabel">
-                    <i class="fa-solid fa-bolt me-1.5"></i> Quick Add Book
+                    Quick Add Book
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1182,7 +1182,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
                 <h5 class="modal-title fw-bold text-white mb-0 fs-6" id="quickBookEditModalLabel">
-                    <i class="fa-solid fa-bolt me-1.5"></i> Quick Book Editor
+                    Quick Book Editor
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1364,7 +1364,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-dark text-white py-2.5">
-                <h6 class="modal-title fw-bold mb-0 text-white"><i class="fa-solid fa-barcode me-1.5"></i> Barcode &amp; QR</h6>
+                <h6 class="modal-title fw-bold mb-0 text-white">Barcode &amp; QR</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4 bg-light">
@@ -1420,7 +1420,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-danger text-white py-2.5">
                 <h5 class="modal-title fs-6 fw-bold">
-                    <i class="fa-solid fa-triangle-exclamation me-1.5"></i> Reject Book
+                    Reject Book
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

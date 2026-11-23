@@ -128,7 +128,7 @@
                 <h1 class="h4 fw-bold mb-1 d-flex align-items-center gap-2">@yield('heading', 'Dashboard')</h1>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0 small">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-primary"><i class="fa-solid fa-house me-1"></i>Admin</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-primary">Admin</a></li>
                         @yield('breadcrumb')
                     </ol>
                 </nav>

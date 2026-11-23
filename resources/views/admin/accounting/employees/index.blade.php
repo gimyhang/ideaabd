@@ -355,7 +355,7 @@
             @csrf
             <div class="modal-header bg-dark text-white border-0 py-3">
                 <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-user-plus text-primary"></i> Add New Employee / Artisan
+                    Add New Employee / Artisan
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -527,7 +527,7 @@
             @method('PUT')
             <div class="modal-header bg-dark text-white border-0 py-3">
                 <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-pen-to-square text-primary"></i> Edit Staff / Artisan Profile
+                    Edit Staff / Artisan Profile
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -659,7 +659,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header bg-dark text-white border-0 py-3">
                 <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-id-card-clip text-primary"></i> Staff Profile & Work Status
+                    Staff Profile & Work Status
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>

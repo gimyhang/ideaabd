@@ -254,14 +254,14 @@
     <div class="bk-cols">
         {{-- Usage --}}
         <section class="bk-card">
-            <div class="bk-card-head"><h3><i class="fa-solid fa-chart-column"></i>Usage</h3><span class="bk-muted">শেষ ৬ মাস</span></div>
+            <div class="bk-card-head"><h3>Usage</h3><span class="bk-muted">শেষ ৬ মাস</span></div>
             <div class="bk-chart"><canvas id="usageChart" aria-label="Backup size by month"></canvas></div>
         </section>
 
         {{-- Tables --}}
         <section class="bk-card">
             <div class="bk-card-head">
-                <h3><i class="fa-solid fa-table"></i>Tables <span class="bk-count">{{ count($db['tables']) }}</span></h3>
+                <h3>Tables <span class="bk-count">{{ count($db['tables']) }}</span></h3>
                 <label class="bk-search is-small"><i class="fa-solid fa-magnifying-glass"></i><input type="search" id="schemaSearch" placeholder="Search table…" aria-label="Search tables"></label>
             </div>
             <div class="bk-schema">

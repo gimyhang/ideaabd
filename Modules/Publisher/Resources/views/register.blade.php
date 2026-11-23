@@ -456,9 +456,6 @@
 
                         <!-- Key B2B Benefits List -->
                         <div class="b2b-card-clean">
-                            <div class="b2b-icon-clean" style="background: #e0f2fe; color: #0284c7;">
-                                <i class="fas fa-globe"></i>
-                            </div>
                             <div>
                                 <h6 class="text-dark fw-bold mb-1" style="font-size: 0.95rem;">গ্লোবাল ই-বুক ও প্রিন্ট ডিস্ট্রিবিউশন</h6>
                                 <p class="text-secondary small mb-0">মুদ্রিত বইয়ের পাশাপাশি আন্তর্জাতিকমানের EPUB ও PDF ই-বুক রূপান্তর ও বিপণন।</p>
@@ -466,9 +463,6 @@
                         </div>
 
                         <div class="b2b-card-clean">
-                            <div class="b2b-icon-clean" style="background: #ecfdf5; color: #059669;">
-                                <i class="fas fa-boxes-stacked"></i>
-                            </div>
                             <div>
                                 <h6 class="text-dark fw-bold mb-1" style="font-size: 0.95rem;">সেন্ট্রালাইজড কোম্পানি ড্যাশবোর্ড</h6>
                                 <p class="text-secondary small mb-0">বইয়ের স্টক ম্যানেজমেন্ট, আজকের ক্রয় চালান ও সেলস রিপোর্ট রিয়েলটাইমে পরিচালনা করুন।</p>
@@ -476,9 +470,6 @@
                         </div>
 
                         <div class="b2b-card-clean">
-                            <div class="b2b-icon-clean" style="background: #eef2ff; color: #4f46e5;">
-                                <i class="fas fa-money-bill-transfer"></i>
-                            </div>
                             <div>
                                 <h6 class="text-dark fw-bold mb-1" style="font-size: 0.95rem;">দ্রুত পেমেন্ট ও স্বচ্ছ লেনদেন</h6>
                                 <p class="text-secondary small mb-0">সরাসরি প্রকাশনীর ব্যাংক একাউন্ট বা মোবাইল পেমেন্টে নিয়মিত বিল নিষ্পত্তি।</p>
@@ -550,7 +541,7 @@
                         <div class="wizard-step-section active" id="stepSection1">
                             <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
                                 <h5 class="fw-bold text-dark mb-0">
-                                    <i class="fas fa-building text-primary me-2"></i> প্রকাশনী বা প্রতিষ্ঠানের পরিচিতি
+                                    প্রকাশনী বা প্রতিষ্ঠানের পরিচিতি
                                 </h5>
                                 <span class="badge bg-light text-secondary">ধাপ ১ / ৩</span>
                             </div>
@@ -642,7 +633,7 @@
                         <div class="wizard-step-section" id="stepSection2">
                             <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
                                 <h5 class="fw-bold text-dark mb-0">
-                                    <i class="fas fa-layer-group text-primary me-2"></i> প্রকাশনা ক্যাটাগরি ও ব্র্যান্ডিং
+                                    প্রকাশনা ক্যাটাগরি ও ব্র্যান্ডিং
                                 </h5>
                                 <span class="badge bg-light text-secondary">ধাপ ২ / ৩</span>
                             </div>
@@ -709,7 +700,7 @@
                         <div class="wizard-step-section" id="stepSection3">
                             <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
                                 <h5 class="fw-bold text-dark mb-0">
-                                    <i class="fas fa-lock text-primary me-2"></i> একাউন্ট সিকিউরিটি ও পরিবেশনা চুক্তি
+                                    একাউন্ট সিকিউরিটি ও পরিবেশনা চুক্তি
                                 </h5>
                                 <span class="badge bg-light text-secondary">ধাপ ৩ / ৩</span>
                             </div>
@@ -772,7 +763,7 @@
         <div class="modal-content border-0 rounded-4 shadow-lg bg-white">
             <div class="modal-header border-bottom px-4 py-3 bg-light">
                 <h5 class="modal-title fw-bold text-dark" id="termsModalLabel">
-                    <i class="fas fa-file-contract text-primary me-2"></i> আইডিয়া প্রকাশনী পরিবেশনা ও বিক্রয় চুক্তিমালা
+                    আইডিয়া প্রকাশনী পরিবেশনা ও বিক্রয় চুক্তিমালা
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

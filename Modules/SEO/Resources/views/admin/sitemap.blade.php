@@ -71,7 +71,7 @@
     {{-- Files --}}
     <div class="sm-card mb-4 overflow-hidden">
         <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
-            <h6 class="fw-bold mb-0"><i class="fa-solid fa-sitemap text-success me-2"></i>Files</h6>
+            <h6 class="fw-bold mb-0">Files</h6>
             <div class="d-flex gap-2 align-items-center">
                 <a href="{{ $sitemapUrl }}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm rounded-pill px-3"><i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Open</a>
                 <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-copy="{{ $sitemapUrl }}"><i class="fa-solid fa-copy me-1"></i> Copy URL</button>
@@ -106,7 +106,7 @@
         {{-- Ping --}}
         <div class="col-lg-5">
             <div class="sm-card p-4 h-100">
-                <h6 class="fw-bold mb-1"><i class="fa-solid fa-bolt text-info me-2"></i>Ping</h6>
+                <h6 class="fw-bold mb-1">Ping</h6>
                 <p class="text-muted small mb-3">Tell search engines the sitemap changed.</p>
                 <div id="smPingResult" class="d-flex flex-wrap gap-2"><span class="text-muted small">No ping sent in this session.</span></div>
 
@@ -123,7 +123,7 @@
         <div class="col-lg-7">
             <div class="sm-card p-4 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-3">
-                    <h6 class="fw-bold mb-0"><i class="fa-solid fa-robot text-primary me-2"></i>Robots</h6>
+                    <h6 class="fw-bold mb-0">Robots</h6>
                     <div class="d-flex gap-2">
                         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-copy-target="#smRobots"><i class="fa-solid fa-copy me-1"></i> Copy</button>
                         <a href="{{ $robotsUrl }}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm rounded-pill px-3"><i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Open</a>
