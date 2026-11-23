@@ -2411,7 +2411,8 @@ class AdminController extends Controller
         $perPage    = in_array((int) $request->input('per_page'), [12, 24, 28, 48, 96], true) ? (int) $request->input('per_page') : 24;
 
         $query = \Modules\Author\Models\Author::query()
-            ->with(['user:id,name,email,phone,role,reg_status,reg_type'])
+            // avatar / reg_data: authors who signed up through the portal keep their photo on the account
+            ->with(['user:id,name,email,phone,role,reg_status,reg_type,avatar,reg_data'])
             ->withCount('books')
             ->with(['books' => function ($q) {
                 $q->select(['books.id', 'books.title', 'books.slug', 'books.cover_image', 'books.price', 'books.sales_count'])

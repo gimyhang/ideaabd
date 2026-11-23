@@ -293,11 +293,13 @@ class Author extends Model
      */
     public function getAvatarUrlAttribute(): ?string
     {
-        $avatar = $this->avatar 
-            ?? $this->author_image 
-            ?? $this->photo 
-            ?? $this->image 
-            ?? ($this->user?->avatar ?? ($this->user?->reg_data['avatar'] ?? null));
+        // First photo that is really set: the author's own, then the portal account's (empty strings do not count).
+        $regData = $this->user?->reg_data;
+        $regData = is_array($regData) ? $regData : (json_decode((string) $regData, true) ?: []);
+        $avatar = collect([
+            $this->avatar, $this->author_image, $this->photo, $this->image,
+            $this->user?->avatar, $regData['avatar'] ?? null, $regData['photo'] ?? null, $regData['profile_photo'] ?? null,
+        ])->first(fn ($v) => is_string($v) && trim($v) !== '');
 
         if (empty($avatar)) {
             return null;

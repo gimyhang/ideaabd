@@ -10,7 +10,7 @@ body.dark-mode .ad-page { --ad-line: #334155; --ad-soft: #111827; --ad-ink: #f1f
 .ad-filters { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
 .ad-filter { display: grid; gap: 2px; padding: 12px 14px; border: 1px solid var(--ad-line); border-radius: 14px; background: var(--ad-card);
     text-decoration: none; color: var(--ad-ink); transition: border-color .15s, box-shadow .15s, transform .15s; }
-.ad-filter:hover { border-color: var(--ad-blue); transform: translateY(-1px); }
+.ad-filter:hover { border-color: var(--ad-blue); }
 .ad-filter.is-active { border-color: var(--ad-blue); box-shadow: 0 0 0 3px rgba(37, 99, 235, .14); background: #f5f9ff; }
 body.dark-mode .ad-filter.is-active { background: #13213d; }
 .ad-filter__label { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ad-mute); }
@@ -46,8 +46,11 @@ body.dark-mode .ad-filter.is-active { background: #13213d; }
 /* cards */
 .ad-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
 .ad-card { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 14px 14px 12px;
-    border: 1px solid var(--ad-line); border-radius: 16px; background: var(--ad-card); transition: box-shadow .15s, transform .15s, border-color .15s; }
-.ad-card:hover { box-shadow: 0 10px 26px rgba(15, 23, 42, .09); transform: translateY(-2px); border-color: #cbd5e1; }
+    border: 1px solid var(--ad-line); border-radius: 16px; background: var(--ad-card); transition: box-shadow .15s, border-color .15s; }
+.ad-card:hover { box-shadow: 0 10px 26px rgba(15, 23, 42, .09); border-color: #cbd5e1; }
+/* no transform on cards: it would trap the "⋯" menu inside the card, under the next row */
+.ad-card:has(.dropdown-menu.show), .ad-list tbody tr:has(.dropdown-menu.show) { z-index: 40; }
+.ad-card .dropdown-menu, .ad-list .dropdown-menu { z-index: 1060; }
 .ad-card.is-off { background: var(--ad-soft); }
 .ad-card.is-off .ad-avatar { filter: grayscale(.7); opacity: .75; }
 .ad-card__top { align-self: stretch; display: flex; justify-content: space-between; align-items: center; min-height: 22px; }
@@ -93,6 +96,7 @@ body.dark-mode .ad-tag--blue { background: #172554; border-color: #1e3a8a; color
 .ad-list thead th { position: sticky; top: 0; background: var(--ad-soft); color: var(--ad-mute); font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 10px 12px; border-bottom: 1px solid var(--ad-line); white-space: nowrap; }
 .ad-list tbody td { padding: 10px 12px; border-bottom: 1px solid #eef2f7; vertical-align: middle; font-size: 13px; }
 .ad-list tbody tr:last-child td { border-bottom: 0; }
+.ad-list tbody tr { position: relative; }
 .ad-list tbody tr:hover td { background: #f8fbff; }
 .ad-list tbody tr.is-off td { background: var(--ad-soft); }
 body.dark-mode .ad-list tbody td { border-color: #1f2937; }
