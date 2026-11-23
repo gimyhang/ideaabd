@@ -71,7 +71,7 @@
         <h4 class="fw-bold text-dark mb-2">আপনার শপিং কার্ট বর্তমানে খালি</h4>
         <p class="text-muted mb-4" style="max-width: 420px; margin: 0 auto;">আপনার পছন্দের কোনো বই বা পণ্য এখনো কার্টে যোগ করা হয়নি। আমাদের সমৃদ্ধ ক্যাটালগ থেকে বই বেছে নিন।</p>
         <div>
-            <a href="{{ route('book.index') }}" class="btn btn-primary rounded-pill px-5 py-2.5 fw-bold shadow-sm">
+            <a href="{{ route('book.index') }}" class="btn btn-primary rounded-pill px-4 px-sm-5 py-2.5 fw-bold shadow-sm text-nowrap">
                 <i class="fa-solid fa-book-open me-2"></i> বই ক্যাটালগ দেখুন
             </a>
         </div>

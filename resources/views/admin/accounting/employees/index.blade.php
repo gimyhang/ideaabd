@@ -14,7 +14,7 @@
         <div class="card-body p-3 p-md-4">
             <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
                 <div>
-                    <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 small fw-bold">
                             <i class="fa-solid fa-users me-1"></i> HR & Payroll Management
                         </span>

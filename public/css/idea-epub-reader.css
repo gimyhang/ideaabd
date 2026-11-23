@@ -305,6 +305,7 @@ body.zen-mode .reader-main {
     height: 100%;
     pointer-events: none;
     z-index: 30;
+    overflow: hidden;   /* rotated watermark text must not widen the page on tablets */
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
@@ -439,6 +440,10 @@ body.zen-mode .nav-arrow:hover {
 .reader-drawer.open {
     transform: translateX(0);
 }
+/* closed drawers sit fully off screen (no left edge sliver) and out of the tab order */
+.reader-drawer { left: 0; }
+.reader-drawer:not(.open) { visibility: hidden; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 0.3s; }
+.reader-drawer.open { visibility: visible; transition-delay: 0s; }
 .reader-drawer-right {
     right: 0;
     left: auto;

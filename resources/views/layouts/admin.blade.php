@@ -110,6 +110,8 @@
         })();
     </script>
 
+    {{-- shared device rules (phones/tablets) --}}
+    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ @filemtime(public_path('css/responsive.css')) }}">
     @stack('styles')
 </head>
 <body class="{{ $adminThemeMode === 'dark' ? 'dark-mode' : '' }} sidebar-{{ str_replace('theme-', '', $adminSidebar) }} font-{{ strtolower(str_replace(' ', '-', $adminFont)) }}">
@@ -551,6 +553,7 @@
     <script src="{{ asset('js/admin-order-alerts.js') }}?v={{ @filemtime(public_path('js/admin-order-alerts.js')) ?: 1 }}" defer></script>
 @endif
 
+<script src="{{ asset('js/responsive.js') }}?v={{ @filemtime(public_path('js/responsive.js')) }}" defer></script>
 @stack('scripts')
 </body>
 </html>

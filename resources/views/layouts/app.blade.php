@@ -467,6 +467,8 @@
     {{-- Dynamic View Stylesheets & Head Stacks --}}
     @yield('styles')
     @yield('css')
+    {{-- shared device rules (phones/tablets) --}}
+    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ @filemtime(public_path('css/responsive.css')) }}">
     @stack('styles')
     @stack('head')
 </head>
@@ -1009,6 +1011,7 @@
 
     {{-- Both mechanisms are supported: @section('scripts') and @push('scripts') --}}
     @yield('scripts')
+    <script src="{{ asset('js/responsive.js') }}?v={{ @filemtime(public_path('js/responsive.js')) }}" defer></script>
     @stack('scripts')
 </body>
 </html>

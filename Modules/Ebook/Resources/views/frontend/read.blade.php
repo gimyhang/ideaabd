@@ -88,11 +88,11 @@
             <!-- Settings Drawer Trigger (Prominently Accessible) -->
             <button type="button" class="reader-btn reader-btn-primary" id="btn-toggle-settings" title="ফন্ট, থিম ও রিডিং সেটিংস">
                 <i class="fa-solid fa-sliders"></i>
-                <span>সেটিংস</span>
+                <span class="d-none d-sm-inline">সেটিংস</span>
             </button>
 
             <!-- Fullscreen Toggle -->
-            <button type="button" class="reader-btn" id="btn-fullscreen" title="ফুলস্ক্রিন (F)">
+            <button type="button" class="reader-btn d-none d-sm-inline-flex" id="btn-fullscreen" title="ফুলস্ক্রিন (F)">
                 <i class="fa-solid fa-expand"></i>
             </button>
         </div>

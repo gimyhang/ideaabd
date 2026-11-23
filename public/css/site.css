@@ -750,6 +750,19 @@ img, svg, video, canvas, audio, iframe {
         margin-left: auto;
         flex: 0 0 auto;
     }
+    /* logo and buttons share the first row: the desktop min-widths (180px each) pushed them onto two rows */
+    .site-brand-wrapper {
+        order: 1;
+        min-width: 0 !important;
+        flex: 0 0 auto;
+    }
+    .site-brand-wrapper .site-brand { max-width: none !important; }
+    .site-brand-wrapper .site-brand__img { max-width: 160px; height: 44px; width: auto; }
+    .site-mainbar .site-actions {
+        order: 2;
+        min-width: 0 !important;
+        margin-left: auto;
+    }
     .site-search {
         order: 3;
         flex-basis: 100% !important;
@@ -762,6 +775,19 @@ img, svg, video, canvas, audio, iframe {
     }
     .site-head__main { flex-wrap: wrap; row-gap: .6rem; }
     .site-brand__name { font-size: 1.15rem; }
+}
+
+@media (max-width: 575.98px) {
+    /* home + footer trust cards: icon above, text wraps instead of being cut with "…" */
+    .trust-card, .footer-feature-item { flex-direction: column !important; text-align: center !important; justify-content: flex-start !important; gap: .4rem !important; }
+    .trust-card .text-truncate, .footer-feature-item .text-truncate { white-space: normal; overflow: visible; text-overflow: clip; }
+    .footer-feature-item .text-start { text-align: center !important; }
+}
+
+@media (max-width: 379.98px) {
+    /* smallest phones: login shows only its icon so logo and buttons still fit one row */
+    .btn-hdr-login .auth-text { display: none; }
+    .btn-hdr-login { padding-left: .6rem !important; padding-right: .6rem !important; }
 }
 
 @media (max-width: 575.98px) {

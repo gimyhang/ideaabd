@@ -331,6 +331,8 @@
     /* tablets and phones: label above value, one field per line */
     @media (max-width: 767.98px) {
         .container.py-4 { padding-inline: 8px; padding-block: 10px !important; }
+        /* the site footer shares the class pair: keep its normal gutters */
+        .site-footer .container.py-4 { padding-inline: calc(var(--bs-gutter-x, 1.5rem) * .5); padding-block: 1.5rem !important; }
         .grid-table:not(.text-center), .grid-table:not(.text-center) tbody,
         .grid-table:not(.text-center) tr, .grid-table:not(.text-center) td { display: block; width: 100% !important; min-width: 0 !important; }
         .grid-table:not(.text-center) tr { border-bottom: 1px solid #e2e8f0; padding: 4px 0 6px; }

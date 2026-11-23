@@ -169,7 +169,7 @@
             @endphp
             @foreach($features as $f)
             <div class="col-6 col-lg-3">
-                <div class="card p-2.5 p-md-3 h-100 border-0 shadow-2xs rounded-4 bg-white d-flex flex-row align-items-center gap-2.5 text-start hover-lift" style="border: 1px solid #f1f5f9 !important;">
+                <div class="card trust-card p-2.5 p-md-3 h-100 border-0 shadow-2xs rounded-4 bg-white d-flex flex-row align-items-center gap-2.5 text-start hover-lift" style="border: 1px solid #f1f5f9 !important;">
                     <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 {{ $f[4] }}" style="width: 44px; height: 44px;">
                         <i class="fa-solid {{ $f[0] }} fs-5" style="color: {{ $f[3] }};"></i>
                     </div>

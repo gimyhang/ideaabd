@@ -37,7 +37,7 @@
                     </label>
                     <input type="date" name="end_date" value="{{ request('end_date') }}" class="form-control form-control-sm rounded-3 font-monospace">
                 </div>
-                <div class="col-12 col-md-2 d-flex gap-1.5 align-self-end">
+                <div class="col-12 col-md-2 d-flex flex-wrap gap-1.5 align-self-end">
                     <button type="submit" class="btn btn-sm btn-primary rounded-pill flex-fill fw-bold shadow-xs">
                         <i class="fas fa-filter me-1"></i> Filter
                     </button>

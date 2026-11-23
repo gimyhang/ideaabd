@@ -160,6 +160,12 @@ body.dark-mode .md-folder[data-folder="all"] { --c: #e8edf6 !important; }
     background: linear-gradient(transparent, rgba(15, 23, 42, .6)); opacity: 0; transform: translateY(6px); transition: opacity .15s, transform .15s;
 }
 .md-card:hover .md-hover, .md-card:focus-within .md-hover { opacity: 1; transform: none; }
+/* touch screens have no hover: keep the select box and the card tools visible, with finger-sized buttons */
+@media (hover: none) {
+    .md-card .md-check, .md-hover { opacity: 1; transform: none; }
+    .md-hover button { width: 38px; height: 38px; }
+    .md-card:hover .md-thumb img { transform: none; }
+}
 .md-hover button { width: 32px; height: 32px; border-radius: 9px; border: 0; background: rgba(255, 255, 255, .95); color: #0f172a; font-size: 13px; cursor: pointer; }
 .md-hover button:hover { background: #fff; color: #2563eb; }
 .md-info { padding: 9px 11px 10px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }

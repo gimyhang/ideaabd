@@ -1,0 +1,76 @@
+/*
+ * Shared device rules for every layout (site, admin, author portal). Loaded last so it only fills gaps;
+ * page styles still win where they are more specific. Pair: public/js/responsive.js
+ */
+
+/* media never wider than its box */
+img, video, canvas, iframe, embed, object { max-width: 100%; }
+video { height: auto; }
+
+/* long words, links and numbers wrap instead of pushing the page sideways */
+p, li, dd, dt, blockquote, figcaption, h1, h2, h3, h4, h5, h6, label, .card-title, .card-text, .alert, .modal-title, .breadcrumb-item {
+    overflow-wrap: break-word;
+}
+pre { max-width: 100%; overflow-x: auto; white-space: pre-wrap; }
+
+/* box that responsive.js wraps around tables wider than their column */
+.rsp-scroll { width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+.rsp-scroll > table { margin-bottom: 0; }
+.rsp-scroll.is-scrollable { background:
+        linear-gradient(to right, var(--bs-body-bg, #fff) 30%, transparent) left / 24px 100% no-repeat local,
+        linear-gradient(to left, var(--bs-body-bg, #fff) 30%, transparent) right / 24px 100% no-repeat local,
+        radial-gradient(farthest-side at 0 50%, rgba(15, 23, 42, .14), transparent) left / 10px 100% no-repeat scroll,
+        radial-gradient(farthest-side at 100% 50%, rgba(15, 23, 42, .14), transparent) right / 10px 100% no-repeat scroll; }
+
+/* Bootstrap: a table already inside .table-responsive keeps that box; give it momentum scrolling */
+.table-responsive { -webkit-overflow-scrolling: touch; }
+
+/* iPhone zooms the page when a field's text is under 16px: keep fields at 16px on touch phones */
+@media (max-width: 767.98px) and (hover: none) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+    select, textarea, .form-control, .form-select {
+        font-size: 16px !important;
+    }
+}
+
+/* phones */
+@media (max-width: 575.98px) {
+    /* button rows wrap instead of running off the edge */
+    .btn-toolbar { flex-wrap: wrap; }
+    .btn-group:not(.btn-group-vertical) { flex-wrap: wrap; }
+    .btn-group:not(.btn-group-vertical) > .btn { flex: 1 1 auto; }
+    /* modals use the whole width */
+    .modal-dialog { margin: .5rem; max-width: calc(100% - 1rem); }
+    .modal-xl, .modal-lg { max-width: calc(100% - 1rem); }
+    /* dropdowns stay on screen */
+    .dropdown-menu { max-width: calc(100vw - 1rem); }
+    /* pagination wraps */
+    .pagination { flex-wrap: wrap; row-gap: .35rem; }
+    /* tabs scroll sideways instead of breaking the layout */
+    .nav-tabs, .nav-pills { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .nav-tabs::-webkit-scrollbar, .nav-pills::-webkit-scrollbar { display: none; }
+    .nav-tabs .nav-link, .nav-pills .nav-link { white-space: nowrap; }
+    .nav-pills.flex-column, .nav-tabs.flex-column { flex-wrap: wrap; overflow: visible; }
+    /* section headers (title … "see all"): the small link stays on one line, the title wraps instead */
+    .justify-content-between > a.btn-sm, .justify-content-between > div > a.btn-sm { white-space: nowrap; flex-shrink: 0; }
+    .justify-content-between h4.d-flex, .justify-content-between h5.d-flex, .justify-content-between h3.d-flex { flex-wrap: wrap; row-gap: .25rem; }
+    .justify-content-between > div:first-child { min-width: 0; }
+    /* call-to-action pills with an icon keep their label on one line when it fits */
+    .btn-lg.rounded-pill { white-space: normal; padding-left: 1.25rem; padding-right: 1.25rem; }
+}
+
+/* touch screens have no hover: controls that only appeared on hover stay visible */
+@media (hover: none) {
+    .cat-modern-card .cat-nav-pill { opacity: 1; visibility: visible; }      /* admin categories */
+    .lh-photo-box.has-photo .lh-photo-change-overlay { opacity: 1; }         /* writer registration photo */
+}
+
+/* bottom-fixed bars clear the iPhone home indicator */
+@supports (padding: max(0px)) {
+    .fixed-bottom, .sticky-bottom { padding-bottom: max(.5rem, env(safe-area-inset-bottom)); }
+}
+
+/* print keeps tables whole */
+@media print {
+    .rsp-scroll { overflow: visible !important; background: none !important; }
+}

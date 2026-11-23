@@ -2,6 +2,7 @@
 <html lang="bn">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Receipt #{{ $bill->bill_no }} — {{ $invoiceSettings['company_name'] ?? config('brand.name', 'আইডিয়া প্রকাশন') }}</title>
     <link href="{{ asset('css/kalpurush-font.css') }}" rel="stylesheet">
     <style>

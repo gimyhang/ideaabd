@@ -177,6 +177,8 @@
             width: 290px !important;
         }
     </style>
+    {{-- shared device rules (phones/tablets) --}}
+    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ @filemtime(public_path('css/responsive.css')) }}">
     @stack('styles')
 </head>
 <body>
@@ -384,7 +386,7 @@
     <div class="author-main">
         {{-- Top Navbar --}}
         <header class="bg-white border-bottom py-2.5 px-3 px-md-4 d-flex align-items-center justify-content-between sticky-top shadow-xs">
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2" style="min-width: 0;">
                 <button class="btn btn-sm btn-outline-secondary d-lg-none rounded-pill px-2.5 py-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileAuthorDrawer" aria-controls="mobileAuthorDrawer">
                     <i class="fas fa-bars"></i>
                 </button>
@@ -398,7 +400,7 @@
                         <kbd class="bg-light text-muted border px-1 py-0 ms-0.5 d-none d-md-inline small font-monospace" style="font-size: 0.65rem;">⌫</kbd>
                     </button>
                 @endif
-                <h5 class="fw-bold mb-0 text-dark" style="font-size: 1.05rem;">@yield('heading', 'Author Studio')</h5>
+                <h5 class="fw-bold mb-0 text-dark text-truncate" style="font-size: 1.05rem; min-width: 0;">@yield('heading', 'Author Studio')</h5>
             </div>
 
             <div class="d-flex align-items-center gap-2">
@@ -411,7 +413,7 @@
                             aria-expanded="false" 
                             title="My Account Options">
                         <i class="fas fa-user-circle text-primary"></i>
-                        <span>My Account</span>
+                        <span class="d-none d-sm-inline">My Account</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-2xl border-0 rounded-4 p-2 mt-1" aria-labelledby="authorTopAccountDropdownBtn" style="min-width: 260px; z-index: 1100;">
                         @php
@@ -660,6 +662,7 @@
         });
 
     </script>
+    <script src="{{ asset('js/responsive.js') }}?v={{ @filemtime(public_path('js/responsive.js')) }}" defer></script>
     @stack('scripts')
 </body>
 </html>
