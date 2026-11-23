@@ -3302,6 +3302,7 @@ class AdminController extends Controller
                 'price'                    => 'nullable|numeric|min:0',
                 'discount_price'           => 'nullable|numeric|min:0',
                 'cost_price'               => 'nullable|numeric|min:0',
+                'hardcover_cost_price'     => 'nullable|numeric|min:0',
                 'hardcover_price'          => 'nullable|numeric|min:0',
                 'hardcover_discount_price' => 'nullable|numeric|min:0',
                 'edition'                  => 'nullable|string|max:100',
@@ -3336,6 +3337,11 @@ class AdminController extends Controller
             if ($request->has('cost_price')) {
                 $rawCost = $request->input('cost_price');
                 $updates['cost_price'] = ($rawCost !== null && $rawCost !== '') ? max(0, (float) $rawCost) : null;
+            }
+            // The hardcover row has its own cost box; for a hardcover book (or when it is the only one sent) it wins.
+            if ($request->has('hardcover_cost_price') && ($request->input('cover_type', $book->cover_type) === 'hardcover' || !$request->has('cost_price'))) {
+                $rawHcCost = $request->input('hardcover_cost_price');
+                $updates['cost_price'] = ($rawHcCost !== null && $rawHcCost !== '') ? max(0, (float) $rawHcCost) : null;
             }
             if ($request->has('hardcover_price')) {
                 $rawHard = $request->input('hardcover_price');
@@ -3480,10 +3486,11 @@ class AdminController extends Controller
                 'author_id'                => 'nullable',
                 'publisher_id'             => 'nullable',
                 'cover_type'               => 'nullable|string|in:paperback,hardcover,both',
-                'price'                    => 'required|numeric|min:0',
+                'price'                    => 'nullable|numeric|min:0|required_without:hardcover_price',   // hardcover-only books post hardcover_price
+                'hardcover_price'          => 'nullable|numeric|min:0|required_without:price',
                 'discount_price'           => 'nullable|numeric|min:0',
                 'cost_price'               => 'nullable|numeric|min:0',
-                'hardcover_price'          => 'nullable|numeric|min:0',
+                'hardcover_cost_price'     => 'nullable|numeric|min:0',
                 'hardcover_discount_price' => 'nullable|numeric|min:0',
                 'edition'                  => 'nullable|string|max:100',
                 'stock_quantity'           => 'nullable|integer|min:0',
@@ -3562,7 +3569,10 @@ class AdminController extends Controller
 
             $price = (float) $request->input('price', 0);
             $discountPrice = $request->filled('discount_price') && $request->input('discount_price') !== '' ? (float) $request->input('discount_price') : null;
-            $costPrice = $request->filled('cost_price') && $request->input('cost_price') !== '' ? (float) $request->input('cost_price') : null;
+            // Each binding row has its own cost box (like the full form); keep the one of the chosen binding.
+            $pbCost = $request->filled('cost_price') ? (float) $request->input('cost_price') : null;
+            $hcCost = $request->filled('hardcover_cost_price') ? (float) $request->input('hardcover_cost_price') : null;
+            $costPrice = $request->input('cover_type', 'hardcover') === 'hardcover' ? ($hcCost ?? $pbCost) : ($pbCost ?? $hcCost);
             $hardPrice = $request->filled('hardcover_price') && $request->input('hardcover_price') !== '' ? (float) $request->input('hardcover_price') : null;
             $hardDisc = $request->filled('hardcover_discount_price') && $request->input('hardcover_discount_price') !== '' ? (float) $request->input('hardcover_discount_price') : null;
 

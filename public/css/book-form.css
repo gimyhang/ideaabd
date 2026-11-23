@@ -1,0 +1,137 @@
+/*
+ * Book form design layer — full form (admin/content/books_form) and Quick Add (admin/books, #quickAddBookModal).
+ * One look for every card, section title, table and small "+ add" button. Loaded after the page's own styles.
+ */
+:root {
+    --bf-line: #e2e8f0; --bf-line-2: #cbd5e1; --bf-soft: #f8fafc; --bf-head: #f1f5f9;
+    --bf-ink: #0f172a; --bf-mute: #64748b; --bf-blue: #2563eb; --bf-radius: 12px;
+}
+body.dark-mode { --bf-line: #334155; --bf-line-2: #475569; --bf-soft: #111827; --bf-head: #1e293b; --bf-ink: #f1f5f9; --bf-mute: #94a3b8; --bf-blue: #60a5fa; }
+
+/* ── cards: one border, one radius, no coloured side bars ─────────────── */
+.a4-doc-sheet,
+.a4-doc-sheet.border-4,
+.a4-doc-sheet[class*="border-start"],
+.a4-doc-sheet[class*="border-info"],
+.a4-doc-sheet[class*="border-secondary"],
+.a4-doc-sheet[class*="border-success"] {
+    border: 1px solid var(--bf-line) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04) !important;
+}
+
+/* ── section titles: short, same size everywhere ──────────────────────── */
+.a4-doc-section-title,
+.bf-title {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    letter-spacing: .06em !important;
+    text-transform: uppercase !important;
+    color: var(--bf-ink) !important;
+    margin: 0 0 12px !important;
+    display: flex; align-items: center; gap: 8px;
+}
+.a4-doc-section { padding-top: 18px !important; padding-bottom: 18px !important; }
+
+/* ── small "+ add" / helper pills: one neutral style ─────────────────── */
+.a4-doc-sheet .btn-xs.rounded-pill,
+#quickAddBookModal .btn-xs.rounded-pill,
+.bf-add {
+    --bs-btn-color: var(--bf-blue); --bs-btn-border-color: var(--bf-line-2); --bs-btn-bg: transparent;
+    --bs-btn-hover-color: #fff; --bs-btn-hover-bg: var(--bf-blue); --bs-btn-hover-border-color: var(--bf-blue);
+    color: var(--bf-blue) !important; background: transparent !important; border: 1px solid var(--bf-line-2) !important;
+    font-size: 11.5px !important; font-weight: 600 !important; line-height: 1.2 !important;
+    padding: 3px 10px !important; border-radius: 999px !important; box-shadow: none !important;
+}
+.a4-doc-sheet .btn-xs.rounded-pill:hover,
+#quickAddBookModal .btn-xs.rounded-pill:hover,
+.bf-add:hover { color: #fff !important; background: var(--bf-blue) !important; border-color: var(--bf-blue) !important; }
+
+/* ── tables: one shape for every table in both forms ──────────────────── */
+.bf-table-wrap,
+.contributor-matrix-table {
+    border: 1px solid var(--bf-line) !important;
+    border-radius: var(--bf-radius) !important;
+    overflow-x: auto;
+    background: var(--bs-body-bg, #fff);
+    box-shadow: none !important;
+}
+.bf-table,
+#authorshipCreditsTable { width: 100%; margin: 0; border-collapse: separate; border-spacing: 0; }
+.bf-table thead th,
+#authorshipCreditsTable thead th {
+    background: var(--bf-head) !important; color: var(--bf-mute) !important;
+    font-size: 11px !important; font-weight: 700 !important; letter-spacing: .05em; text-transform: uppercase;
+    padding: 9px 10px !important; border-bottom: 1px solid var(--bf-line) !important; border-right: 0 !important; white-space: nowrap;
+}
+.bf-table tbody td, .bf-table tbody th,
+#authorshipCreditsTable tbody td {
+    padding: 8px 10px !important; border-bottom: 1px solid var(--bf-line) !important; border-right: 0 !important;
+    vertical-align: middle; background: transparent !important;
+}
+.bf-table tbody tr:last-child > *,
+#authorshipCreditsTable tbody tr:last-child > * { border-bottom: 0 !important; }
+.bf-table .form-control, .bf-table .form-select,
+#authorshipCreditsTable .form-control, #authorshipCreditsTable .form-select { min-height: 36px; border-radius: 8px; }
+
+/* ── price table ───────────────────────────────────────────────────────── */
+.bpg { min-width: 620px; table-layout: fixed; }
+.bpg td, .bpg th { overflow: hidden; }
+.bpg .bpg-col-bind { width: 92px; font-size: 12.5px; font-weight: 700; color: var(--bf-ink); text-transform: none; letter-spacing: 0; }
+.bpg thead .bpg-col-bind { font-size: 11px; color: var(--bf-mute); text-transform: uppercase; letter-spacing: .05em; }
+.bpg-money, .bpg-pct { position: relative; }
+.bpg-money::before { position: absolute; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--bf-mute); pointer-events: none; }
+.bpg-money::before { content: '৳'; left: 10px; }
+.bpg-money .bpg-in { padding-left: 22px !important; padding-right: 8px !important; }
+.bpg-pct .bpg-in { padding-left: 8px !important; padding-right: 8px !important; }   /* the column header says % */
+.bpg-in { font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; min-width: 0; width: 100%; }
+.bpg td:last-child, .bpg th:last-child { width: 96px; }
+.bpg-money::before { left: 8px !important; }
+.bpg-in::placeholder { font-weight: 400; color: #94a3b8; }
+.bpg-in.is-warn { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, .15); }
+.bpg-margin { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; font-size: 12px; font-weight: 700; color: var(--bf-mute); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bpg-margin.is-gain { color: #059669; }
+.bpg-margin.is-loss { color: #dc2626; }
+.bpg-note { min-height: 0; margin-top: 8px; font-size: 12px; }
+.bpg-note:empty { display: none; }
+/* number spinners add noise in a money table */
+.bpg-in::-webkit-outer-spin-button, .bpg-in::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.bpg-in[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
+/* phones: each binding row becomes a small card with labelled boxes */
+@media (max-width: 767.98px) {
+    .bpg { min-width: 0; }
+    .bpg thead { display: none; }
+    .bpg, .bpg tbody { display: block; }
+    .bpg tr[data-bpg-row] { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; padding: 12px; border-bottom: 1px solid var(--bf-line); }
+    .bpg tr[data-bpg-row][hidden] { display: none; }
+    .bpg tr[data-bpg-row]:last-child { border-bottom: 0; }
+    .bpg tr[data-bpg-row] > * { display: block; padding: 0 !important; border: 0 !important; }
+    .bpg .bpg-col-bind { grid-column: 1 / -1; width: auto; }
+    .bpg td[data-label]::before { content: attr(data-label); display: block; margin-bottom: 4px; font-size: 11px; font-weight: 700; color: var(--bf-mute); text-transform: uppercase; letter-spacing: .04em; }
+    .bpg td[data-label="Margin"] { grid-column: 1 / -1; text-align: left !important; }
+    .bpg-in { min-width: 0; }
+}
+
+/* ── Quick Add modal: same cards / labels as the full form ─────────────── */
+#quickAddBookModal .modal-content { border-radius: 16px; }
+#quickAddBookModal .modal-header { background: var(--bs-body-bg, #fff) !important; color: var(--bf-ink) !important; border-bottom: 1px solid var(--bf-line); }
+#quickAddBookModal .modal-header .modal-title { color: var(--bf-ink) !important; font-size: 16px !important; }
+#quickAddBookModal .modal-header .btn-close-white { filter: none; }
+#quickAddBookModal .form-label { font-size: 12px !important; font-weight: 600 !important; color: var(--bf-mute) !important; margin-bottom: 4px !important; }
+#quickAddBookModal .bf-block { border: 1px solid var(--bf-line); border-radius: var(--bf-radius); padding: 12px; margin-bottom: 12px; }
+#quickAddBookModal .bf-block > .bf-title { margin-bottom: 10px !important; }
+#quickAddBookModal .modal-footer { border-top: 1px solid var(--bf-line); }
+/* every field in the modal has one height */
+#quickAddBookModal .form-control, #quickAddBookModal .form-select,
+#quickBookEditModal .bpg .form-control { min-height: 38px; font-size: 14px; }
+#quickAddBookModal .input-group > .form-control, #quickAddBookModal .input-group > .input-group-text { min-height: 38px; }
+
+/* Quick edit: same frame as Quick add */
+#quickBookEditModal .modal-content { border-radius: 16px; }
+#quickBookEditModal .modal-header { background: var(--bs-body-bg, #fff) !important; color: var(--bf-ink) !important; border-bottom: 1px solid var(--bf-line); }
+#quickBookEditModal .modal-header .modal-title { color: var(--bf-ink) !important; font-size: 16px !important; }
+#quickBookEditModal .modal-header .btn-close-white { filter: none; }
+#quickBookEditModal .form-label { font-size: 12px !important; font-weight: 600 !important; color: var(--bf-mute) !important; }
+/* camera / gallery: one height */
+#quickAddBookModal .btn-xs, #quickAddBookModal label.btn-xs { display: inline-flex; align-items: center; min-height: 28px; }

@@ -3,6 +3,8 @@
 {{-- ═══════════════════════════════════════════════════════════════════════════ --}}
 
 {{-- STYLES: DEDICATED MODERN AESTHETICS & RESPONSIVE BEHAVIOR --}}
+{{-- shared book-form design (cards, tables, price table) — also used by Quick Add --}}
+<script src="{{ asset('js/book-price-grid.js') }}?v={{ @filemtime(public_path('js/book-price-grid.js')) ?: 1 }}" defer></script>
 <style>
 /* Modern Document Sheet */
 .a4-doc-sheet {
@@ -672,6 +674,7 @@ body.dark-mode .a4-doc-sheet .a4-field-label > span:first-child { color: #cbd5e1
     .a4-doc-sheet .contributor-input, .a4-doc-sheet .contributor-select { height: var(--f-h) !important; }
 }
 </style>
+<link rel="stylesheet" href="{{ asset('css/book-form.css') }}?v={{ @filemtime(public_path('css/book-form.css')) ?: 1 }}">
 
 {{-- LEFT COLUMN: A4 SHEET FORM GRID & SPECIFICATIONS --}}
 <div class="col-12 col-lg-8">
@@ -854,7 +857,7 @@ body.dark-mode .a4-doc-sheet .a4-field-label > span:first-child { color: #cbd5e1
             <div class="p-3 bg-light rounded-3 border mb-3">
                 <div class="d-flex align-items-center justify-content-between mb-1.5">
                     <label for="f-author_link_id" class="a4-field-label mb-0">
-                        <span class="text-dark fw-bold">Primary Author / Contributor <span class="text-danger">*</span></span>
+                        <span class="text-dark fw-bold">Main author <span class="text-danger">*</span></span>
                     </label>
                     <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-3 py-1 fw-bold shadow-2xs" data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" title="Add author into directory">
                         + New Author
@@ -1284,184 +1287,36 @@ body.dark-mode .a4-doc-sheet .a4-field-label > span:first-child { color: #cbd5e1
             </div>
         </div>
 
-        {{-- SECTION 4: PRICING MATRIX & MARGIN CALCULATOR --}}
+        {{-- SECTION 4: PRICING — one table, same as Quick Add (admin/books/partials/price-grid) --}}
         @php
-            // "Sale %" is not stored, only the offer price is. Show the % that the saved offer price means,
-            // so opening the form never recalculates (and wipes) an existing discount.
-            $offPct = function ($price, $offer) {
-                $price = (float) $price;
-                $offer = (float) $offer;
-                if ($price <= 0 || $offer <= 0 || $offer >= $price) {
-                    return '';
-                }
-
-                return rtrim(rtrim(number_format(($price - $offer) / $price * 100, 2, '.', ''), '0'), '.');
-            };
+            $bindingNow = $val('cover_type', 'hardcover');
+            // A hardcover-only book saved before hardcover prices had their own columns keeps its price in `price`.
+            $hcFromPb = $bindingNow === 'hardcover' && !(float) $val('hardcover_price');
+            $pricingGrid = [
+                'binding' => $bindingNow,
+                'select' => '#f-cover_type',
+                'required' => true,
+                'rows' => [
+                    'paperback' => [
+                        'mrp'  => ['f-price', 'price', $val('price')],
+                        'pct'  => ['f-sold_percent', 'sold_percent', ''],
+                        'sale' => ['f-discount_price', 'discount_price', $val('discount_price')],
+                        'buy'  => ['f-purchase_discount_percent', 'purchase_discount_percent', ''],
+                        'cost' => ['f-cost_price', 'cost_price', $bindingNow === 'hardcover' ? '' : $val('cost_price')],
+                    ],
+                    'hardcover' => [
+                        'mrp'  => ['f-hardcover_price', 'hardcover_price', $hcFromPb ? $val('price') : $val('hardcover_price')],
+                        'pct'  => ['f-hardcover_sold_percent', 'hardcover_sold_percent', ''],
+                        'sale' => ['f-hardcover_discount_price', 'hardcover_discount_price', $hcFromPb ? $val('discount_price') : $val('hardcover_discount_price')],
+                        'buy'  => ['f-hardcover_purchase_discount_percent', 'hardcover_purchase_discount_percent', ''],
+                        'cost' => ['f-hardcover_cost_price', 'hardcover_cost_price', $val('hardcover_cost_price') ?: ($bindingNow === 'hardcover' ? $val('cost_price') : '')],
+                    ],
+                ],
+            ];
         @endphp
         <div class="a4-doc-section" id="sec-pricing">
-            <div class="d-flex align-items-center justify-content-between mb-2">
-                <div class="a4-doc-section-title mb-0">
-                    Pricing
-                </div>
-                <span class="badge bg-primary-subtle text-primary border border-primary-subtle small fw-bold px-2.5 py-1 rounded-pill" id="pricingBindingBadge">
-                    {{ $val('cover_type', 'hardcover') === 'both' ? 'Both' : ($val('cover_type', 'hardcover') === 'paperback' ? 'Paperback' : 'Hardcover') }}
-                </span>
-            </div>
-
-            <div class="vstack gap-3" id="pricingEngineContainer">
-                {{-- 1. PAPERBACK PRICING PANEL --}}
-                <div id="paperbackPricingPanel" class="a4-pricing-card {{ in_array($val('cover_type', 'hardcover'), ['paperback', 'both']) ? '' : 'd-none' }}">
-                    <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom">
-                        <span class="fw-bold text-dark small">
-                            Paperback
-                        </span>
-                        
-                    </div>
-
-                    <div class="row g-2">
-                        <div class="col-12 col-md-3">
-                            <label for="f-price" class="a4-field-label">
-                                <span>MRP <span class="text-danger">*</span></span>
-                            </label>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-light text-dark fw-bold">৳</span>
-                                <input type="number" step="0.01" min="0" id="f-price" name="price" 
-                                       value="{{ $val('price') }}"
-                                       class="form-control form-control-sm @error('price') is-invalid @enderror" 
-                                       oninput="onPaperbackPriceChange()">
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-md-3">
-                            <label for="f-purchase_discount_percent" class="a4-field-label">
-                                <span>Buy</span>
-                            </label>
-                            <div class="input-group input-group-sm">
-                                <input type="number" step="0.5" min="0" max="100" id="f-purchase_discount_percent" name="purchase_discount_percent" 
-                                       value="{{ $val('purchase_discount_percent') }}"
-                                       class="form-control form-control-sm" oninput="onPaperbackPurchaseDiscountChange()">
-                                <span class="input-group-text bg-light text-muted fw-bold">%</span>
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-md-3">
-                            <label for="f-cost_price" class="a4-field-label">
-                                <span>Cost</span>
-                            </label>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-light text-dark fw-bold">৳</span>
-                                <input type="number" step="0.01" min="0" id="f-cost_price" name="cost_price" 
-                                       value="{{ $val('cost_price') }}" class="form-control form-control-sm" 
-                                       oninput="onPaperbackCostChange()">
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-md-3">
-                            <label for="f-sold_percent" class="a4-field-label">
-                                <span>Sale</span>
-                            </label>
-                            <div class="input-group input-group-sm">
-                                <input type="number" step="any" min="0" max="100" id="f-sold_percent" name="sold_percent" 
-                                       value="{{ $val('sold_percent') ?? $offPct($val('price'), $val('discount_price')) }}"
-                                       class="form-control form-control-sm" oninput="onPaperbackSoldPercentChange()">
-                                <span class="input-group-text bg-light text-muted fw-bold">%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Live Calculation Summary Ribbon --}}
-                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2.5 p-2 bg-white rounded-3 border">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="small">
-                                <span class="text-muted">Price:</span>
-                                <strong class="text-dark fw-bold ms-1 fs-6" id="liveCalculatedOfferPrice">৳{{ number_format((float)$val('discount_price', $val('price', 0)), 2) }}</strong>
-                            </div>
-                            <div class="small text-muted border-start ps-3 d-none d-sm-block">
-                                Savings: <span class="text-success fw-bold" id="livePaperbackSavings">৳0.00</span>
-                            </div>
-                        </div>
-                        <div class="small">
-                            <span class="text-muted">Profit:</span>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold ms-1" id="liveCalculatedProfit">৳0.00 (0%)</span>
-                        </div>
-                    </div>
-                    <input type="hidden" id="f-discount_price" name="discount_price" value="{{ $val('discount_price') }}">
-                </div>
-
-                {{-- 2. HARDCOVER PRICING PANEL --}}
-                <div id="hardcoverPricingPanel" class="a4-pricing-card {{ in_array($val('cover_type', 'hardcover'), ['hardcover', 'both']) ? '' : 'd-none' }}">
-                    <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom">
-                        <span class="fw-bold text-dark small">
-                            Hardcover
-                        </span>
-                        
-                    </div>
-
-                    <div class="row g-2">
-                        <div class="col-12 col-md-3">
-                            <label for="f-hardcover_price" class="a4-field-label">
-                                <span>MRP <span class="text-danger">*</span></span>
-                            </label>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-light text-dark fw-bold">৳</span>
-                                <input type="number" step="0.01" min="0" id="f-hardcover_price" name="hardcover_price" 
-                                       value="{{ $val('hardcover_price') }}"
-                                       class="form-control form-control-sm @error('hardcover_price') is-invalid @enderror" 
-                                       oninput="onHardcoverPriceChange()">
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-md-3">
-                            <label for="f-hardcover_purchase_discount_percent" class="a4-field-label">
-                                <span>Buy</span>
-                            </label>
-                            <div class="input-group input-group-sm">
-                                <input type="number" step="0.5" min="0" max="100" id="f-hardcover_purchase_discount_percent" name="hardcover_purchase_discount_percent" 
-                                       value="{{ $val('hardcover_purchase_discount_percent') }}"
-                                       class="form-control form-control-sm" oninput="onHardcoverPurchaseDiscountChange()">
-                                <span class="input-group-text bg-light text-muted fw-bold">%</span>
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-md-3">
-                            <label for="f-hardcover_cost_price" class="a4-field-label">
-                                <span>Cost</span>
-                            </label>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-light text-dark fw-bold">৳</span>
-                                <input type="number" step="0.01" min="0" id="f-hardcover_cost_price" name="hardcover_cost_price" 
-                                       value="{{ $val('hardcover_cost_price') ?: (($val('cover_type') === 'hardcover') ? $val('cost_price') : '') }}"
-                                       class="form-control form-control-sm" oninput="onHardcoverCostChange()">
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-md-3">
-                            <label for="f-hardcover_sold_percent" class="a4-field-label">
-                                <span>Sale</span>
-                            </label>
-                            <div class="input-group input-group-sm">
-                                <input type="number" step="any" min="0" max="100" id="f-hardcover_sold_percent" name="hardcover_sold_percent"
-                                       value="{{ $val('hardcover_sold_percent') ?? $offPct($val('hardcover_price'), $val('hardcover_discount_price')) }}"
-                                       class="form-control form-control-sm" oninput="onHardcoverSoldPercentChange()">
-                                <span class="input-group-text bg-light text-muted fw-bold">%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Hardcover Summary Ribbon --}}
-                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2.5 p-2 bg-white rounded-3 border">
-                        <div class="small">
-                            <span class="text-muted">Price:</span>
-                            <strong class="text-dark fw-bold ms-1 fs-6" id="liveHardcoverOfferPrice">৳{{ number_format((float)$val('hardcover_discount_price', $val('hardcover_price', 0)), 2) }}</strong>
-                        </div>
-                        <div class="small">
-                            <span class="text-muted">Profit:</span>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold ms-1" id="liveHardcoverProfit">৳0.00 (0%)</span>
-                        </div>
-                    </div>
-                    <input type="hidden" id="f-hardcover_discount_price" name="hardcover_discount_price" value="{{ $val('hardcover_discount_price') }}">
-                </div>
-            </div>
+            <div class="a4-doc-section-title">Pricing</div>
+            @include('admin.books.partials.price-grid', ['grid' => $pricingGrid])
         </div>
 
         @php
@@ -1820,7 +1675,7 @@ body.dark-mode .a4-doc-sheet .a4-field-label > span:first-child { color: #cbd5e1
             <div class="mt-3 pt-2.5 border-top">
                 <div class="d-flex align-items-center justify-content-between mb-1.5">
                     <label for="f-description" class="a4-field-label mb-0">
-                        <span>Description / বিস্তারিত বিবরণ ও ফ্ল্যাপ</span>
+                        <span>Description</span>
                     </label>
                     <div class="word-counter-badge safe" id="descWordBadge">
                         Words: <span id="descWordCount">0</span> / 5000
@@ -4263,41 +4118,17 @@ body.dark-mode .a4-doc-sheet .a4-field-label > span:first-child { color: #cbd5e1
     });
 })();
 
-    // ── Cost ⇄ Buy % for each binding block ──
-    // Whichever of the two was typed last is the fact; changing the MRP recalculates only the other one,
-    // so a cost typed by hand is never overwritten. Buy % keeps two decimals (no whole-number rounding
-    // that shifted the cost by a taka when the MRP changed).
+    // ── Pricing lives in the price table (public/js/book-price-grid.js) ──
+    // The names below were the old per-box handlers; they are kept as harmless aliases so nothing that
+    // still calls them can write into the table (that was the source of prices changing by themselves).
     (function () {
-        const el = id => document.getElementById(id);
-        const num = id => parseFloat(el(id)?.value) || 0;
-        const pctText = v => String(Math.round(v * 100) / 100);
-        function block(ids, update) {
-            let anchor = null;                                   // 'cost' | 'pct'
-            const start = () => { if (!anchor) anchor = num(ids.cost) > 0 ? 'cost' : (el(ids.pct)?.value !== '' && num(ids.pct) >= 0 ? 'pct' : null); };
-            const fromPct = () => {
-                const p = num(ids.price), pctEl = el(ids.pct), costEl = el(ids.cost);
-                if (!pctEl || !costEl || pctEl.value === '') return;
-                const pc = num(ids.pct);
-                if (p > 0 && pc >= 0 && pc <= 100) costEl.value = Math.round(p * (1 - pc / 100) * 100) / 100;
-            };
-            const fromCost = () => {
-                const p = num(ids.price), c = num(ids.cost), pctEl = el(ids.pct);
-                if (!pctEl) return;
-                pctEl.value = (p > 0 && c > 0 && c <= p) ? pctText((p - c) / p * 100) : '';   // cost above MRP has no buy %
-            };
-            return {
-                price() { start(); if (anchor === 'pct') fromPct(); else if (anchor === 'cost') fromCost(); update(); if (typeof updateLiveMockupCard === 'function') updateLiveMockupCard(); },
-                pct() { anchor = 'pct'; fromPct(); update(); },
-                cost() { anchor = 'cost'; fromCost(); update(); },
-            };
-        }
-        const pb = block({ price: 'f-price', pct: 'f-purchase_discount_percent', cost: 'f-cost_price' }, () => window.updatePaperbackCalculations());
-        const hc = block({ price: 'f-hardcover_price', pct: 'f-hardcover_purchase_discount_percent', cost: 'f-hardcover_cost_price' }, () => window.updateHardcoverCalculations());
-        window.onPaperbackPriceChange = pb.price;
-        window.onPaperbackPurchaseDiscountChange = pb.pct;
-        window.onPaperbackCostChange = pb.cost;
-        window.onHardcoverPriceChange = hc.price;
-        window.onHardcoverPurchaseDiscountChange = hc.pct;
-        window.onHardcoverCostChange = hc.cost;
+        const noop = function () {};
+        const refresh = function () { if (typeof updateLiveMockupCard === 'function') updateLiveMockupCard(); };
+        ['onPaperbackPriceChange', 'onPaperbackPurchaseDiscountChange', 'onPaperbackCostChange', 'onPaperbackSoldPercentChange',
+         'onHardcoverPriceChange', 'onHardcoverPurchaseDiscountChange', 'onHardcoverCostChange', 'onHardcoverSoldPercentChange',
+         'applyPaperbackQuickDiscount', 'applyHardcoverQuickDiscount'].forEach(function (n) { window[n] = refresh; });
+        window.updatePaperbackCalculations = noop;
+        window.updateHardcoverCalculations = noop;
+        window.onCoverTypeDropdownChange = refresh;   // the table follows #f-cover_type by itself
     })();
 </script>

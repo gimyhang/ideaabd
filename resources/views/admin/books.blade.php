@@ -6,6 +6,7 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/admin-books.css') }}?v={{ @filemtime(public_path('css/admin-books.css')) ?: 1 }}">
 <link rel="stylesheet" href="{{ asset('css/quick-book-editor.css') }}?v={{ @filemtime(public_path('css/quick-book-editor.css')) ?: 1 }}">
+<link rel="stylesheet" href="{{ asset('css/book-form.css') }}?v={{ @filemtime(public_path('css/book-form.css')) ?: 1 }}">
 @endpush
 
 @section('breadcrumb')
@@ -555,11 +556,11 @@
 {{-- 1-CLICK FAST QUICK BOOK ADD MODAL (বই কুইক এড)                               --}}
 {{-- ========================================================================= --}}
 <div class="modal fade" id="quickAddBookModal" tabindex="-1" aria-labelledby="quickAddBookModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-fullscreen-md-down">
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header text-white py-3" style="background: linear-gradient(135deg, #10b981, #059669);">
                 <h5 class="modal-title fw-bold text-white mb-0 fs-6" id="quickAddBookModalLabel">
-                    Quick Add Book
+                    Quick add
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -574,9 +575,9 @@
 
                     <div class="row g-4">
                         {{-- Left Column: Cover Preview & Options --}}
-                        <div class="col-12 col-md-5 border-end-md text-center">
+                        <div class="col-12 col-md-4 border-end-md text-center">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <label class="form-label small fw-bold text-dark mb-0">Cover</label>
+                                <div class="bf-title mb-0">Cover</div>
                             </div>
 
                             {{-- Live Rendered Canvas for Auto-Cover --}}
@@ -603,10 +604,10 @@
                             {{-- Manual Upload Option --}}
                             <div>
                                 <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-3" onclick="CoverCamera.take(document.getElementById('qaCoverInput'))">
-                                    <i class="fa-solid fa-camera me-1"></i>ছবি তুলুন
+                                    Camera
                                 </button>
                                 <label for="qaCoverInput" class="btn btn-xs btn-outline-secondary rounded-pill px-3 cursor-pointer mb-0">
-                                    গ্যালারি
+                                    Gallery
                                 </label>
                                 <input type="file" id="qaCoverInput" name="cover_image_file" accept="image/*" class="d-none" data-cover-camera onchange="previewQaSelectedCover(this)">
                                 <button type="button" id="qaResetAutoCoverBtn" class="btn btn-xs btn-link text-muted d-none text-decoration-none mt-1" onclick="resetToQaAutoCover()" style="font-size: 11px;">
@@ -615,8 +616,9 @@
                             </div>
                         </div>
 
-                        {{-- Right Column: Basic Info & Calculator --}}
-                        <div class="col-12 col-md-7">
+                        {{-- Right Column: details --}}
+                        <div class="col-12 col-md-8">
+                            <div class="bf-title">Details</div>
                             
                             {{-- 1. Title --}}
                             <div class="mb-2.5">
@@ -628,7 +630,7 @@
 
                             {{-- 2. Category, Author & Publisher --}}
                             <div class="row g-2 mb-2.5">
-                                <div class="col-4">
+                                <div class="col-12 col-sm-4">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label class="form-label small fw-bold text-dark mb-0">
                                             Category <span class="text-danger">*</span>
@@ -652,13 +654,13 @@
                                         <div id="qaNewCatErr" class="text-danger small mt-1 d-none" style="font-size: 10px;"></div>
                                     </div>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-6 col-sm-4">
                                     <label class="form-label small fw-bold text-dark mb-1">
                                         Author
                                     </label>
                                     <input type="text" id="qaAuthorName" name="author_name" class="form-control form-control-sm" oninput="renderQaAutoCover()">
                                 </div>
-                                <div class="col-4">
+                                <div class="col-6 col-sm-4">
                                     <label class="form-label small fw-bold text-dark mb-1">
                                         Publisher
                                     </label>
@@ -670,89 +672,57 @@
                                 </div>
                             </div>
 
-                            {{-- 3. Clean Pricing Table --}}
-                            <div class="table-responsive mb-2.5">
-                                <table class="table table-sm table-bordered align-middle mb-0 bg-white">
-                                    <thead class="table-light">
-                                        <tr style="font-size: 11px;">
-                                            <th class="py-1.5 px-2 text-dark">MRP (৳) <span class="text-danger">*</span></th>
-                                            <th class="py-1.5 px-2 text-dark">Discount (%)</th>
-                                            <th class="py-1.5 px-2 text-dark">Sale Price (৳)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr class="qa-bind-caption" hidden><td colspan="3" class="py-1 px-2 small fw-semibold text-muted">Paperback</td></tr>
-                                        <tr>
-                                            <td class="p-1">
-                                                <input type="number" id="qaPrice" name="price" min="0" step="any" class="form-control form-control-sm fw-bold" required oninput="qaPricing('price')">
-                                            </td>
-                                            <td class="p-1">
-                                                <input type="number" id="qaSaleCommission" min="0" max="100" step="any" placeholder="0" class="form-control form-control-sm text-center text-danger fw-bold" oninput="qaPricing('pct')">
-                                            </td>
-                                            <td class="p-1">
-                                                <input type="number" id="qaDiscountPrice" name="discount_price" min="0" step="any" class="form-control form-control-sm text-primary fw-bold" oninput="qaPricing('sale')">
-                                            </td>
-                                        </tr>
-                                        <tr class="qa-bind-caption qa-hard-row" hidden><td colspan="3" class="py-1 px-2 small fw-semibold text-muted">Hardcover</td></tr>
-                                        <tr class="qa-hard-row" hidden>
-                                            <td class="p-1">
-                                                <input type="number" id="qaHardPrice" name="hardcover_price" min="0" step="any" class="form-control form-control-sm fw-bold" oninput="qaPricing('price', 'hard')">
-                                            </td>
-                                            <td class="p-1">
-                                                <input type="number" id="qaHardSaleCommission" min="0" max="100" step="any" placeholder="0" class="form-control form-control-sm text-center text-danger fw-bold" oninput="qaPricing('pct', 'hard')">
-                                            </td>
-                                            <td class="p-1">
-                                                <input type="number" id="qaHardDiscountPrice" name="hardcover_discount_price" min="0" step="any" class="form-control form-control-sm text-primary fw-bold" oninput="qaPricing('sale', 'hard')">
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="small mb-2" id="qaPriceNote" role="status" aria-live="polite"></div>
-
-                            <div class="row g-2 mb-2.5">
+                            {{-- Binding & stock --}}
+                            <div class="row g-2">
                                 <div class="col-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">Buy Commission (%)</label>
-                                    <div class="input-group input-group-sm">
-                                        <input type="number" id="qaBuyCommission" min="0" max="100" step="any" placeholder="0" class="form-control text-center text-success fw-semibold" oninput="qaPricing('buyPct')">
-                                        <span class="input-group-text bg-white">%</span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">Cost Price (৳)</label>
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-white">৳</span>
-                                        <input type="number" id="qaCostPrice" name="cost_price" min="0" step="any" class="form-control text-success fw-bold" oninput="qaPricing('cost')">
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- 4. Stock & Binding --}}
-                            <div class="row g-2 align-items-center">
-                                <div class="col-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">Stock</label>
-                                    <div class="input-group input-group-sm">
-                                        <input type="number" id="qaStockQuantity" name="stock_quantity" min="0" value="10" class="form-control fw-bold">
-                                        <span class="input-group-text">pcs</span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">Binding</label>
-                                    <select id="qaCoverType" name="cover_type" class="form-select form-select-sm" onchange="qaPricing('binding')">
+                                    <label class="form-label" for="qaCoverType">Binding</label>
+                                    <select id="qaCoverType" name="cover_type" class="form-select form-select-sm">
                                         <option value="hardcover" selected>Hardcover</option>
                                         <option value="paperback">Paperback</option>
                                         <option value="both">Both</option>
                                     </select>
                                 </div>
+                                <div class="col-6">
+                                    <label class="form-label" for="qaStockQuantity">Stock</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" id="qaStockQuantity" name="stock_quantity" min="0" value="10" class="form-control fw-bold">
+                                        <span class="input-group-text">pcs</span>
+                                    </div>
+                                </div>
                             </div>
-
                         </div>
+                    </div>
+
+                    {{-- Pricing: the same table as the full book form --}}
+                    <div class="bf-block mt-3 mb-0">
+                        <div class="bf-title">Pricing</div>
+                        @include('admin.books.partials.price-grid', ['grid' => [
+                            'binding' => 'hardcover',
+                            'select' => '#qaCoverType',
+                            'required' => true,
+                            'rows' => [
+                                'paperback' => [
+                                    'mrp'  => ['qaPrice', 'price', ''],
+                                    'pct'  => ['qaSaleCommission', null, ''],
+                                    'sale' => ['qaDiscountPrice', 'discount_price', ''],
+                                    'buy'  => ['qaBuyCommission', null, ''],
+                                    'cost' => ['qaCostPrice', 'cost_price', ''],
+                                ],
+                                'hardcover' => [
+                                    'mrp'  => ['qaHardPrice', 'hardcover_price', ''],
+                                    'pct'  => ['qaHardSaleCommission', null, ''],
+                                    'sale' => ['qaHardDiscountPrice', 'hardcover_discount_price', ''],
+                                    'buy'  => ['qaHardBuyCommission', null, ''],
+                                    'cost' => ['qaHardCostPrice', 'hardcover_cost_price', ''],
+                                ],
+                            ],
+                        ]])
                     </div>
                 </div>
 
                 <div class="modal-footer bg-light py-2.5 d-flex align-items-center justify-content-end gap-2">
-                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="qaSubmitBtn" class="btn btn-sm rounded-pill px-4 fw-bold text-white shadow-sm" style="background: linear-gradient(135deg, #10b981, #059669); border: none;">
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="qaSubmitBtn" class="btn btn-sm btn-success rounded-pill px-4 fw-bold">
                         Publish
                     </button>
                 </div>
@@ -874,11 +844,11 @@
 {{-- UNIFIED QUICK BOOK SHORTCUT UPDATE MODAL                                   --}}
 {{-- ========================================================================= --}}
 <div class="modal fade" id="quickBookEditModal" tabindex="-1" aria-labelledby="quickBookEditModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg modal-fullscreen-sm-down qe-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl modal-fullscreen-md-down qe-dialog">
         <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header bg-primary text-white py-2.5">
-                <h5 class="modal-title fw-bold text-white mb-0 fs-6" id="quickBookEditModalLabel">
-                    Quick Book Editor
+            <div class="modal-header py-2.5">
+                <h5 class="modal-title fw-bold mb-0 fs-6" id="quickBookEditModalLabel">
+                    Quick edit
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -902,13 +872,13 @@
                             </div>
                             <div class="d-flex flex-wrap justify-content-center gap-1.5" id="qeCoverButtons">
                                 <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" onclick="CoverCamera.take(document.getElementById('qeCoverInput'))">
-                                    <i class="fa-solid fa-camera me-1"></i> ছবি তুলুন
+                                    Camera
                                 </button>
                                 <label for="qeCoverInput" class="btn btn-sm btn-outline-primary rounded-pill px-3 cursor-pointer mb-0">
-                                    <i class="fa-regular fa-image me-1"></i> গ্যালারি
+                                    Gallery
                                 </label>
                             </div>
-                            <div class="text-muted mt-1" style="font-size: 11px;">ছবি স্বয়ংক্রিয়ভাবে ছোট করে আপলোড হবে</div>
+                            <div class="text-muted mt-1" style="font-size: 11px;">Large photos are resized automatically.</div>
                             <input type="file" id="qeCoverInput" name="cover_image_file" accept="image/*" class="d-none" data-cover-camera onchange="previewSelectedCover(this)">
                         </div>
 
@@ -929,7 +899,7 @@
 
                             {{-- Binding Format --}}
                             <div class="mb-2.5">
-                                <label class="form-label small fw-bold text-dark d-block mb-1">Format <span class="text-danger">*</span></label>
+                                <label class="form-label small fw-bold text-dark d-block mb-1">Binding <span class="text-danger">*</span></label>
                                 <div class="btn-group w-100" role="group">
                                     <input type="radio" class="btn-check" name="cover_type" id="qeCoverType_paperback" value="paperback" onchange="onQeCoverTypeChange()">
                                     <label class="btn btn-outline-primary btn-sm py-1 fw-semibold" for="qeCoverType_paperback">Paperback</label>
@@ -942,62 +912,28 @@
                                 </div>
                             </div>
 
-                            {{-- Clean Dynamic Pricing Table --}}
-                            <div class="table-responsive mb-2.5 qe-price-wrap">
-                                <table class="table table-sm table-bordered align-middle mb-0 bg-white qe-price-table">
-                                    <thead class="table-light">
-                                        <tr style="font-size: 11px;">
-                                            <th class="py-1.5 px-2 text-muted">Format</th>
-                                            <th class="py-1.5 px-2 text-dark">MRP (৳)</th>
-                                            <th class="py-1.5 px-2 text-dark">Discount (%)</th>
-                                            <th class="py-1.5 px-2 text-dark">Sale Price (৳)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr id="qePaperbackPriceBlock">
-                                            <td class="px-2 fw-semibold small text-dark text-nowrap">Paperback</td>
-                                            <td class="p-1" data-label="MRP (৳)">
-                                                <input type="number" id="qePrice" name="price" min="0" step="1" class="form-control form-control-sm fw-bold" oninput="recalcPricingFromMrp()">
-                                            </td>
-                                            <td class="p-1" data-label="Discount (%)">
-                                                <input type="number" id="qeSaleCommission" min="0" max="100" step="0.5" class="form-control form-control-sm text-center text-danger fw-bold" oninput="recalcSalePriceFromCommission()">
-                                            </td>
-                                            <td class="p-1" data-label="Sale Price (৳)">
-                                                <input type="number" id="qeDiscountPrice" name="discount_price" min="0" step="1" class="form-control form-control-sm text-primary fw-bold" oninput="recalcSaleCommissionFromPrice()">
-                                            </td>
-                                        </tr>
-                                        <tr id="qeHardcoverPriceBlock">
-                                            <td class="px-2 fw-semibold small text-dark text-nowrap">Hardcover</td>
-                                            <td class="p-1" data-label="MRP (৳)">
-                                                <input type="number" id="qeHardcoverPrice" name="hardcover_price" min="0" step="1" class="form-control form-control-sm fw-bold" oninput="recalcHardcoverPricingFromMrp()">
-                                            </td>
-                                            <td class="p-1" data-label="Discount (%)">
-                                                <input type="number" id="qeHardcoverSaleCommission" min="0" max="100" step="0.5" class="form-control form-control-sm text-center text-danger fw-bold" oninput="recalcHardcoverSalePriceFromCommission()">
-                                            </td>
-                                            <td class="p-1" data-label="Sale Price (৳)">
-                                                <input type="number" id="qeHardcoverDiscountPrice" name="hardcover_discount_price" min="0" step="1" class="form-control form-control-sm text-primary fw-bold" oninput="recalcHardcoverSaleCommissionFromPrice()">
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {{-- Wholesale Buy Commission & Cost Price --}}
-                            <div class="row g-2 mb-2.5">
-                                <div class="col-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">Buy Commission (%)</label>
-                                    <div class="input-group input-group-sm">
-                                        <input type="number" id="qeBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-bold" oninput="recalcCostPriceFromCommission()">
-                                        <span class="input-group-text bg-white">%</span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">Cost Price (৳)</label>
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-white">৳</span>
-                                        <input type="number" id="qeCostPrice" name="cost_price" min="0" step="1" class="form-control text-success fw-bold" oninput="recalcBuyCommissionFromPrice()">
-                                    </div>
-                                </div>
+                            {{-- Pricing: the same table as the full book form and Quick Add --}}
+                            <div class="mb-2.5">
+                                @include('admin.books.partials.price-grid', ['grid' => [
+                                    'binding' => 'paperback',
+                                    'select' => '#quickBookEditForm input[name="cover_type"]',
+                                    'rows' => [
+                                        'paperback' => [
+                                            'mrp'  => ['qePrice', 'price', ''],
+                                            'pct'  => ['qeSaleCommission', null, ''],
+                                            'sale' => ['qeDiscountPrice', 'discount_price', ''],
+                                            'buy'  => ['qeBuyCommission', null, ''],
+                                            'cost' => ['qeCostPrice', 'cost_price', ''],
+                                        ],
+                                        'hardcover' => [
+                                            'mrp'  => ['qeHardcoverPrice', 'hardcover_price', ''],
+                                            'pct'  => ['qeHardcoverSaleCommission', null, ''],
+                                            'sale' => ['qeHardcoverDiscountPrice', 'hardcover_discount_price', ''],
+                                            'buy'  => ['qeHardcoverBuyCommission', null, ''],
+                                            'cost' => ['qeHardcoverCostPrice', 'hardcover_cost_price', ''],
+                                        ],
+                                    ],
+                                ]])
                             </div>
 
                             {{-- Stock, Status, Review & Active --}}
@@ -1045,7 +981,7 @@
                 </div>
 
                 <div class="modal-footer bg-light py-2.5">
-                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="qeSubmitBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-xs">
                         <i class="fa-solid fa-circle-check me-1"></i> Save Changes
                     </button>
@@ -1142,6 +1078,7 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('js/book-price-grid.js') }}?v={{ @filemtime(public_path('js/book-price-grid.js')) ?: 1 }}"></script>
 <script src="{{ asset('js/cover-camera.js') }}?v={{ @filemtime(public_path('js/cover-camera.js')) ?: 1 }}"></script>
 <script>
 // Easy search: "/" focuses, Esc clears, auto-search 700ms after typing stops, one-tap clear
@@ -1277,32 +1214,7 @@ window.booksDataMap = {
 };
 
 function onQeCoverTypeChange() {
-    const hardRadio = document.getElementById('qeCoverType_hardcover');
-    const bothRadio = document.getElementById('qeCoverType_both');
-    const isHardcover = hardRadio ? hardRadio.checked : false;
-    const isBoth = bothRadio ? bothRadio.checked : false;
-
-    const paperBlock = document.getElementById('qePaperbackPriceBlock');
-    const hardBlock = document.getElementById('qeHardcoverPriceBlock');
-
-    if (isBoth) {
-        if (paperBlock) paperBlock.style.display = '';
-        if (hardBlock) hardBlock.style.display = '';
-    } else if (isHardcover) {
-        if (paperBlock) paperBlock.style.display = 'none';
-        if (hardBlock) hardBlock.style.display = '';
-    } else {
-        if (paperBlock) paperBlock.style.display = '';
-        if (hardBlock) hardBlock.style.display = 'none';
-    }
-
-    const buyComm = parseFloat(document.getElementById('qeBuyCommission')?.value) || 0;
-    const costPrice = parseFloat(document.getElementById('qeCostPrice')?.value) || 0;
-    if (buyComm > 0) {
-        recalcCostPriceFromCommission();
-    } else if (costPrice > 0) {
-        recalcBuyCommissionFromPrice();
-    }
+    // the price table follows the binding radios by itself
 }
 
 function onQeStockQtyChange() {
@@ -1440,127 +1352,28 @@ function openQuickEditModal(bookId, focusTab = 'all') {
     }, 400);
 }
 
-// 1. Paperback Dual Commission Calculators
-function recalcPricingFromMrp() {
-    const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
-    const saleComm = parseFloat(document.getElementById('qeSaleCommission').value) || 0;
-    const buyComm = parseFloat(document.getElementById('qeBuyCommission').value) || 0;
-    const discountPrice = parseFloat(document.getElementById('qeDiscountPrice').value) || 0;
-    const costPrice = parseFloat(document.getElementById('qeCostPrice').value) || 0;
-
-    if (saleComm > 0) {
-        recalcSalePriceFromCommission();
-    } else if (discountPrice > 0 && mrp > 0) {
-        recalcSaleCommissionFromPrice();
-    }
-
-    if (buyComm > 0) {
-        recalcCostPriceFromCommission();
-    } else if (costPrice > 0 && mrp > 0) {
-        recalcBuyCommissionFromPrice();
-    }
+// Quick Edit pricing lives in the shared price table (public/js/book-price-grid.js). These names were the old
+// per-box handlers; they now only hand over to the table so nothing writes into it behind its back.
+function qeEditGrid() { return document.querySelector('#quickBookEditModal [data-bpg-grid]'); }
+function qeGridLoad() {
+    const g = qeEditGrid();
+    if (!g || !window.BookPriceGrid) return;
+    // The % boxes are not stored: clear what the last book left, the table works them out from the prices.
+    ['qeSaleCommission', 'qeHardcoverSaleCommission', 'qeBuyCommission', 'qeHardcoverBuyCommission'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+    // One cost per book: the hardcover row shows the same cost.
+    const pbCost = document.getElementById('qeCostPrice'), hcCost = document.getElementById('qeHardcoverCostPrice');
+    if (pbCost && hcCost) hcCost.value = pbCost.value;
+    window.BookPriceGrid.load(g);
 }
-
-function recalcSalePriceFromCommission() {
-    const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
-    const comm = parseFloat(document.getElementById('qeSaleCommission').value) || 0;
-    const target = document.getElementById('qeDiscountPrice');
-    if (!target) return;
-    if (mrp > 0 && comm > 0) {
-        target.value = Math.round(mrp * (1 - (comm / 100)));
-    } else if (comm <= 0) {
-        target.value = '';
-    }
-}
-
-function recalcSaleCommissionFromPrice() {
-    const mrp = parseFloat(document.getElementById('qePrice').value) || 0;
-    const salePrice = parseFloat(document.getElementById('qeDiscountPrice').value) || 0;
-    if (mrp > 0 && salePrice > 0 && salePrice < mrp) {
-        const comm = ((mrp - salePrice) / mrp) * 100;
-        document.getElementById('qeSaleCommission').value = comm.toFixed(1);
-    } else if (salePrice <= 0) {
-        document.getElementById('qeSaleCommission').value = '';
-    }
-}
-
-// 2. Hardcover Dual Commission Calculators
-function recalcHardcoverPricingFromMrp() {
-    const mrp = parseFloat(document.getElementById('qeHardcoverPrice').value) || 0;
-    const comm = parseFloat(document.getElementById('qeHardcoverSaleCommission').value) || 0;
-    const salePrice = parseFloat(document.getElementById('qeHardcoverDiscountPrice').value) || 0;
-
-    if (comm > 0) {
-        recalcHardcoverSalePriceFromCommission();
-    } else if (salePrice > 0 && mrp > 0) {
-        recalcHardcoverSaleCommissionFromPrice();
-    }
-
-    const isHardcover = document.getElementById('qeCoverType_hardcover').checked;
-    if (isHardcover) {
-        const buyComm = parseFloat(document.getElementById('qeBuyCommission').value) || 0;
-        const costPrice = parseFloat(document.getElementById('qeCostPrice').value) || 0;
-        if (buyComm > 0) {
-            recalcCostPriceFromCommission();
-        } else if (costPrice > 0 && mrp > 0) {
-            recalcBuyCommissionFromPrice();
-        }
-    }
-}
-
-function recalcHardcoverSalePriceFromCommission() {
-    const mrp = parseFloat(document.getElementById('qeHardcoverPrice').value) || 0;
-    const comm = parseFloat(document.getElementById('qeHardcoverSaleCommission').value) || 0;
-    const target = document.getElementById('qeHardcoverDiscountPrice');
-    if (!target) return;
-    if (mrp > 0 && comm > 0) {
-        target.value = Math.round(mrp * (1 - (comm / 100)));
-    } else if (comm <= 0) {
-        target.value = '';
-    }
-}
-
-function recalcHardcoverSaleCommissionFromPrice() {
-    const mrp = parseFloat(document.getElementById('qeHardcoverPrice').value) || 0;
-    const salePrice = parseFloat(document.getElementById('qeHardcoverDiscountPrice').value) || 0;
-    if (mrp > 0 && salePrice > 0 && salePrice < mrp) {
-        const comm = ((mrp - salePrice) / mrp) * 100;
-        document.getElementById('qeHardcoverSaleCommission').value = comm.toFixed(1);
-    } else if (salePrice <= 0) {
-        document.getElementById('qeHardcoverSaleCommission').value = '';
-    }
-}
-
-// 3. Buy Commission & Cost Price Calculators
-function getEffectiveMrpForCost() {
-    const isHardcover = document.getElementById('qeCoverType_hardcover').checked;
-    const paperMrp = parseFloat(document.getElementById('qePrice').value) || 0;
-    const hardMrp = parseFloat(document.getElementById('qeHardcoverPrice').value) || 0;
-    return (isHardcover && hardMrp > 0) ? hardMrp : (paperMrp > 0 ? paperMrp : hardMrp);
-}
-
-function recalcCostPriceFromCommission() {
-    const mrp = getEffectiveMrpForCost();
-    const comm = parseFloat(document.getElementById('qeBuyCommission').value) || 0;
-    const target = document.getElementById('qeCostPrice');
-    if (!target) return;
-    if (mrp > 0 && comm > 0) {
-        target.value = Math.round(mrp * (1 - (comm / 100)));
-    } else if (comm <= 0) {
-        target.value = '';
-    }
-}
-
-function recalcBuyCommissionFromPrice() {
-    const mrp = getEffectiveMrpForCost();
-    const costPrice = parseFloat(document.getElementById('qeCostPrice').value) || 0;
-    if (mrp > 0 && costPrice > 0 && costPrice < mrp) {
-        const comm = ((mrp - costPrice) / mrp) * 100;
-        document.getElementById('qeBuyCommission').value = comm.toFixed(1);
-    } else if (costPrice <= 0) {
-        document.getElementById('qeBuyCommission').value = '';
-    }
-}
+function recalcPricingFromMrp() {}
+function recalcSalePriceFromCommission() {}
+function recalcSaleCommissionFromPrice() {}
+function recalcHardcoverPricingFromMrp() {}
+function recalcHardcoverSalePriceFromCommission() {}
+function recalcHardcoverSaleCommissionFromPrice() {}
+function getEffectiveMrpForCost() { return parseFloat(document.getElementById('qePrice')?.value) || parseFloat(document.getElementById('qeHardcoverPrice')?.value) || 0; }
+function recalcCostPriceFromCommission() {}
+function recalcBuyCommissionFromPrice() { qeGridLoad(); }
 
 function previewSelectedCover(input) {
     if (input.files && input.files[0]) {
@@ -2489,88 +2302,21 @@ function resetToQaAutoCover() {
     renderQaAutoCover();
 }
 
-// ── Quick Add pricing ──
-// Two pairs per binding: sale price ⇄ discount %, and cost ⇄ buy %. Whichever of a pair was typed last is
-// kept; changing the MRP recalculates only the other one. Nothing is filled in by itself (no automatic
-// 20% / 40%), so a book is never saved with a discount nobody chose.
-const qaAnchor = { sale: null, hardSale: null, cost: null };
-function qaNum(id) { const v = parseFloat(document.getElementById(id)?.value); return isFinite(v) ? v : 0; }
-function qaSet(id, v) { const e = document.getElementById(id); if (e) e.value = v; }
-function qaPctText(v) { return String(Math.round(v * 100) / 100); }
-
-function qaPricing(what, which) {
-    const hard = which === 'hard';
-    const ids = hard ? { mrp: 'qaHardPrice', pct: 'qaHardSaleCommission', sale: 'qaHardDiscountPrice', key: 'hardSale' }
-                     : { mrp: 'qaPrice', pct: 'qaSaleCommission', sale: 'qaDiscountPrice', key: 'sale' };
-
-    if (what === 'binding') {
-        const both = document.getElementById('qaCoverType')?.value === 'both';
-        document.querySelectorAll('#quickAddBookModal .qa-hard-row, #quickAddBookModal .qa-bind-caption').forEach(r => { r.hidden = !both; });
-        const hp = document.getElementById('qaHardPrice');
-        if (hp) hp.required = both;   // "Both" needs a hardcover MRP of its own
-        if (!both) { qaSet('qaHardPrice', ''); qaSet('qaHardSaleCommission', ''); qaSet('qaHardDiscountPrice', ''); }
-    }
-    if (what === 'pct') qaAnchor[ids.key] = 'pct';
-    if (what === 'sale') qaAnchor[ids.key] = 'sale';
-    if (what === 'buyPct') qaAnchor.cost = 'pct';
-    if (what === 'cost') qaAnchor.cost = 'cost';
-
-    // sale price ⇄ discount %
-    if (['price', 'pct', 'sale'].includes(what)) {
-        const mrp = qaNum(ids.mrp);
-        const pctEl = document.getElementById(ids.pct);
-        if (qaAnchor[ids.key] === 'pct' && pctEl && pctEl.value !== '') {
-            const pct = Math.min(100, Math.max(0, qaNum(ids.pct)));
-            qaSet(ids.sale, mrp > 0 && pct > 0 ? Math.round(mrp * (1 - pct / 100) * 100) / 100 : '');
-        } else if (qaAnchor[ids.key] === 'sale') {
-            const sale = qaNum(ids.sale);
-            qaSet(ids.pct, mrp > 0 && sale > 0 && sale < mrp ? qaPctText((mrp - sale) / mrp * 100) : '');
-        }
-    }
-    // cost ⇄ buy % (follows the paperback MRP, or the hardcover MRP when only that is given)
-    if (['price', 'buyPct', 'cost', 'binding'].includes(what) && !hard) {
-        const mrp = qaNum('qaPrice') || qaNum('qaHardPrice');
-        const buyEl = document.getElementById('qaBuyCommission');
-        if (qaAnchor.cost === 'pct' && buyEl && buyEl.value !== '') {
-            const pct = Math.min(100, Math.max(0, qaNum('qaBuyCommission')));
-            qaSet('qaCostPrice', mrp > 0 ? Math.round(mrp * (1 - pct / 100) * 100) / 100 : '');
-        } else if (qaAnchor.cost === 'cost') {
-            const cost = qaNum('qaCostPrice');
-            qaSet('qaBuyCommission', mrp > 0 && cost > 0 && cost <= mrp ? qaPctText((mrp - cost) / mrp * 100) : '');
-        }
-    }
-    qaPriceNote();
-}
-
-// One line under the prices: what the shop will charge, and a warning when something does not add up.
-function qaPriceNote() {
-    const box = document.getElementById('qaPriceNote');
-    if (!box) return;
-    const mrp = qaNum('qaPrice'), sale = qaNum('qaDiscountPrice'), cost = qaNum('qaCostPrice');
-    const notes = [];
-    if (sale > 0 && mrp > 0 && sale >= mrp) notes.push('<span class="text-danger">Sale price is not below the MRP, so no discount will be saved.</span>');
-    const sell = sale > 0 && sale < mrp ? sale : mrp;
-    if (sell > 0) notes.push('Shop price: <b>৳' + sell.toLocaleString('en-US') + '</b>' + (sale > 0 && sale < mrp ? ' <span class="text-muted">(MRP ৳' + mrp.toLocaleString('en-US') + ')</span>' : ''));
-    if (cost > 0 && sell > 0) {
-        const profit = Math.round((sell - cost) * 100) / 100;
-        notes.push(profit >= 0 ? '<span class="text-success">Margin ৳' + profit.toLocaleString('en-US') + ' (' + qaPctText(profit / sell * 100) + '%)</span>'
-                               : '<span class="text-danger">Loss ৳' + Math.abs(profit).toLocaleString('en-US') + ': cost is above the selling price</span>');
-    }
-    box.innerHTML = notes.join(' · ');
-}
-
+// ── Quick Add pricing: the shared price table (public/js/book-price-grid.js) does all of it ──
+function qaPriceGrid() { return document.querySelector('#quickAddBookModal [data-bpg-grid]'); }
 function qaPricingReset() {
-    qaAnchor.sale = qaAnchor.hardSale = qaAnchor.cost = null;
-    qaPricing('binding');
+    const g = qaPriceGrid();
+    if (g && window.BookPriceGrid) window.BookPriceGrid.reset(g);
 }
-
-// Older inline handlers still point here.
-function recalcQaPricingFromMrp() { qaPricing('price'); }
-function recalcQaSalePriceFromCommission() { qaPricing('pct'); }
-function recalcQaSaleCommissionFromPrice() { qaPricing('sale'); }
-function recalcQaCostPriceFromCommission() { qaPricing('buyPct'); }
-function recalcQaBuyCommissionFromPrice() { qaPricing('cost'); }
+// Older inline handlers point here; the table recalculates by itself.
+function qaPricing() {}
+function recalcQaPricingFromMrp() {}
+function recalcQaSalePriceFromCommission() {}
+function recalcQaSaleCommissionFromPrice() {}
+function recalcQaCostPriceFromCommission() {}
+function recalcQaBuyCommissionFromPrice() {}
 window.qaPricing = qaPricing;
+
 
 // ── 1-Click Fast Submit Handler ──
 function handleQuickAddBookSubmit(e) {
