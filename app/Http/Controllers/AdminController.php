@@ -2400,7 +2400,7 @@ class AdminController extends Controller
         ]);
     }
 
-    public function authors(Request $request): View|\Illuminate\Http\JsonResponse
+    public function authors(Request $request): View|\Illuminate\Http\JsonResponse|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $search     = $request->string('search')->trim()->value();
         $status     = $request->input('is_active');
@@ -2408,7 +2408,7 @@ class AdminController extends Controller
         $hasBooks   = $request->input('has_books');
         $authorType = $request->input('author_type');
         $sort       = $request->string('sort')->trim()->value() ?: 'latest';
-        $perPage    = in_array((int) $request->input('per_page'), [12, 14, 18, 21, 24, 28, 35, 42, 70, 98, 100], true) ? (int) $request->input('per_page') : 28;
+        $perPage    = in_array((int) $request->input('per_page'), [12, 24, 28, 48, 96], true) ? (int) $request->input('per_page') : 24;
 
         $query = \Modules\Author\Models\Author::query()
             ->with(['user:id,name,email,phone,role,reg_status,reg_type'])
@@ -2440,10 +2440,10 @@ class AdminController extends Controller
             })
             // Strict Admin Approval Enforcement for Author Directory
             ->when($authorType === 'pending' || $status === '0', function ($q) {
-                // Show unapproved / pending review
+                // Pending = hidden from the directory, or its portal sign-up still waits for approval.
+                // (Same rule as the Pending count; "not verified" is a separate filter.)
                 $q->where(function ($sq) {
                     $sq->where('is_active', false)
-                       ->orWhere('is_verified', false)
                        ->orWhereHas('user', fn($uq) => $uq->where('reg_status', 'pending'));
                 });
             }, function ($q) use ($status) {
@@ -2461,7 +2461,8 @@ class AdminController extends Controller
             ->when($verified !== null && $verified !== '', fn ($q) => $q->where('is_verified', (bool) $verified))
             ->when($hasBooks === '1', fn ($q) => $q->has('books'))
             ->when($hasBooks === '0', fn ($q) => $q->doesntHave('books'))
-            ->when($authorType === 'registered', fn ($q) => $q->whereNotNull('user_id')->orWhereHas('user'))
+            // grouped, so the search and the other filters still apply
+            ->when($authorType === 'registered', fn ($q) => $q->whereNotNull('user_id'))
             ->when($authorType === 'catalog', fn ($q) => $q->whereNull('user_id')->doesntHave('user'));
 
         match ($sort) {
@@ -2472,6 +2473,24 @@ class AdminController extends Controller
             'books_asc'  => $query->orderBy('books_count', 'asc'),
             default      => $query->latest('id'),
         };
+
+        // Export: every author matching the filters on screen, as CSV (Excel opens it in Bangla thanks to the BOM).
+        if ($request->input('export') === 'csv') {
+            $rows = (clone $query)->get();
+            $file = 'authors-' . now()->format('Y-m-d') . '.csv';
+
+            return response()->streamDownload(function () use ($rows) {
+                $out = fopen('php://output', 'w');
+                fwrite($out, "﻿");
+                fputcsv($out, ['ID', 'Name', 'Bangla name', 'English name', 'Phone', 'Email', 'Books', 'Live', 'Verified', 'Portal', 'Royalty %', 'Public link', 'Added']);
+                foreach ($rows as $a) {
+                    fputcsv($out, [$a->id, $a->name, $a->name_bn, $a->name_en, $a->phone ?: ($a->user->phone ?? ''), $a->email ?: ($a->user->email ?? ''), $a->books_count,
+                        $a->is_active ? 'Yes' : 'No', $a->is_verified ? 'Yes' : 'No', $a->user_id ? ($a->user->reg_status ?? 'yes') : '', $a->royalty_percentage,
+                        route('authors.show', $a->slug ?: $a->id), optional($a->created_at)->format('Y-m-d')]);
+                }
+                fclose($out);
+            }, $file, ['Content-Type' => 'text/csv; charset=UTF-8']);
+        }
 
         $authors = $query->paginate($perPage)->withQueryString();
 
@@ -2487,6 +2506,7 @@ class AdminController extends Controller
             'active'           => \Modules\Author\Models\Author::where('is_active', true)->count(),
             'verified'         => \Modules\Author\Models\Author::where('is_verified', true)->count(),
             'with_books'       => \Modules\Author\Models\Author::has('books')->count(),
+            'no_books'         => \Modules\Author\Models\Author::doesntHave('books')->count(),
             'registered_users' => \Modules\Author\Models\Author::whereNotNull('user_id')->count(),
             'total_books'      => \App\Support\SchemaCache::has('book_author') ? DB::table('book_author')->distinct('book_id')->count('book_id') : 0,
         ];
