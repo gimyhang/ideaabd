@@ -1058,28 +1058,8 @@ class ContentController extends Controller
                 $d = $offer($p, $request->input('discount_price'), $request->input('sold_percent'));
                 $hd = $offer($hp, $request->input('hardcover_discount_price'), $request->input('hardcover_sold_percent'));
 
-                if ($cover === 'hardcover') {
-                    if ($hp === null) {
-                        // Hardcover block left empty: take the price that was entered in the other block.
-                        $hp = $p;
-                        $hd = $d;
-                    }
-                    // `price` cannot be empty in the database: it mirrors the hardcover price for lists, carts and sorting.
-                    $attributes['hardcover_price'] = $hp;
-                    $attributes['hardcover_discount_price'] = $hd;
-                    $attributes['price'] = $hp ?? 0;
-                    $attributes['discount_price'] = $hd;
-                } elseif ($cover === 'both') {
-                    $attributes['price'] = $p ?? $hp ?? 0;
-                    $attributes['discount_price'] = $d;
-                    $attributes['hardcover_price'] = $hp;
-                    $attributes['hardcover_discount_price'] = $hd;
-                } else {
-                    $attributes['price'] = $p ?? $hp ?? 0;
-                    $attributes['discount_price'] = $p !== null ? $d : $hd;
-                    $attributes['hardcover_price'] = null;
-                    $attributes['hardcover_discount_price'] = null;
-                }
+                // Which columns keep which price: the one rule shared with Quick Add / Quick Edit.
+                $attributes = array_merge($attributes, \App\Support\BookPricing::forBinding($cover, $p, $d, $hp, $hd));
 
                 // Each binding block has its own cost box; save the one that belongs to the chosen binding.
                 if ($request->has('hardcover_cost_price') || $request->has('cost_price')) {

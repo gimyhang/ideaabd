@@ -949,7 +949,8 @@
             rounded = Math.abs(up - unit) > 1e-9;
             unit = up;
         } else {
-            unit = round(unit, 2);
+            // "Exact" still has to be a price in paisa: round up, never below cost + margin.
+            unit = round(Math.ceil(round(unit, 6) * 100 - 1e-9) / 100, 2);
         }
         // The invoice line is qty × rate, so the total is exactly that; profit takes the rounding
         // difference so Cost + Profit always equals the Total shown.

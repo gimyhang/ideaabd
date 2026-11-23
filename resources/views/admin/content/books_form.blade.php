@@ -4262,4 +4262,42 @@ body.dark-mode .a4-doc-sheet .a4-field-label > span:first-child { color: #cbd5e1
         }, 150);
     });
 })();
+
+    // ── Cost ⇄ Buy % for each binding block ──
+    // Whichever of the two was typed last is the fact; changing the MRP recalculates only the other one,
+    // so a cost typed by hand is never overwritten. Buy % keeps two decimals (no whole-number rounding
+    // that shifted the cost by a taka when the MRP changed).
+    (function () {
+        const el = id => document.getElementById(id);
+        const num = id => parseFloat(el(id)?.value) || 0;
+        const pctText = v => String(Math.round(v * 100) / 100);
+        function block(ids, update) {
+            let anchor = null;                                   // 'cost' | 'pct'
+            const start = () => { if (!anchor) anchor = num(ids.cost) > 0 ? 'cost' : (el(ids.pct)?.value !== '' && num(ids.pct) >= 0 ? 'pct' : null); };
+            const fromPct = () => {
+                const p = num(ids.price), pctEl = el(ids.pct), costEl = el(ids.cost);
+                if (!pctEl || !costEl || pctEl.value === '') return;
+                const pc = num(ids.pct);
+                if (p > 0 && pc >= 0 && pc <= 100) costEl.value = Math.round(p * (1 - pc / 100) * 100) / 100;
+            };
+            const fromCost = () => {
+                const p = num(ids.price), c = num(ids.cost), pctEl = el(ids.pct);
+                if (!pctEl) return;
+                pctEl.value = (p > 0 && c > 0 && c <= p) ? pctText((p - c) / p * 100) : '';   // cost above MRP has no buy %
+            };
+            return {
+                price() { start(); if (anchor === 'pct') fromPct(); else if (anchor === 'cost') fromCost(); update(); if (typeof updateLiveMockupCard === 'function') updateLiveMockupCard(); },
+                pct() { anchor = 'pct'; fromPct(); update(); },
+                cost() { anchor = 'cost'; fromCost(); update(); },
+            };
+        }
+        const pb = block({ price: 'f-price', pct: 'f-purchase_discount_percent', cost: 'f-cost_price' }, () => window.updatePaperbackCalculations());
+        const hc = block({ price: 'f-hardcover_price', pct: 'f-hardcover_purchase_discount_percent', cost: 'f-hardcover_cost_price' }, () => window.updateHardcoverCalculations());
+        window.onPaperbackPriceChange = pb.price;
+        window.onPaperbackPurchaseDiscountChange = pb.pct;
+        window.onPaperbackCostChange = pb.cost;
+        window.onHardcoverPriceChange = hc.price;
+        window.onHardcoverPurchaseDiscountChange = hc.pct;
+        window.onHardcoverCostChange = hc.cost;
+    })();
 </script>

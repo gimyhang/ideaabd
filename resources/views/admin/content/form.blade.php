@@ -1766,6 +1766,21 @@
 // These names are also defined by books_form.blade.php (its markup, ids and price fields are the book page's).
 // Function declarations here used to overwrite those; now the generic versions only apply when no book form defined one.
 if (typeof window.addAuthorField !== 'function') { window.addAuthorField = addAuthorFieldGeneric; }
+if (typeof window.clearAdminMultiImages !== 'function') { window.clearAdminMultiImages = clearAdminMultiImagesGeneric; }
+if (typeof window.getAuthorDirectoryOptionsHtml !== 'function') { window.getAuthorDirectoryOptionsHtml = getAuthorDirectoryOptionsHtmlGeneric; }
+if (typeof window.handleDropzoneDragLeave !== 'function') { window.handleDropzoneDragLeave = handleDropzoneDragLeaveGeneric; }
+if (typeof window.handleDropzoneDragOver !== 'function') { window.handleDropzoneDragOver = handleDropzoneDragOverGeneric; }
+if (typeof window.onCoverTypeDropdownChange !== 'function') { window.onCoverTypeDropdownChange = onCoverTypeDropdownChangeGeneric; }
+if (typeof window.onHardcoverCostChange !== 'function') { window.onHardcoverCostChange = onHardcoverCostChangeGeneric; }
+if (typeof window.onHardcoverPurchaseDiscountChange !== 'function') { window.onHardcoverPurchaseDiscountChange = onHardcoverPurchaseDiscountChangeGeneric; }
+if (typeof window.onHardcoverSoldPercentChange !== 'function') { window.onHardcoverSoldPercentChange = onHardcoverSoldPercentChangeGeneric; }
+if (typeof window.onPaperbackCostChange !== 'function') { window.onPaperbackCostChange = onPaperbackCostChangeGeneric; }
+if (typeof window.onPaperbackPriceChange !== 'function') { window.onPaperbackPriceChange = onPaperbackPriceChangeGeneric; }
+if (typeof window.onPaperbackPurchaseDiscountChange !== 'function') { window.onPaperbackPurchaseDiscountChange = onPaperbackPurchaseDiscountChangeGeneric; }
+if (typeof window.onPaperbackSoldPercentChange !== 'function') { window.onPaperbackSoldPercentChange = onPaperbackSoldPercentChangeGeneric; }
+if (typeof window.toggleAdminPreOrderFields !== 'function') { window.toggleAdminPreOrderFields = toggleAdminPreOrderFieldsGeneric; }
+if (typeof window.toggleLookInsideFormat !== 'function') { window.toggleLookInsideFormat = toggleLookInsideFormatGeneric; }
+if (typeof window.onHardcoverPriceChange !== 'function') { window.onHardcoverPriceChange = onHardcoverPriceChangeGeneric; }
 if (typeof window.addCoverArtistField !== 'function') { window.addCoverArtistField = addCoverArtistFieldGeneric; }
 if (typeof window.addEditorField !== 'function') { window.addEditorField = addEditorFieldGeneric; }
 if (typeof window.addRewriterField !== 'function') { window.addRewriterField = addRewriterFieldGeneric; }
@@ -1925,7 +1940,7 @@ function syncActiveCostPrice() {
 }
 
 // Hardcover Two-way interactive price, discount, cost & profit calculations
-function onHardcoverPriceChange() {
+function onHardcoverPriceChangeUnused() {
     const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
     const discPct = parseFloat(document.getElementById('f-hardcover_discount_percent')?.value) || 0;
     const discInput = document.getElementById('f-hardcover_discount_price');
@@ -2207,7 +2222,7 @@ function calculateLiveHardcoverDiscount() {
 // ══════════════════════════════════════════════════════════════════════════════
 // DYNAMIC MULTI-CONTRIBUTOR MATRIX & REPEATER MANAGERS (AUTHOR, TRANSLATOR, EDITOR, REWRITER, COVER ARTIST)
 // ══════════════════════════════════════════════════════════════════════════════
-function getAuthorDirectoryOptionsHtml() {
+function getAuthorDirectoryOptionsHtmlGeneric() {
     const authorDetails = @json($lookups['authors_details'] ?? []);
     let optionsHtml = '<option value="">— Directory —</option>';
     for (const [aId, aDet] of Object.entries(authorDetails)) {
@@ -2564,7 +2579,7 @@ function syncBookSizeCombinedGeneric() {
 // ══════════════════════════════════════════════════════════════════════════════
 // INDEPENDENT DUAL PRICING ENGINE (PAPERBACK & HARDCOVER)
 // ══════════════════════════════════════════════════════════════════════════════
-function onCoverTypeDropdownChange(binding) {
+function onCoverTypeDropdownChangeGeneric(binding) {
     const pbPanel = document.getElementById('paperbackPricingPanel');
     const hcPanel = document.getElementById('hardcoverPricingPanel');
     const badge = document.getElementById('pricingBindingBadge');
@@ -2586,7 +2601,7 @@ function onCoverTypeDropdownChange(binding) {
 }
 
 // 1. PAPERBACK PRICING HANDLERS
-function onPaperbackPriceChange() {
+function onPaperbackPriceChangeGeneric() {
     const price = parseFloat(document.getElementById('f-price')?.value) || 0;
     const pDiscPct = parseFloat(document.getElementById('f-purchase_discount_percent')?.value) || 0;
     const costInput = document.getElementById('f-cost_price');
@@ -2599,7 +2614,7 @@ function onPaperbackPriceChange() {
     updateLiveMockupCard();
 }
 
-function onPaperbackPurchaseDiscountChange() {
+function onPaperbackPurchaseDiscountChangeGeneric() {
     const price = parseFloat(document.getElementById('f-price')?.value) || 0;
     const pDiscPct = parseFloat(document.getElementById('f-purchase_discount_percent')?.value) || 0;
     const costInput = document.getElementById('f-cost_price');
@@ -2611,7 +2626,7 @@ function onPaperbackPurchaseDiscountChange() {
     updatePaperbackCalculations();
 }
 
-function onPaperbackCostChange() {
+function onPaperbackCostChangeGeneric() {
     const price = parseFloat(document.getElementById('f-price')?.value) || 0;
     const cost = parseFloat(document.getElementById('f-cost_price')?.value) || 0;
     const pDiscInput = document.getElementById('f-purchase_discount_percent');
@@ -2623,7 +2638,7 @@ function onPaperbackCostChange() {
     updatePaperbackCalculations();
 }
 
-function onPaperbackSoldPercentChange() {
+function onPaperbackSoldPercentChangeGeneric() {
     updatePaperbackCalculations();
     updateLiveMockupCard();
 }
@@ -2674,7 +2689,7 @@ function onSoldPercentChange() { onPaperbackSoldPercentChange(); }
 function updateStandardCalculations() { updatePaperbackCalculations(); }
 
 // 2. HARDCOVER PRICING HANDLERS
-function onHardcoverPriceChange() {
+function onHardcoverPriceChangeGeneric() {
     const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
     const pDiscPct = parseFloat(document.getElementById('f-hardcover_purchase_discount_percent')?.value) || 0;
     const costInput = document.getElementById('f-hardcover_cost_price');
@@ -2687,7 +2702,7 @@ function onHardcoverPriceChange() {
     updateLiveMockupCard();
 }
 
-function onHardcoverPurchaseDiscountChange() {
+function onHardcoverPurchaseDiscountChangeGeneric() {
     const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
     const pDiscPct = parseFloat(document.getElementById('f-hardcover_purchase_discount_percent')?.value) || 0;
     const costInput = document.getElementById('f-hardcover_cost_price');
@@ -2699,7 +2714,7 @@ function onHardcoverPurchaseDiscountChange() {
     updateHardcoverCalculations();
 }
 
-function onHardcoverCostChange() {
+function onHardcoverCostChangeGeneric() {
     const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
     const cost = parseFloat(document.getElementById('f-hardcover_cost_price')?.value) || 0;
     const pDiscInput = document.getElementById('f-hardcover_purchase_discount_percent');
@@ -2711,7 +2726,7 @@ function onHardcoverCostChange() {
     updateHardcoverCalculations();
 }
 
-function onHardcoverSoldPercentChange() {
+function onHardcoverSoldPercentChangeGeneric() {
     updateHardcoverCalculations();
     updateLiveMockupCard();
 }
@@ -2755,7 +2770,7 @@ function updateHardcoverCalculationsGeneric() {
 }
 
 // Toggle format for look inside
-function toggleLookInsideFormat(type) {
+function toggleLookInsideFormatGeneric(type) {
     const pdfPanel = document.getElementById('lookInsidePdfPanel');
     const imagesPanel = document.getElementById('lookInsideImagesPanel');
     if (pdfPanel && imagesPanel) {
@@ -2769,7 +2784,7 @@ function toggleLookInsideFormat(type) {
     }
 }
 
-function toggleAdminPreOrderFields(stockStatus) {
+function toggleAdminPreOrderFieldsGeneric(stockStatus) {
     const container = document.getElementById('adminPreOrderContainer');
     if (!container) return;
     if (stockStatus === 'pre_order') {
@@ -2817,7 +2832,7 @@ function previewAdminMultiImagesGeneric(input) {
     });
 }
 
-function clearAdminMultiImages() {
+function clearAdminMultiImagesGeneric() {
     const input = document.getElementById('f-look_inside_images');
     if (input) input.value = '';
     const container = document.getElementById('multiImagesPreviewContainer');
@@ -2998,13 +3013,13 @@ function updateLiveMockupCardGeneric() {
 }
 
 // Drag and drop events for modern dropzone
-function handleDropzoneDragOver(e, dropzoneEl) {
+function handleDropzoneDragOverGeneric(e, dropzoneEl) {
     e.preventDefault();
     e.stopPropagation();
     dropzoneEl.classList.add('dragover');
 }
 
-function handleDropzoneDragLeave(e, dropzoneEl) {
+function handleDropzoneDragLeaveGeneric(e, dropzoneEl) {
     e.preventDefault();
     e.stopPropagation();
     dropzoneEl.classList.remove('dragover');

@@ -1251,6 +1251,7 @@ class AdminController extends Controller
             ->when($stockFilter === 'pre_order', fn ($q) => $q->where('stock_status', 'pre_order'))
             ->when($stockFilter === 'low', fn ($q) => $q->where('stock_quantity', '<=', 5)->where('stock_quantity', '>', 0))
             ->when($stockFilter === 'out', fn ($q) => $q->where('stock_quantity', '<=', 0))
+            ->when($stockFilter === 'attention', fn ($q) => $q->where('stock_quantity', '<=', 5))   // low + out together (same rule as the Stock card count)
             ->when($stockFilter === 'in_stock', fn ($q) => $q->where('stock_quantity', '>', 5))
             ->when($format && in_array($format, ['printed', 'ebook', 'both'], true), fn ($q) => $q->where('format', $format))
             ->when($coverType && in_array($coverType, ['paperback', 'hardcover', 'both'], true), fn ($q) => $q->where('cover_type', $coverType))
@@ -1261,7 +1262,7 @@ class AdminController extends Controller
             ->when($status !== null && $status !== '', fn ($q) => $q->where('is_active', (bool) $status));
 
         if (($publisherId === 'idea' || $publisherId === '2' || $publisherId === 'in_house') && (!$request->filled('sort') || $sort === 'idea_serial_asc')) {
-            $query->orderByRaw("CASE WHEN idea_serial_no IS NOT NULL AND idea_serial_no != '' THEN CAST(REGEXP_REPLACE(idea_serial_no, '[^0-9]', '') AS UNSIGNED) ELSE id END ASC");
+            $query->orderByRaw(\App\Support\SerialOrder::sql('ASC'));
         } else {
             match ($sort) {
                 'oldest'           => $query->oldest('id'),
@@ -1273,8 +1274,8 @@ class AdminController extends Controller
                 'stock_low'        => $query->orderBy('stock_quantity', 'asc'),
                 'stock_high'       => $query->orderByDesc('stock_quantity'),
                 'discount_high'    => $query->whereNotNull('discount_price')->orderByRaw('(price - discount_price) DESC'),
-                'idea_serial_asc'  => $query->orderByRaw("CASE WHEN idea_serial_no IS NOT NULL AND idea_serial_no != '' THEN CAST(REGEXP_REPLACE(idea_serial_no, '[^0-9]', '') AS UNSIGNED) ELSE 999999 END ASC"),
-                'idea_serial_desc' => $query->orderByRaw("CASE WHEN idea_serial_no IS NOT NULL AND idea_serial_no != '' THEN CAST(REGEXP_REPLACE(idea_serial_no, '[^0-9]', '') AS UNSIGNED) ELSE 0 END DESC"),
+                'idea_serial_asc'  => $query->orderByRaw(\App\Support\SerialOrder::sql('ASC', 'idea_serial_no', '999999')),
+                'idea_serial_desc' => $query->orderByRaw(\App\Support\SerialOrder::sql('DESC', 'idea_serial_no', '0')),
                 default            => $query->latest('id'),
             };
         }
@@ -3357,14 +3358,14 @@ class AdminController extends Controller
 
             // The binding decides which prices exist: a paperback has no hardcover price and a hardcover-only book
             // has no paperback price. Without this a hidden, old price kept the book "both" forever.
-            if ($request->filled('cover_type')) {
-                if ($request->input('cover_type') === 'paperback') {
-                    $updates['hardcover_price'] = null;
-                    $updates['hardcover_discount_price'] = null;
-                } elseif ($request->input('cover_type') === 'hardcover') {
-                    $updates['price'] = 0;
-                    $updates['discount_price'] = null;
-                }
+            // Same rule as the full book form (App\Support\BookPricing): a hardcover-only book keeps its price in
+            // hardcover_price and mirrors it into `price` (lists, carts, sorting and price filters read `price`).
+            if ($request->hasAny(['cover_type', 'price', 'discount_price', 'hardcover_price', 'hardcover_discount_price'])) {
+                $pick = fn ($k) => array_key_exists($k, $updates) ? $updates[$k] : $book->{$k};
+                $updates = array_merge($updates, \App\Support\BookPricing::forBinding(
+                    $updates['cover_type'] ?? $book->cover_type,
+                    $pick('price'), $pick('discount_price'), $pick('hardcover_price'), $pick('hardcover_discount_price')
+                ));
             }
 
             // Moderation & Live Visibility Status Handling
@@ -3584,6 +3585,9 @@ class AdminController extends Controller
                 $publisherId = $pub->id;
             }
 
+            // Same price rule as the full book form (App\Support\BookPricing).
+            $priced = \App\Support\BookPricing::forBinding($request->input('cover_type', 'hardcover'), $price, $discountPrice, $hardPrice, $hardDisc);
+
             $book = \Modules\Book\Models\Book::create([
                 'title'                    => $title,
                 'slug'                     => $slug,
@@ -3593,12 +3597,12 @@ class AdminController extends Controller
                 'publisher_id'             => $publisherId,
                 'isbn'                     => $validated['isbn'] ?? null,
                 'sku'                      => $sku,
-                'price'                    => $price,
-                'discount_price'           => $discountPrice,
+                'price'                    => $priced['price'],
+                'discount_price'           => $priced['discount_price'],
                 'cost_price'               => $costPrice,
-                'hardcover_price'          => $hardPrice,
-                'hardcover_discount_price' => $hardDisc,
-                'cover_type'               => $request->input('cover_type', 'paperback'),
+                'hardcover_price'          => $priced['hardcover_price'],
+                'hardcover_discount_price' => $priced['hardcover_discount_price'],
+                'cover_type'               => $request->input('cover_type', 'hardcover'),
                 'edition'                  => $request->input('edition', '১ম প্রকাশ ' . date('Y')),
                 'cover_image'              => $coverPath,
                 'stock_quantity'           => $stock,

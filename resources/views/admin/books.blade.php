@@ -59,11 +59,11 @@
             $noFilter = !request()->hasAny(['stock', 'discount_only', 'is_active', 'mod_status', 'publisher_id']);
             $kpis = [
                 ['Total',     $stats['total'] ?? 0,             route('admin.books'),                                                                                                   $noFilter, 'primary'],
-                ['Publisher', $stats['publisher_pending'] ?? 0, route('admin.books', ['mod_status' => 'pending', 'publisher_id' => 'registered']),                                    request('publisher_id') === 'registered' && request('mod_status') === 'pending', 'indigo'],
+                ['Publisher review', $stats['publisher_pending'] ?? 0, route('admin.books', ['mod_status' => 'pending', 'publisher_id' => 'registered']),                                    request('publisher_id') === 'registered' && request('mod_status') === 'pending', 'indigo'],
                 ['Pending',   $stats['pending'] ?? 0,           route('admin.books', array_merge(request()->except(['mod_status', 'page']), ['mod_status' => 'pending'])),             request('mod_status') === 'pending' && request('publisher_id') !== 'registered', 'warning'],
                 ['Live',      $stats['active'] ?? 0,            route('admin.books', array_merge(request()->except(['is_active', 'mod_status', 'page']), ['is_active' => '1'])),       request('is_active') === '1', 'success'],
                 ['Pre-order', $stats['pre_order'] ?? 0,         route('admin.books', array_merge(request()->except(['stock', 'page']), ['stock' => 'pre_order'])),                      request('stock') === 'pre_order', 'info'],
-                ['Stock',     ($stats['low_stock'] ?? 0) + ($stats['out_stock'] ?? 0), route('admin.books', array_merge(request()->except(['stock', 'page']), ['stock' => 'low'])), in_array(request('stock'), ['low', 'out'], true), 'danger'],
+                ['Stock',     ($stats['low_stock'] ?? 0) + ($stats['out_stock'] ?? 0), route('admin.books', array_merge(request()->except(['stock', 'page']), ['stock' => 'attention'])), in_array(request('stock'), ['low', 'out', 'attention'], true), 'danger'],
             ];
         @endphp
         @foreach($kpis as [$kLabel, $kValue, $kUrl, $kActive, $kTone])
@@ -183,6 +183,7 @@
                             <option value="in_stock" @selected(request('stock') === 'in_stock')>In stock (&gt;5)</option>
                             <option value="low" @selected(request('stock') === 'low')>Low (&le;5)</option>
                             <option value="out" @selected(request('stock') === 'out')>Out (0)</option>
+                            <option value="attention" @selected(request('stock') === 'attention')>Low + out (&le;5)</option>
                             <option value="pre_order" @selected(request('stock') === 'pre_order')>Pre-order</option>
                         </select>
                     </div>
@@ -264,7 +265,7 @@
 
                 @if(request('stock'))
                     <span class="badge bg-light text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
-                        Stock: {{ request('stock') === 'in_stock' ? 'In Stock' : (request('stock') === 'low' ? 'Low Stock' : (request('stock') === 'out' ? 'Out of Stock' : 'Pre-Order')) }}
+                        Stock: {{ ['in_stock' => 'In stock', 'low' => 'Low', 'out' => 'Out', 'attention' => 'Low + out', 'pre_order' => 'Pre-order'][request('stock')] ?? request('stock') }}
                         <a href="{{ route('admin.books', request()->except('stock')) }}" class="text-dark text-decoration-none"><i class="fa-solid fa-circle-xmark"></i></a>
                     </span>
                 @endif
@@ -306,194 +307,22 @@
     </div>
 
     {{-- ========================================================================= --}}
-    {{-- 3. MODERN BOOK MANAGEMENT TABLE WITH INTUITIVE QUICK ACTIONS              --}}
+    {{-- 3. BOOK LIST — one row per book; on phones every row becomes a card        --}}
+    {{--    Price shows only the prices a book really has (paper / hard / cost).    --}}
     {{-- ========================================================================= --}}
-    <style>
-        .adm-books-table-wrapper {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: thin;
-            scrollbar-color: #94a3b8 #f1f5f9;
-        }
-        .adm-books-table-wrapper::-webkit-scrollbar {
-            height: 8px;
-            background: #f8fafc;
-        }
-        .adm-books-table-wrapper::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
-        }
-        .adm-books-table-wrapper::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        .adm-books-table-wrapper::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        .adm-books-table {
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-        .adm-books-table thead th {
-            font-size: 11.5px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-            color: #475569;
-            background: #f8fafc;
-            border-bottom: 1px solid #cbd5e1;
-            border-right: 1px solid #e2e8f0;
-            padding: 10px 12px;
-            white-space: nowrap;
-            vertical-align: middle;
-        }
-        .adm-books-table thead th:last-child {
-            border-right: none;
-        }
-        .adm-books-table tbody td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #e2e8f0;
-            border-right: 1px solid #f1f5f9;
-            font-size: 12.5px;
-            vertical-align: middle;
-        }
-        .adm-books-table tbody td:last-child {
-            border-right: none;
-        }
-        .adm-books-table tbody tr:hover td {
-            background-color: #f8fafc;
-        }
-        .adm-books-table tbody tr:hover td.adm-sticky-action-col {
-            background-color: #ffffff !important;
-        }
-        .adm-sticky-action-col {
-            position: sticky;
-            right: 0;
-            background: #ffffff !important;
-            box-shadow: -5px 0 12px -3px rgba(0, 0, 0, 0.06);
-            z-index: 5;
-        }
-        thead th.adm-sticky-action-col {
-            background: #f8fafc !important;
-            z-index: 6;
-        }
-        .adm-icon-action-btn {
-            transition: all 0.18s ease-in-out;
-            background: #ffffff;
-            border-color: #e2e8f0;
-            color: #64748b;
-        }
-        .adm-icon-action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-        }
-        .adm-icon-action-btn.btn-outline-secondary:hover {
-            background: #f1f5f9;
-            color: #0f172a;
-            border-color: #cbd5e1;
-        }
-        .adm-icon-action-btn.btn-outline-info:hover {
-            background: #e0f2fe;
-            color: #0284c7;
-            border-color: #bae6fd;
-        }
-        .adm-icon-action-btn.btn-outline-danger:hover {
-            background: #fee2e2;
-            color: #dc2626;
-            border-color: #fca5a5;
-        }
-        .btn-approve-action {
-            transition: all 0.18s ease;
-        }
-        .btn-approve-action:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
-        }
-        .btn-reject-action {
-            transition: all 0.18s ease;
-        }
-        .btn-reject-action:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);
-        }
-        .adm-action-btn {
-            transition: all 0.18s ease;
-        }
-        .adm-action-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
-        }
-        .adm-scroll-sync-bar {
-            overflow-x: auto;
-            overflow-y: hidden;
-            height: 8px;
-            background: #f8fafc;
-            border-top: 1px solid #e2e8f0;
-            scrollbar-width: thin;
-            scrollbar-color: #94a3b8 #f1f5f9;
-        }
-        .adm-scroll-sync-bar::-webkit-scrollbar {
-            height: 8px;
-        }
-        .adm-scroll-sync-bar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        /* Dark Mode Table Enhancements */
-        body.dark-mode .adm-books-table thead th {
-            background: #1e293b !important;
-            color: #cbd5e1 !important;
-            border-bottom-color: #334155 !important;
-        }
-        body.dark-mode .adm-books-table tbody td {
-            border-bottom-color: #1e293b !important;
-            color: #f1f5f9 !important;
-        }
-        body.dark-mode .adm-books-table tbody tr:hover td {
-            background-color: #1e293b !important;
-        }
-        body.dark-mode .adm-sticky-action-col,
-        body.dark-mode thead th.adm-sticky-action-col {
-            background: #111827 !important;
-            box-shadow: -5px 0 12px -3px rgba(0, 0, 0, 0.45);
-        }
-        body.dark-mode .adm-books-table tbody tr:hover td.adm-sticky-action-col {
-            background-color: #1e293b !important;
-        }
-        body.dark-mode .adm-icon-action-btn {
-            background: #1e293b;
-            border-color: #374151;
-            color: #94a3b8;
-        }
-    </style>
-
-    <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4">
-        <div class="d-flex align-items-center justify-content-end px-3 py-2 bg-light border-bottom">
-            <div class="d-flex align-items-center gap-1">
-                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="scrollAdminBooksTable(-300)" title="Scroll Left">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
-                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="scrollAdminBooksTable(300)" title="Scroll Right">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-
+    <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4 bk-list">
         <div class="adm-books-table-wrapper" id="adminBooksTableWrapper">
-            <table class="table adm-books-table align-middle mb-0" id="adminBooksTable" style="width: 100%; min-width: 980px;">
-                <thead class="table-light">
+            <table class="table adm-books-table bk-table align-middle mb-0" id="adminBooksTable">
+                <thead>
                     <tr>
-                        <th class="ps-3" style="width: 42px;">#</th>
-                        <th style="min-width: 220px;">Book</th>
-                        <th style="width: 110px;">Edition</th>
-                        <th style="min-width: 150px;">Author</th>
-                        <th style="width: 110px;">Category</th>
-                        <th class="text-end" style="width: 88px;">Paper</th>
-                        <th class="text-end" style="width: 88px;">Hard</th>
-                        <th class="text-end" style="width: 88px;">Cost</th>
-                        <th class="text-center" style="width: 86px;">Stock</th>
-                        <th class="text-center" style="width: 120px;">Review</th>
-                        <th class="text-center" style="width: 60px;">Live</th>
-                        <th class="text-end pe-3 adm-sticky-action-col" style="width: 195px;">Actions</th>
+                        <th class="bk-col-no">#</th>
+                        <th class="bk-col-book">Book</th>
+                        <th class="bk-col-author">Author</th>
+                        <th class="bk-col-cat">Category</th>
+                        <th class="bk-col-price text-end">Price</th>
+                        <th class="bk-col-stock text-center">Stock</th>
+                        <th class="bk-col-status">Status</th>
+                        <th class="bk-col-act text-end"><span class="visually-hidden">Actions</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -505,36 +334,29 @@
                             $cover = $book->cover_image;
                             $coverUrl = $fallbackSvg;
                             if ($cover) {
-                                if (str_starts_with($cover, 'http')) {
-                                    $coverUrl = $cover;
-                                } elseif (str_starts_with($cover, 'storage/')) {
-                                    $coverUrl = asset($cover);
-                                } else {
-                                    $coverUrl = asset('storage/' . ltrim($cover, '/'));
-                                }
+                                $coverUrl = str_starts_with($cover, 'http') ? $cover : (str_starts_with($cover, 'storage/') ? asset($cover) : asset('storage/' . ltrim($cover, '/')));
                             }
-                            
-                            $isHardcover = ($book->cover_type === 'hardcover');
-                            $isBoth = ($book->cover_type === 'both');
 
-                            $paperPrice = (float) ($book->price ?: 0);
+                            $paperPrice    = (float) ($book->price ?: 0);
                             $paperDiscount = (float) ($book->discount_price ?: 0);
-                            $hardPrice = (float) ($book->hardcover_price ?: 0);
-                            $hardDiscount = (float) ($book->hardcover_discount_price ?: 0);
-                            $cost = (float) ($book->cost_price ?: 0);
-
-                            $hasBothPrices = ($paperPrice > 0 && $hardPrice > 0);
+                            $hardPrice     = (float) ($book->hardcover_price ?: 0);
+                            $hardDiscount  = (float) ($book->hardcover_discount_price ?: 0);
+                            $cost          = (float) ($book->cost_price ?: 0);
 
                             $hasPaperDiscount = $paperDiscount > 0 && $paperDiscount < $paperPrice;
-                            $paperDiscountPercent = $hasPaperDiscount ? round((($paperPrice - $paperDiscount) / $paperPrice) * 100) : 0;
-
-                            $hasHardDiscount = $hardDiscount > 0 && $hardDiscount < $hardPrice;
-                            $hardDiscountPercent = $hasHardDiscount ? round((($hardPrice - $hardDiscount) / $hardPrice) * 100) : 0;
-
-                            $effectivePrice = ($paperDiscount > 0) ? $paperDiscount : ($paperPrice ?: (($hardDiscount > 0) ? $hardDiscount : $hardPrice));
-                            $buyCommissionPercent = ($effectivePrice > 0 && $cost > 0 && $cost < $effectivePrice) ? round((($effectivePrice - $cost) / $effectivePrice) * 100) : 0;
+                            $hasHardDiscount  = $hardDiscount > 0 && $hardDiscount < $hardPrice;
+                            $paperSale = $hasPaperDiscount ? $paperDiscount : $paperPrice;
+                            $hardSale  = $hasHardDiscount ? $hardDiscount : $hardPrice;
+                            $effectivePrice = $paperSale ?: $hardSale;
+                            // Margin on the selling price after the buying cost.
+                            $margin = ($effectivePrice > 0 && $cost > 0) ? round((($effectivePrice - $cost) / $effectivePrice) * 100) : null;
 
                             $stock = (int) ($book->stock_quantity ?? 0);
+                            $stockTone = $book->stock_status === 'pre_order' ? 'info' : ($stock <= 0 ? 'out' : ($stock <= 5 ? 'low' : 'ok'));
+                            $binding = $book->cover_type === 'both' ? 'Paper + Hard' : ($book->cover_type === 'hardcover' ? 'Hardcover' : 'Paperback');
+
+                            $authorNames = $book->authorLink ? $book->authorLink->name : ($book->authors->isNotEmpty() ? $book->authors->pluck('name')->implode(', ') : ($book->author_name ?: ''));
+                            $publisherName = $book->publisher ? $book->publisher->name : 'আইডিয়া প্রকাশন';
 
                             $bookJsonData = [
                                 'id' => $book->id,
@@ -551,298 +373,164 @@
                                 'mod_status' => $book->mod_status ?: 'approved',
                                 'cover_url' => $coverUrl,
                                 'cover_type' => $book->cover_type ?: 'paperback',
+                                // export only
+                                'serial' => $book->idea_serial_no ?: '',
+                                'sku' => $book->sku ?: '',
+                                'isbn' => $book->isbn ?: '',
+                                'author' => $authorNames,
+                                'publisher' => $publisherName,
+                                'category' => $book->category->name ?? 'বিবিধ',
                             ];
                         @endphp
-                        <tr id="bookRow_{{ $book->id }}" class="book-table-row" data-book='@json($bookJsonData)'>
-                            <td class="ps-3 text-muted font-monospace small">
-                                {{ ($books->currentPage() - 1) * $books->perPage() + $index + 1 }}
-                            </td>
-                            
-                            <td>
-                                <div class="d-flex align-items-center gap-2.5">
-                                    <div class="position-relative flex-shrink-0 cursor-pointer" style="width: 44px; height: 60px;" onclick="openQuickEditModal({{ $book->id }}, 'cover')" title="Click to change cover image">
-                                        <img src="{{ $coverUrl }}" alt="Cover" 
-                                             class="rounded shadow-xs border bg-secondary bg-opacity-10" 
-                                             style="width: 44px; height: 60px; min-width: 44px; max-width: 44px; object-fit: cover; display: block;" 
-                                             id="bookCoverImg_{{ $book->id }}"
-                                             onerror="this.onerror=null;this.src='{{ $fallbackSvg }}';">
-                                        <span class="position-absolute bottom-0 end-0 bg-dark bg-opacity-75 text-white p-0.5 rounded-circle" style="font-size: 8px; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center;">
-                                            <i class="fa-solid fa-camera"></i>
-                                        </span>
-                                    </div>
-                                    <div class="overflow-hidden" style="min-width: 0; flex: 1; max-width: 260px;">
-                                        <a href="{{ route('admin.content.edit', ['type' => 'books', 'id' => $book->id]) }}" 
-                                           class="fw-bold text-dark text-decoration-none hover-primary d-block text-truncate mb-0.5" title="{{ $book->title }}" id="bookTitleDisplay_{{ $book->id }}">
-                                            {{ $book->title }}
-                                        </a>
-                                        <div class="d-flex flex-wrap align-items-center gap-1.5 small text-muted font-monospace" style="font-size: 11px;">
-                                            @if($book->idea_serial_no)
-                                                <span class="badge bg-warning-subtle text-dark border border-warning px-1.5 py-0.5 fw-bold" id="bookIdeaSerialDisplay_{{ $book->id }}" title="আইডিয়া প্রকাশন নিজস্ব ক্রমিক নম্বর">
-                                                    {{ $book->idea_serial_no }}
-                                                </span>
-                                            @endif
-                                            @if($book->sku)
-                                                <span class="badge bg-light text-muted border px-1.5 py-0.5" id="bookSkuDisplay_{{ $book->id }}" title="গণ সিরিয়াল (General SKU)">
-                                                    {{ $book->sku }}
-                                                </span>
-                                            @endif
-                                            <button type="button" class="btn btn-xs btn-outline-dark py-0 px-1.5 rounded-pill" onclick="openBarcodeModal({{ $book->id }})" title="View Barcode & QR Code" style="font-size: 10px;">
-                                                QR
-                                            </button>
-                                            @if($book->isbn)
-                                                <span class="text-truncate" title="ISBN: {{ $book->isbn }}">{{ $book->isbn }}</span>
-                                            @endif
+                        <tr id="bookRow_{{ $book->id }}" class="book-table-row {{ $book->is_active ? '' : 'is-draft' }}" data-book='@json($bookJsonData)'>
+                            <td class="bk-col-no" data-label="#">{{ ($books->currentPage() - 1) * $books->perPage() + $index + 1 }}</td>
+
+                            <td class="bk-col-book">
+                                <div class="bk-book">
+                                    <button type="button" class="bk-cover" onclick="openQuickEditModal({{ $book->id }}, 'cover')" title="Change cover">
+                                        <img src="{{ $coverUrl }}" alt="" loading="lazy" id="bookCoverImg_{{ $book->id }}" onerror="this.onerror=null;this.src='{{ $fallbackSvg }}';">
+                                    </button>
+                                    <div class="bk-book__text">
+                                        <a href="{{ route('admin.content.edit', ['type' => 'books', 'id' => $book->id]) }}" class="bk-book__title" title="{{ $book->title }}" id="bookTitleDisplay_{{ $book->id }}">{{ $book->title }}</a>
+                                        <div class="bk-meta">
+                                            @if($book->idea_serial_no)<span class="bk-tag bk-tag--serial" id="bookIdeaSerialDisplay_{{ $book->id }}" title="Idea serial">{{ $book->idea_serial_no }}</span>@endif
+                                            @if($book->sku)<span class="bk-tag" id="bookSkuDisplay_{{ $book->id }}" title="SKU">{{ $book->sku }}</span>@endif
+                                            @if($book->isbn)<span class="bk-isbn" title="ISBN">{{ $book->isbn }}</span>@endif
                                         </div>
+                                        <div class="bk-sub">{{ $book->edition ?: 'Standard' }} · {{ $binding }}</div>
                                     </div>
                                 </div>
                             </td>
 
-                            <td>
-                                <div class="small fw-semibold text-dark">{{ $book->edition ?: 'Standard' }}</div>
-                                <div class="mt-0.5">
-                                    @if($isBoth)
-                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 9.5px;">Paper + Hard</span>
-                                    @elseif($isHardcover)
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle" style="font-size: 9.5px;">Hardcover</span>
-                                    @else
-                                        <span class="badge bg-light text-muted border" style="font-size: 9.5px;">Paperback</span>
-                                    @endif
-                                </div>
-                            </td>
-
-                            <td>
-                                <div class="fw-semibold text-dark small mb-0.5 text-truncate" style="max-width: 180px;">
+                            <td class="bk-col-author" data-label="Author">
+                                <div class="bk-author">
                                     @if($book->authorLink)
-                                        <a href="{{ route('admin.books', ['author_id' => $book->authorLink->id]) }}" class="text-decoration-none text-primary hover-underline">
-                                            {{ $book->authorLink->name }}
-                                        </a>
+                                        <a href="{{ route('admin.books', ['author_id' => $book->authorLink->id]) }}">{{ $book->authorLink->name }}</a>
                                     @elseif($book->authors->isNotEmpty())
                                         @foreach($book->authors as $auth)
-                                            <a href="{{ route('admin.books', ['author_id' => $auth->id]) }}" class="text-decoration-none text-primary hover-underline d-inline-block me-1">
-                                                {{ $auth->name }}
-                                            </a>
+                                            <a href="{{ route('admin.books', ['author_id' => $auth->id]) }}">{{ $auth->name }}</a>@if(!$loop->last), @endif
                                         @endforeach
                                     @else
-                                        <span class="text-dark">{{ $book->author_name ?? '—' }}</span>
+                                        <span>{{ $book->author_name ?: '—' }}</span>
                                     @endif
                                 </div>
-                                <div class="small text-muted text-truncate" style="font-size: 11px; max-width: 180px;">
+                                <div class="bk-sub">
                                     @if($book->publisher)
-                                        <a href="{{ route('admin.publishers.show', $book->publisher->id) }}" class="text-decoration-none text-dark fw-semibold hover-primary" title="View Publisher: {{ $book->publisher->name }}">
-                                            {{ $book->publisher->name }}
-                                        </a>
-                                        <span class="badge bg-indigo-subtle text-indigo-emphasis border border-indigo-subtle rounded-pill py-0.5 px-1.5 ms-1" style="font-size: 9px;" title="Registered Publisher Book">
-                                             Publisher
-                                        </span>
+                                        <a href="{{ route('admin.publishers.show', $book->publisher->id) }}" title="Publisher">{{ $book->publisher->name }}</a>
                                     @else
-                                        <span class="text-muted">IDEA Pub (In-House)</span>
+                                        <a href="{{ route('admin.books', ['publisher_id' => 'idea']) }}">আইডিয়া প্রকাশন</a>
                                     @endif
                                 </div>
                             </td>
 
-                            <td>
+                            <td class="bk-col-cat" data-label="Category">
                                 @if($book->category)
-                                    <a href="{{ route('admin.books', ['category_id' => $book->category->id]) }}" class="text-decoration-none">
-                                        <span class="badge bg-light text-primary border rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                            {{ $book->category->name }}
-                                        </span>
-                                    </a>
+                                    <a href="{{ route('admin.books', ['category_id' => $book->category->id]) }}" class="bk-pill">{{ $book->category->name }}</a>
                                 @else
-                                    <a href="{{ route('admin.books', ['category_id' => $bibidhId ?? 'bibidh']) }}" class="text-decoration-none" title="ক্যাটাগরি সিলেক্ট মিসিং (বিবিধ ক্যাটাগরির অন্তর্ভুক্ত)">
-                                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                            বিবিধ
-                                        </span>
-                                    </a>
+                                    <a href="{{ route('admin.books', ['category_id' => $bibidhId ?? 'bibidh']) }}" class="bk-pill bk-pill--warn" title="No category set">বিবিধ</a>
                                 @endif
                                 @if($book->genre_category)
-                                    <a href="{{ route('admin.books', ['genre' => $book->genre_category]) }}" class="text-decoration-none d-block mt-1">
-                                        <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5" style="font-size: 10.5px;">{{ \Modules\Book\Models\Genre::nameFor($book->genre_category, 'bn') }}</span>
-                                    </a>
+                                    <a href="{{ route('admin.books', ['genre' => $book->genre_category]) }}" class="bk-pill bk-pill--soft">{{ \Modules\Book\Models\Genre::nameFor($book->genre_category, 'bn') }}</a>
                                 @endif
                             </td>
 
-                            <td class="text-end">
-                                <div class="cursor-pointer hover-bg-light p-1 rounded-2" 
-                                     onclick="openQuickEditModal({{ $book->id }}, 'pricing')" title="Click to adjust price">
+                            <td class="bk-col-price text-end" data-label="Price">
+                                <button type="button" class="bk-price" onclick="openQuickEditModal({{ $book->id }}, 'pricing')" title="Edit prices">
                                     @if($paperPrice > 0)
-                                        @if($hasPaperDiscount)
-                                            <div class="d-flex flex-column align-items-end">
-                                                <span class="fw-bold text-dark font-monospace" style="font-size: 12.5px;">৳{{ number_format($paperDiscount, 0) }}</span>
-                                                <div class="d-flex align-items-center gap-1">
-                                                    <span class="text-muted text-decoration-line-through font-monospace" style="font-size: 10px;">৳{{ number_format($paperPrice, 0) }}</span>
-                                                    <span class="badge bg-danger-subtle text-danger rounded-pill px-1" style="font-size: 8.5px; font-weight: 600;">-{{ $paperDiscountPercent }}%</span>
-                                                </div>
-                                            </div>
-                                        @else
-                                            <div class="fw-bold text-dark font-monospace" style="font-size: 12.5px;">৳{{ number_format($paperPrice, 0) }}</div>
-                                            <div class="text-muted" style="font-size: 9.5px;">MRP</div>
-                                        @endif
-                                    @else
-                                        <span class="text-muted small">—</span>
-                                    @endif
-                                </div>
-                            </td>
-
-                            <td class="text-end">
-                                <div class="cursor-pointer hover-bg-light p-1 rounded-2" 
-                                     onclick="openQuickEditModal({{ $book->id }}, 'pricing')" title="Click to adjust price">
-                                    @if($hardPrice > 0)
-                                        @if($hasHardDiscount)
-                                            <div class="d-flex flex-column align-items-end">
-                                                <span class="fw-bold text-dark font-monospace" style="font-size: 12.5px;">৳{{ number_format($hardDiscount, 0) }}</span>
-                                                <div class="d-flex align-items-center gap-1">
-                                                    <span class="text-muted text-decoration-line-through font-monospace" style="font-size: 10px;">৳{{ number_format($hardPrice, 0) }}</span>
-                                                    <span class="badge bg-danger-subtle text-danger rounded-pill px-1" style="font-size: 8.5px; font-weight: 600;">-{{ $hardDiscountPercent }}%</span>
-                                                </div>
-                                            </div>
-                                        @else
-                                            <div class="fw-bold text-dark font-monospace" style="font-size: 12.5px;">৳{{ number_format($hardPrice, 0) }}</div>
-                                            <div class="text-muted" style="font-size: 9.5px;">MRP</div>
-                                        @endif
-                                    @else
-                                        <span class="text-muted small">—</span>
-                                    @endif
-                                </div>
-                            </td>
-
-                            <td class="text-end">
-                                <div class="cursor-pointer hover-bg-light p-1 rounded-2" 
-                                     onclick="openQuickEditModal({{ $book->id }}, 'pricing')" title="Click to adjust cost">
-                                    @if($cost > 0)
-                                        <div class="fw-bold text-danger font-monospace" style="font-size: 12px;" id="bookCostDisplay_{{ $book->id }}">৳{{ number_format($cost, 0) }}</div>
-                                        @if($buyCommissionPercent > 0)
-                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-1.5 py-0.5" style="font-size: 9px; font-weight: 600;">
-                                                -{{ $buyCommissionPercent }}%
-                                            </span>
-                                        @endif
-                                    @else
-                                        <span class="text-muted small">—</span>
-                                    @endif
-                                </div>
-                            </td>
-
-                            <td class="text-center">
-                                <div class="d-inline-flex align-items-center justify-content-center gap-1">
-                                    @if($stock <= 0)
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 11px;">0 pcs</span>
-                                    @elseif($stock <= 5)
-                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 11px;">{{ $stock }} pcs</span>
-                                    @else
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 11px;">{{ $stock }} pcs</span>
-                                    @endif
-                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-circle border-0 hover-bg-light" style="width: 18px; height: 18px; padding: 0;" onclick="openQuickEditModal({{ $book->id }}, 'stock')" title="Quick stock edit">
-                                        <i class="fa-solid fa-pen text-muted" style="font-size: 8px;"></i>
-                                    </button>
-                                </div>
-                            </td>
-
-                            <td class="text-center" id="bookModBadge_{{ $book->id }}">
-                                @if($book->mod_status === 'pending')
-                                    <div class="d-inline-flex align-items-center gap-1">
-                                        <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-0.5 fw-bold shadow-xs d-inline-flex align-items-center gap-1 btn-approve-action" 
-                                                style="font-size: 11px; background: linear-gradient(135deg, #10b981, #059669); border: none;"
-                                                onclick="ajaxApproveBook({{ $book->id }})" title="Approve & Publish to Shop">
-                                            <i class="fa-solid fa-circle-check"></i> <span>Approve</span>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-light border border-danger-subtle text-danger rounded-circle btn-reject-action" 
-                                                style="width: 26px; height: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
-                                                onclick="openBookRejectModal({{ $book->id }})" title="Reject / Request Revision">
-                                            <i class="fa-solid fa-xmark" style="font-size: 10px;"></i>
-                                        </button>
-                                    </div>
-                                @elseif($book->mod_status === 'rejected')
-                                    <div class="d-inline-flex align-items-center gap-1">
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 10.5px;" 
-                                              title="{{ $book->rejection_reason ?? 'Rejected' }}" data-bs-toggle="tooltip">
-                                            <i class="fa-solid fa-circle-xmark me-0.5"></i> Rejected
+                                        <span class="bk-price__line">
+                                            @if($hardPrice > 0)<span class="bk-price__kind">Paper</span>@endif
+                                            <b>৳{{ number_format($paperSale) }}</b>
+                                            @if($hasPaperDiscount)<s>৳{{ number_format($paperPrice) }}</s>@endif
                                         </span>
-                                        <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5 fw-bold shadow-2xs" 
-                                                style="font-size: 10.5px;" onclick="ajaxApproveBook({{ $book->id }})" title="Re-Approve Book">
-                                            <i class="fa-solid fa-check"></i> Approve
-                                        </button>
+                                    @endif
+                                    @if($hardPrice > 0)
+                                        <span class="bk-price__line">
+                                            <span class="bk-price__kind">Hard</span>
+                                            <b>৳{{ number_format($hardSale) }}</b>
+                                            @if($hasHardDiscount)<s>৳{{ number_format($hardPrice) }}</s>@endif
+                                        </span>
+                                    @endif
+                                    @if($paperPrice <= 0 && $hardPrice <= 0)
+                                        <span class="bk-price__none">Set price</span>
+                                    @endif
+                                    @if($cost > 0)
+                                        <span class="bk-price__cost" id="bookCostDisplay_{{ $book->id }}">Cost ৳{{ number_format($cost) }}@if($margin !== null) · <em class="{{ $margin < 0 ? 'is-neg' : '' }}">{{ $margin }}%</em>@endif</span>
+                                    @endif
+                                </button>
+                            </td>
+
+                            <td class="bk-col-stock text-center" data-label="Stock">
+                                <button type="button" class="bk-stock bk-stock--{{ $stockTone }}" onclick="openQuickEditModal({{ $book->id }}, 'stock')" title="Edit stock">
+                                    {{ $book->stock_status === 'pre_order' ? 'Pre-order' : number_format($stock) }}
+                                </button>
+                            </td>
+
+                            <td class="bk-col-status" data-label="Status">
+                                <div class="bk-status">
+                                    <label class="bk-live form-switch" title="Show in shop">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="toggleBook-{{ $book->id }}" @checked($book->is_active) onchange="toggleBookActive({{ $book->id }}, this)">
+                                        <span>Live</span>
+                                    </label>
+                                    <div class="bk-review" id="bookModBadge_{{ $book->id }}">
+                                        @if($book->mod_status === 'pending')
+                                            <div class="d-inline-flex align-items-center gap-1">
+                                                <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-0.5 fw-bold btn-approve-action" style="font-size: 11px;" onclick="ajaxApproveBook({{ $book->id }})" title="Approve & publish">Approve</button>
+                                                <button type="button" class="btn btn-sm btn-light border border-danger-subtle text-danger rounded-pill px-2 py-0.5 btn-reject-action" style="font-size: 11px;" onclick="openBookRejectModal({{ $book->id }})" title="Reject / ask for changes">Reject</button>
+                                            </div>
+                                        @elseif($book->mod_status === 'rejected')
+                                            <div class="d-inline-flex align-items-center gap-1">
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 10.5px;" title="{{ $book->rejection_reason ?? 'Rejected' }}">Rejected</span>
+                                                <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5 fw-bold" style="font-size: 10.5px;" onclick="ajaxApproveBook({{ $book->id }})">Approve</button>
+                                            </div>
+                                        @else
+                                            <div class="dropdown d-inline-block">
+                                                <button type="button" class="btn btn-sm btn-light border border-success-subtle text-success rounded-pill px-2.5 py-0.5 fw-semibold dropdown-toggle" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" style="font-size: 11px;">Approved</button>
+                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 py-1" style="font-size: 12px; min-width: 165px;">
+                                                    <li><a class="dropdown-item text-success fw-semibold py-1.5" href="javascript:void(0)" onclick="ajaxApproveBook({{ $book->id }})">Re-approve &amp; live</a></li>
+                                                    <li><a class="dropdown-item py-1.5" href="javascript:void(0)" onclick="ajaxSetBookPending({{ $book->id }})">Mark pending</a></li>
+                                                    <li><hr class="dropdown-divider my-1"></li>
+                                                    <li><a class="dropdown-item text-danger py-1.5" href="javascript:void(0)" onclick="openBookRejectModal({{ $book->id }})">Reject / revision</a></li>
+                                                </ul>
+                                            </div>
+                                        @endif
                                     </div>
-                                @else
-                                    <div class="dropdown d-inline-block">
-                                        <button type="button" class="btn btn-sm btn-light border border-success-subtle text-success rounded-pill px-2.5 py-0.5 fw-semibold dropdown-toggle shadow-2xs" 
-                                                data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" style="font-size: 11px;">
-                                            <i class="fa-solid fa-circle-check text-success me-1"></i> Approved
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 py-1" style="font-size: 12px; min-width: 165px;">
-                                            <li><h6 class="dropdown-header text-muted text-uppercase" style="font-size: 10px;">Moderation Action</h6></li>
-                                            <li><a class="dropdown-item text-success fw-semibold py-1.5" href="javascript:void(0)" onclick="ajaxApproveBook({{ $book->id }})"><i class="fa-solid fa-circle-check me-1.5 text-success"></i> Re-Approve & Live</a></li>
-                                            <li><a class="dropdown-item text-warning-emphasis py-1.5" href="javascript:void(0)" onclick="ajaxSetBookPending({{ $book->id }})"><i class="fa-solid fa-hourglass-half me-1.5 text-warning"></i> Mark Pending</a></li>
+                                </div>
+                            </td>
+
+                            <td class="bk-col-act text-end">
+                                <div class="bk-act" id="bookActionBtns_{{ $book->id }}">
+                                    <button type="button" class="btn btn-sm btn-primary bk-act__edit" onclick="openQuickEditModal({{ $book->id }})" title="Quick edit">Edit</button>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn btn-sm btn-light border bk-act__more" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" aria-label="More actions">⋯</button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 py-1">
+                                            <li><a class="dropdown-item" href="{{ route('admin.content.edit', ['type' => 'books', 'id' => $book->id]) }}">Full edit</a></li>
+                                            @if($book->slug)
+                                                <li><a class="dropdown-item" href="{{ route('book.show', $book->slug) }}" target="_blank" rel="noopener">View in shop ↗</a></li>
+                                            @endif
+                                            <li><button type="button" class="dropdown-item" onclick="openBarcodeModal({{ $book->id }})">Barcode &amp; QR</button></li>
+                                            <li><button type="button" class="dropdown-item" onclick="openQuickEditModal({{ $book->id }}, 'cover')">Change cover</button></li>
                                             <li><hr class="dropdown-divider my-1"></li>
-                                            <li><a class="dropdown-item text-danger py-1.5" href="javascript:void(0)" onclick="openBookRejectModal({{ $book->id }})"><i class="fa-solid fa-circle-xmark me-1.5 text-danger"></i> Reject / Revision</a></li>
+                                            <li><button type="button" class="dropdown-item text-danger btn-delete-book" onclick="confirmDeleteBook({{ $book->id }})">Delete</button></li>
                                         </ul>
                                     </div>
-                                @endif
-                            </td>
-
-                            <td class="text-center">
-                                <div class="form-check form-switch d-inline-flex align-items-center justify-content-center mb-0" style="min-height: auto;">
-                                    <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="toggleBook-{{ $book->id }}" 
-                                           @checked($book->is_active) onchange="toggleBookActive({{ $book->id }}, this)" title="Toggle Live Visibility">
-                                </div>
-                            </td>
-
-                            <td class="text-end pe-3 adm-sticky-action-col">
-                                <div class="d-inline-flex align-items-center justify-content-end gap-1.5" id="bookActionBtns_{{ $book->id }}">
-                                    {{-- Primary Action: Quick Edit --}}
-                                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1 shadow-xs fw-semibold adm-action-btn" 
-                                            style="background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; font-size: 11.5px;"
-                                            onclick="openQuickEditModal({{ $book->id }})" title="Quick Edit Book (Shortcut)">
-                                        <span>Edit</span>
-                                    </button>
-
-                                    {{-- Full Details Edit (Page) --}}
-                                    <a href="{{ route('admin.content.edit', ['type' => 'books', 'id' => $book->id]) }}" 
-                                       class="btn btn-sm btn-light border rounded-circle shadow-xs adm-icon-action-btn d-inline-flex align-items-center justify-content-center p-0" 
-                                       title="Full Details Edit">
-                                        <i class="fa-solid fa-pen-to-square" style="font-size: 11px;"></i>
-                                    </a>
-
-                                    {{-- View on Live Store --}}
-                                    @if($book->slug)
-                                        <a href="{{ route('book.show', $book->slug) }}" target="_blank" rel="noopener" 
-                                           class="btn btn-sm btn-light border text-info rounded-circle shadow-xs adm-icon-action-btn d-inline-flex align-items-center justify-content-center p-0" 
-                                           title="View Live in Shop">
-                                            <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px;"></i>
-                                        </a>
-                                    @endif
-
-                                    {{-- Barcode & QR Code Action --}}
-                                    <button type="button" class="btn btn-sm btn-light border text-dark rounded-circle shadow-xs adm-icon-action-btn d-inline-flex align-items-center justify-content-center p-0" 
-                                            onclick="openBarcodeModal({{ $book->id }})" title="View Barcode & QR Code">
-                                        <i class="fa-solid fa-barcode" style="font-size: 11px;"></i>
-                                    </button>
-
-                                    {{-- Delete Action --}}
-                                    <button type="button" class="btn btn-sm btn-light border text-danger rounded-circle shadow-xs adm-icon-action-btn btn-delete-book d-inline-flex align-items-center justify-content-center p-0" 
-                                            onclick="confirmDeleteBook({{ $book->id }})" 
-                                            title="Delete Book">
-                                        <i class="fa-solid fa-trash-can" style="font-size: 11px;"></i>
-                                    </button>
-
-                                    {{-- Hidden Delete Form --}}
                                     <form id="deleteBookForm_{{ $book->id }}" action="{{ route('admin.books.destroy', $book->id) }}" method="POST" class="d-none">
                                         @csrf
                                         @method('DELETE')
                                     </form>
                                 </div>
                             </td>
-
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="12">
-                                <div class="empty-state py-5 text-center">
-                                    <div class="rounded-circle bg-light d-inline-flex p-4 mb-3">
-                                        <i class="fa-solid fa-book-open fs-1 text-muted"></i>
-                                    </div>
-                                    <h5 class="fw-bold text-dark mb-3">No Books Found</h5>
-                                    <a href="{{ route('admin.books') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                        Clear
-                                    </a>
+                        <tr class="bk-empty-row">
+                            <td colspan="8">
+                                <div class="bk-empty">
+                                    <h5>No books found</h5>
+                                    <p>{{ request()->hasAny(['search', 'author_id', 'publisher_id', 'category_id', 'stock', 'cover_type', 'is_active', 'mod_status', 'discount_only', 'genre']) ? 'Nothing matches these filters.' : 'Add the first book to the catalogue.' }}</p>
+                                    @if(request()->query())
+                                        <a href="{{ route('admin.books') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">Clear filters</a>
+                                    @else
+                                        <a href="{{ route('admin.content.create', 'books') }}" class="btn btn-sm btn-primary rounded-pill px-3">Add book</a>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -851,23 +539,17 @@
             </table>
         </div>
 
-        {{-- Always-Visible Bottom Horizontal Scroll Sync Bar --}}
-        <div class="adm-scroll-sync-bar" id="adminBooksScrollSyncBar" onscroll="syncTableScrollFromBar(this)">
-            <div id="adminBooksScrollSyncInner" style="width: 100%; height: 1px;"></div>
-        </div>
-
-        {{-- Pagination --}}
-        @if ($books->hasPages())
-            <div class="p-3 border-top d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 bg-light bg-opacity-50">
-                <div class="small text-muted">
-                    Showing {{ $books->firstItem() }} - {{ $books->lastItem() }} of {{ number_format($books->total()) }} books
-                </div>
-                <div>{{ $books->links() }}</div>
+        {{-- Pagination (also shows the count when everything fits on one page) --}}
+        @if ($books->total() > 0)
+            <div class="bk-foot">
+                <div class="small text-muted">Showing {{ $books->firstItem() }}–{{ $books->lastItem() }} of {{ number_format($books->total()) }} books</div>
+                @if ($books->hasPages())<div>{{ $books->onEachSide(1)->links() }}</div>@endif
             </div>
         @endif
     </div>
 
 </div>
+
 
 {{-- ========================================================================= --}}
 {{-- 1-CLICK FAST QUICK BOOK ADD MODAL (বই কুইক এড)                               --}}
@@ -999,26 +681,40 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        <tr class="qa-bind-caption" hidden><td colspan="3" class="py-1 px-2 small fw-semibold text-muted">Paperback</td></tr>
                                         <tr>
                                             <td class="p-1">
-                                                <input type="number" id="qaPrice" name="price" min="0" step="1" class="form-control form-control-sm fw-bold" required oninput="recalcQaPricingFromMrp()">
+                                                <input type="number" id="qaPrice" name="price" min="0" step="any" class="form-control form-control-sm fw-bold" required oninput="qaPricing('price')">
                                             </td>
                                             <td class="p-1">
-                                                <input type="number" id="qaSaleCommission" min="0" max="100" step="0.5" class="form-control form-control-sm text-center text-danger fw-bold" oninput="recalcQaSalePriceFromCommission()">
+                                                <input type="number" id="qaSaleCommission" min="0" max="100" step="any" placeholder="0" class="form-control form-control-sm text-center text-danger fw-bold" oninput="qaPricing('pct')">
                                             </td>
                                             <td class="p-1">
-                                                <input type="number" id="qaDiscountPrice" name="discount_price" min="0" step="1" class="form-control form-control-sm text-primary fw-bold" oninput="recalcQaSaleCommissionFromPrice()">
+                                                <input type="number" id="qaDiscountPrice" name="discount_price" min="0" step="any" class="form-control form-control-sm text-primary fw-bold" oninput="qaPricing('sale')">
+                                            </td>
+                                        </tr>
+                                        <tr class="qa-bind-caption qa-hard-row" hidden><td colspan="3" class="py-1 px-2 small fw-semibold text-muted">Hardcover</td></tr>
+                                        <tr class="qa-hard-row" hidden>
+                                            <td class="p-1">
+                                                <input type="number" id="qaHardPrice" name="hardcover_price" min="0" step="any" class="form-control form-control-sm fw-bold" oninput="qaPricing('price', 'hard')">
+                                            </td>
+                                            <td class="p-1">
+                                                <input type="number" id="qaHardSaleCommission" min="0" max="100" step="any" placeholder="0" class="form-control form-control-sm text-center text-danger fw-bold" oninput="qaPricing('pct', 'hard')">
+                                            </td>
+                                            <td class="p-1">
+                                                <input type="number" id="qaHardDiscountPrice" name="hardcover_discount_price" min="0" step="any" class="form-control form-control-sm text-primary fw-bold" oninput="qaPricing('sale', 'hard')">
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
+                            <div class="small mb-2" id="qaPriceNote" role="status" aria-live="polite"></div>
 
                             <div class="row g-2 mb-2.5">
                                 <div class="col-6">
                                     <label class="form-label small fw-bold text-dark mb-1">Buy Commission (%)</label>
                                     <div class="input-group input-group-sm">
-                                        <input type="number" id="qaBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-semibold" oninput="recalcQaCostPriceFromCommission()">
+                                        <input type="number" id="qaBuyCommission" min="0" max="100" step="any" placeholder="0" class="form-control text-center text-success fw-semibold" oninput="qaPricing('buyPct')">
                                         <span class="input-group-text bg-white">%</span>
                                     </div>
                                 </div>
@@ -1026,7 +722,7 @@
                                     <label class="form-label small fw-bold text-dark mb-1">Cost Price (৳)</label>
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-white">৳</span>
-                                        <input type="number" id="qaCostPrice" name="cost_price" min="0" step="1" class="form-control text-success fw-bold" oninput="recalcQaBuyCommissionFromPrice()">
+                                        <input type="number" id="qaCostPrice" name="cost_price" min="0" step="any" class="form-control text-success fw-bold" oninput="qaPricing('cost')">
                                     </div>
                                 </div>
                             </div>
@@ -1042,7 +738,7 @@
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label small fw-bold text-dark mb-1">Binding</label>
-                                    <select id="qaCoverType" name="cover_type" class="form-select form-select-sm">
+                                    <select id="qaCoverType" name="cover_type" class="form-select form-select-sm" onchange="qaPricing('binding')">
                                         <option value="hardcover" selected>Hardcover</option>
                                         <option value="paperback">Paperback</option>
                                         <option value="both">Both</option>
@@ -1945,34 +1641,29 @@ function handleQuickBookEditSubmit(e) {
 }
 
 function exportBooksToCSV() {
-    const table = document.getElementById('adminBooksTable');
-    if (!table) return;
-
-    let csv = [];
-    const rows = table.querySelectorAll('tr');
-    
-    rows.forEach(row => {
-        const cols = row.querySelectorAll('th, td');
-        let rowData = [];
-        cols.forEach((col, idx) => {
-            if (idx === cols.length - 1) return;
-            let text = col.innerText.replace(/(\r\n|\n|\r)/gm, ' ').replace(/\s+/g, ' ').trim();
-            text = text.replace(/"/g, '""');
-            rowData.push(`"${text}"`);
-        });
-        if (rowData.length > 0) {
-            csv.push(rowData.join(','));
-        }
+    // Built from each row's data, so the file has clean columns whatever the table layout is.
+    const rows = document.querySelectorAll('#adminBooksTable tr.book-table-row[data-book]');
+    if (!rows.length) return;
+    const head = ['ID', 'Title', 'Serial', 'SKU', 'ISBN', 'Author', 'Publisher', 'Category', 'Edition', 'Binding',
+        'Paper MRP', 'Paper Sale', 'Hard MRP', 'Hard Sale', 'Cost', 'Stock', 'Live', 'Review'];
+    const cell = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const lines = [head.map(cell).join(',')];
+    rows.forEach(tr => {
+        let b;
+        try { b = JSON.parse(tr.dataset.book || '{}'); } catch (e) { return; }
+        const sale = (mrp, d) => (d > 0 && d < mrp ? d : mrp) || '';
+        const live = document.getElementById('toggleBook-' + b.id);
+        lines.push([b.id, b.title, b.serial, b.sku, b.isbn, b.author, b.publisher, b.category, b.edition, b.cover_type,
+            b.price || '', sale(b.price, b.discount_price), b.hardcover_price || '', sale(b.hardcover_price, b.hardcover_discount_price),
+            b.cost_price || '', b.stock_quantity, (live ? live.checked : b.is_active) ? 'Yes' : 'No', b.mod_status].map(cell).join(','));
     });
-
-    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csv.join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Idea_Prakashon_Books_Catalog_${new Date().toISOString().slice(0,10)}.csv`);
+    const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Idea_Prakashon_Books_${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    setTimeout(() => { URL.revokeObjectURL(link.href); link.remove(); }, 0);
 }
 
 function escapeHtml(text) {
@@ -2314,6 +2005,7 @@ async function toggleBookActive(bookId, switchEl) {
         const data = await res.json();
         if (data.success) {
             switchEl.checked = data.is_active;
+            switchEl.closest('tr')?.classList.toggle('is-draft', !data.is_active);   // draft rows are dimmed
             showBookToast('success', data.message);
         } else {
             switchEl.checked = !switchEl.checked;
@@ -2471,6 +2163,7 @@ function openQuickAddBookModal() {
 
     const coverTypeInput = document.getElementById('qaCoverType');
     if (coverTypeInput) coverTypeInput.value = 'hardcover';
+    if (typeof qaPricingReset === 'function') qaPricingReset();   // no leftover discount / cost from the last book
 
     const alertBox = document.getElementById('qaAlertBox');
     if (alertBox) alertBox.innerHTML = '';
@@ -2796,72 +2489,88 @@ function resetToQaAutoCover() {
     renderQaAutoCover();
 }
 
-// ── Live Pricing & Commission Calculators for Quick Add ──
-function recalcQaPricingFromMrp() {
-    const mrp = parseFloat(document.getElementById('qaPrice')?.value) || 0;
-    const saleComm = parseFloat(document.getElementById('qaSaleCommission')?.value) || 0;
-    const buyComm = parseFloat(document.getElementById('qaBuyCommission')?.value) || 0;
-    const discountPrice = parseFloat(document.getElementById('qaDiscountPrice')?.value) || 0;
-    const costPrice = parseFloat(document.getElementById('qaCostPrice')?.value) || 0;
+// ── Quick Add pricing ──
+// Two pairs per binding: sale price ⇄ discount %, and cost ⇄ buy %. Whichever of a pair was typed last is
+// kept; changing the MRP recalculates only the other one. Nothing is filled in by itself (no automatic
+// 20% / 40%), so a book is never saved with a discount nobody chose.
+const qaAnchor = { sale: null, hardSale: null, cost: null };
+function qaNum(id) { const v = parseFloat(document.getElementById(id)?.value); return isFinite(v) ? v : 0; }
+function qaSet(id, v) { const e = document.getElementById(id); if (e) e.value = v; }
+function qaPctText(v) { return String(Math.round(v * 100) / 100); }
 
-    if (saleComm > 0) {
-        recalcQaSalePriceFromCommission();
-    } else if (discountPrice > 0 && mrp > 0) {
-        recalcQaSaleCommissionFromPrice();
-    } else if (mrp > 0 && !discountPrice) {
-        document.getElementById('qaSaleCommission').value = '20';
-        recalcQaSalePriceFromCommission();
-    }
+function qaPricing(what, which) {
+    const hard = which === 'hard';
+    const ids = hard ? { mrp: 'qaHardPrice', pct: 'qaHardSaleCommission', sale: 'qaHardDiscountPrice', key: 'hardSale' }
+                     : { mrp: 'qaPrice', pct: 'qaSaleCommission', sale: 'qaDiscountPrice', key: 'sale' };
 
-    if (buyComm > 0) {
-        recalcQaCostPriceFromCommission();
-    } else if (costPrice > 0 && mrp > 0) {
-        recalcQaBuyCommissionFromPrice();
-    } else if (mrp > 0 && !costPrice) {
-        document.getElementById('qaBuyCommission').value = '40';
-        recalcQaCostPriceFromCommission();
+    if (what === 'binding') {
+        const both = document.getElementById('qaCoverType')?.value === 'both';
+        document.querySelectorAll('#quickAddBookModal .qa-hard-row, #quickAddBookModal .qa-bind-caption').forEach(r => { r.hidden = !both; });
+        const hp = document.getElementById('qaHardPrice');
+        if (hp) hp.required = both;   // "Both" needs a hardcover MRP of its own
+        if (!both) { qaSet('qaHardPrice', ''); qaSet('qaHardSaleCommission', ''); qaSet('qaHardDiscountPrice', ''); }
     }
+    if (what === 'pct') qaAnchor[ids.key] = 'pct';
+    if (what === 'sale') qaAnchor[ids.key] = 'sale';
+    if (what === 'buyPct') qaAnchor.cost = 'pct';
+    if (what === 'cost') qaAnchor.cost = 'cost';
+
+    // sale price ⇄ discount %
+    if (['price', 'pct', 'sale'].includes(what)) {
+        const mrp = qaNum(ids.mrp);
+        const pctEl = document.getElementById(ids.pct);
+        if (qaAnchor[ids.key] === 'pct' && pctEl && pctEl.value !== '') {
+            const pct = Math.min(100, Math.max(0, qaNum(ids.pct)));
+            qaSet(ids.sale, mrp > 0 && pct > 0 ? Math.round(mrp * (1 - pct / 100) * 100) / 100 : '');
+        } else if (qaAnchor[ids.key] === 'sale') {
+            const sale = qaNum(ids.sale);
+            qaSet(ids.pct, mrp > 0 && sale > 0 && sale < mrp ? qaPctText((mrp - sale) / mrp * 100) : '');
+        }
+    }
+    // cost ⇄ buy % (follows the paperback MRP, or the hardcover MRP when only that is given)
+    if (['price', 'buyPct', 'cost', 'binding'].includes(what) && !hard) {
+        const mrp = qaNum('qaPrice') || qaNum('qaHardPrice');
+        const buyEl = document.getElementById('qaBuyCommission');
+        if (qaAnchor.cost === 'pct' && buyEl && buyEl.value !== '') {
+            const pct = Math.min(100, Math.max(0, qaNum('qaBuyCommission')));
+            qaSet('qaCostPrice', mrp > 0 ? Math.round(mrp * (1 - pct / 100) * 100) / 100 : '');
+        } else if (qaAnchor.cost === 'cost') {
+            const cost = qaNum('qaCostPrice');
+            qaSet('qaBuyCommission', mrp > 0 && cost > 0 && cost <= mrp ? qaPctText((mrp - cost) / mrp * 100) : '');
+        }
+    }
+    qaPriceNote();
 }
 
-function recalcQaSalePriceFromCommission() {
-    const mrp = parseFloat(document.getElementById('qaPrice')?.value) || 0;
-    const comm = parseFloat(document.getElementById('qaSaleCommission')?.value) || 0;
-    if (mrp > 0 && comm > 0) {
-        const salePrice = mrp * (1 - (comm / 100));
-        document.getElementById('qaDiscountPrice').value = Math.round(salePrice);
+// One line under the prices: what the shop will charge, and a warning when something does not add up.
+function qaPriceNote() {
+    const box = document.getElementById('qaPriceNote');
+    if (!box) return;
+    const mrp = qaNum('qaPrice'), sale = qaNum('qaDiscountPrice'), cost = qaNum('qaCostPrice');
+    const notes = [];
+    if (sale > 0 && mrp > 0 && sale >= mrp) notes.push('<span class="text-danger">Sale price is not below the MRP, so no discount will be saved.</span>');
+    const sell = sale > 0 && sale < mrp ? sale : mrp;
+    if (sell > 0) notes.push('Shop price: <b>৳' + sell.toLocaleString('en-US') + '</b>' + (sale > 0 && sale < mrp ? ' <span class="text-muted">(MRP ৳' + mrp.toLocaleString('en-US') + ')</span>' : ''));
+    if (cost > 0 && sell > 0) {
+        const profit = Math.round((sell - cost) * 100) / 100;
+        notes.push(profit >= 0 ? '<span class="text-success">Margin ৳' + profit.toLocaleString('en-US') + ' (' + qaPctText(profit / sell * 100) + '%)</span>'
+                               : '<span class="text-danger">Loss ৳' + Math.abs(profit).toLocaleString('en-US') + ': cost is above the selling price</span>');
     }
+    box.innerHTML = notes.join(' · ');
 }
 
-function recalcQaSaleCommissionFromPrice() {
-    const mrp = parseFloat(document.getElementById('qaPrice')?.value) || 0;
-    const salePrice = parseFloat(document.getElementById('qaDiscountPrice')?.value) || 0;
-    if (mrp > 0 && salePrice > 0 && salePrice < mrp) {
-        const comm = ((mrp - salePrice) / mrp) * 100;
-        document.getElementById('qaSaleCommission').value = comm.toFixed(1);
-    } else if (salePrice <= 0) {
-        document.getElementById('qaSaleCommission').value = '';
-    }
+function qaPricingReset() {
+    qaAnchor.sale = qaAnchor.hardSale = qaAnchor.cost = null;
+    qaPricing('binding');
 }
 
-function recalcQaCostPriceFromCommission() {
-    const mrp = parseFloat(document.getElementById('qaPrice')?.value) || 0;
-    const comm = parseFloat(document.getElementById('qaBuyCommission')?.value) || 0;
-    if (mrp > 0 && comm > 0) {
-        const costPrice = mrp * (1 - (comm / 100));
-        document.getElementById('qaCostPrice').value = Math.round(costPrice);
-    }
-}
-
-function recalcQaBuyCommissionFromPrice() {
-    const mrp = parseFloat(document.getElementById('qaPrice')?.value) || 0;
-    const costPrice = parseFloat(document.getElementById('qaCostPrice')?.value) || 0;
-    if (mrp > 0 && costPrice > 0 && costPrice < mrp) {
-        const comm = ((mrp - costPrice) / mrp) * 100;
-        document.getElementById('qaBuyCommission').value = comm.toFixed(1);
-    } else if (costPrice <= 0) {
-        document.getElementById('qaBuyCommission').value = '';
-    }
-}
+// Older inline handlers still point here.
+function recalcQaPricingFromMrp() { qaPricing('price'); }
+function recalcQaSalePriceFromCommission() { qaPricing('pct'); }
+function recalcQaSaleCommissionFromPrice() { qaPricing('sale'); }
+function recalcQaCostPriceFromCommission() { qaPricing('buyPct'); }
+function recalcQaBuyCommissionFromPrice() { qaPricing('cost'); }
+window.qaPricing = qaPricing;
 
 // ── 1-Click Fast Submit Handler ──
 function handleQuickAddBookSubmit(e) {

@@ -122,10 +122,7 @@ class PublisherPortalController extends Controller
             ->when($stockFilter === 'out', fn ($q) => $q->where('stock_quantity', '<=', 0))
             ->when($stockFilter === 'in_stock', fn ($q) => $q->where('stock_quantity', '>', 5));
 
-        // Idea Prokashon serials look like "IDP-0042": sort by the number inside (needs REGEXP_REPLACE: MySQL 8 / MariaDB 10).
-        $serialNumber = in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)
-            ? "CASE WHEN idea_serial_no IS NOT NULL AND idea_serial_no != '' THEN CAST(REGEXP_REPLACE(idea_serial_no, '[^0-9]', '') AS UNSIGNED) ELSE id END"
-            : 'id';
+        // Idea Prokashon serials ("IDP-0042") sort by their number: App\Support\SerialOrder (works on MySQL 5.7 too).
 
         match (true) {
             $sort === 'oldest'                          => $booksQuery->oldest('id'),
@@ -135,8 +132,8 @@ class PublisherPortalController extends Controller
             $sort === 'price_high'                      => $booksQuery->orderByDesc('price'),
             $sort === 'stock_low'                       => $booksQuery->orderBy('stock_quantity'),
             $sort === 'stock_high'                      => $booksQuery->orderByDesc('stock_quantity'),
-            $isIdeaPub && $sort === 'idea_serial_desc'  => $booksQuery->orderByRaw("{$serialNumber} DESC"),
-            $isIdeaPub && $sort === 'idea_serial_asc'   => $booksQuery->orderByRaw("{$serialNumber} ASC"),
+            $isIdeaPub && $sort === 'idea_serial_desc'  => $booksQuery->orderByRaw(\App\Support\SerialOrder::sql('DESC')),
+            $isIdeaPub && $sort === 'idea_serial_asc'   => $booksQuery->orderByRaw(\App\Support\SerialOrder::sql('ASC')),
             default                                     => $booksQuery->latest('id'),
         };
 

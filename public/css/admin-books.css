@@ -226,36 +226,129 @@
     min-height: 42px;
 }
 
-/* ── Table polish ── */
-.adm-books-table thead th {
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    font-size: 11px !important;
+/* ── Book list (resources/views/admin/books.blade.php, section 3) ── */
+.bk-list { --bk-line: #e2e8f0; --bk-soft: #f8fafc; --bk-mute: #64748b; --bk-ink: #0f172a; --bk-blue: #2563eb; }
+.adm-books-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.bk-table { width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 0; }
+.bk-table thead th {
+    position: sticky; top: 0; z-index: 2;
+    background: var(--bk-soft); color: var(--bk-mute);
+    font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    padding: 10px 12px; border-bottom: 1px solid var(--bk-line); white-space: nowrap;
+}
+.bk-table tbody td { padding: 12px; border-bottom: 1px solid #eef2f7; font-size: 13px; color: var(--bk-ink); vertical-align: middle; background: #fff; }
+.bk-table tbody tr:last-child td { border-bottom: 0; }
+.bk-table tbody tr:hover td { background: #f8fbff; }
+.bk-table tbody tr.is-draft td { background: #fcfcfd; }
+.bk-table tbody tr.is-draft .bk-book__title { color: var(--bk-mute); }
+
+.bk-col-no { width: 44px; color: #94a3b8; font-variant-numeric: tabular-nums; font-size: 12px !important; }
+.bk-col-book { min-width: 280px; }
+.bk-col-author { min-width: 160px; max-width: 220px; }
+.bk-col-cat { width: 140px; }
+.bk-col-price { width: 150px; }
+.bk-col-stock { width: 90px; }
+.bk-col-status { width: 190px; }
+.bk-col-act { width: 108px; }
+
+/* book cell */
+.bk-book { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.bk-cover { flex: 0 0 auto; width: 46px; height: 64px; padding: 0; border: 1px solid var(--bk-line); border-radius: 6px; overflow: hidden; background: #e2e8f0; cursor: pointer; box-shadow: 0 1px 2px rgba(15, 23, 42, .08); transition: transform .15s, box-shadow .15s; }
+.bk-cover:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(15, 23, 42, .16); }
+.bk-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bk-book__text { min-width: 0; display: grid; gap: 3px; }
+.bk-book__title { font-weight: 700; color: var(--bk-ink); text-decoration: none; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.bk-book__title:hover { color: var(--bk-blue); }
+.bk-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.bk-tag { font: 600 10.5px/1 ui-monospace, SFMono-Regular, Menlo, monospace; padding: 3px 6px; border-radius: 5px; background: #f1f5f9; color: #475569; border: 1px solid var(--bk-line); }
+.bk-tag--serial { background: #fef3c7; border-color: #fcd34d; color: #78350f; }
+.bk-isbn { font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--bk-mute); }
+.bk-sub { font-size: 11.5px; color: var(--bk-mute); }
+.bk-sub a { color: inherit; text-decoration: none; }
+.bk-sub a:hover { color: var(--bk-blue); text-decoration: underline; }
+
+/* author / category */
+.bk-author { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bk-author a { color: var(--bk-blue); text-decoration: none; }
+.bk-author a:hover { text-decoration: underline; }
+.bk-pill { display: inline-block; max-width: 100%; margin: 1px 2px 1px 0; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; text-decoration: none; color: #1d4ed8; background: #eff6ff; border: 1px solid #dbeafe; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bk-pill:hover { background: #dbeafe; }
+.bk-pill--warn { color: #92400e; background: #fffbeb; border-color: #fde68a; }
+.bk-pill--soft { color: #475569; background: #f8fafc; border-color: var(--bk-line); }
+
+/* price: only the prices a book has */
+.bk-price { display: inline-grid; justify-items: end; gap: 2px; padding: 4px 6px; margin: -4px -6px; border: 0; border-radius: 8px; background: transparent; cursor: pointer; text-align: right; }
+.bk-price:hover { background: #eff6ff; }
+.bk-price__line { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+.bk-price__line b { font-size: 13.5px; font-variant-numeric: tabular-nums; color: var(--bk-ink); }
+.bk-price__line s { font-size: 11px; color: #94a3b8; }
+.bk-price__kind { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #94a3b8; }
+.bk-price__cost { font-size: 11px; color: var(--bk-mute); white-space: nowrap; }
+.bk-price__cost em { font-style: normal; font-weight: 700; color: #059669; }
+.bk-price__cost em.is-neg { color: #dc2626; }
+.bk-price__none { font-size: 12px; color: #dc2626; font-weight: 600; }
+
+/* stock */
+.bk-stock { min-width: 52px; padding: 4px 10px; border-radius: 999px; border: 1px solid; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; background: #fff; transition: filter .15s; }
+.bk-stock:hover { filter: brightness(.96); }
+.bk-stock--ok { color: #047857; background: #ecfdf5; border-color: #a7f3d0; }
+.bk-stock--low { color: #b45309; background: #fffbeb; border-color: #fde68a; }
+.bk-stock--out { color: #b91c1c; background: #fef2f2; border-color: #fecaca; }
+.bk-stock--info { color: #0369a1; background: #f0f9ff; border-color: #bae6fd; }
+
+/* status: live switch + review state */
+.bk-status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.bk-live { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: 12px; font-weight: 600; color: var(--bk-mute); cursor: pointer; }
+.bk-live.form-switch { padding-left: 0; min-height: 0; }
+.bk-live.form-switch .form-check-input { float: none; margin: 0; width: 2.1em; height: 1.15em; cursor: pointer; }
+.bk-live .form-check-input:checked + span { color: #047857; }
+
+/* actions */
+.bk-act { display: inline-flex; align-items: center; justify-content: flex-end; gap: 6px; }
+.bk-act__edit { min-height: 32px; padding: 4px 14px; border-radius: 999px; font-weight: 600; }
+.bk-act__more { width: 32px; height: 32px; padding: 0; border-radius: 999px; font-size: 18px; line-height: 1; color: #475569; }
+
+/* empty + footer */
+.bk-empty { padding: 48px 16px; text-align: center; }
+.bk-empty h5 { font-weight: 700; margin-bottom: 4px; }
+.bk-empty p { color: var(--bk-mute); margin-bottom: 14px; }
+.bk-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--bk-line); background: var(--bk-soft); }
+.bk-foot .pagination { margin: 0; }
+
+/* phones + small tablets: every book becomes a card */
+@media (max-width: 767.98px) {
+    .bk-table { min-width: 0; }
+    .bk-table thead { display: none; }
+    .bk-table, .bk-table tbody, .bk-table tr, .bk-table td { display: block; width: 100%; }
+    .bk-table tbody tr.book-table-row {
+        display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: center;
+        padding: 14px; border-bottom: 1px solid var(--bk-line); background: #fff;
+    }
+    .bk-table tbody tr.book-table-row td { padding: 0; border: 0; background: transparent !important; }
+    .bk-table .bk-col-no { display: none; }
+    .bk-table .bk-col-book { grid-column: 1 / -1; min-width: 0; }
+    .bk-table .bk-col-author, .bk-table .bk-col-cat { grid-column: 1 / -1; max-width: none; }
+    .bk-table .bk-col-author { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+    .bk-table .bk-col-price { grid-column: 1; text-align: left !important; }
+    .bk-table .bk-col-price .bk-price { justify-items: start; text-align: left; margin: 0; padding: 0; }
+    .bk-table .bk-col-stock { grid-column: 2; text-align: right !important; }
+    .bk-table .bk-col-status { grid-column: 1; }
+    .bk-table .bk-col-act { grid-column: 2; }
+    .bk-book__title { -webkit-line-clamp: 3; }
+    .bk-foot { justify-content: center; text-align: center; }
 }
 
-.adm-books-table tbody tr:nth-child(even) td {
-    background: #fbfdff;
-}
-
-.adm-books-table tbody tr:hover td,
-.adm-books-table tbody tr:hover td.adm-sticky-action-col {
-    background: #f8fafc !important;
-}
-
-.adm-books-table tbody td {
-    padding-top: 10px;
-    padding-bottom: 10px;
-}
-
-.adm-books-table .btn-sm.btn-primary {
-    min-height: 34px;
-    padding: .25rem .9rem;
-}
-
-.adm-books-table .adm-icon-action-btn {
-    width: 34px !important;
-    height: 34px !important;
-}
+/* dark mode */
+body.dark-mode .bk-list { --bk-line: #334155; --bk-soft: #111827; --bk-mute: #94a3b8; --bk-ink: #f1f5f9; --bk-blue: #60a5fa; }
+body.dark-mode .bk-table tbody td, body.dark-mode .bk-table tbody tr.book-table-row { background: #0f172a; border-color: #1f2937; }
+body.dark-mode .bk-table tbody tr:hover td { background: #111c33; }
+body.dark-mode .bk-tag { background: #1e293b; color: #cbd5e1; }
+body.dark-mode .bk-tag--serial { background: #422006; border-color: #854d0e; color: #fde68a; }
+body.dark-mode .bk-pill { background: #172554; border-color: #1e3a8a; color: #93c5fd; }
+body.dark-mode .bk-pill--warn { background: #422006; border-color: #854d0e; color: #fde68a; }
+body.dark-mode .bk-pill--soft { background: #1e293b; border-color: #334155; color: #cbd5e1; }
+body.dark-mode .bk-price:hover { background: #172554; }
+body.dark-mode .bk-stock { filter: saturate(.8) brightness(.9); }
 
 /* ── Tablet ── */
 @media (max-width: 1199.98px) {
@@ -321,49 +414,7 @@
         display: none;
     }
 
-    /* Table: keep the essentials, drop secondary columns, let actions wrap */
-    #adminBooksTable {
-        min-width: 0 !important;
-    }
-
-    #adminBooksTable th:nth-child(1),
-    #adminBooksTable td:nth-child(1),
-    #adminBooksTable th:nth-child(3),
-    #adminBooksTable td:nth-child(3),
-    #adminBooksTable th:nth-child(5),
-    #adminBooksTable td:nth-child(5),
-    #adminBooksTable th:nth-child(7),
-    #adminBooksTable td:nth-child(7),
-    #adminBooksTable th:nth-child(8),
-    #adminBooksTable td:nth-child(8) {
-        display: none;
-    }
-
-    #adminBooksTable .adm-sticky-action-col {
-        position: static;
-        box-shadow: none;
-        min-width: 0 !important;
-    }
-
-    #adminBooksTable td .d-inline-flex[id^="bookActionBtns_"] {
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        max-width: 150px;
-        gap: 6px !important;
-    }
-
-    #adminBooksTable .adm-icon-action-btn {
-        width: 40px !important;
-        height: 40px !important;
-    }
-
-    #adminBooksTable .btn-sm.btn-primary {
-        min-height: 40px;
-    }
-
-    .adm-scroll-sync-bar {
-        display: none;
-    }
+    /* the book table turns into cards on phones: see "Book list" above */
 }
 
 body.dark-mode .bk-kpi,
