@@ -181,14 +181,120 @@ class EbookShop
     public static function sampleFile(Ebook $e): ?string
     {
         if ($p = self::path($e->sample_file_path)) {
-            return $p;
+            return self::readerCopy($p, 's' . $e->id);
         }
         $full = self::fullFile($e);
         if ($full && self::kind($full) === 'epub') {
-            return self::buildEpubSample($e, $full);
+            return self::buildEpubSample($e, self::readerCopy($full, 'f' . $e->id));
         }
 
         return null;
+    }
+
+    /**
+     * The file the online reader gets. EPUBs made with InDesign, Sigil, Vellum… often "obfuscate" their embedded
+     * fonts (META-INF/encryption.xml). Real e-readers undo that; the browser reader cannot, so the book's own fonts
+     * fail and symbol characters (Wingdings bullets, icons) become empty boxes. This returns a copy with the fonts
+     * restored (IDPF and Adobe methods), built once and kept outside the public folder. Other files are returned
+     * as they are. The download keeps the original file.
+     */
+    public static function readerCopy(?string $path, string $tag): ?string
+    {
+        if (!$path || self::kind($path) !== 'epub' || !class_exists(\ZipArchive::class)) {
+            return $path;
+        }
+        $dir = storage_path('app/ebook-reader');
+        $target = $dir . '/' . $tag . '-' . substr(md5($path . '|' . filemtime($path) . '|' . filesize($path)), 0, 12) . '.epub';
+        if (is_file($target)) {
+            return $target;
+        }
+        try {
+            $zip = new \ZipArchive();
+            if ($zip->open($path) !== true) {
+                return $path;
+            }
+            $enc = $zip->getFromName('META-INF/encryption.xml');
+            $zip->close();
+            if ($enc === false || !preg_match('#idpf\.org/2008/embedding|ns\.adobe\.com/pdf/enc\#RC#', $enc)) {
+                return $path;                                    // nothing to undo: serve the original
+            }
+            if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
+                return $path;
+            }
+            $tmp = $target . '.' . getmypid() . '.tmp';
+            if (!@copy($path, $tmp) || $zip->open($tmp) !== true) {
+                @unlink($tmp);
+                return $path;
+            }
+            [$idpfKey, $adobeKey] = self::obfuscationKeys($zip);
+            $restored = 0;
+            // each <EncryptedData> names one method and one file
+            preg_match_all('#<(?:\w+:)?EncryptedData\b.*?</(?:\w+:)?EncryptedData>#s', $enc, $blocks);
+            $left = $enc;
+            foreach ($blocks[0] as $block) {
+                if (!preg_match('#Algorithm="([^"]+)"#', $block, $alg) || !preg_match('#URI="([^"]+)"#', $block, $uri)) {
+                    continue;
+                }
+                $name = rawurldecode($uri[1]);
+                $isIdpf = str_contains($alg[1], 'idpf.org/2008/embedding');
+                $isAdobe = str_contains($alg[1], 'ns.adobe.com/pdf/enc#RC');
+                $key = $isIdpf ? $idpfKey : ($isAdobe ? $adobeKey : null);
+                $data = $key ? $zip->getFromName($name) : false;
+                if ($data === false) {
+                    continue;
+                }
+                $n = min(strlen($data), $isIdpf ? 1040 : 1024);
+                $k = strlen($key);
+                for ($i = 0; $i < $n; $i++) {
+                    $data[$i] = $data[$i] ^ $key[$i % $k];
+                }
+                $zip->addFromString($name, $data);
+                $left = str_replace($block, '', $left);
+                $restored++;
+            }
+            // what is left of encryption.xml (real DRM, if any) stays; an empty one is removed
+            if (!preg_match('#EncryptedData#', $left)) {
+                $zip->deleteName('META-INF/encryption.xml');
+            } else {
+                $zip->addFromString('META-INF/encryption.xml', $left);
+            }
+            $zip->close();
+            if (!$restored || !@rename($tmp, $target)) {
+                @unlink($tmp);
+                return $path;
+            }
+            foreach (glob($dir . '/' . $tag . '-*.epub') ?: [] as $old) {
+                if ($old !== $target) @unlink($old);
+            }
+
+            return $target;
+        } catch (\Throwable $ex) {
+            Log::warning('EbookShop::readerCopy ' . $tag . ': ' . $ex->getMessage());
+
+            return $path;
+        }
+    }
+
+    /**
+     * Keys for font obfuscation: IDPF = SHA-1 of the book's unique identifier (white space removed);
+     * Adobe = the 16 bytes of the UUID in that identifier.
+     */
+    private static function obfuscationKeys(\ZipArchive $zip): array
+    {
+        $container = (string) $zip->getFromName('META-INF/container.xml');
+        $opf = preg_match('/full-path="([^"]+)"/', $container, $m) ? (string) $zip->getFromName($m[1]) : '';
+        $uidId = preg_match('/<package\b[^>]*unique-identifier="([^"]+)"/', $opf, $u) ? $u[1] : null;
+        $uid = '';
+        if ($uidId && preg_match('#<(?:\w+:)?identifier\b[^>]*\bid="' . preg_quote($uidId, '#') . '"[^>]*>(.*?)</#s', $opf, $v)) {
+            $uid = html_entity_decode(trim($v[1]), ENT_QUOTES | ENT_XML1, 'UTF-8');
+        } elseif (preg_match('#<(?:\w+:)?identifier\b[^>]*>(.*?)</#s', $opf, $v)) {
+            $uid = html_entity_decode(trim($v[1]), ENT_QUOTES | ENT_XML1, 'UTF-8');
+        }
+        $idpf = $uid !== '' ? sha1(preg_replace('/[\x20\x09\x0D\x0A]/', '', $uid), true) : null;
+        $hex = preg_replace('/[^0-9a-f]/i', '', preg_replace('/^urn:uuid:/i', '', $uid));
+        $adobe = strlen($hex) === 32 ? hex2bin($hex) : null;
+
+        return [$idpf, $adobe];
     }
 
     public static function hasSample(Ebook $e): bool

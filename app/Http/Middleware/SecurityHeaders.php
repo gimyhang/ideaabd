@@ -48,11 +48,15 @@ class SecurityHeaders
             $csp = implode('; ', [
                 "default-src 'self'",
                 "script-src 'self' 'unsafe-inline' 'unsafe-eval' {$cdn} {$googleTranslate} {$googleAds}",
-                "style-src 'self' 'unsafe-inline' fonts.googleapis.com {$cdn} {$googleTranslate} {$googleAds}",
+                // blob: — the e-book reader (epub.js) hands a book's own stylesheets, fonts and pages to the page as
+                // blob: addresses; without it a book loses its layout and embedded fonts (symbols become boxes).
+                "style-src 'self' 'unsafe-inline' blob: fonts.googleapis.com {$cdn} {$googleTranslate} {$googleAds}",
                 "img-src 'self' data: blob: https: {$googleTranslate} {$googleAds}",
-                "font-src 'self' data: fonts.gstatic.com {$cdn}",
-                "connect-src 'self' fonts.googleapis.com fonts.gstatic.com {$cdn} {$googleTranslate} {$googleAds}",
-                "frame-src 'self' {$googleTranslate} {$googleAds}",
+                "font-src 'self' data: blob: fonts.gstatic.com {$cdn}",
+                "connect-src 'self' blob: fonts.googleapis.com fonts.gstatic.com {$cdn} {$googleTranslate} {$googleAds}",
+                "frame-src 'self' blob: {$googleTranslate} {$googleAds}",
+                // PDF.js renders pages in a worker (cdnjs, or a blob: copy of it)
+                "worker-src 'self' blob: cdnjs.cloudflare.com",
                 "frame-ancestors 'self'",
                 "form-action 'self'",
                 "base-uri 'self'",

@@ -928,6 +928,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Cache management & optimizations
     Route::prefix('cache')->name('cache.')->controller(\App\Http\Controllers\Admin\AdminCacheController::class)->group(function () {
         Route::get('/manage', 'index')->name('manage');
+        Route::get('/storage', 'storage')->middleware('throttle:20,1')->name('storage');
+        Route::post('/storage/clean', 'storageClean')->middleware('throttle:10,1')->name('storage-clean');
         Route::post('/clear-all', 'clearAll')->name('clear-all');
         Route::post('/clear-views', 'clearViews')->name('clear-views');
         Route::post('/clear-app', 'clearApp')->name('clear-app');

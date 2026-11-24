@@ -390,7 +390,10 @@ class IdeaEpubReader {
                 spread: this.currentSpread,
                 flow: this.currentFlow,
                 manager: "default",
-                allowScriptedContent: true
+                // space between pages = left + right page margin (epub.js splits it); see applyMargin()
+                gap: this.pageGap(),
+                // scripts inside an uploaded book must never run with the reader's session
+                allowScriptedContent: false
             });
             window.rendition = this.rendition;
 
@@ -453,17 +456,12 @@ class IdeaEpubReader {
                 const head = doc.head;
                 if (!head) return;
 
-                // 1. Inject Kalpurush Font CSS from maateen CDN
-                const kalpurushLink = doc.createElement('link');
-                kalpurushLink.rel = 'stylesheet';
-                kalpurushLink.href = 'https://fonts.maateen.me/kalpurush/font.css';
-                head.appendChild(kalpurushLink);
+                // 1. The chosen web font (Kalpurush is ours and comes with the CSS below)
+                this.injectFontLink(doc);
 
-                // 2. Inject Bengali Google Web Fonts
-                const fontLink = doc.createElement('link');
-                fontLink.rel = 'stylesheet';
-                fontLink.href = 'https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Tiro+Bangla:ital@0;1&family=Noto+Serif+Bengali:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap';
-                head.appendChild(fontLink);
+                // 2. Symbol / icon fonts (Wingdings, Symbol, icon fonts) keep the book's own font: in a text font
+                //    their characters are empty boxes. Added after the reading font so it wins.
+                setTimeout(() => this.keepSymbolFonts(doc), 0);
 
                 // 3. Inject Reader Dynamic Stylesheet with exact pixel column alignment
                 const style = doc.createElement('style');
@@ -544,76 +542,88 @@ class IdeaEpubReader {
         });
     }
 
+    /** Space between two pages in px: becomes the left and right margin of every page. */
+    pageGap() {
+        const w = (this.dom && this.dom.wrapper ? this.dom.wrapper.clientWidth : window.innerWidth) || 800;
+        const base = { narrow: 24, normal: 48, wide: 96 }[this.marginPadding] || 48;
+        return w < 600 ? Math.round(base * 0.6) : base;
+    }
+
+    /** Re-apply symbol fonts the book asks for (rules in its stylesheets and inline styles). */
+    keepSymbolFonts(doc) {
+        try {
+            const SYM = /wingdings|webdings|dingbat|zapf|(^|[\s,"'])symbol|icofont|font\s*awesome|fontawesome|material icons|bootstrap-icons/i;
+            const rules = [];
+            Array.from(doc.styleSheets || []).forEach(sheet => {
+                let list;
+                try { list = sheet.cssRules; } catch (e) { return; }
+                Array.from(list || []).forEach(r => {
+                    if (r.selectorText && r.style && r.style.fontFamily && SYM.test(r.style.fontFamily)) {
+                        rules.push(r.selectorText + ' { font-family: ' + r.style.fontFamily + ' !important; }');
+                    }
+                });
+            });
+            doc.querySelectorAll('[style*="font-family"]').forEach(el => {
+                const ff = el.style.fontFamily;
+                if (ff && SYM.test(ff)) el.style.setProperty('font-family', ff, 'important');
+            });
+            if (!rules.length) return;
+            let st = doc.getElementById('idea-reader-symbol-fonts');
+            if (!st) { st = doc.createElement('style'); st.id = 'idea-reader-symbol-fonts'; doc.head.appendChild(st); }
+            st.textContent = rules.join('\n');
+        } catch (e) { /* never block reading */ }
+    }
+
+    /** Google font stylesheet for the font picked in settings (none for Kalpurush). */
+    injectFontLink(doc) {
+        const google = {
+            'Hind Siliguri': 'Hind+Siliguri:wght@400;600;700', 'Tiro Bangla': 'Tiro+Bangla:ital@0;1',
+            'Noto Serif Bengali': 'Noto+Serif+Bengali:wght@400;600;700', 'Inter': 'Inter:wght@400;600;700',
+            'Merriweather': 'Merriweather:ital,wght@0,400;0,700;1,400'
+        }[this.fontFamily];
+        const old = doc.getElementById('idea-reader-font-link');
+        if (old) old.remove();
+        if (!google) return;
+        const link = doc.createElement('link');
+        link.id = 'idea-reader-font-link';
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=' + google + '&display=swap';
+        doc.head.appendChild(link);
+    }
+
     generateIframeCSS() {
+        const origin = window.location.origin;
+        const fam = `'${this.fontFamily}', 'Kalpurush', 'Noto Sans Bengali', 'Hind Siliguri', sans-serif`;
         return `
             @font-face {
                 font-family: 'Kalpurush';
-                src: url('/fonts/kalpurush/kalpurush.woff2') format('woff2'),
-                     url('/fonts/kalpurush/kalpurush.ttf') format('truetype');
-                font-weight: normal;
+                src: url('${origin}/fonts/kalpurush/kalpurush.woff2') format('woff2'),
+                     url('${origin}/fonts/kalpurush/kalpurush.ttf') format('truetype');
+                font-weight: 100 900;
                 font-style: normal;
                 font-display: swap;
             }
-            html {
-                margin: 0 !important;
-                padding: 0 !important;
-                width: 100% !important;
-                height: 100% !important;
-                box-sizing: border-box !important;
-            }
-            body {
-                font-family: '${this.fontFamily}', 'Kalpurush', 'SolaimanLipi', 'Hind Siliguri', sans-serif !important;
+            /* the book's own (often obfuscated, unloadable) fonts are replaced for reading */
+            body, body * { font-family: ${fam} !important; }
+            body { line-height: ${this.lineHeight} !important; text-align: ${this.textAlign}; }
+            p, li, blockquote, dd {
                 line-height: ${this.lineHeight} !important;
-                margin: 0 !important;
-                padding: 20px 24px !important;
-                box-sizing: border-box !important;
-                word-wrap: break-word !important;
-                overflow-wrap: break-word !important;
-                text-align: ${this.textAlign};
-                -webkit-column-break-inside: auto !important;
-                break-inside: auto !important;
+                text-align: ${this.textAlign === 'justify' ? 'justify' : 'start'} !important;
+                -webkit-hyphens: none !important;
+                hyphens: none !important;
+                overflow-wrap: normal !important;
+                word-break: normal !important;
             }
-            * {
-                font-family: '${this.fontFamily}', 'Kalpurush', 'SolaimanLipi', 'Hind Siliguri', sans-serif !important;
-                -webkit-font-smoothing: antialiased !important;
-                text-rendering: optimizeLegibility !important;
-                -webkit-touch-callout: none !important;
-            }
-            p {
-                font-size: 1.06rem !important;
-                line-height: ${this.lineHeight} !important;
-                margin-top: 0 !important;
-                margin-bottom: 0.85em !important;
-                text-align: inherit;
-                word-wrap: break-word !important;
-            }
-            h1, h2, h3, h4, h5, h6 {
-                font-family: '${this.fontFamily}', 'Kalpurush', sans-serif !important;
-                font-weight: 700 !important;
-                line-height: 1.35 !important;
-                margin-top: 0.8em !important;
-                margin-bottom: 0.4em !important;
-            }
-            img, svg {
-                max-width: 100% !important;
-                height: auto !important;
-                display: block !important;
-                margin: 12px auto !important;
-                border-radius: 4px !important;
-            }
-            .text-center, .title-page, .title-page *, .cover-page, .dedication-page, .dedication-page *, .imprint-header, .imprint-header * {
-                text-align: center !important;
-            }
-            table.imprint-table {
-                width: 100% !important;
-                border-collapse: collapse !important;
-                margin: 12px 0 16px !important;
-            }
-            table.imprint-table td {
-                text-align: left !important;
-                padding: 4px 6px !important;
-                vertical-align: top !important;
-            }
+            p { margin-top: 0 !important; margin-bottom: .75em !important; }
+            h1, h2, h3, h4, h5, h6 { line-height: 1.4 !important; text-align: center; break-after: avoid; }
+            /* Desktop-publishing exports (InDesign, Word) fix boxes in pixels; on a phone page they must shrink */
+            body div, body section, body figure, body table { max-width: 100% !important; box-sizing: border-box !important; }
+            /* a fixed-height box around a picture shrinks with the picture; small drawn shapes (logos) keep their layout */
+            body div:has(> img), body div:has(> svg), body div:has(> figure) { height: auto !important; }
+            img, svg, video { max-width: 100% !important; max-height: 95vh !important; height: auto !important; object-fit: contain; break-inside: avoid; }
+            pre, code { white-space: pre-wrap !important; }
+            table { width: auto !important; }
+            a { color: inherit; }
             ::selection {
                 background: rgba(254, 240, 138, 0.6);
                 color: inherit;
@@ -633,6 +643,7 @@ class IdeaEpubReader {
                 style.textContent = this.generateIframeCSS();
             }
         });
+        contents.forEach(c => { if (c.document) this.injectFontLink(c.document); });
         this.rendition.themes.fontSize(this.fontSize + "%");
         setTimeout(() => {
             if (this.rendition) this.rendition.resize();
@@ -859,7 +870,15 @@ class IdeaEpubReader {
     applyMargin(margin) {
         this.marginPadding = margin;
         try { localStorage.setItem('idea_reader_margin', margin); } catch (e) {}
-        this.updateTypographyInViewer();
+        // epub.js takes the page gap only when the book is laid out: lay it out again at the same place
+        if (this.rendition && this.rendition.settings) {
+            const at = this.currentCfi;
+            this.rendition.settings.gap = this.pageGap();
+            try {
+                this.rendition.clear();
+                this.rendition.display(at || undefined);
+            } catch (e) { location.reload(); }
+        }
     }
 
     applyTextAlign(align) {

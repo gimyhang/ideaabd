@@ -52,6 +52,22 @@ class AbuseGuard
             return $next($request);
         }
 
+        // The guard keeps its counters in the cache. If the cache cannot be written (disk full, locked folder)
+        // the site must stay up: the check is skipped, never the page. Only the guard's own work is inside try,
+        // so errors of the page itself are not hidden.
+        try {
+            $denied = $this->check($request);
+        } catch (\Throwable $e) {
+            $denied = null;
+            self::reportFailure($e);
+        }
+
+        return $denied ?? $next($request);
+    }
+
+    /** A refusal for this request, or null to let it through. */
+    private function check(Request $request): ?Response
+    {
         $ip = (string) $request->ip();
 
         // Edge checks run once, as a global middleware, so they also see requests for pages that do not exist.
@@ -84,7 +100,7 @@ class AbuseGuard
             }
             RateLimiter::hit($key, 60);
 
-            return $next($request);
+            return null;
         }
 
         // Form checks need the route, so they run inside the web group.
@@ -100,7 +116,24 @@ class AbuseGuard
             }
         }
 
-        return $next($request);
+        return null;
+    }
+
+    /** Logged at most once a minute (the log itself may be on the full disk). */
+    private static function reportFailure(\Throwable $e): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+        $done = true;
+        try {
+            if (Cache::add('abuse:guard-failed', 1, 60)) {
+                Log::error('AbuseGuard skipped: ' . $e->getMessage());
+            }
+        } catch (\Throwable) {
+            try { error_log('AbuseGuard skipped: ' . $e->getMessage()); } catch (\Throwable) {}
+        }
     }
 
     private function limitBucket(Request $request, string $bucket, string $ip): ?Response

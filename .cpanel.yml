@@ -2,6 +2,11 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/ideaabdc/public_html
+    # Empty the file cache and the page cache first: frees disk space before files are copied (a full disk
+    # half-copies PHP files) and no page built by the old code is served after the update. Both rebuild by themselves.
+    - /bin/rm -rf $DEPLOYPATH/storage/framework/cache/data/* || true
+    - /bin/rm -rf $DEPLOYPATH/storage/framework/page-cache/v* || true
+    - /bin/rm -f $DEPLOYPATH/storage/framework/views/*.php || true
     - /bin/cp -rf * $DEPLOYPATH/
     - /bin/cp -f .htaccess $DEPLOYPATH/.htaccess || true
     - /bin/cp -f .env.example $DEPLOYPATH/.env.example || true

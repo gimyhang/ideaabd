@@ -317,7 +317,7 @@ class EbookController extends Controller
             return response()->json(['message' => 'ই-বুক পাওয়া যায়নি।'], 404);
         }
         $wantFull = $request->query('sample') !== '1' && Shop::canReadFull(auth()->user(), $ebook);
-        $path = $wantFull ? Shop::fullFile($ebook) : Shop::sampleFile($ebook);
+        $path = $wantFull ? Shop::readerCopy(Shop::fullFile($ebook), 'f' . $ebook->id) : Shop::sampleFile($ebook);
         if (!$path) {
             return response()->json(['message' => $wantFull ? 'ই-বুকের ফাইল সার্ভারে পাওয়া যায়নি।' : 'এই ই-বুকের নমুনা অংশ নেই।'], 404);
         }

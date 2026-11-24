@@ -80,6 +80,46 @@ class AdminCacheController extends Controller
         ])->header('Cache-Control', 'no-store');
     }
 
+    // ── Storage (disk space) ────────────────────────────────
+
+    /** Size of everything the site stores outside its code (measured live, can take a few seconds). */
+    public function storage(): JsonResponse
+    {
+        @set_time_limit(90);
+        $m = \App\Support\StorageCleaner::measure();
+
+        return response()->json(['success' => true, 'buckets' => $m, 'partial' => collect($m)->contains('partial', true)])
+            ->header('Cache-Control', 'no-store');
+    }
+
+    /** One-click clean-up. Backups and quarantined images need confirm=1. */
+    public function storageClean(Request $request): JsonResponse|RedirectResponse
+    {
+        $valid = array_keys(\App\Support\StorageCleaner::buckets());
+        $data = $request->validate([
+            'buckets'   => 'required|array|min:1',
+            'buckets.*' => 'string|in:' . implode(',', $valid),
+            'confirm'   => 'nullable|boolean',
+        ], ['buckets.required' => 'অন্তত একটি অংশ বাছাই করুন।']);
+        $risky = array_values(array_intersect($data['buckets'], ['backups', 'quarantine']));
+        if ($risky && !$request->boolean('confirm')) {
+            return response()->json(['success' => false, 'message' => 'ব্যাকআপ / কোয়ারেন্টাইন মুছতে নিশ্চিত করুন।'], 422);
+        }
+
+        return $this->run($request, 'storage_clean', function () use ($data) {
+            @set_time_limit(120);
+            $out = \App\Support\StorageCleaner::clean(array_values(array_unique($data['buckets'])));
+            $freed = array_sum(array_column($out['result'], 'bytes'));
+            $files = array_sum(array_column($out['result'], 'files'));
+            $msg = \App\Support\StorageCleaner::human($freed) . ' জায়গা খালি হয়েছে (' . number_format($files) . 'টি ফাইল)।';
+            if ($out['partial']) {
+                $msg .= ' অনেক ফাইল ছিল — বাকিগুলোর জন্য আরেকবার চাপুন।';
+            }
+
+            return $msg;
+        });
+    }
+
     // ── Clearing ────────────────────────────────────────────
 
     /** Everything: data cache, compiled views, config/route/event caches, OPcache. */

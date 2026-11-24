@@ -41,6 +41,32 @@
      data-delete-batch="{{ route('admin.cache.delete-image-batch') }}"
      data-run="{{ route('admin.cache.run-artisan') }}">
 
+    {{-- Storage: what fills the hosting account, and one click to free it --}}
+    <section class="ck-store" id="ckStore" data-measure="{{ route('admin.cache.storage') }}" data-clean="{{ route('admin.cache.storage-clean') }}" aria-labelledby="ckStoreTitle">
+        <div class="ck-store-hero">
+            <div class="ck-store-intro">
+                <h2 id="ckStoreTitle">Storage</h2>
+                <p>হোস্টিংয়ের জায়গা ভরে গেলে পুরো সাইট বন্ধ হয়ে যায়। নিচের নিরাপদ অংশগুলো মুছলে কিছু হারায় না — সাইট দরকার হলে নিজেই আবার তৈরি করে।</p>
+            </div>
+            <div class="ck-store-free">
+                <span>Can free now</span>
+                <strong data-store-free><span class="ck-skel"></span></strong>
+                <small data-store-total>মাপা হচ্ছে…</small>
+            </div>
+            <button type="button" class="btn ck-store-btn" id="ckStoreClean" disabled>
+                <i class="fa-solid fa-broom me-2"></i>জায়গা খালি করুন
+            </button>
+        </div>
+        <div class="ck-store-bar" data-store-bar aria-hidden="true"></div>
+        <ul class="ck-store-list" data-store-list>
+            @for ($i = 0; $i < 5; $i++)<li class="ck-store-row is-loading"><span class="ck-skel"></span></li>@endfor
+        </ul>
+        <div class="ck-store-foot">
+            <span data-store-note>হোস্টিংয়ের মোট ব্যবহার (মেইল, ডাটাবেস সহ) cPanel → Disk Usage-এ দেখুন।</span>
+            <button type="button" class="btn btn-sm btn-light" id="ckStoreMeasure"><i class="fa-solid fa-rotate me-1"></i>আবার মাপুন</button>
+        </div>
+    </section>
+
     {{-- Status --}}
     <section class="ck-tiles" aria-label="অবস্থা">
         <div class="ck-tile">
@@ -224,4 +250,5 @@
 
 @push('scripts')
     <script src="{{ asset('js/admin-cache.js') }}?v={{ @filemtime(public_path('js/admin-cache.js')) ?: 1 }}" defer></script>
+    <script src="{{ asset('js/admin-storage.js') }}?v={{ @filemtime(public_path('js/admin-storage.js')) ?: 1 }}" defer></script>
 @endpush
