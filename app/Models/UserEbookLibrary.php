@@ -21,6 +21,8 @@ class UserEbookLibrary extends Model
         'last_read_page',
         'progress_percent',
         'bookmarks_data',
+        'last_cfi',
+        'highlights_data',
         'is_active',
     ];
 
@@ -28,6 +30,7 @@ class UserEbookLibrary extends Model
         'last_read_page'   => 'integer',
         'progress_percent' => 'integer',
         'bookmarks_data'   => 'array',
+        'highlights_data'  => 'array',
         'is_active'        => 'boolean',
     ];
 

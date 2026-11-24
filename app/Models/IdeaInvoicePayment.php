@@ -26,6 +26,14 @@ class IdeaInvoicePayment extends Model
         'other_deduction_amount',
         'deduction_challan_no',
         'deduction_notes',
+        'deductor_bin',
+        'deductor_tin',
+        'vds_certificate_no',
+        'vds_certificate_date',
+        'vds_adjusted_period',
+        'tds_certificate_no',
+        'tds_certificate_date',
+        'tds_claimed_year',
         'payment_method',
         'transaction_ref',
         'note',
@@ -41,6 +49,8 @@ class IdeaInvoicePayment extends Model
         'tax_deduction_rate'     => 'decimal:2',
         'tax_deduction_amount'   => 'decimal:2',
         'other_deduction_amount' => 'decimal:2',
+        'vds_certificate_date'   => 'date',
+        'tds_certificate_date'   => 'date',
     ];
 
     public function getTotalDeductionsAttribute(): float

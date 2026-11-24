@@ -2,13 +2,15 @@
     $eb = $ebook;
     $url = route('ebook.show', $eb->slug ?: $eb->id);
     $regular = (float) ($eb->price ?: 0);
-    $offer = ($eb->discount_price > 0 && $eb->discount_price < $regular) ? (float) $eb->discount_price : null;
-    $free = !empty($eb->is_free) || $regular <= 0 || ($offer !== null && $offer <= 0);
+    $offer = ($eb->discount_price !== null && (float) $eb->discount_price < $regular) ? (float) $eb->discount_price : null;
+    $free = (bool) $eb->is_free;
     $now = $offer ?? $regular;
     $off = ($offer && $regular > 0) ? (int) round((($regular - $offer) / $regular) * 100) : 0;
     $by = optional($eb->author)->name ?: ($eb->author_name ?: 'আইডিয়া প্রকাশন');
-    $rating = max(0, min(5, (float) ($eb->reviews_avg_rating ?? 5)));
+    $reviews = (int) ($eb->reviews_count ?? 0);
+    $rating = $reviews ? max(0, min(5, (float) $eb->reviews_avg_rating)) : 0;
     $owned = !empty($userLibraryIds) && in_array($eb->id, $userLibraryIds);
+    $progress = isset($progress) ? (int) $progress : null;
 @endphp
 <article class="eb-card">
     <a href="{{ $url }}" class="eb-card__cover" aria-label="{{ $eb->title }}">
@@ -20,6 +22,7 @@
         @elseif($free)<span class="eb-flag eb-flag--free">Free</span>
         @elseif($off)<span class="eb-flag eb-flag--off">-{{ $off }}%</span>@endif
         @if($eb->format_badge)<span class="eb-fmt">{{ $eb->format_badge }}</span>@endif
+        @if($progress !== null)<span class="eb-progress" style="--p: {{ $progress }}%" title="{{ $progress }}% পড়া হয়েছে"></span>@endif
     </a>
     <div class="eb-card__body">
         <a href="{{ $url }}" class="eb-card__title" title="{{ $eb->title }}">{{ $eb->title }}</a>
@@ -32,8 +35,11 @@
                 @if($offer)<s class="dz-card__old">৳@bn(round($regular))</s>@endif
             @endif
         </div>
-        <div class="dz-card__stars" role="img" aria-label="{{ number_format($rating, 1) }} / 5">
-            @for($i = 1; $i <= 5; $i++)<i class="fa-solid fa-star {{ $i <= round($rating) ? 'on' : '' }}"></i>@endfor
-        </div>
+        @if($reviews)
+            <div class="dz-card__stars" role="img" aria-label="{{ number_format($rating, 1) }} / 5 ({{ $reviews }})">
+                @for($i = 1; $i <= 5; $i++)<i class="fa-solid fa-star {{ $i <= round($rating) ? 'on' : '' }}"></i>@endfor
+                <small>({{ $reviews }})</small>
+            </div>
+        @endif
     </div>
 </article>

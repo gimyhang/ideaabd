@@ -2,32 +2,37 @@
 <html lang="bn" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#ffffff">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $ebook->title }} — অনলাইন ই-বুক রিডার | আইডিয়া প্রকাশন</title>
     
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap 5 CSS (served from our own server, cached) -->
+    <link href="{{ \App\Support\AssetBundle::versioned('vendor/bootstrap-5.3.0/bootstrap.min.css') }}" rel="stylesheet">
     <!-- FontAwesome 6 -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Kalpurush Bangla Web Font -->
-    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
+    <!-- Kalpurush (our own copy) -->
+    <link rel="preload" href="{{ asset('fonts/kalpurush/kalpurush.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <style>@font-face { font-family: 'Kalpurush'; src: url('{{ asset('fonts/kalpurush/kalpurush.woff2') }}') format('woff2'); font-display: swap; }</style>
     <!-- Google Fonts: Hind Siliguri, Tiro Bangla, Noto Serif Bengali, Inter & Merriweather -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Tiro+Bangla:ital@0;1&family=Noto+Serif+Bengali:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
 
     <!-- Modern JSZip 3.10.1 & ePub.js 0.3.93 -->
+    @if($readerType === 'pdf')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    @else
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js"></script>
-    <!-- PDF.js for PDF support -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    @endif
 
     <!-- Custom International EPUB Reader Stylesheet -->
-    <link href="{{ asset('css/idea-epub-reader.css') }}?v={{ time() }}" rel="stylesheet">
+    <link href="{{ \App\Support\AssetBundle::versioned('css/idea-epub-reader.css') }}" rel="stylesheet">
 </head>
-<body class="reader-active">
+<body class="reader-active" data-reader="{{ $readerType }}">
 
     <!-- Top Header Navigation (Clean, Aesthetic, Non-Overcrowded) -->
     <header class="reader-head">
@@ -106,7 +111,7 @@
                 <span>আপনি <strong>{{ $ebook->title }}</strong> বইটির ফ্রি নমুনা অংশ পড়ছেন। সম্পূর্ণ সংস্করণ পড়তে বইটি সংগ্রহ করুন।</span>
             </div>
             <a href="{{ route('ebook.show', $ebook->slug) }}" class="btn btn-xs btn-primary rounded-pill px-3 py-1 fw-bold text-white shadow-xs text-decoration-none d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;">
-                <i class="fa-solid fa-cart-shopping"></i> সম্পূর্ণ বইটি কিনুন (৳{{ $ebook->effective_price }})
+                <i class="fa-solid fa-cart-shopping"></i> {{ $ebook->is_free ? 'সম্পূর্ণ বইটি পড়ুন' : 'সম্পূর্ণ বইটি কিনুন (৳' . number_format($price) . ')' }}
             </a>
         </div>
     @endif
@@ -417,10 +422,10 @@
     <div id="drm-toast">আইডিয়া প্রকাশন: কপিরাইট সুরক্ষার স্বার্থে কপি ও প্রিন্ট নিষিদ্ধ।</div>
 
     <!-- Bootstrap 5 JS Bundle -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ \App\Support\AssetBundle::versioned('vendor/bootstrap-5.3.0/bootstrap.bundle.min.js') }}"></script>
 
     <!-- Custom Modular EPUB Reader Engine JS -->
-    <script src="{{ asset('js/idea-epub-reader-engine.js') }}?v={{ time() }}"></script>
+    <script src="{{ \App\Support\AssetBundle::versioned('js/idea-epub-reader-engine.js') }}"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -430,10 +435,11 @@
                 ebookTitle: @json($ebook->title),
                 authorName: @json($ebook->author?->name ?: ($ebook->author_name ?: 'আইডিয়া প্রকাশন')),
                 csrfToken: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                progressEndpoint: @json(route('ebook.progress', $ebook->id)),
-                initialCfi: @json($lastReadPage ?? null),
-                initialBookmarks: @json($bookmarks ?? []),
-                initialHighlights: @json($libraryEntry?->highlights_data ?? []),
+                progressEndpoint: @json($canSync ? route('ebook.progress', $ebook->id) : ''),
+                initialCfi: @json($startAt),
+                initialPage: {{ (int) $startPage }},
+                initialBookmarks: @json($bookmarks),
+                initialHighlights: @json($highlights),
                 isSample: @json($isSample ?? false),
                 watermarkText: @json($watermarkText)
             });
@@ -444,7 +450,7 @@
     </script>
 
     @include('partials.audiobook-dock')
-    <script src="{{ asset('js/idea-audiobook-engine.js') }}"></script>
+    <script src="{{ \App\Support\AssetBundle::versioned('js/idea-audiobook-engine.js') }}"></script>
     <script>
         // Audiobook for the open book: reads only the text rendered inside the book (EPUB pages / PDF text layer),
         // continues chapter by chapter, and never falls back to site or catalogue text.

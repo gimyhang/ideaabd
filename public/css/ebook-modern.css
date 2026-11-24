@@ -70,3 +70,9 @@ body.dark-mode .eb-page { background: #0b1220; }
 body.dark-mode .eb-head__title h1, body.dark-mode .eb-card__title, body.dark-mode .eb-spot__info h2 a { color: #f1f5f9; }
 body.dark-mode .eb-card, body.dark-mode .eb-search input { background: #111827; border-color: #1f2937; color: #e5e7eb; }
 body.dark-mode .eb-spot { background: linear-gradient(135deg, #0f2a27, #0f172a); border-color: #1f2937; }
+
+/* reading progress on a cover, review count, spotlight blurb */
+.eb-progress { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; height: 5px; background: rgba(255, 255, 255, .45); }
+.eb-progress::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--p); background: #22c55e; }
+.dz-card__stars small { margin-left: 3px; font-size: .7rem; color: #9ca3af; font-weight: 700; }
+.eb-spot__blurb { font-weight: 500 !important; font-size: .92rem; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }

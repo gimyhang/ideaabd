@@ -2,504 +2,295 @@
 
 @push('styles')
 @include('admin.accounting._modern')
+<link rel="stylesheet" href="{{ asset('css/admin-tax.css') }}?v={{ @filemtime(public_path('css/admin-tax.css')) }}">
 @endpush
 
 @php
-    $settings = $invoiceSettings ?? \App\Http\Controllers\Admin\IdeaAccountingController::getInvoiceSettings();
-    $bizLogo = $settings['logo'] ?? '/images/logo.png';
-    $logoSrc = \App\Support\SiteSetting::billLogoUrl($bizLogo);
-
-    $monthNameFormatted = '';
-    if (!empty($selectedMonth)) {
-        try {
-            $dt = \Illuminate\Support\Carbon::parse($selectedMonth . '-01');
-            $monthNameFormatted = $dt->format('F Y');
-        } catch (\Throwable $e) {
-            $monthNameFormatted = $selectedMonth;
-        }
-    }
-
-    $pageTitle = $monthNameFormatted ? "TDS & VDS Register — {$monthNameFormatted}" : "TDS & VDS Deductions Register & Monthly Report";
+    use Illuminate\Support\Carbon;
+    $tk = fn ($v) => '৳' . number_format((float) $v, 2);
+    $periodLabel = $f['month'] !== '' ? Carbon::parse($f['month'] . '-01')->format('F Y')
+        : ($f['fy'] !== '' ? 'Income year ' . $f['fy']
+        : (($f['from'] !== '' || $f['to'] !== '') ? trim(($f['from'] ?: '…') . ' → ' . ($f['to'] ?: '…')) : 'All time'));
+    $q = request()->except(['page']);
+    $link = fn (array $over) => route('admin.accounting.tax-vat-deductions.index', array_filter(array_merge($q, $over), fn ($v) => $v !== null && $v !== ''));
+    $chip = function (string $kind, array $state) use ($labels) {
+        $l = $labels[$kind][$state['key']] ?? null;
+        if (!$l) return '';
+        $extra = match ($state['key']) {
+            'to_adjust', 'cert_due' => isset($state['deadline']) ? ' · by ' . $state['deadline']->format('d M Y') : '',
+            'adjusted' => ' · ' . Carbon::parse($state['period'] . '-01')->format('M Y'),
+            'claimed', 'to_claim' => ' · ' . ($state['year'] ?? ''),
+            'expired' => isset($state['last']) ? ' · ' . Carbon::parse($state['last'] . '-01')->format('M Y') : '',
+            default => '',
+        };
+        return '<span class="tx-chip tx-chip--' . $l[2] . '" title="' . e($l[1]) . '">' . e($l[0] . $extra) . '</span>';
+    };
+    $canEdit = auth()->user()?->hasPermission('accounting.ledger_manage') ?? false;
 @endphp
 
-@section('title', $pageTitle)
-@section('heading')
-    <div class="d-flex align-items-center gap-2 flex-wrap">
-        <span class="fs-5 fw-bold text-dark">
-            TDS & VDS Deduction Register
-        </span>
-        @if($monthNameFormatted)
-            <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1 font-monospace">
-                {{ $monthNameFormatted }}
-            </span>
-        @endif
-    </div>
-@endsection
+@section('title', 'TDS & VDS Register — ' . $periodLabel)
+@section('heading', 'TDS & VDS Register')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.accounting.index') }}">Accounting</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('admin.accounting.invoices.index') }}">Invoices & Challans</a></li>
-    <li class="breadcrumb-item active" aria-current="page">TDS & VDS Register</li>
+    <li class="breadcrumb-item active" aria-current="page">TDS & VDS</li>
 @endsection
 
 @section('actions')
-    <div class="d-flex flex-wrap gap-2 align-items-center">
-        {{-- Customize % Presets Button --}}
-        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-2xs fw-semibold" data-bs-toggle="modal" data-bs-target="#customPercentPresetsModal">
-            <i class="fa-solid fa-sliders text-warning me-1.5"></i> Presets (%)
-        </button>
-
-        {{-- Export Tools Dropdown --}}
-        <div class="dropdown">
-            <button class="btn btn-white border shadow-2xs btn-sm rounded-pill px-3 fw-semibold dropdown-toggle text-dark" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fa-solid fa-file-export me-1 text-primary"></i> Export
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow rounded-3 border-0 p-2" style="min-width: 220px;">
-                <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">Export Formats:</h6></li>
-                <li>
-                    <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold" onclick="exportDeductionsToCSV('tax-vat-deductions-{{ $selectedMonth ?: date('Y-m') }}.csv')">
-                        <i class="fa-solid fa-file-csv text-success me-2"></i> Download CSV / Excel
-                    </button>
-                </li>
-                <li>
-                    <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold" onclick="copyDeductionsToClipboard()">
-                        <i class="fa-solid fa-copy text-info me-2"></i> Copy to Clipboard
-                    </button>
-                </li>
-            </ul>
-        </div>
-
-        {{-- Print Statement Button --}}
-        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 shadow-sm fw-semibold" onclick="window.print()">
-            <i class="fa-solid fa-print me-1.5"></i> Print / PDF Report
-        </button>
-
-        <a href="{{ route('admin.accounting.invoices.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fa-solid fa-file-invoice me-1"></i> Invoices
-        </a>
-
-        <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 shadow-xs fw-semibold">
-            <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> Customer Ledger
-        </a>
+    <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#txSettingsModal">Settings</button>
+        <a class="btn btn-outline-secondary btn-sm rounded-pill px-3" href="{{ route('admin.accounting.tax-vat-deductions.export', $q) }}">Export CSV</a>
+        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" onclick="window.print()">Print</button>
     </div>
 @endsection
 
 @section('content')
-<style>
-    .stat-card-tax {
-        background: #ffffff;
-        border-radius: 14px;
-        border: 1px solid #e2e8f0;
-        padding: 16px 20px;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .stat-card-tax:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-    }
-    .month-pill-btn {
-        font-size: 11.5px;
-        padding: 4px 12px;
-        border-radius: 999px;
-        border: 1px solid #cbd5e1;
-        background: #ffffff;
-        color: #334155;
-        font-weight: 600;
-        transition: all 0.2s;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    }
-    .month-pill-btn:hover, .month-pill-btn.active {
-        background: #0ea5e9;
-        border-color: #0ea5e9;
-        color: #ffffff !important;
-    }
-    .month-pill-btn .badge-pill-count {
-        font-size: 10px;
-        padding: 1px 6px;
-        border-radius: 999px;
-        background: rgba(0,0,0,0.08);
-    }
-    .month-pill-btn.active .badge-pill-count {
-        background: rgba(255,255,255,0.25);
-        color: #ffffff;
-    }
-    .table-deductions th {
-        font-size: 11.5px;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        font-weight: 700;
-        background: #f8fafc;
-        border-bottom: 2px solid #cbd5e1;
-        white-space: nowrap;
-    }
-    .table-deductions td {
-        font-size: 12.5px;
-        vertical-align: middle;
-    }
-    .print-only-header {
-        display: none;
-    }
-    @media print {
-        body {
-            background: #ffffff !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            color: #000000 !important;
-            font-size: 11px !important;
-        }
-        .adm-side, .adm-header, .adm-topbar, .breadcrumb, .btn, .no-print, footer, nav, .alert, .filter-card, .pagination {
-            display: none !important;
-        }
-        .content-wrapper, .container-fluid, .content, .adm-main, .adm-content {
-            padding: 0 !important;
-            margin: 0 !important;
-            background: #ffffff !important;
-        }
-        .print-only-header {
-            display: block !important;
-            border-bottom: 2px solid #000000;
-            padding-bottom: 12px;
-            margin-bottom: 16px;
-        }
-        .card {
-            border: none !important;
-            box-shadow: none !important;
-            padding: 0 !important;
-        }
-        .table-responsive {
-            overflow: visible !important;
-        }
-        .table-deductions {
-            width: 100% !important;
-            border: 1px solid #000000 !important;
-            font-size: 10.5px !important;
-        }
-        .table-deductions th, .table-deductions td {
-            border: 1px solid #000000 !important;
-            padding: 4px 6px !important;
-            color: #000000 !important;
-        }
-        .table-deductions th {
-            background: #f1f5f9 !important;
-        }
-        .print-signature-section {
-            display: block !important;
-            margin-top: 50px !important;
-            page-break-inside: avoid;
-        }
-    }
-</style>
+<div class="tx-page">
 
-<div class="container-fluid py-2">
+    @if(!$ready)
+        <div class="alert alert-warning mb-0">পেমেন্ট টেবিলে প্রয়োজনীয় কলাম তৈরি করা যায়নি। ডাটাবেসের অনুমতি দেখুন অথবা মাইগ্রেশন চালান।</div>
+    @endif
 
-    {{-- Official Print Header (Visible Only in Print / PDF) --}}
-    <div class="print-only-header">
-        <div class="row align-items-center">
-            <div class="col-8">
-                <div class="d-flex align-items-center gap-3">
-                    @if(!empty($logoSrc))
-                        <img src="{{ $logoSrc }}" alt="Logo" style="height: 48px; max-width: 140px; object-fit: contain;">
-                    @endif
-                    <div>
-                        <h4 class="fw-bold mb-0 text-dark">{{ $settings['business_name'] ?? 'Idea Prakashan' }}</h4>
-                        <div class="small text-muted">{{ $settings['address'] ?? '' }} | Phone: {{ $settings['phone'] ?? '' }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-4 text-end">
-                <h5 class="fw-bold mb-0 text-dark">TDS & VDS Deduction Register</h5>
-                <div class="small fw-semibold text-primary">Period: {{ $monthNameFormatted ?: ($dateFrom ? "{$dateFrom} to {$dateTo}" : 'All-Time Summary') }}</div>
-                <div class="small text-muted">Print Date: {{ date('d/m/Y h:i A') }}</div>
-            </div>
-        </div>
+    {{-- print header --}}
+    <div class="tx-print-only">
+        <h4 style="margin:0">{{ $settings['business_name'] ?? '' }}</h4>
+        <div style="font-size:11px">{{ $settings['address'] ?? '' }}@if(!empty($settings['own_bin'])) · BIN {{ $settings['own_bin'] }}@endif @if(!empty($settings['own_tin'])) · TIN {{ $settings['own_tin'] }}@endif</div>
+        <h5 style="margin:8px 0 2px">উৎসে মূসক (VDS) ও উৎসে আয়কর (TDS) কর্তন রেজিস্টার — {{ $periodLabel }}</h5>
+        <div style="font-size:11px">Printed {{ now()->format('d/m/Y h:i A') }}</div>
     </div>
 
-    {{-- Top Executive Metrics & Deduction Summary Cards --}}
-    <div class="row g-3 mb-4 no-print">
-        <div class="col-6 col-md-3">
-            <div class="stat-card-tax">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <div class="text-muted small fw-semibold">Total Settled Bill Demand</div>
-                        <div class="fs-4 fw-bold text-dark font-monospace mt-1">৳{{ number_format($totalSettledAmount, 2) }}</div>
-                        <div class="text-muted small" style="font-size: 11px;">Total {{ $deductions->count() }} transactions ({{ $totalClientsCount }} clients)</div>
-                    </div>
-                    <div class="rounded-circle bg-primary-subtle p-3 text-primary">
-                        <i class="fa-solid fa-file-invoice-dollar fs-5"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-6 col-md-3">
-            <div class="stat-card-tax border-success-subtle bg-success-subtle bg-opacity-10">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <div class="text-success small fw-semibold">Net Cash / Bank Collection</div>
-                        <div class="fs-4 fw-bold text-success font-monospace mt-1">৳{{ number_format($totalNetCollected, 2) }}</div>
-                        <div class="text-success small" style="font-size: 11px;">Collection Rate: {{ $totalSettledAmount > 0 ? round(($totalNetCollected / $totalSettledAmount) * 100, 1) : 0 }}%</div>
-                    </div>
-                    <div class="rounded-circle bg-success-subtle p-3 text-success">
-                        <i class="fa-solid fa-money-bill-wave fs-5"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-6 col-md-3">
-            <div class="stat-card-tax border-warning-subtle bg-warning-subtle bg-opacity-10">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <div class="text-warning-emphasis small fw-semibold">VDS Deduction (VAT)</div>
-                        <div class="fs-4 fw-bold text-warning-emphasis font-monospace mt-1">৳{{ number_format($totalVatDeducted, 2) }}</div>
-                        <div class="text-muted small" style="font-size: 11px;">VAT deposited to Govt Treasury</div>
-                    </div>
-                    <div class="rounded-circle bg-warning-subtle p-3 text-warning-emphasis">
-                        <i class="fa-solid fa-receipt fs-5"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-6 col-md-3">
-            <div class="stat-card-tax border-danger-subtle bg-danger-subtle bg-opacity-10">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <div class="text-danger small fw-semibold">TDS / AIT Deduction (Tax)</div>
-                        <div class="fs-4 fw-bold text-danger font-monospace mt-1">৳{{ number_format($totalTaxDeducted, 2) }}</div>
-                        <div class="text-danger small" style="font-size: 11px;">Total Govt Deductions: ৳{{ number_format($grandTotalDeductions, 2) }}</div>
-                    </div>
-                    <div class="rounded-circle bg-danger-subtle p-3 text-danger">
-                        <i class="fa-solid fa-scale-balanced fs-5"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+    {{-- needs attention: all time --}}
+    <div class="tx-alerts no-print">
+        <a class="tx-alert {{ $alerts['vds_cert_due'][0] ? 'is-warn' : '' }}" href="{{ route('admin.accounting.tax-vat-deductions.index', ['status' => 'vds:cert_due']) }}" title="ভ্যাট কর্তন হয়েছে কিন্তু ক্রেতার কাছ থেকে মূসক-৬.৬ সনদ আসেনি। সনদ ছাড়া ৯.১ রিটার্নে সমন্বয় নেওয়া যায় না।">
+            <span class="tx-alert__label">6.6 due</span>
+            <span class="tx-alert__val">{{ $tk($alerts['vds_cert_due'][1]) }}</span>
+            <span class="tx-alert__hint">{{ $alerts['vds_cert_due'][0] }}টি কর্তনে মূসক-৬.৬ সনদ বাকি</span>
+        </a>
+        <a class="tx-alert {{ $alerts['vds_to_adjust'][0] ? 'is-info' : '' }}" href="{{ route('admin.accounting.tax-vat-deductions.index', ['status' => 'vds:to_adjust']) }}" title="সনদ আছে, এখনো ৯.১ রিটার্নে সমন্বয় নেওয়া হয়নি।">
+            <span class="tx-alert__label">To adjust</span>
+            <span class="tx-alert__val">{{ $tk($alerts['vds_to_adjust'][1]) }}</span>
+            <span class="tx-alert__hint">{{ $alerts['vds_to_adjust'][0] }}টি সনদ ৯.১-এ সমন্বয়যোগ্য</span>
+        </a>
+        <a class="tx-alert {{ $alerts['vds_expiring'][0] ? 'is-bad' : '' }}" href="{{ route('admin.accounting.tax-vat-deductions.index', ['status' => 'vds:to_adjust']) }}" title="আগামী ২০ দিনের মধ্যে সমন্বয়ের শেষ রিটার্নের তারিখ।">
+            <span class="tx-alert__label">Expiring</span>
+            <span class="tx-alert__val">{{ $tk($alerts['vds_expiring'][1]) }}</span>
+            <span class="tx-alert__hint">{{ $alerts['vds_expiring'][0] }}টির সময় ২০ দিনের কম</span>
+        </a>
+        <a class="tx-alert {{ $alerts['tds_cert_due'][0] ? 'is-warn' : '' }}" href="{{ route('admin.accounting.tax-vat-deductions.index', ['status' => 'tds:cert_due']) }}" title="আয়কর কর্তন হয়েছে কিন্তু সনদ আসেনি। সনদ ছাড়া রিটার্নে কর ক্রেডিট দাবি করা যায় না।">
+            <span class="tx-alert__label">TDS cert due</span>
+            <span class="tx-alert__val">{{ $tk($alerts['tds_cert_due'][1]) }}</span>
+            <span class="tx-alert__hint">{{ $alerts['tds_cert_due'][0] }}টি কর্তনে সনদ বাকি</span>
+        </a>
     </div>
 
-    {{-- Filter & Month Picker Bar --}}
-    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white no-print filter-card">
-        <div class="card-body p-3.5">
-            <form action="{{ route('admin.accounting.tax-vat-deductions.index') }}" method="GET" id="deductionsFilterForm">
-                <div class="row g-2.5 align-items-end">
-                    {{-- Month Picker --}}
-                    <div class="col-md-3 col-sm-6">
-                        <label class="form-label small fw-bold text-dark mb-1">
-                            <i class="fa-solid fa-calendar-days text-primary me-1"></i>Select Month:
-                        </label>
-                        <input type="month" name="month" id="filterMonthInput" class="form-control form-control-sm font-monospace fw-semibold" value="{{ $selectedMonth }}" onchange="document.getElementById('deductionsFilterForm').submit()">
-                    </div>
-
-                    {{-- Deduction Type Filter --}}
-                    <div class="col-md-2 col-sm-6">
-                        <label class="form-label small fw-bold text-dark mb-1">Deduction Type:</label>
-                        <select name="type" class="form-select form-select-sm" onchange="document.getElementById('deductionsFilterForm').submit()">
-                            <option value="all" {{ ($deductionType ?? 'all') === 'all' ? 'selected' : '' }}>All Deductions</option>
-                            <option value="vat_only" {{ ($deductionType ?? '') === 'vat_only' ? 'selected' : '' }}>VDS Only (VAT)</option>
-                            <option value="tax_only" {{ ($deductionType ?? '') === 'tax_only' ? 'selected' : '' }}>TDS Only (Tax)</option>
-                        </select>
-                    </div>
-
-                    {{-- Search / Party / Challan --}}
-                    <div class="col-md-4 col-sm-8">
-                        <label class="form-label small fw-bold text-dark mb-1">Search (Client / Invoice # / Challan #):</label>
-                        <div class="input-group input-group-sm">
-                            <input type="text" name="search" class="form-control" placeholder="Client name, mobile, invoice #, challan #..." value="{{ $search }}">
-                            <button class="btn btn-primary" type="submit">
-                                <i class="fa-solid fa-magnifying-glass me-1"></i> Search
-                            </button>
-                        </div>
-                    </div>
-
-                    {{-- Quick Filter Presets --}}
-                    <div class="col-md-3 col-sm-4 d-flex gap-1.5 justify-content-md-end">
-                        <a href="{{ route('admin.accounting.tax-vat-deductions.index', ['month' => date('Y-m')]) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 {{ $selectedMonth === date('Y-m') ? 'active' : '' }}" title="Current Month">
-                            Current Month
-                        </a>
-                        <a href="{{ route('admin.accounting.tax-vat-deductions.index', ['month' => date('Y-m', strtotime('-1 month'))]) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 {{ $selectedMonth === date('Y-m', strtotime('-1 month')) ? 'active' : '' }}" title="Last Month">
-                            Last Month
-                        </a>
-                        <a href="{{ route('admin.accounting.tax-vat-deductions.index', ['all_time' => 1]) }}" class="btn btn-sm btn-outline-dark rounded-pill px-2.5 py-1 {{ empty($selectedMonth) && empty($dateFrom) ? 'active' : '' }}" title="All Time">
-                            All Time
-                        </a>
-                    </div>
+    {{-- filters --}}
+    <div class="tx-box no-print">
+        <div class="tx-box__body">
+            <form method="GET" action="{{ route('admin.accounting.tax-vat-deductions.index') }}" class="tx-filters" id="txFilters">
+                <div class="tx-f">
+                    <label class="form-label" for="txMonth">Month</label>
+                    <input type="month" id="txMonth" name="month" class="form-control form-control-sm" value="{{ $f['month'] }}" onchange="this.form.fy.value='';this.form.submit()">
                 </div>
-
-                {{-- Historical Months Quick Badges --}}
-                @if($monthlyDeductionSummaries->isNotEmpty())
-                    <div class="mt-3 pt-2.5 border-top d-flex align-items-center gap-1.5 flex-wrap">
-                        <span class="text-muted small fw-bold me-1" style="font-size: 11px;">
-                            <i class="fa-solid fa-clock-rotate-left me-1"></i>Previous Months:
-                        </span>
-                        @foreach($monthlyDeductionSummaries as $ms)
-                            @php
-                                $mLabel = $ms->ym ?? '—';
-                                if (!empty($ms->ym)) {
-                                    try {
-                                        $mDt = \Illuminate\Support\Carbon::parse($ms->ym . '-01');
-                                        $mLabel = $mDt->format('M y');
-                                    } catch (\Throwable $e) {}
-                                }
-                            @endphp
-                            <a href="{{ route('admin.accounting.tax-vat-deductions.index', ['month' => $ms->ym]) }}" class="month-pill-btn {{ $selectedMonth === $ms->ym ? 'active' : '' }}">
-                                <span>{{ $mLabel }}</span>
-                                <span class="badge-pill-count">{{ $ms->count }} (৳{{ number_format($ms->sum_vat + $ms->sum_tax, 0) }})</span>
-                            </a>
+                <div class="tx-f">
+                    <label class="form-label" for="txFy">Income year</label>
+                    <select id="txFy" name="fy" class="form-select form-select-sm" onchange="this.form.month.value='';this.form.submit()">
+                        <option value="">—</option>
+                        @foreach($years as $y)
+                            <option value="{{ $y }}" @selected($f['fy'] === $y)>{{ $y }}{{ $y === $currentFy ? ' (current)' : '' }}</option>
                         @endforeach
+                    </select>
+                </div>
+                <div class="tx-f">
+                    <label class="form-label" for="txType">Type</label>
+                    <select id="txType" name="type" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="all">All</option>
+                        <option value="vat_only" @selected($f['type'] === 'vat_only')>VDS (VAT)</option>
+                        <option value="tax_only" @selected($f['type'] === 'tax_only')>TDS (Tax)</option>
+                    </select>
+                </div>
+                <div class="tx-f">
+                    <label class="form-label" for="txStatus">Status</label>
+                    <select id="txStatus" name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">All</option>
+                        <optgroup label="VDS">
+                            @foreach($labels['vds'] as $k => $l)<option value="vds:{{ $k }}" @selected($f['status'] === "vds:$k")>VDS · {{ $l[0] }}</option>@endforeach
+                        </optgroup>
+                        <optgroup label="TDS">
+                            @foreach($labels['tds'] as $k => $l)<option value="tds:{{ $k }}" @selected($f['status'] === "tds:$k")>TDS · {{ $l[0] }}</option>@endforeach
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="tx-f tx-f--grow">
+                    <label class="form-label" for="txSearch">Search</label>
+                    <div class="input-group input-group-sm">
+                        <input type="search" id="txSearch" name="search" class="form-control" value="{{ $f['search'] }}" placeholder="Client, invoice, 6.6 / challan / cert no, BIN, TIN">
+                        <button class="btn btn-primary" type="submit">Go</button>
                     </div>
-                @endif
+                </div>
+                <div class="d-flex gap-1 flex-wrap">
+                    <a class="btn btn-sm btn-outline-secondary rounded-pill" href="{{ route('admin.accounting.tax-vat-deductions.index', ['month' => now()->format('Y-m')]) }}">This month</a>
+                    <a class="btn btn-sm btn-outline-secondary rounded-pill" href="{{ route('admin.accounting.tax-vat-deductions.index', ['fy' => $currentFy]) }}">This year</a>
+                    <a class="btn btn-sm btn-outline-secondary rounded-pill" href="{{ route('admin.accounting.tax-vat-deductions.index', ['all_time' => 1]) }}">All time</a>
+                </div>
             </form>
+            @if($months->isNotEmpty())
+                <div class="tx-pills">
+                    @foreach($months as $m)
+                        <a class="tx-pill {{ $f['month'] === $m->ym ? 'is-active' : '' }}" href="{{ route('admin.accounting.tax-vat-deductions.index', ['month' => $m->ym]) }}">
+                            {{ Carbon::parse($m->ym . '-01')->format('M y') }} <small>{{ $m->count }} · ৳{{ number_format($m->sum) }}</small>
+                        </a>
+                    @endforeach
+                </div>
+            @endif
         </div>
     </div>
 
-    {{-- Main Deductions Register Table --}}
-    <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden mb-4">
-        <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <h6 class="fw-bold mb-0 text-dark">
-                    TDS & VDS Deductions Register ({{ $deductions->count() }} records)
-                </h6>
-                <small class="text-muted">
-                    Period: <strong class="text-dark">{{ $monthNameFormatted ?: ($dateFrom ? "{$dateFrom} to {$dateTo}" : 'All-Time Summary') }}</strong>
-                </small>
+    {{-- period totals --}}
+    <div class="tx-stats">
+        <div class="tx-stat">
+            <div class="tx-stat__label">Settled</div>
+            <div class="tx-stat__val">{{ $tk($totals['settled']) }}</div>
+            <div class="tx-stat__sub">{{ $totals['count'] }} receipts · {{ $totals['clients'] }} clients · net {{ $tk($totals['net']) }}</div>
+        </div>
+        <div class="tx-stat">
+            <div class="tx-stat__label">VDS withheld</div>
+            <div class="tx-stat__val">{{ $tk($totals['vds']) }}</div>
+            @php $v = max($totals['vds'], 0.01); @endphp
+            <div class="tx-bar" title="Adjusted / to adjust / 6.6 due / expired">
+                <span style="width:{{ $totals['vds_adjusted'] / $v * 100 }}%;background:#10b981"></span>
+                <span style="width:{{ $totals['vds_to_adjust'] / $v * 100 }}%;background:#3b82f6"></span>
+                <span style="width:{{ $totals['vds_cert_due'] / $v * 100 }}%;background:#f59e0b"></span>
+                <span style="width:{{ $totals['vds_expired'] / $v * 100 }}%;background:#ef4444"></span>
             </div>
+            <div class="tx-stat__sub">Adjusted {{ $tk($totals['vds_adjusted']) }} · open {{ $tk($totals['vds_to_adjust'] + $totals['vds_cert_due']) }}@if($totals['vds_expired'] > 0) · <span class="text-danger">lost {{ $tk($totals['vds_expired']) }}</span>@endif</div>
+        </div>
+        <div class="tx-stat">
+            <div class="tx-stat__label">TDS withheld</div>
+            <div class="tx-stat__val">{{ $tk($totals['tds']) }}</div>
+            @php $t = max($totals['tds'], 0.01); @endphp
+            <div class="tx-bar" title="Claimed / to claim / cert due">
+                <span style="width:{{ $totals['tds_claimed'] / $t * 100 }}%;background:#10b981"></span>
+                <span style="width:{{ $totals['tds_to_claim'] / $t * 100 }}%;background:#3b82f6"></span>
+                <span style="width:{{ $totals['tds_cert_due'] / $t * 100 }}%;background:#f59e0b"></span>
+            </div>
+            <div class="tx-stat__sub">With certificate {{ $tk($totals['tds_to_claim'] + $totals['tds_claimed']) }} · cert due {{ $tk($totals['tds_cert_due']) }}</div>
+        </div>
+        <div class="tx-stat">
+            <div class="tx-stat__label">Other</div>
+            <div class="tx-stat__val">{{ $tk($totals['other']) }}</div>
+            <div class="tx-stat__sub">Total withheld {{ $tk($totals['vds'] + $totals['tds'] + $totals['other']) }}</div>
+        </div>
+    </div>
 
-            <div class="d-flex align-items-center gap-2 no-print">
-                <span class="badge bg-warning-subtle text-dark border font-monospace px-2.5 py-1">
-                    Total Deductions: ৳{{ number_format($grandTotalDeductions, 2) }}
-                </span>
+    {{-- register --}}
+    <div class="tx-box">
+        <div class="tx-box__head">
+            <div>
+                <h2 class="tx-box__title">Register</h2>
+                <div class="tx-box__sub">{{ $periodLabel }} · {{ $totals['count'] }} rows @if($f['status'] !== '') · filtered by status @endif</div>
             </div>
         </div>
-
-        <div class="table-responsive">
-            <table class="table table-hover table-bordered table-deductions align-middle mb-0" id="deductionsTable">
+        <div class="tx-table-wrap">
+            <table class="tx-table" id="txTable">
                 <thead>
                     <tr>
-                        <th class="text-center" style="width: 40px;">#</th>
-                        <th style="width: 90px;">Date</th>
-                        <th>Client / Organization</th>
-                        <th>Invoice # & Date</th>
-                        <th>Receipt #</th>
-                        <th class="text-end">Settled (৳)</th>
-                        <th class="text-end text-success">Net Received (৳)</th>
-                        <th class="text-center">Method / Ref</th>
-                        <th class="text-end text-warning-emphasis">VDS (VAT)</th>
-                        <th class="text-end text-danger">TDS (Tax)</th>
-                        <th class="text-end">Other</th>
-                        <th>Challan / Certificate #</th>
-                        <th class="no-print text-center" style="width: 100px;">Action</th>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>Invoice / Receipt</th>
+                        <th class="tx-num">Settled</th>
+                        <th class="tx-num">Net</th>
+                        <th>VDS (VAT)</th>
+                        <th>TDS (Tax)</th>
+                        <th class="tx-num">Other</th>
+                        <th class="no-print"></th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($deductions as $idx => $d)
-                        @php
-                            $inv = $d->invoice;
-                        @endphp
-                        <tr>
-                            <td class="text-center text-muted fw-semibold">{{ $idx + 1 }}</td>
-                            <td class="font-monospace fw-semibold text-dark">
-                                {{ $d->payment_date ? $d->payment_date->format('d/m/Y') : '—' }}
-                            </td>
-                            <td>
-                                <div class="fw-bold text-dark">{{ $d->party_name }}</div>
-                                @if($inv && $inv->customer_org)
-                                    <div class="text-muted small" style="font-size: 11px;">{{ $inv->customer_org }}</div>
+                @forelse($rows as $p)
+                    @php
+                        $inv = $p->invoice;
+                        $calc = \App\Support\TaxVatCompliance::vdsAt((float) $p->amount, (float) $p->vat_deduction_rate);
+                        $payload = [
+                            'id' => $p->id, 'no' => $p->payment_no, 'party' => $p->party_name,
+                            'date' => optional($p->payment_date)->format('Y-m-d'),
+                            'vat' => (float) $p->vat_deduction_amount, 'tax' => (float) $p->tax_deduction_amount,
+                            'deductor_bin' => $p->deductor_bin, 'deductor_tin' => $p->deductor_tin,
+                            'vds_certificate_no' => $p->vds_certificate_no, 'vds_certificate_date' => optional($p->vds_certificate_date)->format('Y-m-d'),
+                            'deduction_challan_no' => $p->deduction_challan_no, 'vds_adjusted_period' => $p->vds_adjusted_period,
+                            'tds_certificate_no' => $p->tds_certificate_no, 'tds_certificate_date' => optional($p->tds_certificate_date)->format('Y-m-d'),
+                            'tds_claimed_year' => $p->tds_claimed_year, 'deduction_notes' => $p->deduction_notes,
+                            'fy' => $p->tds_state['year'] ?? null, 'url' => route('admin.accounting.tax-vat-deductions.update', $p->id),
+                        ];
+                    @endphp
+                    <tr>
+                        <td class="tx-mono">{{ optional($p->payment_date)->format('d/m/Y') }}</td>
+                        <td>
+                            <div class="tx-cell">
+                                <strong>{{ $p->party_name }}</strong>
+                                @if($inv?->customer_org)<span class="tx-mute">{{ $inv->customer_org }}</span>@endif
+                                @if($p->deductor_bin || $p->deductor_tin)
+                                    <span class="tx-mute tx-mono">@if($p->deductor_bin)BIN {{ $p->deductor_bin }}@endif @if($p->deductor_tin) · TIN {{ $p->deductor_tin }}@endif</span>
                                 @endif
-                                @if($d->party_phone && $d->party_phone !== '—')
-                                    <div class="text-secondary font-monospace" style="font-size: 11px;"><i class="fa-solid fa-phone me-1"></i>{{ $d->party_phone }}</div>
-                                @endif
-                            </td>
-                            <td>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="tx-cell">
                                 @if($inv)
-                                    <a href="{{ route('admin.accounting.invoices.show', $inv->id) }}" class="fw-bold font-monospace text-primary text-decoration-none" target="_blank">
-                                        #{{ $inv->invoice_no }}
-                                    </a>
-                                    <div class="text-muted" style="font-size: 10.5px;">{{ $inv->invoice_date ? $inv->invoice_date->format('d/m/Y') : '' }}</div>
+                                    <a class="tx-mono" href="{{ route('admin.accounting.invoices.show', $inv->id) }}" target="_blank">#{{ $inv->invoice_no }}</a>
                                 @else
-                                    <span class="badge bg-light text-dark border font-monospace">Running Ledger</span>
+                                    <span class="tx-mute">Running ledger</span>
                                 @endif
-                            </td>
-                            <td>
-                                <span class="font-monospace fw-bold text-secondary">#{{ $d->payment_no }}</span>
-                            </td>
-                            <td class="text-end font-monospace fw-bold text-dark fs-7">
-                                ৳{{ number_format($d->amount, 2) }}
-                            </td>
-                            <td class="text-end font-monospace fw-bold text-success">
-                                ৳{{ number_format($d->effective_net_amount, 2) }}
-                            </td>
-                            <td class="text-center">
-                                <span class="badge bg-light text-dark border px-2 py-0.5" style="font-size: 11px;">
-                                    {{ \App\Models\IdeaInvoicePayment::paymentMethods()[$d->payment_method] ?? ucfirst($d->payment_method) }}
-                                </span>
-                                @if($d->transaction_ref)
-                                    <div class="text-muted font-monospace mt-0.5" style="font-size: 10.5px;">{{ $d->transaction_ref }}</div>
-                                @endif
-                            </td>
-                            <td class="text-end font-monospace">
-                                @if((float)$d->vat_deduction_amount > 0)
-                                    <div class="fw-bold text-warning-emphasis">৳{{ number_format($d->vat_deduction_amount, 2) }}</div>
-                                    <span class="badge bg-warning-subtle text-dark border" style="font-size: 10px;">{{ $d->vat_deduction_rate }}%</span>
-                                @else
-                                    <span class="text-muted">—</span>
-                                @endif
-                            </td>
-                            <td class="text-end font-monospace">
-                                @if((float)$d->tax_deduction_amount > 0)
-                                    <div class="fw-bold text-danger">৳{{ number_format($d->tax_deduction_amount, 2) }}</div>
-                                    <span class="badge bg-danger-subtle text-danger border" style="font-size: 10px;">{{ $d->tax_deduction_rate }}%</span>
-                                @else
-                                    <span class="text-muted">—</span>
-                                @endif
-                            </td>
-                            <td class="text-end font-monospace">
-                                @if((float)$d->other_deduction_amount > 0)
-                                    <span class="text-danger fw-semibold">৳{{ number_format($d->other_deduction_amount, 2) }}</span>
-                                @else
-                                    <span class="text-muted">—</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($d->deduction_challan_no)
-                                    <div class="fw-bold font-monospace text-primary" style="font-size: 11.5px;">
-                                        <i class="fa-solid fa-file-shield me-1"></i>{{ $d->deduction_challan_no }}
-                                    </div>
-                                @else
-                                    <span class="text-muted small">No Challan</span>
-                                @endif
-                                @if($d->deduction_notes)
-                                    <div class="text-muted" style="font-size: 10.5px;">{{ $d->deduction_notes }}</div>
-                                @endif
-                            </td>
-                            <td class="text-center no-print">
-                                <a href="{{ route('admin.accounting.invoices.payments.receipt', $d->id) }}" class="btn btn-xs btn-outline-success rounded-pill px-2.5 py-1 fw-bold shadow-2xs" target="_blank" title="View Payment Receipt">
-                                    <i class="fa-solid fa-file-shield me-1"></i>Receipt
-                                </a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="13" class="text-center py-5 text-muted">
-                                <i class="fa-solid fa-scale-balanced fs-1 mb-2 d-block text-secondary opacity-50"></i>
-                                No VAT or Tax deduction transactions found for this period.
-                            </td>
-                        </tr>
-                    @endforelse
+                                <a class="tx-mute tx-mono" href="{{ route('admin.accounting.invoices.payments.receipt', $p->id) }}" target="_blank">{{ $p->payment_no }}</a>
+                            </div>
+                        </td>
+                        <td class="tx-num">{{ $tk($p->amount) }}</td>
+                        <td class="tx-num text-success">{{ $tk($p->effective_net_amount) }}</td>
+                        <td>
+                            @if((float) $p->vat_deduction_amount > 0)
+                                <div class="tx-cell">
+                                    <strong class="tx-num" style="text-align:left">{{ $tk($p->vat_deduction_amount) }} @if((float) $p->vat_deduction_rate > 0)<span class="tx-mute">{{ rtrim(rtrim(number_format((float) $p->vat_deduction_rate, 2), '0'), '.') }}%</span>@endif</strong>
+                                    <span class="tx-mute tx-mono">{{ $p->vds_certificate_no ? '6.6: ' . $p->vds_certificate_no : 'No 6.6' }}@if($p->deduction_challan_no) · Ch {{ $p->deduction_challan_no }}@endif</span>
+                                    {!! $chip('vds', $p->vds_state) !!}
+                                    @if((float) $p->vat_deduction_rate > 0 && abs($calc['exclusive'] - (float) $p->vat_deduction_amount) > 1 && abs($calc['inclusive'] - (float) $p->vat_deduction_amount) > 1)
+                                        <span class="tx-chip tx-chip--muted" title="এই হারে প্রত্যাশিত: ভ্যাট ছাড়া বিলে {{ $tk($calc['exclusive']) }}, ভ্যাটসহ বিলে {{ $tk($calc['inclusive']) }}। মূসক-৬.৬ সনদের অঙ্কের সাথে মিলিয়ে নিন।">Check amount</span>
+                                    @endif
+                                </div>
+                            @else
+                                <span class="tx-mute">—</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if((float) $p->tax_deduction_amount > 0)
+                                <div class="tx-cell">
+                                    <strong>{{ $tk($p->tax_deduction_amount) }} @if((float) $p->tax_deduction_rate > 0)<span class="tx-mute">{{ rtrim(rtrim(number_format((float) $p->tax_deduction_rate, 2), '0'), '.') }}%</span>@endif</strong>
+                                    <span class="tx-mute tx-mono">{{ $p->tds_certificate_no ? 'Cert: ' . $p->tds_certificate_no : 'No certificate' }}</span>
+                                    {!! $chip('tds', $p->tds_state) !!}
+                                </div>
+                            @else
+                                <span class="tx-mute">—</span>
+                            @endif
+                        </td>
+                        <td class="tx-num">{{ (float) $p->other_deduction_amount > 0 ? $tk($p->other_deduction_amount) : '—' }}</td>
+                        <td class="no-print text-end">
+                            @if($canEdit)
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" data-tx-edit='@json($payload)'>Papers</button>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="9" class="tx-empty">এই সময়ে কোনো ভ্যাট বা আয়কর কর্তন নেই।<br><span class="tx-mute">পেমেন্ট নেওয়ার সময় (বিল বা কাস্টমার লেজার) কর্তনের ঘরে ভ্যাট/ট্যাক্স লিখলে এখানে আসবে।</span></td></tr>
+                @endforelse
                 </tbody>
-                @if($deductions->isNotEmpty())
-                    <tfoot class="table-light fw-bold">
+                @if($rows->isNotEmpty())
+                    <tfoot>
                         <tr>
-                            <td colspan="5" class="text-end text-dark">Total:</td>
-                            <td class="text-end font-monospace text-dark fs-7">৳{{ number_format($totalSettledAmount, 2) }}</td>
-                            <td class="text-end font-monospace text-success fs-7">৳{{ number_format($totalNetCollected, 2) }}</td>
-                            <td class="text-center">—</td>
-                            <td class="text-end font-monospace text-warning-emphasis fs-7">৳{{ number_format($totalVatDeducted, 2) }}</td>
-                            <td class="text-end font-monospace text-danger fs-7">৳{{ number_format($totalTaxDeducted, 2) }}</td>
-                            <td class="text-end font-monospace text-danger">৳{{ number_format($totalOtherDeducted, 2) }}</td>
-                            <td colspan="2" class="text-dark small">Total Deductions: ৳{{ number_format($grandTotalDeductions, 2) }}</td>
+                            <td colspan="3">Total</td>
+                            <td class="tx-num">{{ $tk($totals['settled']) }}</td>
+                            <td class="tx-num">{{ $tk($totals['net']) }}</td>
+                            <td class="tx-num" style="text-align:left">{{ $tk($totals['vds']) }}</td>
+                            <td class="tx-num" style="text-align:left">{{ $tk($totals['tds']) }}</td>
+                            <td class="tx-num">{{ $tk($totals['other']) }}</td>
+                            <td class="no-print"></td>
                         </tr>
                     </tfoot>
                 @endif
@@ -507,147 +298,251 @@
         </div>
     </div>
 
-    {{-- Official Print Signature Section (Visible Only on Print) --}}
-    <div class="print-signature-section d-none">
-        <div class="row text-center pt-4" style="margin-top: 60px;">
-            <div class="col-4">
-                <div class="border-top border-dark pt-1 mx-auto" style="width: 170px;">
-                    <div class="fw-bold small text-dark">Prepared By Accounts</div>
-                    <div class="text-muted" style="font-size: 10.5px;">Accounts Officer</div>
+    {{-- Mushak-9.1 adjustment helper --}}
+    <div class="tx-box no-print" id="adjust">
+        <div class="tx-box__head">
+            <div>
+                <h2 class="tx-box__title">9.1 Adjust</h2>
+                <div class="tx-box__sub">মূসক-৯.১ রিটার্নের হ্রাসকারী সমন্বয়ে যে মূসক-৬.৬ সনদগুলো নেওয়া যাবে</div>
+            </div>
+            <form method="GET" action="{{ route('admin.accounting.tax-vat-deductions.index') }}#adjust" class="d-flex align-items-center gap-2">
+                <label for="txReturnMonth" class="tx-mute">Return month</label>
+                <input type="month" id="txReturnMonth" name="month" value="{{ $returnPeriod }}" class="form-control form-control-sm" style="width:auto" onchange="this.form.submit()">
+            </form>
+        </div>
+        <div class="tx-box__body">
+            <div class="d-flex flex-wrap gap-4 align-items-end mb-3">
+                <div>
+                    <div class="tx-mute">Return due</div>
+                    <strong>{{ $returnDue->format('d M Y') }}</strong>
+                    @if($returnDue->isPast())<span class="tx-chip tx-chip--muted ms-1">passed</span>@endif
+                </div>
+                <div>
+                    <div class="tx-mute">Selected to adjust</div>
+                    <div class="tx-adjust-total" id="txAdjTotal">৳0.00</div>
+                </div>
+                <div class="tx-mute" style="max-width:520px">
+                    {{ Carbon::parse($returnPeriod . '-01')->format('F Y') }} মাসের রিটার্নে এই সনদগুলোর অঙ্ক হ্রাসকারী সমন্বয় হিসেবে লিখুন, তারপর "Mark adjusted" চাপুন — একই সনদ দুবার সমন্বয় হবে না।
                 </div>
             </div>
-            <div class="col-4">
-                <div class="border-top border-dark pt-1 mx-auto" style="width: 180px;">
-                    <div class="fw-bold small text-dark">Internal Auditor / VAT Officer</div>
-                    <div class="text-muted" style="font-size: 10.5px;">Audit & Compliance</div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="border-top border-dark pt-1 mx-auto" style="width: 180px;">
-                    <div class="fw-bold small text-dark">Authorized Signatory</div>
-                    <div class="text-muted" style="font-size: 10.5px;">Managing Authority / CEO</div>
-                </div>
+            @if($adjustable->isEmpty())
+                <div class="tx-empty" style="padding:18px">এই মাসের রিটার্নে সমন্বয়যোগ্য কোনো সনদ নেই। সনদ পেলে রেজিস্টারের "Papers" থেকে মূসক-৬.৬ নম্বর লিখুন।</div>
+            @else
+                <form method="POST" action="{{ route('admin.accounting.tax-vat-deductions.bulk') }}" id="txAdjustForm">
+                    @csrf
+                    <input type="hidden" name="period" value="{{ $returnPeriod }}">
+                    <div class="tx-table-wrap">
+                        <table class="tx-table" style="min-width:760px">
+                            <thead>
+                                <tr>
+                                    <th style="width:36px"><input type="checkbox" class="form-check-input" id="txAdjAll" aria-label="Select all"></th>
+                                    <th>6.6 no</th><th>6.6 date</th><th>Buyer</th><th>Buyer BIN</th><th>Challan</th><th class="tx-num">VDS</th><th>Last period</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($adjustable as $a)
+                                @php $last = \App\Support\TaxVatCompliance::lastAdjustPeriod($a, $settings); @endphp
+                                <tr>
+                                    <td><input type="checkbox" class="form-check-input tx-adj" name="ids[]" value="{{ $a->id }}" data-amount="{{ (float) $a->vat_deduction_amount }}" checked aria-label="Select {{ $a->vds_certificate_no }}"></td>
+                                    <td class="tx-mono">{{ $a->vds_certificate_no }}</td>
+                                    <td class="tx-mono">{{ optional($a->vds_certificate_date)->format('d/m/Y') ?: '—' }}</td>
+                                    <td>{{ $a->party_name }}</td>
+                                    <td class="tx-mono">{{ $a->deductor_bin ?: '—' }}</td>
+                                    <td class="tx-mono">{{ $a->deduction_challan_no ?: '—' }}</td>
+                                    <td class="tx-num">{{ $tk($a->vat_deduction_amount) }}</td>
+                                    <td>{{ Carbon::parse($last . '-01')->format('M Y') }} @if($last === $returnPeriod)<span class="tx-chip tx-chip--danger">last chance</span>@endif</td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        <button type="submit" class="btn btn-success rounded-pill px-4" data-confirm="নির্বাচিত সনদগুলো {{ Carbon::parse($returnPeriod . '-01')->format('F Y') }} মাসের ৯.১ রিটার্নে সমন্বয় করা হয়েছে হিসেবে চিহ্নিত হবে।">Mark adjusted in {{ Carbon::parse($returnPeriod . '-01')->format('M Y') }}</button>
+                    </div>
+                </form>
+            @endif
+        </div>
+    </div>
+
+    {{-- rules --}}
+    <div class="tx-box no-print">
+        <div class="tx-box__head">
+            <h2 class="tx-box__title">Rules</h2>
+            <button class="btn btn-sm btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#txRules" aria-expanded="false">Show</button>
+        </div>
+        <div class="collapse" id="txRules">
+            <div class="tx-box__body">
+                <ul class="tx-rules">
+                    <li><strong>VDS (উৎসে মূসক):</strong> ক্রেতা (উৎসে কর্তনকারী সত্তা) বিল থেকে ভ্যাট কেটে ট্রেজারিতে জমা দিয়ে আপনাকে <strong>মূসক-৬.৬</strong> সনদ দেবেন। সনদে ক্রেতার BIN, ট্রেজারি চালান নম্বর ও কর্তিত অঙ্ক থাকে — এখানে সেগুলো লিখে রাখুন।</li>
+                    <li>সনদের অঙ্ক আপনার মাসিক <strong>মূসক-৯.১</strong> রিটার্নে <strong>হ্রাসকারী সমন্বয়</strong> হিসেবে নিন। রিটার্ন জমার শেষ দিন পরের মাসের ১৫ তারিখ।</li>
+                    <li>সমন্বয় নির্দিষ্ট সংখ্যক কর মেয়াদের মধ্যে নিতে হয়; এখানে ধরা আছে <strong>{{ $window }}টি</strong> পরবর্তী কর মেয়াদ (Settings থেকে বদলানো যায় — আইনের সর্বশেষ সংশোধনী আপনার ভ্যাট পরামর্শকের সাথে মিলিয়ে নিন)। সময় পার হলে "Expired" দেখাবে।</li>
+                    <li>সনদ ছাড়া সমন্বয় নেওয়া যায় না, তাই এই পাতা সনদ নম্বর ছাড়া "Adjusted" চিহ্নিত করতে দেয় না, আর একই সনদ দুবার সমন্বয় হয় না।</li>
+                    <li>বই (মুদ্রিত পুস্তক) সরবরাহ সাধারণত মূসক অব্যাহতিপ্রাপ্ত; অব্যাহতিপ্রাপ্ত সরবরাহ থেকে ভ্যাট কাটা হলে ক্রেতার সাথে কথা বলুন। মুদ্রণ/সেবার বিলে ভ্যাট প্রযোজ্য হতে পারে।</li>
+                    <li><strong>TDS (উৎসে আয়কর):</strong> ক্রেতা আয়কর আইন, ২০২৩ অনুযায়ী আয়কর কেটে কর্তনের সনদ দেবেন। সেই আয়বর্ষের (১ জুলাই – ৩০ জুন) আয়কর রিটার্নে সনদের অঙ্ক কর ক্রেডিট হিসেবে দাবি করুন; রিটার্নে দাবি করলে "Claimed" দিন।</li>
+                    <li>কর্তনের হার পণ্য/সেবা ও বিলের অঙ্কভেদে আলাদা এবং অর্থ আইনে প্রতি বছর বদলাতে পারে — যে অঙ্ক সনদে লেখা, সেটিই চূড়ান্ত। "Check amount" চিহ্ন দেখালে লেখা হার ও অঙ্ক মিলছে না; সনদের সাথে মিলিয়ে নিন।</li>
+                </ul>
             </div>
         </div>
     </div>
 
+    {{-- print signatures --}}
+    <div class="tx-print-only" style="margin-top:50px">
+        <table style="width:100%;text-align:center;font-size:11px"><tr>
+            <td style="width:33%"><div style="border-top:1px solid #000;margin:0 20px;padding-top:4px">Prepared by</div></td>
+            <td style="width:33%"><div style="border-top:1px solid #000;margin:0 20px;padding-top:4px">Checked by</div></td>
+            <td style="width:33%"><div style="border-top:1px solid #000;margin:0 20px;padding-top:4px">Authorized signatory</div></td>
+        </tr></table>
+    </div>
 </div>
 
-{{-- % PRESETS CUSTOMIZATION MODAL --}}
-<div class="modal fade" id="customPercentPresetsModal" tabindex="-1" aria-labelledby="customPercentPresetsModalLabel" aria-hidden="true">
+{{-- papers modal --}}
+<div class="modal fade tx-modal" id="txEditModal" tabindex="-1" aria-labelledby="txEditTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <form method="POST" class="modal-content" id="txEditForm">
+            @csrf
+            @method('PUT')
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title" id="txEditTitle">Papers</h5>
+                    <div class="tx-mute" id="txEditSub"></div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if($errors->any() && session('tvc_open'))
+                    <div class="alert alert-danger py-2"><ul class="mb-0 ps-3">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>
+                @endif
+                <fieldset>
+                    <legend>Buyer</legend>
+                    <div class="row g-2 mb-2">
+                        <div class="col-sm-6"><label class="form-label" for="txBin">BIN</label><input id="txBin" name="deductor_bin" class="form-control form-control-sm tx-mono" inputmode="numeric" maxlength="20" placeholder="৯ বা ১৩ অঙ্ক"></div>
+                        <div class="col-sm-6"><label class="form-label" for="txTin">TIN</label><input id="txTin" name="deductor_tin" class="form-control form-control-sm tx-mono" inputmode="numeric" maxlength="20" placeholder="১২ অঙ্ক"></div>
+                    </div>
+                </fieldset>
+                <fieldset id="txVdsSet">
+                    <legend>VDS · <span id="txVdsAmt"></span></legend>
+                    <div class="row g-2 mb-2">
+                        <div class="col-sm-4"><label class="form-label" for="txVdsNo">Mushak-6.6 no</label><input id="txVdsNo" name="vds_certificate_no" class="form-control form-control-sm tx-mono" maxlength="100"></div>
+                        <div class="col-sm-4"><label class="form-label" for="txVdsDate">6.6 date</label><input id="txVdsDate" type="date" name="vds_certificate_date" class="form-control form-control-sm" max="{{ now()->toDateString() }}"></div>
+                        <div class="col-sm-4"><label class="form-label" for="txChallan">Treasury challan</label><input id="txChallan" name="deduction_challan_no" class="form-control form-control-sm tx-mono" maxlength="100"></div>
+                        <div class="col-sm-6"><label class="form-label" for="txAdjPeriod">Adjusted in 9.1 of</label><input id="txAdjPeriod" type="month" name="vds_adjusted_period" class="form-control form-control-sm"></div>
+                        <div class="col-sm-6 d-flex align-items-end"><span class="tx-mute">ফাঁকা রাখুন যতক্ষণ রিটার্নে সমন্বয় নেওয়া হয়নি।</span></div>
+                    </div>
+                </fieldset>
+                <fieldset id="txTdsSet">
+                    <legend>TDS · <span id="txTdsAmt"></span></legend>
+                    <div class="row g-2 mb-2">
+                        <div class="col-sm-4"><label class="form-label" for="txTdsNo">Certificate no</label><input id="txTdsNo" name="tds_certificate_no" class="form-control form-control-sm tx-mono" maxlength="100"></div>
+                        <div class="col-sm-4"><label class="form-label" for="txTdsDate">Certificate date</label><input id="txTdsDate" type="date" name="tds_certificate_date" class="form-control form-control-sm" max="{{ now()->toDateString() }}"></div>
+                        <div class="col-sm-4">
+                            <label class="form-label" for="txClaimYear">Claimed in return</label>
+                            <select id="txClaimYear" name="tds_claimed_year" class="form-select form-select-sm">
+                                <option value="">Not yet</option>
+                                @foreach($years as $y)<option value="{{ $y }}">{{ $y }}</option>@endforeach
+                            </select>
+                        </div>
+                    </div>
+                </fieldset>
+                <label class="form-label" for="txNotes">Notes</label>
+                <textarea id="txNotes" name="deduction_notes" rows="2" class="form-control form-control-sm" maxlength="1000"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary rounded-pill px-4">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- settings modal --}}
+<div class="modal fade tx-modal" id="txSettingsModal" tabindex="-1" aria-labelledby="txSettingsTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <form action="{{ route('admin.accounting.settings.update') }}" method="POST">
-                @csrf
-                <input type="hidden" name="business_name" value="{{ $settings['business_name'] ?? 'Idea Prokashon' }}">
-                
-                <div class="modal-header bg-dark text-white py-3">
-                    <h5 class="modal-title fw-bold" id="customPercentPresetsModalLabel">
-                        Customize VAT & Tax (%) Presets
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                
-                <div class="modal-body p-4">
-                    <p class="text-muted small mb-3">
-                        Configure default deduction percentages and quick-click preset buttons for your organisation:
-                    </p>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">Default VDS Rate (%):</label>
-                            <div class="input-group">
-                                <input type="number" step="0.01" min="0" max="100" name="default_vat_rate" class="form-control font-monospace fw-bold" value="{{ $settings['default_vat_rate'] ?? '7.5' }}">
-                                <span class="input-group-text">%</span>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">Default TDS Rate (%):</label>
-                            <div class="input-group">
-                                <input type="number" step="0.01" min="0" max="100" name="default_tax_rate" class="form-control font-monospace fw-bold" value="{{ $settings['default_tax_rate'] ?? '5.0' }}">
-                                <span class="input-group-text">%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">VDS Quick Preset Buttons (comma-separated):</label>
-                        <input type="text" name="vat_presets" class="form-control font-monospace" value="{{ $settings['vat_presets'] ?? '0, 5, 7.5, 10, 15' }}" placeholder="0, 5, 7.5, 10, 15">
-                        <div class="form-text text-muted" style="font-size: 11px;">e.g. 0, 5, 7.5, 10, 15</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">TDS Quick Preset Buttons (comma-separated):</label>
-                        <input type="text" name="tax_presets" class="form-control font-monospace" value="{{ $settings['tax_presets'] ?? '0, 2, 3, 5, 7, 10' }}" placeholder="0, 2, 3, 5, 7, 10">
-                        <div class="form-text text-muted" style="font-size: 11px;">e.g. 0, 2, 3, 5, 7, 10</div>
+        <form method="POST" action="{{ route('admin.accounting.tax-vat-deductions.settings') }}" class="modal-content">
+            @csrf
+            <div class="modal-header">
+                <h5 class="modal-title" id="txSettingsTitle">Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-2 mb-2">
+                    <div class="col-6"><label class="form-label" for="sBin">Our BIN</label><input id="sBin" name="own_bin" class="form-control form-control-sm tx-mono" value="{{ $settings['own_bin'] ?? '' }}" placeholder="৯ বা ১৩ অঙ্ক"></div>
+                    <div class="col-6"><label class="form-label" for="sTin">Our TIN</label><input id="sTin" name="own_tin" class="form-control form-control-sm tx-mono" value="{{ $settings['own_tin'] ?? '' }}" placeholder="১২ অঙ্ক"></div>
+                    <div class="col-6"><label class="form-label" for="sVat">Default VDS %</label><input id="sVat" type="number" step="0.01" min="0" max="100" name="default_vat_rate" class="form-control form-control-sm" value="{{ $settings['default_vat_rate'] ?? '7.5' }}" required></div>
+                    <div class="col-6"><label class="form-label" for="sTax">Default TDS %</label><input id="sTax" type="number" step="0.01" min="0" max="100" name="default_tax_rate" class="form-control form-control-sm" value="{{ $settings['default_tax_rate'] ?? '5' }}" required></div>
+                    <div class="col-6"><label class="form-label" for="sVatP">VDS presets</label><input id="sVatP" name="vat_presets" class="form-control form-control-sm tx-mono" value="{{ $settings['vat_presets'] ?? '0, 5, 7.5, 10, 15' }}"></div>
+                    <div class="col-6"><label class="form-label" for="sTaxP">TDS presets</label><input id="sTaxP" name="tax_presets" class="form-control form-control-sm tx-mono" value="{{ $settings['tax_presets'] ?? '0, 2, 3, 5, 7, 10' }}"></div>
+                    <div class="col-12">
+                        <label class="form-label" for="sWin">VDS adjust window (tax periods)</label>
+                        <input id="sWin" type="number" min="0" max="12" name="vds_adjust_periods" class="form-control form-control-sm" value="{{ $window }}" required>
+                        <div class="tx-mute mt-1">কর্তনের (বা সনদের) মাসের পর কয়টি কর মেয়াদের মধ্যে ৯.১ রিটার্নে সমন্বয় নিতে হবে। আইনের সর্বশেষ বিধান মিলিয়ে নিন।</div>
                     </div>
                 </div>
-
-                <div class="modal-footer bg-light p-3">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">
-                        <i class="fa-solid fa-save me-1.5"></i> Save Presets
-                    </button>
-                </div>
-            </form>
-        </div>
+                <div class="tx-mute">Presets হলো পেমেন্ট নেওয়ার ফর্মে দ্রুত বাছাইয়ের হার। শুধু এই সেটিংসগুলো বদলাবে; বিলের অন্য তথ্য অপরিবর্তিত থাকবে।</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary rounded-pill px-4">Save</button>
+            </div>
+        </form>
     </div>
 </div>
 
 <script>
-    // Export Table Data to UTF-8 CSV
-    function exportDeductionsToCSV(filename) {
-        const table = document.getElementById('deductionsTable');
-        if (!table) return;
+(function () {
+    var tk = function (n) { return '৳' + Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
 
-        let csv = [];
-        const rows = table.querySelectorAll('tr');
-
-        for (let i = 0; i < rows.length; i++) {
-            const row = [];
-            const cols = rows[i].querySelectorAll('td, th');
-            const len = cols.length > 1 ? cols.length - 1 : cols.length; // skip last action col
-            for (let j = 0; j < len; j++) {
-                let text = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, ' ').replace(/\s+/g, ' ').trim();
-                text = text.replace(/"/g, '""');
-                row.push('"' + text + '"');
-            }
-            csv.push(row.join(','));
-        }
-
-        const csvContent = '\uFEFF' + csv.join('\r\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', filename || 'tax-vat-deductions.csv');
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    // papers modal
+    var modalEl = document.getElementById('txEditModal'), form = document.getElementById('txEditForm');
+    var fields = ['deductor_bin', 'deductor_tin', 'vds_certificate_no', 'vds_certificate_date', 'deduction_challan_no', 'vds_adjusted_period', 'tds_certificate_no', 'tds_certificate_date', 'tds_claimed_year', 'deduction_notes'];
+    function openPapers(d, old) {
+        form.action = d.url;
+        document.getElementById('txEditTitle').textContent = 'Papers · ' + d.no;
+        document.getElementById('txEditSub').textContent = d.party + ' · ' + (d.date || '');
+        fields.forEach(function (k) { var el = form.elements[k]; if (el) el.value = (old && k in old ? old[k] : d[k]) || ''; });
+        document.getElementById('txVdsSet').hidden = !(d.vat > 0);
+        document.getElementById('txTdsSet').hidden = !(d.tax > 0);
+        document.getElementById('txVdsAmt').textContent = tk(d.vat);
+        document.getElementById('txTdsAmt').textContent = tk(d.tax) + (d.fy ? ' · income year ' + d.fy : '');
+        // a claim year defaults to the year of deduction once a certificate is entered
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
     }
-
-    // Copy Table to Clipboard
-    function copyDeductionsToClipboard() {
-        const table = document.getElementById('deductionsTable');
-        if (!table) return;
-
-        let text = [];
-        const rows = table.querySelectorAll('tr');
-
-        for (let i = 0; i < rows.length; i++) {
-            const row = [];
-            const cols = rows[i].querySelectorAll('td, th');
-            const len = cols.length > 1 ? cols.length - 1 : cols.length;
-            for (let j = 0; j < len; j++) {
-                row.push(cols[j].innerText.replace(/(\r\n|\n|\r)/gm, ' ').replace(/\s+/g, ' ').trim());
-            }
-            text.push(row.join('\t'));
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-tx-edit]');
+        if (!b) return;
+        try { openPapers(JSON.parse(b.getAttribute('data-tx-edit'))); } catch (err) { console.error(err); }
+    });
+    // the adjustment month needs a 6.6 number first
+    form.addEventListener('submit', function (e) {
+        if (form.elements.vds_adjusted_period.value && !form.elements.vds_certificate_no.value.trim()) {
+            e.preventDefault();
+            form.elements.vds_certificate_no.focus();
+            alert('মূসক-৬.৬ সনদ নম্বর ছাড়া ৯.১ রিটার্নে সমন্বয় দেওয়া যাবে না।');
         }
-
-        navigator.clipboard.writeText(text.join('\n')).then(() => {
-            alert('TDS & VDS deductions table copied to clipboard! You can paste it into Excel or Google Sheets.');
+        if (form.elements.tds_claimed_year.value && !form.elements.tds_certificate_no.value.trim()) {
+            e.preventDefault();
+            form.elements.tds_certificate_no.focus();
+            alert('TDS সনদ নম্বর ছাড়া কর ক্রেডিট দাবি করা যাবে না।');
+        }
+    });
+    @if(session('tvc_open'))
+        // validation failed: reopen the same row with what was typed
+        document.addEventListener('DOMContentLoaded', function () {
+            var b = document.querySelector('[data-tx-edit*="\"id\":{{ (int) session('tvc_open') }},"]');
+            if (b) openPapers(JSON.parse(b.getAttribute('data-tx-edit')), @json(old()));
         });
+    @endif
+
+    // 9.1 adjustment total
+    var boxes = document.querySelectorAll('.tx-adj'), all = document.getElementById('txAdjAll'), total = document.getElementById('txAdjTotal');
+    function sum() {
+        var s = 0, n = 0;
+        boxes.forEach(function (b) { if (b.checked) { s += parseFloat(b.dataset.amount) || 0; n++; } });
+        if (total) total.textContent = tk(s);
+        if (all) { all.checked = n === boxes.length && n > 0; all.indeterminate = n > 0 && n < boxes.length; }
     }
+    boxes.forEach(function (b) { b.addEventListener('change', sum); });
+    if (all) all.addEventListener('change', function () { boxes.forEach(function (b) { b.checked = all.checked; }); sum(); });
+    sum();
+})();
 </script>
 @endsection

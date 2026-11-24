@@ -1,1 +1,0 @@
-@include('ebook::frontend.show')

@@ -2,7 +2,7 @@
 
 @php
     $S = \Illuminate\Support\Str::class;
-    $filterKeys = ['search', 'q', 'category', 'author', 'publisher', 'format', 'free_only', 'min_price', 'max_price', 'discount_min', 'letter', 'sort'];
+    $filterKeys = ['search', 'q', 'category', 'author', 'publisher', 'format', 'discount_min', 'sort'];
     $filtered = request()->anyFilled($filterKeys) || (int) request('page', 1) > 1;
     $keep = fn (array $except = []) => request()->except(array_merge(['page'], $except));
 
@@ -16,7 +16,7 @@
     $curCat = $curCatKey ? $flatCats->first(fn ($r) => (string) $r['c']->slug === (string) $curCatKey || (string) $r['c']->id === (string) $curCatKey) : null;
 
     $formats = ['' => 'All', 'epub' => 'EPUB', 'pdf' => 'PDF', 'free' => 'Free', 'paid' => 'Paid'];
-    $sorts = ['' => 'Latest', 'popular' => 'Popular', 'bestselling' => 'Bestselling', 'price_low' => 'Price: Low', 'price_high' => 'Price: High', 'discount_high' => 'Discount'];
+    $sorts = ['' => 'Latest', 'popular' => 'Most read', 'bestselling' => 'Bestselling', 'rating' => 'Top rated', 'price_low' => 'Price: Low', 'price_high' => 'Price: High'];
     $curFmt = request('format', '');
     $curSort = request('sort', '');
     $curAuthor = request('author') ? $sidebarAuthors->first(fn ($a) => (string) $a->slug === (string) request('author') || (string) $a->id === (string) request('author')) : null;
@@ -39,7 +39,7 @@
 <div class="eb-page">
 
     <header class="eb-head container">
-        <div class="eb-head__title"><h1>E-Books</h1><span>{{ number_format($stats['total'] ?? 0) }}</span></div>
+        <div class="eb-head__title"><h1>E-Books</h1><span>{{ number_format($total) }}</span></div>
         <form action="{{ route('ebook.index') }}" method="GET" class="eb-search" role="search">
             @foreach(['category', 'author', 'publisher', 'format', 'sort'] as $k)@if(request($k))<input type="hidden" name="{{ $k }}" value="{{ request($k) }}">@endif @endforeach
             <input type="search" name="search" value="{{ $term }}" placeholder="Search" aria-label="Search e-books" autocomplete="off" enterkeyhint="search" id="ebSearch">
@@ -59,7 +59,7 @@
                     <div class="sf-dd__sheet-head"><b>Category</b><button type="button" class="sf-dd__close" aria-label="Close">&times;</button></div>
                     @if($flatCats->count() > 8)<div class="sf-dd__find"><input type="search" placeholder="Find" data-sf-find autocomplete="off" aria-label="Find"></div>@endif
                     <div class="sf-dd__list">
-                        <a href="{{ route('ebook.index', $keep(['category'])) }}" class="sf-dd__item {{ $curCat ? '' : 'is-active' }}" role="menuitem"><span class="sf-dd__name">All</span><small>{{ $stats['total'] ?? 0 }}</small></a>
+                        <a href="{{ route('ebook.index', $keep(['category'])) }}" class="sf-dd__item {{ $curCat ? '' : 'is-active' }}" role="menuitem"><span class="sf-dd__name">All</span><small>{{ $total }}</small></a>
                         @foreach($flatCats as $row)
                             @php $c = $row['c']; @endphp
                             <a href="{{ route('ebook.index', array_merge($keep(['category']), ['category' => $c->slug])) }}" role="menuitem"
@@ -165,26 +165,28 @@
                         @if($sp->category)<em>{{ $sp->category->name }}</em>@endif
                         <h2><a href="{{ route('ebook.show', $sp->slug ?: $sp->id) }}">{{ $sp->title }}</a></h2>
                         <p>{{ optional($sp->author)->name ?: ($sp->author_name ?: 'আইডিয়া প্রকাশন') }}</p>
+                        @if($sp->description)<p class="eb-spot__blurb">{{ \Illuminate\Support\Str::limit(strip_tags($sp->description), 180) }}</p>@endif
                         <div class="dz-card__price">
                             <span class="dz-card__now">{{ $spFree ? 'Free' : '৳' . number_format($spOff ?? $spReg) }}</span>
                             @if($spOff && !$spFree)<s class="dz-card__old">৳{{ number_format($spReg) }}</s>@endif
                         </div>
                         <div class="eb-spot__act">
                             <a href="{{ route('ebook.show', $sp->slug ?: $sp->id) }}" class="btn btn-primary">Open</a>
-                            @if($spFree)<a href="{{ route('ebook.read', $sp->slug ?: $sp->id) }}" class="btn btn-outline-dark">Read</a>@endif
+                            @if($spFree)<a href="{{ route('ebook.read', $sp->slug ?: $sp->id) }}" class="btn btn-outline-dark">Read</a>@else<a href="{{ route('ebook.preview', $sp->slug ?: $sp->id) }}" class="btn btn-outline-dark">Sample</a>@endif
                         </div>
                     </div>
                 </section>
             @endif
 
-            @php
-                $shelves = [
-                    ['Sale', $flashSales, route('ebook.index', ['discount_min' => 1]), 'eb-flash'],
-                    ['Bestsellers', $bestsellingEbooks, route('ebook.index', ['sort' => 'bestselling']), 'eb-best'],
-                    ['New', $newReleaseEbooks, route('ebook.index'), 'eb-new'],
-                    ['Free', $freeEbooks, route('ebook.index', ['format' => 'free']), 'eb-free'],
-                ];
-            @endphp
+            @if($continueReading->isNotEmpty())
+                <section class="dz-row">
+                    <div class="dz-row__head"><h2 class="dz-row__title">Continue<small>{{ $continueReading->count() }}</small></h2></div>
+                    <div class="idea-book-slider dz-track eb-track" id="ebContinue">
+                        @foreach($continueReading as $eb)<div class="idea-slider-item eb-item">@include('ebook::frontend.partials.shelf-card', ['ebook' => $eb, 'userLibraryIds' => $userLibraryIds, 'progress' => $eb->reading_progress])</div>@endforeach
+                    </div>
+                </section>
+            @endif
+
             @foreach($shelves as [$label, $list, $more, $sid])
                 @if($list->isNotEmpty())
                     <section class="dz-row">
@@ -220,7 +222,7 @@
                 </section>
             @endforeach
 
-            @if($newReleaseEbooks->isEmpty() && $categoryShelves->isEmpty())
+            @if(collect($shelves)->every(fn ($sh) => $sh[1]->isEmpty()))
                 <div class="sf-empty"><strong>No e-books</strong></div>
             @endif
         @else

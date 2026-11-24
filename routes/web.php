@@ -302,7 +302,7 @@ Route::prefix('ebooks')->name('ebook.')->group(function () {
     Route::get('/{slug}/download', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'download'])->name('download');
     Route::post('/{slug}/claim', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'claim'])->name('claim');
     Route::get('/{id}/stream', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'stream'])->name('stream');
-    Route::post('/{id}/progress', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'saveProgress'])->name('progress');
+    Route::post('/{id}/progress', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'saveProgress'])->middleware('throttle:90,1')->name('progress');
 });
 
 // Webzine routes are defined in the Webzine module (Modules/Webzine/Routes/web.php)
@@ -703,7 +703,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/customer-ledger/payments', 'storeCustomerLedgerPayment')->name('customer-ledger.payments.store');
 
         // Tax & VAT (TDS / VDS) Deduction Register & Monthly Reports (উৎসে কর ও মূসক কর্তন রেজিস্টার)
-        Route::get('/tax-vat-deductions', 'taxVatDeductions')->name('tax-vat-deductions.index');
+        Route::get('/tax-vat-deductions', [\App\Http\Controllers\Admin\TaxVatDeductionController::class, 'index'])->name('tax-vat-deductions.index');
+        Route::get('/tax-vat-deductions/export', [\App\Http\Controllers\Admin\TaxVatDeductionController::class, 'export'])->name('tax-vat-deductions.export');
+        Route::post('/tax-vat-deductions/settings', [\App\Http\Controllers\Admin\TaxVatDeductionController::class, 'settings'])->name('tax-vat-deductions.settings');
+        Route::post('/tax-vat-deductions/bulk', [\App\Http\Controllers\Admin\TaxVatDeductionController::class, 'bulk'])->name('tax-vat-deductions.bulk');
+        Route::put('/tax-vat-deductions/{payment}', [\App\Http\Controllers\Admin\TaxVatDeductionController::class, 'update'])->whereNumber('payment')->name('tax-vat-deductions.update');
 
         // Financial & P&L Reports (Daily, Weekly, Monthly, Yearly)
         Route::get('/reports', 'reports')->name('reports.index');

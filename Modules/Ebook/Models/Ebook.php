@@ -231,6 +231,12 @@ class Ebook extends Model
         return round((($this->price - $this->discount_price) / $this->price) * 100);
     }
 
+    /** Price the buyer pays now (the discount price when it is lower). */
+    public function getEffectivePriceAttribute(): float
+    {
+        return \App\Support\EbookShop::price($this);
+    }
+
     /**
      * Whether this ebook is free
      */

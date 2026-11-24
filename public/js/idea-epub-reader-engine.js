@@ -16,6 +16,7 @@ class IdeaEpubReader {
             csrfToken: '',
             progressEndpoint: '',
             initialCfi: null,
+            initialPage: 1,
             initialBookmarks: [],
             initialHighlights: [],
             isSample: false,
@@ -45,6 +46,23 @@ class IdeaEpubReader {
         // Data collections
         this.bookmarks = Array.isArray(this.config.initialBookmarks) ? [...this.config.initialBookmarks] : [];
         this.highlights = Array.isArray(this.config.initialHighlights) ? [...this.config.initialHighlights] : [];
+        this.syncOn = !!(this.config.progressEndpoint && this.config.csrfToken);
+        this._progressTimer = null;
+        this._pendingProgress = null;
+        this._hlTimer = null;
+        if (this.syncOn) {
+            // the server keeps them oldest first; the drawer shows newest first
+            this.bookmarks.reverse();
+        } else {
+            try {
+                const lb = JSON.parse(localStorage.getItem('idea_ebook_bookmarks_' + this.config.ebookId) || 'null');
+                if (Array.isArray(lb)) this.bookmarks = lb;
+            } catch (e) {}
+        }
+        // save the last position when the reader is closed or hidden
+        const flush = () => this.flushProgress(true);
+        window.addEventListener('pagehide', flush);
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
 
         // Active Selection State
         this.activeSelection = null;
@@ -316,7 +334,9 @@ class IdeaEpubReader {
 
         fetch(this.config.streamUrl, { credentials: 'same-origin' })
             .then(res => {
-                if (!res.ok) throw new Error('সার্ভার থেকে ফাইল লোড করা যায়নি (HTTP ' + res.status + ')');
+                if (!res.ok) {
+                    return res.json().catch(() => ({})).then(d => { throw new Error(d && d.message ? d.message : 'ফাইল লোড করা যায়নি (HTTP ' + res.status + ')'); });
+                }
                 return res.arrayBuffer();
             })
             .then(arrayBuffer => {
@@ -379,7 +399,7 @@ class IdeaEpubReader {
 
             // Display initial position
             const localCfi = localStorage.getItem('idea_ebook_last_cfi_' + this.config.ebookId);
-            const startCfi = localCfi || this.config.initialCfi || undefined;
+            const startCfi = (this.syncOn && this.config.initialCfi) || localCfi || this.config.initialCfi || undefined;
 
             this.rendition.display(startCfi).then(() => {
                 if (this.dom.loader) this.dom.loader.style.display = 'none';
@@ -659,23 +679,44 @@ class IdeaEpubReader {
         }
     }
 
-    syncProgressToBackend(page, percent, cfi, extraData = {}) {
-        if (!this.config.csrfToken || !this.config.progressEndpoint) return;
+    syncProgressToBackend(page, percent, cfi) {
+        if (!this.syncOn) return;
+        this._pendingProgress = { action: 'progress', last_read_page: page, progress_percent: percent, cfi: cfi };
+        clearTimeout(this._progressTimer);
+        this._progressTimer = setTimeout(() => this.flushProgress(false), 3000);
+    }
 
-        const payload = Object.assign({
-            last_read_page: page,
-            progress_percent: percent,
-            cfi: cfi
-        }, extraData);
+    flushProgress(leaving) {
+        if (!this._pendingProgress) return;
+        const body = this._pendingProgress;
+        this._pendingProgress = null;
+        clearTimeout(this._progressTimer);
+        this.postAction(body, leaving);
+    }
 
-        fetch(this.config.progressEndpoint, {
+    /** POST to the reader endpoint; resolves with the JSON reply (or null). */
+    postAction(payload, keepalive = false) {
+        if (!this.syncOn) return Promise.resolve(null);
+        return fetch(this.config.progressEndpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': this.config.csrfToken
-            },
+            keepalive: !!keepalive,
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': this.config.csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
             body: JSON.stringify(payload)
-        }).catch(() => {});
+        }).then(r => r.ok ? r.json() : null).catch(() => null);
+    }
+
+    static esc(v) {
+        return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    saveHighlights() {
+        try { localStorage.setItem('idea_ebook_highlights_' + this.config.ebookId, JSON.stringify(this.highlights)); } catch (e) {}
+        if (!this.syncOn) return;
+        clearTimeout(this._hlTimer);
+        this._hlTimer = setTimeout(() => {
+            this.postAction({ action: 'highlights', highlights: this.highlights.slice(0, 500).map(h => ({ cfi: h.cfi, text: (h.text || '').slice(0, 2000), note: (h.note || '').slice(0, 2000), color: h.color || '#fef08a' })) });
+        }, 1200);
     }
 
     // =========================================================================
@@ -1012,9 +1053,10 @@ class IdeaEpubReader {
             localStorage.setItem('idea_ebook_bookmarks_' + this.config.ebookId, JSON.stringify(this.bookmarks));
         } catch (e) {}
 
-        this.syncProgressToBackend(this.currentLocation, null, this.currentCfi, {
-            bookmark_title: newBookmark.title
-        });
+        if (this.syncOn) {
+            this.postAction({ action: 'bookmark', last_read_page: this.currentLocation, cfi: this.currentCfi, bookmark_title: newBookmark.title.slice(0, 255) })
+                .then(res => { if (res && Array.isArray(res.bookmarks)) { this.bookmarks = res.bookmarks.slice().reverse(); this.renderBookmarksList(); } });
+        }
 
         this.showDrmToast(`"${newBookmark.title}" বুকমার্ক সফলভাবে সংরক্ষিত হয়েছে!`);
     }
@@ -1034,8 +1076,8 @@ class IdeaEpubReader {
             li.className = 'drawer-item d-flex align-items-center justify-content-between';
             li.innerHTML = `
                 <div class="bookmark-entry flex-grow-1" style="cursor: pointer;">
-                    <div class="fw-bold text-dark mb-0.5"><i class="fa-solid fa-bookmark text-warning me-1.5"></i>${bm.title}</div>
-                    <small class="text-muted">পৃষ্ঠা: ${bm.page || 1} • ${bm.created_at || ''}</small>
+                    <div class="fw-bold text-dark mb-0.5"><i class="fa-solid fa-bookmark text-warning me-1.5"></i>${IdeaEpubReader.esc(bm.title)}</div>
+                    <small class="text-muted">পৃষ্ঠা: ${IdeaEpubReader.esc(bm.page || 1)}${bm.created_at ? ' • ' + IdeaEpubReader.esc(bm.created_at) : ''}</small>
                 </div>
                 <button type="button" class="btn btn-link text-danger p-1 small btn-del-bm" title="মুছুন">
                     <i class="fa-solid fa-trash-can"></i>
@@ -1052,9 +1094,11 @@ class IdeaEpubReader {
                 e.stopPropagation();
                 this.bookmarks.splice(idx, 1);
                 this.renderBookmarksList();
-                try {
-                    localStorage.setItem('idea_ebook_bookmarks_' + this.config.ebookId, JSON.stringify(this.bookmarks));
-                } catch (err) {}
+                if (this.syncOn) {
+                    this.postAction({ action: 'unbookmark', bookmark_id: String(bm.id || '') });
+                } else {
+                    try { localStorage.setItem('idea_ebook_bookmarks_' + this.config.ebookId, JSON.stringify(this.bookmarks)); } catch (err) {}
+                }
             });
 
             list.appendChild(li);
@@ -1088,22 +1132,23 @@ class IdeaEpubReader {
 
         this.highlights.unshift(newHl);
         this.renderHighlightsList();
-
-        try {
-            localStorage.setItem('idea_ebook_highlights_' + this.config.ebookId, JSON.stringify(this.highlights));
-        } catch (e) {}
+        this.saveHighlights();
 
         if (this.dom.highlightToolbar) this.dom.highlightToolbar.style.display = 'none';
         this.showDrmToast('হাইলাইট সংরক্ষিত হয়েছে!');
     }
 
     restoreHighlights() {
-        try {
-            const savedHls = localStorage.getItem('idea_ebook_highlights_' + this.config.ebookId);
-            if (savedHls) {
-                this.highlights = JSON.parse(savedHls);
-            }
-        } catch (e) {}
+        // signed-in readers: the server's list (same on every device); guests: this browser's
+        if (!this.syncOn || this.highlights.length === 0) {
+            try {
+                const savedHls = JSON.parse(localStorage.getItem('idea_ebook_highlights_' + this.config.ebookId) || 'null');
+                if (Array.isArray(savedHls) && savedHls.length) {
+                    this.highlights = savedHls;
+                    if (this.syncOn) this.saveHighlights();   // first sign-in on this device: keep what was made here
+                }
+            } catch (e) {}
+        }
 
         if (this.rendition && this.highlights.length > 0) {
             this.highlights.forEach(hl => {
@@ -1132,12 +1177,12 @@ class IdeaEpubReader {
             li.className = 'drawer-item';
             li.innerHTML = `
                 <div class="p-1">
-                    <div class="small p-2 rounded mb-1.5" style="background-color: ${hl.color || '#fef08a'}; opacity: 0.9; color: #0f172a;">
-                        "${hl.text}"
+                    <div class="small p-2 rounded mb-1.5" style="background-color: ${/^#[0-9a-f]{3,8}$/i.test(hl.color || '') ? hl.color : '#fef08a'}; opacity: 0.9; color: #0f172a;">
+                        "${IdeaEpubReader.esc(hl.text)}"
                     </div>
-                    ${hl.note ? `<div class="small fw-semibold text-primary mb-1"><i class="fa-solid fa-note-sticky me-1"></i>${hl.note}</div>` : ''}
+                    ${hl.note ? `<div class="small fw-semibold text-primary mb-1"><i class="fa-solid fa-note-sticky me-1"></i>${IdeaEpubReader.esc(hl.note)}</div>` : ''}
                     <div class="d-flex align-items-center justify-content-between text-muted" style="font-size: 0.72rem;">
-                        <span>পৃষ্ঠা: ${hl.page || 1} • ${hl.created_at || ''}</span>
+                        <span>${hl.page ? 'পৃষ্ঠা: ' + IdeaEpubReader.esc(hl.page) : ''}${hl.created_at ? ' • ' + IdeaEpubReader.esc(hl.created_at) : ''}</span>
                         <button type="button" class="btn btn-link text-danger p-0 small btn-del-hl" title="মুছুন">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
@@ -1158,9 +1203,7 @@ class IdeaEpubReader {
                 }
                 this.highlights.splice(idx, 1);
                 this.renderHighlightsList();
-                try {
-                    localStorage.setItem('idea_ebook_highlights_' + this.config.ebookId, JSON.stringify(this.highlights));
-                } catch (err) {}
+                this.saveHighlights();
             });
 
             list.appendChild(li);
@@ -1197,9 +1240,7 @@ class IdeaEpubReader {
             this.rendition.annotations.remove(this.activeSelectionCfi, "highlight");
             this.highlights = this.highlights.filter(h => h.cfi !== this.activeSelectionCfi);
             this.renderHighlightsList();
-            try {
-                localStorage.setItem('idea_ebook_highlights_' + this.config.ebookId, JSON.stringify(this.highlights));
-            } catch (e) {}
+            this.saveHighlights();
         }
         if (this.dom.highlightToolbar) this.dom.highlightToolbar.style.display = 'none';
     }
@@ -1227,39 +1268,82 @@ class IdeaEpubReader {
         document.getElementById('epub-viewer-wrapper')?.classList.add('d-none');
         const pdfContainer = document.getElementById('pdf-viewer-wrapper');
         if (pdfContainer) pdfContainer.classList.remove('d-none');
+        // tools that only work on reflowable text
+        ['btn-toggle-search', 'btn-toggle-highlights', 'btn-toggle-audiobook'].forEach(id => document.getElementById(id)?.classList.add('d-none'));
 
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        let pdfDoc = null;
-        let pageNum = parseInt(localStorage.getItem('idea_pdf_page_' + this.config.ebookId) || '1');
-        let scale = 1.35;
+        const key = 'idea_pdf_page_' + this.config.ebookId;
+        let pdfDoc = null, rendering = false, queued = null, zoom = 1;
+        let pageNum = (this.syncOn && this.config.initialPage > 1) ? this.config.initialPage : parseInt(localStorage.getItem(key) || this.config.initialPage || '1', 10) || 1;
         const canvas = document.getElementById('pdfCanvas');
         const ctx = canvas ? canvas.getContext('2d') : null;
+        const viewport = canvas ? canvas.parentElement : null;
 
-        const renderPage = (num) => {
+        const show = (num) => {
             if (!pdfDoc || !canvas) return;
+            num = Math.max(1, Math.min(pdfDoc.numPages, num));
+            if (rendering) { queued = num; return; }
+            rendering = true;
             pdfDoc.getPage(num).then(page => {
-                const viewport = page.getViewport({ scale: scale });
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-                page.render({ canvasContext: ctx, viewport: viewport }).promise.then(() => {
-                    if (this.dom.loader) this.dom.loader.style.display = 'none';
-                    if (this.dom.currentPageNum) this.dom.currentPageNum.textContent = num;
-                    if (this.dom.totalPagesNum) this.dom.totalPagesNum.textContent = pdfDoc.numPages;
-                    if (this.dom.progressInfo) this.dom.progressInfo.textContent = `পৃষ্ঠা ${num} / ${pdfDoc.numPages}`;
-                });
-            });
+                const base = page.getViewport({ scale: 1 });
+                const room = Math.min(920, Math.max(280, (viewport ? viewport.clientWidth : window.innerWidth) - 16));   // fit the width, but not huge on desktops
+                const scale = Math.min(2.2, room / base.width) * zoom;
+                const ratio = Math.min(window.devicePixelRatio || 1, 2);
+                const vp = page.getViewport({ scale: scale * ratio });
+                canvas.width = Math.floor(vp.width);
+                canvas.height = Math.floor(vp.height);
+                canvas.style.width = Math.floor(vp.width / ratio) + 'px';
+                canvas.style.height = Math.floor(vp.height / ratio) + 'px';
+                return page.render({ canvasContext: ctx, viewport: vp }).promise;
+            }).then(() => {
+                rendering = false;
+                pageNum = num;
+                this.currentLocation = num;
+                if (this.dom.loader) this.dom.loader.style.display = 'none';
+                const pct = Math.round(num / pdfDoc.numPages * 100);
+                if (this.dom.currentPageNum) this.dom.currentPageNum.textContent = num;
+                if (this.dom.totalPagesNum) this.dom.totalPagesNum.textContent = pdfDoc.numPages;
+                if (this.dom.progressInfo) this.dom.progressInfo.textContent = `পৃষ্ঠা ${num} / ${pdfDoc.numPages} (${pct}%)`;
+                if (this.dom.scrubber && !this.dom.scrubber.matches(':active')) this.dom.scrubber.value = num;
+                if (viewport) viewport.scrollTop = 0;
+                try { localStorage.setItem(key, String(num)); } catch (e) {}
+                this.syncProgressToBackend(num, pct, null);
+                if (queued !== null) { const q = queued; queued = null; show(q); }
+            }).catch(err => { rendering = false; console.error('PDF page error:', err); });
         };
 
         pdfjsLib.getDocument({ data: new Uint8Array(buffer) }).promise.then(doc => {
             pdfDoc = doc;
-            renderPage(pageNum);
+            this.totalLocations = doc.numPages;
+            if (this.dom.scrubber) { this.dom.scrubber.max = doc.numPages; }
+            show(Math.min(pageNum, doc.numPages));
         }).catch(err => {
-            console.error("PDF engine error:", err);
-            if (this.dom.loader) this.dom.loader.style.display = 'none';
+            console.error('PDF engine error:', err);
+            if (this.dom.loader) this.dom.loader.innerHTML = '<div class="text-danger fw-bold">PDF ফাইলটি খোলা যায়নি।</div>';
         });
 
-        if (this.dom.prevBtn) this.dom.prevBtn.onclick = () => { if (pageNum > 1) { pageNum--; renderPage(pageNum); } };
-        if (this.dom.nextBtn) this.dom.nextBtn.onclick = () => { if (pdfDoc && pageNum < pdfDoc.numPages) { pageNum++; renderPage(pageNum); } };
+        // the EPUB controls drive the PDF instead
+        this.nextPage = () => show(pageNum + 1);
+        this.prevPage = () => show(pageNum - 1);
+        this.jumpToPage = (n) => show(parseInt(n, 10) || 1);
+        this.adjustFontSize = (delta) => { zoom = Math.max(0.6, Math.min(2.5, zoom + delta / 100)); show(pageNum); if (this.dom.fontScaleDisplay) this.dom.fontScaleDisplay.textContent = Math.round(zoom * 100) + '%'; };
+        // nav-prev / nav-next already call this.prevPage() / this.nextPage(), which now turn PDF pages
+        if (this.dom.scrubber) {
+            this.dom.scrubber.oninput = null;
+            this.dom.scrubber.addEventListener('change', (e) => { e.stopImmediatePropagation(); show(parseInt(e.target.value, 10)); }, true);
+        }
+        let resizeT = null;
+        window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => show(pageNum), 200); });
+        // swipe on phones
+        let sx = null;
+        if (viewport) {
+            viewport.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
+            viewport.addEventListener('touchend', (e) => {
+                if (sx === null) return;
+                const dx = e.changedTouches[0].clientX - sx; sx = null;
+                if (Math.abs(dx) > 60 && zoom <= 1) (dx < 0 ? this.nextPage() : this.prevPage());
+            }, { passive: true });
+        }
     }
 }
 

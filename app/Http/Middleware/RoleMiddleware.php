@@ -90,6 +90,10 @@ class RoleMiddleware
         'admin.accounting.customer-ledger.index'   => 'accounting.view',
         'admin.accounting.customer-ledger.payments.store' => 'accounting.ledger_manage',
         'admin.accounting.reports.index'           => 'accounting.reports',
+        // TDS & VDS register: reading is a report, recording certificates / adjustments changes the books
+        'admin.accounting.tax-vat-deductions.update'   => 'accounting.ledger_manage',
+        'admin.accounting.tax-vat-deductions.bulk'     => 'accounting.ledger_manage',
+        'admin.accounting.tax-vat-deductions.settings' => 'accounting.ledger_manage',
         'admin.accounting.salary.index'            => 'accounting.salary_disburse',
         'admin.accounting.salary.store'            => 'accounting.salary_disburse',
         'admin.purchases.index'                    => 'purchases.manage',

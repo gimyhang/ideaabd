@@ -69,6 +69,10 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteRule ^(storage|images|uploads|media)/.*\.(php\d?|phtml|phar|pl|py|cgi|sh|asp|aspx|jsp)$ - [F,L,NC]
+    # Bought e-books are read through /ebooks/{id}/stream (access checked there). The files themselves must not be
+    # downloadable by address; covers (storage/ebooks/covers) stay public.
+    RewriteRule ^storage/ebooks/(files|epubs|samples)/ - [F,L,NC]
+    RewriteRule ^storage/ebooks/[^/]+\.(epub|pdf|mobi|azw3?)$ - [F,L,NC]
 </IfModule>
 
 # Browser safety headers for everything Apache serves directly (images, scripts, fonts).
