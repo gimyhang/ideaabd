@@ -319,6 +319,7 @@ class AdminDashboardService
                 $visitorStats = $this->safe(fn () => \App\Services\VisitorStats::headline($startDate, $endDate, ($from || $to) ? null : $period), $visitorStats);
             }
             $visitorStats['pending_days'] = \App\Services\VisitorStats::ready() ? \App\Services\VisitorStats::pendingDays() : 0;
+            $visitorStats['rollup_error'] = \App\Services\VisitorStats::lastError();
 
             // 4. Inventory Health (Low Stock & Out of Stock)
             $lowStockBooks = collect();

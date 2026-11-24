@@ -74,6 +74,10 @@ class VisitorStats
             return ['done' => 0, 'remaining' => self::pendingDays()];
         }
 
+        // Runs after a page was sent: keep going if the visitor leaves, and do not let PHP's time limit cut a day in half.
+        @set_time_limit((int) ceil($budgetSeconds) + 120);
+        @ignore_user_abort(true);
+
         $done = 0;
         $started = microtime(true);
         try {
@@ -84,10 +88,14 @@ class VisitorStats
                 self::rollDay(Carbon::parse($day));
                 $done++;
             }
+            Cache::forget('visitor-rollup:error');
         } catch (\Throwable $e) {
             Log::warning('Visitor rollup stopped: ' . $e->getMessage());
+            // shown on the dashboard, so a stuck summary explains itself instead of "still working" forever
+            Cache::put('visitor-rollup:error', ['at' => now()->toDateTimeString(), 'message' => mb_substr($e->getMessage(), 0, 300)], now()->addDays(2));
         } finally {
             $lock->release();
+            Cache::put('visitor-rollup:last-run', now()->toDateTimeString(), now()->addDays(7));
         }
 
         return ['done' => $done, 'remaining' => self::pendingDays()];
@@ -109,6 +117,32 @@ class VisitorStats
         }
 
         return $days;
+    }
+
+    /**
+     * Called after ordinary visitor pages (TrackVisitor): at most every 15 minutes, and only when finished days are
+     * waiting, summarise them. So yesterday is ready by the time anyone opens the dashboard.
+     */
+    public static function rollupSoon(): void
+    {
+        try {
+            if (!self::ready() || !Cache::add('visitor-rollup:tick', 1, 900)) {
+                return;
+            }
+            if (self::pendingDays() > 0) {
+                \App\Support\QueryBudget::clear();
+                self::rollup(20.0);
+            }
+        } catch (\Throwable) {
+        }
+    }
+
+    /** Last failure of the summary (shown on the dashboard), or null. */
+    public static function lastError(): ?array
+    {
+        $e = Cache::get('visitor-rollup:error');
+
+        return is_array($e) ? $e : null;
     }
 
     public static function pendingDays(): int

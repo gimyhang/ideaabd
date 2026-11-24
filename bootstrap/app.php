@@ -43,6 +43,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\AffiliateTracking::class,
             \App\Http\Middleware\TrackVisitor::class,
             \App\Http\Middleware\BlockWhileImpersonating::class,
+            // serves finished guest pages from cache (session and locale are known by now); sits above the
+            // minifier so the cached copy is already minified and a hit skips that work
+            \App\Http\Middleware\GuestPageCache::class,
             \App\Http\Middleware\MinifyHtmlResponse::class,
         ]);
 

@@ -101,4 +101,19 @@ ServerSignature Off
     ExpiresByType image/jpeg "access plus 1 month"
     ExpiresByType image/webp "access plus 1 month"
     ExpiresByType image/x-icon "access plus 1 month"
+    ExpiresByType image/avif "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+</IfModule>
+
+# Versioned css/js never change at the same address: a link with ?v=<file time> (App\Support\HtmlSpeed adds it to
+# every page) or a joined file in css/b, js/b (App\Support\AssetBundle; its name changes with its content).
+# Browsers keep these for a year without asking again; an edited file arrives under a new address.
+<IfModule mod_rewrite.c>
+    RewriteCond %{QUERY_STRING} (^|&)v=[0-9]+
+    RewriteRule \.(css|js)$ - [E=IDEA_VERSIONED:1]
+    RewriteRule ^(css|js)/b/[^/]+\.(css|js)$ - [E=IDEA_VERSIONED:1]
+</IfModule>
+<IfModule mod_headers.c>
+    Header set Cache-Control "public, max-age=31536000, immutable" env=IDEA_VERSIONED
+    Header set Cache-Control "public, max-age=31536000, immutable" env=REDIRECT_IDEA_VERSIONED
 </IfModule>

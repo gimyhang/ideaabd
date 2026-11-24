@@ -237,6 +237,10 @@ class TrackVisitor
                         'user_id'        => auth()->id(),
                         'visited_at'     => now(),
                     ]);
+
+                    // Summarise finished days of the log now and then (at most every 15 min, only when some wait),
+                    // so the dashboard never has to; this runs after the visitor's page has been sent.
+                    \App\Services\VisitorStats::rollupSoon();
                 }
             } catch (\Throwable $e) {
                 // Fail silently so visitor experience is never affected

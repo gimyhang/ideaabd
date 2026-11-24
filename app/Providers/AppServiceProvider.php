@@ -22,6 +22,23 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Guest page cache (App\Http\Middleware\GuestPageCache): content that public pages show was saved or
+        // deleted, so every cached page is dropped. Busy write-only models (shares, wishlists, logs) are left out.
+        \Illuminate\Support\Facades\Event::listen(['eloquent.saved: *', 'eloquent.deleted: *'], function (string $event) {
+            static $watched = [
+                \Modules\Book\Models\Book::class, \Modules\Book\Models\Category::class, \Modules\Book\Models\Genre::class,
+                \Modules\Author\Models\Author::class, \Modules\Blog\Models\BlogPost::class, \Modules\Blog\Models\BlogCategory::class,
+                \Modules\Blog\Models\BlogTag::class, \Modules\Ebook\Models\Ebook::class, \Modules\Publisher\Models\Publisher::class,
+                \Modules\Webzine\Models\Webzine::class, \Modules\Webzine\Models\WebzineArticle::class,
+                \App\Models\AdminDashboardSetting::class, \App\Models\Product::class, \App\Models\ProductCategory::class,
+            ];
+            $class = trim(substr($event, strpos($event, ':') + 1));
+            if (in_array($class, $watched, true)
+                || in_array(class_basename($class), ['Review', 'Promotion', 'HotDeal', 'KidsZone', 'ResearchPaper', 'SeoMeta', 'Tag'], true)) {
+                \App\Http\Middleware\GuestPageCache::flush();
+            }
+        });
+
         // Enforce HTTPS across all URLs, assets, forms and redirects on live domain
         if ($this->app->environment('production') || (isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'ideaabd.com'))) {
             \Illuminate\Support\Facades\URL::forceScheme('https');

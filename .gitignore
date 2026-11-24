@@ -23,3 +23,7 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 .env.local
+
+# joined css/js built at runtime by App\Support\AssetBundle
+/public/css/b/
+/public/js/b/

@@ -61,6 +61,7 @@ class SiteSetting
     public static function clearCache(): void
     {
         Cache::forget(self::CACHE_KEY);
+        \App\Http\Middleware\GuestPageCache::flush();   // site name, logo, menus, … appear on every public page
     }
 
     public static function isPhoneVerificationEnabled(): bool

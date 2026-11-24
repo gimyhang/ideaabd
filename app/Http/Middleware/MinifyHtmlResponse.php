@@ -31,6 +31,8 @@ class MinifyHtmlResponse
             return $response;
         }
 
+        // versioned asset links + lazy images (App\Support\HtmlSpeed); kept in the guest page cache as well
+        $content = \App\Support\HtmlSpeed::optimize($content);
         $minified = $this->compressHtml($content);
         $response->setContent($minified);
 

@@ -161,13 +161,26 @@
 
 @once
     @push('scripts')
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ $adClient }}" crossorigin="anonymous"></script>
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                try {
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                } catch (e) {}
-            });
+            (function () {
+                // the ad library loads after the page is drawn (layouts/app: ideaAdsLater); slots wait in the queue
+                function load() {
+                    if (document.querySelector('script[src*="adsbygoogle.js"]')) return;
+                    var s = document.createElement('script');
+                    s.async = true; s.crossOrigin = 'anonymous';
+                    s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + @json($adClient);
+                    document.head.appendChild(s);
+                }
+                if (window.ideaAdsLater) window.ideaAdsLater(load); else load();
+                document.addEventListener('DOMContentLoaded', function () {
+                    try {
+                        // one request per empty slot on the page
+                        document.querySelectorAll('ins.adsbygoogle:not([data-adsbygoogle-status])').forEach(function () {
+                            (window.adsbygoogle = window.adsbygoogle || []).push({});
+                        });
+                    } catch (e) {}
+                });
+            })();
         </script>
     @endpush
 @endonce

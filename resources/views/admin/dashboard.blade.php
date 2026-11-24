@@ -347,10 +347,19 @@
                 Revenue: <strong>৳{{ number_format($stats['filtered_revenue'] ?? 0, 2) }}</strong>
             </div>
         </div>
-        @if (($stats['visitor']['pending_days'] ?? 0) > 0)
+        @php
+            // Yesterday waiting is normal: ordinary visits summarise it in the background (VisitorStats::rollupSoon).
+            $vPending = (int) ($stats['visitor']['pending_days'] ?? 0);
+            $vError = \App\Services\VisitorStats::lastError();   // read live: the stats above are cached for a while
+        @endphp
+        @if ($vError)
+            <div class="small mt-2 px-2 py-1 rounded-2 bg-danger-subtle text-danger-emphasis">
+                ভিজিটরের দৈনিক হিসাব তৈরি করা যায়নি ({{ $vError['at'] }}): <code class="text-break">{{ $vError['message'] }}</code>
+                @if ($vPending > 0) — {{ $vPending }} দিনের হিসাব বাকি। @endif
+            </div>
+        @elseif ($vPending > 1)
             <div class="small mt-2 px-2 py-1 rounded-2 bg-warning-subtle text-warning-emphasis">
-                
-                পুরনো ভিজিটরের হিসাব সাজানো হচ্ছে — আরও {{ $stats['visitor']['pending_days'] }} দিন বাকি। ততক্ষণ ভিজিটরের সংখ্যা কম দেখাতে পারে; পেজ খোলার পর পেছনে কাজটি চলছে।
+                পুরনো ভিজিটরের হিসাব সাজানো হচ্ছে — আরও {{ $vPending }} দিন বাকি। ততক্ষণ ভিজিটরের সংখ্যা কম দেখাতে পারে; কাজটি পেছনে নিজে থেকেই চলছে।
             </div>
         @endif
         @if (!empty($dbUpdate['pending']) || in_array($dbUpdate['status']['state'] ?? '', ['running', 'failed'], true))
