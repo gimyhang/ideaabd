@@ -32,6 +32,15 @@
         }).catch(function () { return { success: false, message: 'সংযোগ পাওয়া যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।' }; });
     }
 
+    /** Confirmation with the admin's SweetAlert dialog (resolves true when there is nothing to ask). */
+    function ask(text) {
+        if (!text) return Promise.resolve(true);
+        if (typeof window.SwalConfirm === 'function') {
+            return window.SwalConfirm({ title: 'নিশ্চিত?', text: text, icon: 'warning' }).then(function (r) { return !!(r && r.isConfirmed); });
+        }
+        return Promise.resolve(window.confirm(text));
+    }
+
     function busy(btn, on, text) {
         if (!btn) return;
         if (on) { btn.dataset.label = btn.innerHTML; btn.classList.add('is-busy'); btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>' + esc(text || '…'); }
@@ -80,7 +89,8 @@
     document.addEventListener('click', function (e) {
         var btn = e.target.closest('[data-ck-action]');
         if (!btn) return;
-        if (btn.dataset.confirm && !confirm(btn.dataset.confirm)) return;
+        ask(btn.dataset.ckConfirm).then(function (go) {
+        if (!go) return;
         busy(btn, true, btn.dataset.busy);
         post(btn.dataset.ckAction).then(function (j) {
             busy(btn, false);
@@ -88,6 +98,7 @@
             if (j.stats) paintStats(j.stats);
             if (j.batches) paintBatches(j.batches);
             refresh();
+        });
         });
     });
 
@@ -179,12 +190,12 @@
     function paintBatches(list) {
         var box = document.getElementById('ckBatches');
         if (!box) return;
-        if (!list.length) { box.innerHTML = '<div class="ck-sub">কোয়ারেন্টাইনে কিছু নেই।</div>'; return; }
+        if (!list.length) { box.innerHTML = '<div class="ck-empty"><i class="fa-regular fa-circle-check"></i> কোয়ারেন্টাইনে কিছু নেই।</div>'; return; }
         box.innerHTML = list.map(function (b) {
             return '<div class="ck-batch" data-batch="' + esc(b.batch) + '"><div><div class="fw-semibold">' + esc(b.created_at) + '</div>' +
                 '<div class="ck-sub">' + b.count + 'টি ছবি · ' + (b.bytes / 1048576).toFixed(1) + ' MB' + (b.by ? ' · ' + esc(b.by) : '') + ' · ' + esc(b.expires) + ' তারিখে স্থায়ীভাবে মুছবে</div></div>' +
-                '<div class="d-flex gap-1"><button type="button" class="btn btn-sm btn-outline-success" data-ck-restore>ফেরত আনুন</button>' +
-                '<button type="button" class="btn btn-sm btn-outline-danger" data-ck-delete-batch>মুছুন</button></div></div>';
+                '<div class="d-flex gap-2"><button type="button" class="ck-btn ck-btn--success-soft ck-btn--sm" data-ck-restore><i class="fa-solid fa-rotate-left"></i><span>ফেরত আনুন</span></button>' +
+                '<button type="button" class="ck-btn ck-btn--danger-soft ck-btn--sm" data-ck-delete-batch><i class="fa-regular fa-trash-can"></i><span>মুছুন</span></button></div></div>';
         }).join('');
     }
 
@@ -219,5 +230,50 @@
         });
     });
 
-    setInterval(function () { if (!document.hidden) refresh(); }, 60000);
+    // ── Live: refresh every 30 s while the tab is visible (switch in the header, remembered) ──
+    var live = document.getElementById('ckLive');
+    try { if (live && localStorage.getItem('ck_live') === '0') live.checked = false; } catch (e) {}
+    function liveOn() { return !live || live.checked; }
+    if (live) live.addEventListener('change', function () {
+        try { localStorage.setItem('ck_live', live.checked ? '1' : '0'); } catch (e) {}
+        if (live.checked) refresh();
+    });
+    setInterval(function () { if (!document.hidden && liveOn()) refresh(); }, 30000);
+
+    // ── Tabs (keys · images · console), remembered ──
+    var tabs = document.querySelectorAll('[data-ck-tab]');
+    function openTab(id, focus) {
+        tabs.forEach(function (t) {
+            var on = t.dataset.ckTab === id;
+            t.classList.toggle('is-active', on);
+            t.setAttribute('aria-selected', on ? 'true' : 'false');
+            t.tabIndex = on ? 0 : -1;
+            var pane = document.getElementById(t.dataset.ckTab);
+            if (pane) { pane.hidden = !on; pane.classList.toggle('is-active', on); }
+            if (on && focus) t.focus();
+        });
+        try { localStorage.setItem('ck_tab', id); } catch (e) {}
+    }
+    tabs.forEach(function (t, i) {
+        t.addEventListener('click', function () { openTab(t.dataset.ckTab); });
+        t.addEventListener('keydown', function (e) {
+            if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+            var next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+            openTab(next.dataset.ckTab, true);
+        });
+    });
+    try { var saved = localStorage.getItem('ck_tab'); if (saved && document.getElementById(saved)) openTab(saved); } catch (e) {}
+
+    // ── Key search ──
+    var find = document.getElementById('ckKeyFind');
+    if (find) find.addEventListener('input', function () {
+        var q = find.value.trim().toLowerCase(), shown = 0;
+        document.querySelectorAll('tr[data-find]').forEach(function (tr) {
+            var hit = !q || tr.dataset.find.indexOf(q) > -1;
+            tr.hidden = !hit;
+            if (hit) shown++;
+        });
+        var none = document.querySelector('tr.ck-none');
+        if (none) none.hidden = shown > 0;
+    });
 })();
