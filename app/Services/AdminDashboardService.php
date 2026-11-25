@@ -46,12 +46,85 @@ class AdminDashboardService
                 }
             }
         };
-        $callback = $timed;
+        // every fresh value is also kept as a snapshot on disk, outside the cache
+        $callback = function () use ($key, $timed) {
+            $value = $timed();
+            self::saveSnapshot($key, $value);
+
+            return $value;
+        };
+
+        // Cache empty (cleared, deploy, full-disk clean-up): show the last snapshot at once and rebuild after the
+        // response, instead of making the admin wait for every aggregate query (that was the ~1 minute after login).
+        try {
+            if (!Cache::has($key) && !Cache::has('illuminate:cache:flexible:created:' . $key) && ($snap = self::loadSnapshot($key)) !== null) {
+                static $queued = [];
+                if (!isset($queued[$key])) {
+                    $queued[$key] = true;
+                    app()->terminating(function () use ($key, $fresh, $callback) {
+                        try {
+                            \App\Support\QueryBudget::clear();
+                            Cache::put($key, $callback(), $fresh * 10);
+                            Cache::put('illuminate:cache:flexible:created:' . $key, \Illuminate\Support\Carbon::now()->getTimestamp(), $fresh * 10);
+                        } catch (\Throwable) {
+                        }
+                    });
+                }
+
+                return $snap;
+            }
+        } catch (\Throwable) {
+        }
 
         try {
             return Cache::flexible($key, [$fresh, $fresh * 10], $callback);
         } catch (\Throwable) {
             return Cache::remember($key, $fresh, $callback);
+        }
+    }
+
+    /** Last computed value of a dashboard block, kept in storage/app/dashboard-snapshots (survives cache clears). */
+    private static function snapshotPath(string $key): string
+    {
+        return storage_path('app/dashboard-snapshots/' . sha1($key) . '.ser');
+    }
+
+    private static function saveSnapshot(string $key, mixed $value): void
+    {
+        try {
+            $path = self::snapshotPath($key);
+            $dir = dirname($path);
+            if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
+                return;
+            }
+            $data = serialize($value);
+            if (strlen($data) > 2 * 1024 * 1024) {
+                return;                      // only small summaries belong here
+            }
+            $tmp = $path . '.' . getmypid() . '.tmp';
+            if (@file_put_contents($tmp, $data) !== false) {
+                @rename($tmp, $path);
+            }
+        } catch (\Throwable) {
+        }
+    }
+
+    private static function loadSnapshot(string $key): mixed
+    {
+        try {
+            $path = self::snapshotPath($key);
+            if (!is_file($path) || filemtime($path) < time() - 7 * 86400) {
+                return null;                 // older than a week: compute fresh
+            }
+            $raw = @file_get_contents($path);
+            if ($raw === false || $raw === '') {
+                return null;
+            }
+            $value = @unserialize($raw);
+
+            return ($value === false && $raw !== serialize(false)) ? null : $value;
+        } catch (\Throwable) {
+            return null;
         }
     }
 

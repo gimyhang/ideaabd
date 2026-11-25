@@ -21,12 +21,13 @@
     <!-- Font Awesome 6 Pro / Free -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Google reCAPTCHA v2 Script -->
-    <script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit" async defer></script>
+    {{-- Google reCAPTCHA is loaded only when the form asks for it (after repeated wrong passwords): renderGoogleRecaptcha() --}}
+    <link rel="preconnect" href="https://www.google.com">
 
 
     <!-- Bangladesh Geodata (Districts & Upazilas) -->
-    <script src="{{ asset('js/bd-geo-data.js') }}"></script>
+    {{-- only the sign-up steps use it: loaded after the page --}}
+    <script src="{{ asset('js/bd-geo-data.js') }}?v={{ @filemtime(public_path('js/bd-geo-data.js')) }}" defer></script>
 
     <style>
         /* ══════════════════════════════════════════════════════════════════
@@ -1655,6 +1656,35 @@ window.isPhoneVerificationEnabled = {{ (!empty($isPhoneVerificationEnabled) || \
 let recaptchaWidgetId = null;
 let isRecaptchaReady = false;
 let recaptchaSiteKey = '{{ $recaptchaSiteKey ?? "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" }}';
+
+// reCAPTCHA v2 widget for the sign-in form, loaded on demand (the script is ~500 KB and most visitors never need it)
+let recaptchaLoading = null;
+function loadRecaptchaScript() {
+    if (window.grecaptcha && window.grecaptcha.render) return Promise.resolve();
+    if (recaptchaLoading) return recaptchaLoading;
+    recaptchaLoading = new Promise(function (resolve, reject) {
+        window.onRecaptchaLoaded = function () { isRecaptchaReady = true; resolve(); };
+        const s = document.createElement('script');
+        s.src = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit';
+        s.async = true;
+        s.onerror = function () { recaptchaLoading = null; reject(new Error('reCAPTCHA could not load')); };
+        document.head.appendChild(s);
+    });
+    return recaptchaLoading;
+}
+function renderGoogleRecaptcha() {
+    const box = document.getElementById('googleRecaptchaInlineWidget');
+    const out = document.getElementById('gRecaptchaResponseInput');
+    if (!box) return;
+    loadRecaptchaScript().then(function () {
+        if (recaptchaWidgetId !== null) { try { window.grecaptcha.reset(recaptchaWidgetId); } catch (e) {} return; }
+        recaptchaWidgetId = window.grecaptcha.render(box, {
+            sitekey: recaptchaSiteKey,
+            callback: function (token) { if (out) out.value = token; },
+            'expired-callback': function () { if (out) out.value = ''; }
+        });
+    }).catch(function () {});
+}
 
 // Temporary registration store in client flow
 let regData = {
@@ -3361,6 +3391,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         updateCategoryBanner();
     }
+
+    const captchaBox = document.getElementById('captchaWrapper');
+    if (captchaBox && !captchaBox.classList.contains('d-none')) renderGoogleRecaptcha();
 
     const form = document.getElementById('loginForm');
     const submitBtn = document.getElementById('loginSubmitBtn');
