@@ -82,6 +82,41 @@ class EventCampaign extends Model
     }
 
     /**
+     * The event's own logo, wherever the admin uploaded it: the card designer's event logo, the form header logo,
+     * or an older "logo_url" setting. Stored path / URL, or null when the event has no logo.
+     */
+    public function eventLogoPath(): ?string
+    {
+        $fs = is_array($this->form_settings ?? null) ? $this->form_settings : [];
+        $card = is_array($fs['card_design'] ?? null) ? $fs['card_design'] : [];
+        foreach ([$card['event_logo_image'] ?? null, $fs['logo_image'] ?? null, $fs['logo_url'] ?? null] as $p) {
+            if (is_string($p) && trim($p) !== '') {
+                return trim($p);
+            }
+        }
+
+        return null;
+    }
+
+    /** The event logo as a data: URI (prints, PDFs and card images work without extra requests), or null. */
+    public function eventLogoDataUri(): ?string
+    {
+        $p = $this->eventLogoPath();
+        if ($p === null) {
+            return null;
+        }
+        if (str_starts_with($p, 'data:image')) {
+            return $p;
+        }
+        if (preg_match('#^https?://#i', $p)) {
+            // a full link to this site's own storage: read the file instead of fetching it
+            $p = preg_replace('#^https?://[^/]+/#', '', $p);
+        }
+
+        return EventRegistration::imageDataUri($p);
+    }
+
+    /**
      * Header / logo settings of the scholarship form, with English-only text and safe defaults.
      * One source for the application page, its A4 preview, the print, the PDF and the success page.
      */

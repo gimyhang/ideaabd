@@ -2630,7 +2630,12 @@
     $cShowOrganizers = $cCardDesign['show_organizers'] ?? true;
     
     // Sizes & Typography
-    $cEventLogoSize      = intval($cCardDesign['event_logo_size'] ?? 64);
+    $cEventLogoSize      = intval($cCardDesign['event_logo_size'] ?? 54);
+    // the event logo shown on the card: designer upload, else the form header logo (EventCampaign::eventLogoPath)
+    $cEventLogoPath      = $campaign->eventLogoPath();
+    $cEventLogoUrl       = $cEventLogoPath ? (preg_match('#^(https?:|data:)#', $cEventLogoPath) ? $cEventLogoPath : asset('storage/' . ltrim(preg_replace('#^/?(public/)?storage/#', '', $cEventLogoPath), '/'))) : null;
+    $cEventLogoOn        = $cEventLogoUrl && (empty($cCardDesign['event_logo_set']) || !empty($cCardDesign['show_event_logo']));
+    $cEventLogoOwn       = !empty($cCardDesign['event_logo_image']);
     $cEventLogoOffsetX   = intval($cCardDesign['event_logo_offset_x'] ?? 0);
     $cEventLogoOffsetY   = intval($cCardDesign['event_logo_offset_y'] ?? 0);
     $cPhotoSize          = intval($cCardDesign['photo_size'] ?? 82);
@@ -3200,7 +3205,6 @@
 
                                 {{-- Preserved hidden inputs for removed features --}}
                                 <input type="hidden" name="show_logo" id="toggleShowLogo" value="0">
-                                <input type="hidden" name="show_event_logo" id="toggleShowEventLogo" value="0">
                                 <input type="hidden" name="show_badge" id="toggleShowBadge" value="0">
                                 <input type="hidden" name="show_name_plate" id="toggleShowNamePlate" value="0">
                                 <input type="hidden" name="show_plate_bg" id="toggleShowPlateBg" value="0">
@@ -3214,6 +3218,41 @@
 
                                 {{-- 3. TYPOGRAPHY & CONTENT TAB (টাইপোগ্রাফি ও তথ্য) --}}
                                 <div class="tab-pane fade" id="tab-text-pane" role="tabpanel">
+
+                                    {{-- 0. Event logo --}}
+                                    <div class="p-3 bg-white rounded-3 border mb-3" id="eventLogoPanel">
+                                        <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                                            <div>
+                                                <div class="fw-bold small text-dark"><i class="fa-solid fa-certificate text-primary me-1"></i> ইভেন্ট লোগো</div>
+                                                <small class="text-muted" style="font-size: 10.5px;">কার্ডের উপরে মাঝখানে দেখায়। নিজস্ব লোগো না দিলে ফর্মের হেডার লোগো ব্যবহার হয়।</small>
+                                            </div>
+                                            <div class="form-check form-switch m-0">
+                                                <input type="hidden" name="show_event_logo" value="0">
+                                                <input class="form-check-input" type="checkbox" name="show_event_logo" id="toggleShowEventLogo" value="1" {{ $cEventLogoOn || (!$cEventLogoUrl && !empty($cCardDesign['show_event_logo'])) ? 'checked' : '' }} style="width: 2.4em; height: 1.25em;" aria-label="কার্ডে ইভেন্ট লোগো দেখান">
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="border rounded-3 d-grid flex-shrink-0" style="width: 64px; height: 64px; place-items: center; background: #f8fafc;">
+                                                <img id="eventLogoThumb" src="{{ $cEventLogoUrl }}" alt="" style="max-width: 56px; max-height: 56px; object-fit: contain; {{ $cEventLogoUrl ? '' : 'display: none;' }}">
+                                                <i class="fa-regular fa-image text-muted" id="eventLogoEmpty" style="{{ $cEventLogoUrl ? 'display: none;' : '' }}"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <input type="file" name="card_event_logo_image" id="eventLogoFile" class="form-control form-control-sm mb-1" accept="image/png,image/jpeg,image/webp,image/svg+xml">
+                                                @if($cEventLogoOwn)
+                                                    <label class="form-check small mb-0"><input class="form-check-input" type="checkbox" name="remove_event_logo_image" value="1"> কার্ডের নিজস্ব লোগো মুছুন</label>
+                                                @elseif($cEventLogoUrl)
+                                                    <small class="text-muted" style="font-size: 10.5px;">এখন ফর্মের হেডার লোগো দেখানো হচ্ছে</small>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="mt-2">
+                                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                                <label class="form-label small fw-bold text-dark mb-0" for="eventLogoSizeSlider">লোগোর উচ্চতা</label>
+                                                <span class="slider-val-badge py-0.5 px-2" id="eventLogoSizeBadge" style="font-size: 10.5px;">{{ $cEventLogoSize }}px</span>
+                                            </div>
+                                            <input type="range" class="custom-range-slider" id="eventLogoSizeSlider" name="event_logo_size" min="28" max="120" step="2" value="{{ $cEventLogoSize }}">
+                                        </div>
+                                    </div>
 
                                     {{-- 1. Card Main Header / Title Section --}}
                                     <div class="p-3 bg-white rounded-3 border mb-3">
@@ -3644,6 +3683,9 @@
                                         <div id="liveBgOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: {{ $cBgOverlayColor }}; opacity: {{ $cBgOverlayOpacity > 0 ? ($cBgOverlayOpacity / 100) : 0 }}; @if($cBgBlur > 0) backdrop-filter: blur({{ $cBgBlur }}px); -webkit-backdrop-filter: blur({{ $cBgBlur }}px); @endif pointer-events: none; border-radius: 12px; z-index: 1;"></div>
 
                                         {{-- 1. TOP HEADER SECTION (Clean Typography, Dynamic Toggle) --}}
+                                        <div id="liveEventLogoWrap" style="display: {{ $cEventLogoOn ? 'flex' : 'none' }}; justify-content: center; position: relative; z-index: 3; margin: 2px 0 4px; flex-shrink: 0;">
+                                            <img id="liveEventLogoImg" src="{{ $cEventLogoUrl }}" alt="" style="height: {{ $cEventLogoSize }}px; width: auto; max-width: 70%; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,.35));">
+                                        </div>
                                         <div class="card-top-section card-interactive-node" id="liveHeadingsWrap" data-node="header" data-tab="tab-text-pane" style="text-align: center; display: {{ $cShowHeader ? 'flex' : 'none' }}; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 2; padding: 6px 8px 4px 8px;">
                                             <div class="festival-anniversary live-editable-text" id="liveAnnivText" contenteditable="true" data-bind="liveInputAnniversary" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: 11px; font-weight: 700; color: {{ $cAnnivColor }}; margin-bottom: 2px; text-shadow: 0 1px 3px rgba(0,0,0,0.5); letter-spacing: 0.3px;">
                                                 {{ $cAnniv }}
@@ -5378,5 +5420,24 @@
                 });
             }, true);
     </script>
+@endpush
+@push('scripts')
+<script>
+(function () {
+    var on = document.getElementById('toggleShowEventLogo'), file = document.getElementById('eventLogoFile'), size = document.getElementById('eventLogoSizeSlider');
+    var wrap = document.getElementById('liveEventLogoWrap'), img = document.getElementById('liveEventLogoImg'), thumb = document.getElementById('eventLogoThumb'), empty = document.getElementById('eventLogoEmpty'), badge = document.getElementById('eventLogoSizeBadge');
+    if (!on || !wrap) return;
+    function paint() { wrap.style.display = on.checked && img.getAttribute('src') ? 'flex' : 'none'; }
+    on.addEventListener('change', paint);
+    if (size) size.addEventListener('input', function () { img.style.height = size.value + 'px'; if (badge) badge.textContent = size.value + 'px'; });
+    if (file) file.addEventListener('change', function () {
+        var f = file.files && file.files[0];
+        if (!f) return;
+        var url = URL.createObjectURL(f);
+        img.src = url; thumb.src = url; thumb.style.display = ''; if (empty) empty.style.display = 'none';
+        on.checked = true; paint();
+    });
+})();
+</script>
 @endpush
 @endsection

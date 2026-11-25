@@ -38,7 +38,13 @@
     // 2. Element Visibility Toggles (লোগো, নেমপ্লেট শেড ও বই আর্টওয়ার্ক বাদ)
     $showHeader       = !empty($cardDesign['show_header']);
     $showLogo         = false; // প্রতিষ্ঠান লোগো বাদ
-    $showEventLogo    = false; // ইভেন্ট লোগো বাদ
+    // Event logo: the card designer's event logo, else the form header logo. Shown unless the admin switched it
+    // off in the designer (older saves always stored "off" by mistake, so those count as not chosen).
+    $eventLogo        = $campaign->eventLogoDataUri();
+    $showEventLogo    = $eventLogo && (empty($cardDesign['event_logo_set']) || !empty($cardDesign['show_event_logo']));
+    $eventLogoSize    = max(28, min(120, intval($cardDesign['event_logo_size'] ?? 54)));
+    $eventLogoX       = max(-120, min(120, intval($cardDesign['event_logo_offset_x'] ?? 0)));
+    $eventLogoY       = max(-60, min(120, intval($cardDesign['event_logo_offset_y'] ?? 0)));
     $showBadge        = false;
     $showPhoto        = $cardDesign['show_photo'] ?? true;
     $showNamePlate    = false; // নামের শেড / নেমপ্লেট বক্স বাদ (সরাসরি কার্ডে ক্লিন টাইপোগ্রাফি)
@@ -166,6 +172,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="{{ asset('js/print-fit.js') }}?v={{ @filemtime(public_path('js/print-fit.js')) }}" defer></script>
 
     <style>
         @page {
@@ -237,16 +244,28 @@
             html, body {
                 padding: 10px 4px 28px 4px;
                 overflow-x: hidden;
+                justify-content: flex-start;
             }
             .action-bar {
                 gap: 5px;
                 margin-bottom: 12px;
             }
-            .btn-action {
-                padding: 6px 12px;
-                font-size: 11px;
-                border-radius: 20px;
+            body .action-bar {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                width: 100%;
+                max-width: 380px;
+            }
+            body .action-bar .status-badge-pill { grid-column: 1 / -1; justify-content: center; }
+            body .btn-action {
+                justify-content: center;
+                padding: 9px 8px;
+                font-size: 11.5px;
+                border-radius: 12px;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             .status-badge-pill {
                 padding: 4px 10px;
@@ -350,6 +369,10 @@
             background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.08) 100%);
             pointer-events: none;
         }
+
+        /* 0. EVENT LOGO */
+        .card-event-logo { position: relative; z-index: 3; display: flex; justify-content: center; margin: 0 0 4px; transform: translate({{ $eventLogoX ?? 0 }}px, {{ $eventLogoY ?? 0 }}px); flex-shrink: 0; }
+        .card-event-logo img { height: {{ $eventLogoSize ?? 54 }}px; width: auto; max-width: 70%; object-fit: contain; display: block; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35)); }
 
         /* 1. TOP HEADER SECTION (Clean Typography) */
         .card-top-section {
@@ -653,12 +676,17 @@
 
     {{-- 3.8 x 5.4 INCH INVITATION CARD --}}
     <div class="card-stage-container">
-        <div class="card-wrapper">
+        <div class="card-wrapper" data-print-fit="365" data-print-gutter="16">
             <div class="rsu-invitation-card" id="printableCard">
             
             {{-- Background Overlay Tint --}}
             @if($bgOverlayOpacity > 0 || $bgBlur > 0)
                 <div style="position: absolute; inset: 0; background: {{ $bgOverlayColor }}; opacity: {{ $bgOverlayOpacity / 100 }}; @if($bgBlur > 0) backdrop-filter: blur({{ $bgBlur }}px); -webkit-backdrop-filter: blur({{ $bgBlur }}px); @endif pointer-events: none; border-radius: 12px; z-index: 1;"></div>
+            @endif
+
+            {{-- 0. EVENT LOGO --}}
+            @if($showEventLogo)
+                <div class="card-event-logo"><img src="{{ $eventLogo }}" alt="{{ $campaign->title }}"></div>
             @endif
 
             {{-- 1. TOP HEADER SECTION (Clean Typography, Dynamic) --}}
@@ -776,23 +804,7 @@
     </div>
 
     <script>
-        // Automatic Mobile Device Scaling: Keeps 365x518px ratio razor-sharp without any text-wrap or breaking
-        function adjustMobileScale() {
-            const cardWrap = document.querySelector('.card-wrapper');
-            if (!cardWrap) return;
-            const availableWidth = window.innerWidth - 14;
-            if (availableWidth < 365) {
-                const scale = availableWidth / 365;
-                cardWrap.style.transform = `scale(${scale})`;
-                const heightDiff = 518 * (1 - scale);
-                cardWrap.style.marginBottom = `-${heightDiff}px`;
-            } else {
-                cardWrap.style.transform = 'none';
-                cardWrap.style.marginBottom = '0';
-            }
-        }
-        window.addEventListener('resize', adjustMobileScale);
-        window.addEventListener('DOMContentLoaded', adjustMobileScale);
+        // Phone scaling: public/js/print-fit.js (keeps the 365 x 518 px card exact, scales the preview only)
 
         // Robust Mobile & Desktop High-Resolution PNG Downloader
         function downloadCardImage() {

@@ -45,8 +45,11 @@
     $logoSize = intval($fSettings['logo_size'] ?? 24);
     $customCss = $fSettings['custom_css'] ?? '';
 
-    $logoUrl = null;
-    if (!empty($fSettings['logo_url'])) {
+    // the event's own logo (uploaded in the admin) first, then an older logo_url, then the site logo
+    $logoUrl = $campaign->eventLogoDataUri();
+    if ($logoUrl) {
+        // found
+    } elseif (!empty($fSettings['logo_url'])) {
         $customLogo = $fSettings['logo_url'];
         if (str_starts_with($customLogo, 'http') || str_starts_with($customLogo, 'data:image')) {
             $logoUrl = $customLogo;
@@ -463,6 +466,10 @@
             {!! $customCss !!}
         @endif
     </style>
+    @if(!($isPdf ?? false))
+    {{-- phones: the sheet keeps its paper layout and is scaled like a print preview --}}
+    <script src="{{ asset('js/print-fit.js') }}?v={{ @filemtime(public_path('js/print-fit.js')) }}" defer></script>
+    @endif
 </head>
 <body>
 
@@ -487,7 +494,7 @@
 </div>
 @endif
 
-<div class="page-container">
+<div class="page-container" @if(!($isPdf ?? false)) data-print-fit="780" @endif>
 
     {{-- =========================================================================
          ১. শীর্ষ লেটার হেড প্যাড (RSU Authentic Full-Width Letterhead Pad Structure)

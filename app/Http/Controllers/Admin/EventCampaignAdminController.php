@@ -1799,7 +1799,9 @@ class EventCampaignAdminController extends Controller
 
             $cardDesign['show_logo_border']  = $request->has('show_logo_border');
             $cardDesign['logo_border_width'] = intval($request->input('logo_border_width', $cardDesign['logo_border_width'] ?? 0));
-            $cardDesign['show_event_logo']   = $request->has('show_event_logo');
+            // the designer's switch (a hidden 0 + a checkbox 1); remembered as a real choice from now on
+            $cardDesign['show_event_logo']   = $request->boolean('show_event_logo');
+            $cardDesign['event_logo_set']    = true;
             $cardDesign['event_logo_size']   = intval($request->input('event_logo_size', $cardDesign['event_logo_size'] ?? 64));
             $cardDesign['event_logo_offset_x'] = intval($request->input('event_logo_offset_x', $cardDesign['event_logo_offset_x'] ?? 0));
             $cardDesign['event_logo_offset_y'] = intval($request->input('event_logo_offset_y', $cardDesign['event_logo_offset_y'] ?? 0));
@@ -1829,7 +1831,6 @@ class EventCampaignAdminController extends Controller
             // 3. Header Texts & Logo Sizing (Header toggle is dynamic)
             $cardDesign['show_header']       = $request->has('show_header');
             $cardDesign['show_logo']         = false;
-            $cardDesign['show_event_logo']   = false;
             $cardDesign['logo_size']         = intval($request->input('logo_size', $cardDesign['logo_size'] ?? 58));
             $cardDesign['logo_offset_x']     = intval($request->input('logo_offset_x', $cardDesign['logo_offset_x'] ?? 0));
             $cardDesign['logo_offset_y']     = intval($request->input('logo_offset_y', $cardDesign['logo_offset_y'] ?? 0));

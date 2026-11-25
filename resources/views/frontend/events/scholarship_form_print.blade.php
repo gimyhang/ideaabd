@@ -8,7 +8,7 @@
 
     $fs = is_array($campaign->form_settings ?? null) ? $campaign->form_settings : [];
     $hdr = $campaign->scholarshipHeader();
-    $campaignLogo = $hdr['logo_side'] === 'hidden' ? null : (\App\Models\EventRegistration::imageDataUri($hdr['logo_image']) ?: \App\Models\EventRegistration::imageDataUri('images/logo.png'));
+    $campaignLogo = $hdr['logo_side'] === 'hidden' ? null : (\App\Models\EventRegistration::imageDataUri($hdr['logo_image']) ?: $campaign->eventLogoDataUri() ?: \App\Models\EventRegistration::imageDataUri('images/logo.png'));
     $campaignLogoSize = $hdr['logo_size'];
     $english = fn ($v) => is_string($v) && trim($v) !== '' && !preg_match('/\p{Bengali}/u', $v);
     $showSignature = ($fs['enable_signature'] ?? true) !== false;
@@ -218,6 +218,10 @@
         .footer-line { border-top: 1px solid #000; margin-top: 8px; padding-top: 3px; font-size: 12px; }
         .footer-line .r { float: right; }
     </style>
+    @if(!($isPdf ?? false))
+    {{-- phones: the sheet keeps its paper layout and is scaled like a print preview --}}
+    <script src="{{ asset('js/print-fit.js') }}?v={{ @filemtime(public_path('js/print-fit.js')) }}" defer></script>
+    @endif
 </head>
 <body class="density-{{ $density }} p2-{{ $density2 }}">
 
@@ -239,7 +243,7 @@
     </div>
 @endif
 
-<div class="page-container">
+<div class="page-container" @if(!($isPdf ?? false)) data-print-fit="816" @endif>
 
     {{-- Header: logo | title | photo --}}
     <table class="head-table">
