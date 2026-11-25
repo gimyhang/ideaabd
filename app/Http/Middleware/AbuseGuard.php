@@ -74,7 +74,8 @@ class AbuseGuard
         if (!$request->attributes->get('abuse.edge')) {
             $request->attributes->set('abuse.edge', true);
 
-            if (Cache::has("abuse:block:$ip")) {
+            // the guard's own short block, or one the admin set (admin/visitor-reports → Security)
+            if (Cache::has("abuse:block:$ip") || \App\Support\IpBlocklist::isBlocked($ip)) {
                 return $this->deny($request, 403, 'Access denied.');
             }
 
@@ -203,6 +204,7 @@ class AbuseGuard
         if ($n >= config('security.strikes_to_block', 4)) {
             Cache::put("abuse:block:$ip", true, now()->addMinutes(config('security.block_minutes', 60)));
             Log::warning('AbuseGuard: IP blocked', ['ip' => $ip, 'last' => $why, 'strikes' => $n]);
+            \App\Support\IpBlocklist::recordAuto($ip, (int) config('security.block_minutes', 60), $why);
         }
 
         return $this->deny($request, 404, 'Not found.');

@@ -299,6 +299,7 @@
                         'admin.sub-admins.index',
                         'admin.payments.index',
                         'admin.currencies.index',
+                        'admin.visitor-reports',
                     ];
                     if (in_array($i['route'], $exclusiveAdminRoutes, true)) {
                         return false;

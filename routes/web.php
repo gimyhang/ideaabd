@@ -753,7 +753,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/book-requests/{id}/notes', [\App\Http\Controllers\BookRequestController::class, 'updateNotes'])->name('book-requests.notes');
     Route::delete('/book-requests/{id}', [\App\Http\Controllers\BookRequestController::class, 'destroy'])->name('book-requests.destroy');
     Route::post('/book-requests/bulk-action', [\App\Http\Controllers\BookRequestController::class, 'bulkAction'])->name('book-requests.bulk-action');
-    Route::get('/visitor-reports', [AdminController::class, 'visitorReports'])->name('visitor-reports');
+    // Visitors & security (admin only: the rows hold IP addresses)
+    Route::get('/visitor-reports', [\App\Http\Controllers\Admin\VisitorReportController::class, 'index'])->name('visitor-reports');
+    Route::prefix('visitor-reports')->name('visitor-reports.')->controller(\App\Http\Controllers\Admin\VisitorReportController::class)->group(function () {
+        Route::get('/data', 'data')->middleware('throttle:60,1')->name('data');
+        Route::get('/live', 'live')->middleware('throttle:60,1')->name('live');
+        Route::get('/ip', 'ip')->middleware('throttle:60,1')->name('ip');
+        Route::post('/block', 'block')->middleware('throttle:30,1')->name('block');
+        Route::post('/unblock', 'unblock')->middleware('throttle:30,1')->name('unblock');
+    });
     Route::get('/reports/print', [AdminController::class, 'printReport'])->name('reports.print');
     Route::post('/books/quick-stock', [AdminController::class, 'quickUpdateStock'])->name('books.quick-stock');
     Route::post('/books/quick-update', [AdminController::class, 'quickUpdateBook'])->name('books.quick-update');

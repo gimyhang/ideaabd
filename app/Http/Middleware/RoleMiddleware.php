@@ -133,7 +133,8 @@ class RoleMiddleware
         'admin.content.reject'                     => 'editorial.publish',
         
         // Digital Marketing & Growth
-        'admin.visitor-reports'                    => 'marketing.view',
+        // visitors & IP security: VisitorReportController lets only the admin in
+        'admin.visitor-reports'                    => 'roles.manage',
         'admin.affiliates.index'                   => 'marketing.affiliates_manage',
         'admin.affiliates.store'                   => 'marketing.affiliates_manage',
         'admin.affiliates.payout'                  => 'marketing.affiliates_manage',
