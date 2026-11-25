@@ -634,6 +634,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/party-due', 'ajaxPartyDue')->name('party-due');
         Route::get('/search-books', 'searchBooks')->name('search-books');
         Route::get('/monthly-report', 'monthlyReport')->name('monthly-report');
+        // Raw-material stock book (static paths must stay above /{purchase})
+        Route::get('/raw-materials', [\App\Http\Controllers\Admin\RawMaterialController::class, 'index'])->name('raw.index');
+        Route::post('/raw-materials', [\App\Http\Controllers\Admin\RawMaterialController::class, 'store'])->name('raw.store');
+        Route::post('/raw-materials/moves', [\App\Http\Controllers\Admin\RawMaterialController::class, 'storeMove'])->name('raw.moves.store');
+        Route::delete('/raw-materials/moves/{move}', [\App\Http\Controllers\Admin\RawMaterialController::class, 'destroyMove'])->name('raw.moves.destroy');
+        Route::post('/raw-materials/resync', [\App\Http\Controllers\Admin\RawMaterialController::class, 'resync'])->name('raw.resync');
+        Route::put('/raw-materials/{material}', [\App\Http\Controllers\Admin\RawMaterialController::class, 'update'])->name('raw.update');
+        Route::get('/raw-materials/{material}/ledger', [\App\Http\Controllers\Admin\RawMaterialController::class, 'ledger'])->name('raw.ledger');
         // Stationery / electronics purchases (static paths must stay above /{purchase})
         Route::get('/stationery', [\App\Http\Controllers\Admin\ItemPurchaseController::class, 'stationery'])->name('stationery');
         Route::get('/electronics', [\App\Http\Controllers\Admin\ItemPurchaseController::class, 'electronics'])->name('electronics');

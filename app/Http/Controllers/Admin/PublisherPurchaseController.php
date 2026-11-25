@@ -22,64 +22,167 @@ class PublisherPurchaseController extends Controller
     /**
      * List all purchases (Separated into 3 classes: Books, Raw Materials, and Other Purchases).
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
-        $category = $request->input('category'); // 'books', 'raw_materials', 'other', or null (all)
+        \App\Support\RawMaterialStock::ensureSchema(); // first visit after deploy: creates the stock book
+
+        $category = $request->input('category'); // 'books', 'raw_materials', 'other', 'stationery', 'electronics' or null (all)
+        if (!in_array($category, ['books', 'raw_materials', 'other', 'stationery', 'electronics'], true)) {
+            $category = null;
+        }
         $search = $request->string('search')->trim()->value();
         $publisherId = $request->input('publisher_id');
         $paymentStatus = $request->string('payment_status')->trim()->value();
-        $dateFrom = $request->input('date_from');
-        $dateTo = $request->input('date_to');
+        $period = $request->string('period')->trim()->value();
+        [$dateFrom, $dateTo] = $this->periodRange($period, $request->input('date_from'), $request->input('date_to'));
 
-        $query = PublisherPurchase::query()
+        // one set of filters for the list, the totals and the export
+        $filter = function ($q) use ($category, $search, $publisherId, $paymentStatus, $dateFrom, $dateTo) {
+            return $q
+                ->when($category, function ($q) use ($category) {
+                    if ($category === 'books') {
+                        $q->where(fn ($sub) => $sub->where('purchase_category', 'books')->orWhereNull('purchase_category'));
+                    } else {
+                        $q->where('purchase_category', $category);
+                    }
+                })
+                ->when($search, function ($q, $term) {
+                    $like = '%' . $term . '%';
+                    $q->where(function ($w) use ($like) {
+                        $w->where('purchase_no', 'like', $like)
+                          ->orWhere('publisher_memo_no', 'like', $like)
+                          ->orWhere('supplier_name', 'like', $like)
+                          ->orWhere('vendor_name', 'like', $like)
+                          ->orWhere('vendor_phone', 'like', $like)
+                          ->orWhereHas('publisher', fn ($p) => $p->where('name', 'like', $like))
+                          ->orWhereHas('items', fn ($i) => $i->where('book_title', 'like', $like)->orWhere('item_name', 'like', $like));
+                    });
+                })
+                ->when($publisherId, fn ($q) => $q->where('publisher_id', $publisherId))
+                ->when($paymentStatus === 'overdue', fn ($q) => $q->where('due_amount', '>', 0)->whereNotNull('due_date')->whereDate('due_date', '<', now()->toDateString()))
+                ->when($paymentStatus && !in_array($paymentStatus, ['all', 'overdue'], true), fn ($q) => $q->where('payment_status', $paymentStatus))
+                ->when($dateFrom, fn ($q) => $q->whereDate('purchase_date', '>=', $dateFrom))
+                ->when($dateTo, fn ($q) => $q->whereDate('purchase_date', '<=', $dateTo));
+        };
+
+        if ($request->input('export') === 'csv') {
+            return $this->exportPurchasesCsv($filter(PublisherPurchase::query()));
+        }
+
+        $purchases = $filter(PublisherPurchase::query())
             ->with(['publisher', 'items.book', 'payments'])
-            ->when($category && in_array($category, ['books', 'raw_materials', 'other', 'stationery', 'electronics']), function($q) use ($category) {
-                if ($category === 'books') {
-                    $q->where(fn($sub) => $sub->where('purchase_category', 'books')->orWhereNull('purchase_category'));
-                } else {
-                    $q->where('purchase_category', $category);
-                }
-            })
-            ->when($search, function ($q, $term) {
-                $like = '%' . $term . '%';
-                $q->where(function ($w) use ($like) {
-                    $w->where('purchase_no', 'like', $like)
-                      ->orWhere('supplier_name', 'like', $like)
-                      ->orWhere('vendor_name', 'like', $like)
-                      ->orWhereHas('publisher', fn($p) => $p->where('name', 'like', $like))
-                      ->orWhereHas('items', fn($i) => $i->where('book_title', 'like', $like));
-                });
-            })
-            ->when($publisherId, fn($q) => $q->where('publisher_id', $publisherId))
-            ->when($paymentStatus && $paymentStatus !== 'all', fn($q) => $q->where('payment_status', $paymentStatus))
-            ->when($dateFrom, fn($q) => $q->whereDate('purchase_date', '>=', $dateFrom))
-            ->when($dateTo, fn($q) => $q->whereDate('purchase_date', '<=', $dateTo))
             ->latest('purchase_date')
-            ->latest('id');
-
-        $purchases = $query->paginate(20)->withQueryString();
+            ->latest('id')
+            ->paginate(20)->withQueryString();
 
         $publishers = Publisher::orderBy('name')->pluck('name', 'id')->all();
 
+        // totals of everything the filters select (not only this page)
+        $today = now()->toDateString();
+        $t = $filter(PublisherPurchase::query())->toBase()->selectRaw("
+                COUNT(*) AS n,
+                COALESCE(SUM(grand_total), 0) AS total,
+                COALESCE(SUM(discount_amount), 0) AS discount,
+                COALESCE(SUM(paid_amount), 0) AS paid,
+                COALESCE(SUM(due_amount), 0) AS due,
+                COALESCE(SUM(CASE WHEN due_amount > 0 THEN 1 ELSE 0 END), 0) AS due_count,
+                COALESCE(SUM(CASE WHEN due_amount > 0 AND due_date IS NOT NULL AND due_date < ? THEN 1 ELSE 0 END), 0) AS overdue_count,
+                COALESCE(SUM(CASE WHEN due_amount > 0 AND due_date IS NOT NULL AND due_date < ? THEN due_amount ELSE 0 END), 0) AS overdue_due", [$today, $today])
+            ->first();
+
+        // due aging: how old the unpaid bills are (by purchase date)
+        $aging = ['0-30' => 0.0, '31-60' => 0.0, '61-90' => 0.0, '90+' => 0.0];
+        $todayStart = now()->startOfDay();
+        foreach ($filter(PublisherPurchase::query())->where('due_amount', '>', 0)->toBase()->get(['purchase_date', 'due_amount']) as $r) {
+            $days = $r->purchase_date ? (int) \Carbon\Carbon::parse($r->purchase_date)->startOfDay()->diffInDays($todayStart, false) : 0;
+            $bucket = $days <= 30 ? '0-30' : ($days <= 60 ? '31-60' : ($days <= 90 ? '61-90' : '90+'));
+            $aging[$bucket] += (float) $r->due_amount;
+        }
+
+        // tab counts: one grouped query
+        $byCat = PublisherPurchase::query()->toBase()
+            ->selectRaw("COALESCE(purchase_category, 'books') AS c, COUNT(*) AS n, COALESCE(SUM(grand_total), 0) AS s")
+            ->groupByRaw("COALESCE(purchase_category, 'books')")->get()->keyBy('c');
+        $cnt = fn ($c) => (int) ($byCat[$c]->n ?? 0);
+        $sum = fn ($c) => (float) ($byCat[$c]->s ?? 0);
+
         $stats = [
-            'total_invoices' => PublisherPurchase::count(),
-            'total_purchase' => (float) PublisherPurchase::sum('grand_total'),
-            'total_paid'     => (float) PublisherPurchase::sum('paid_amount'),
-            'total_due'      => (float) PublisherPurchase::sum('due_amount'),
-            'due_count'      => PublisherPurchase::whereIn('payment_status', ['due', 'partial'])->count(),
-            'books_count'    => PublisherPurchase::where(fn($q) => $q->where('purchase_category', 'books')->orWhereNull('purchase_category'))->count(),
-            'books_total'    => (float) PublisherPurchase::where(fn($q) => $q->where('purchase_category', 'books')->orWhereNull('purchase_category'))->sum('grand_total'),
-            'raw_count'      => PublisherPurchase::where('purchase_category', 'raw_materials')->count(),
-            'raw_total'      => (float) PublisherPurchase::where('purchase_category', 'raw_materials')->sum('grand_total'),
-            'other_count'    => PublisherPurchase::where('purchase_category', 'other')->count(),
-            'other_total'    => (float) PublisherPurchase::where('purchase_category', 'other')->sum('grand_total'),
-            'stationery_count'  => PublisherPurchase::where('purchase_category', 'stationery')->count(),
-            'electronics_count' => PublisherPurchase::where('purchase_category', 'electronics')->count(),
+            'total_invoices'    => (int) $t->n,
+            'total_purchase'    => (float) $t->total,
+            'total_discount'    => (float) $t->discount,
+            'total_paid'        => (float) $t->paid,
+            'total_due'         => (float) $t->due,
+            'due_count'         => (int) $t->due_count,
+            'overdue_count'     => (int) $t->overdue_count,
+            'overdue_due'       => (float) $t->overdue_due,
+            'paid_ratio'        => (float) $t->total > 0 ? round((float) $t->paid / (float) $t->total * 100, 1) : 0,
+            'aging'             => $aging,
+            'all_invoices'      => (int) $byCat->sum('n'),
+            'books_count'       => $cnt('books'),
+            'books_total'       => $sum('books'),
+            'raw_count'         => $cnt('raw_materials'),
+            'raw_total'         => $sum('raw_materials'),
+            'other_count'       => $cnt('other'),
+            'other_total'       => $sum('other'),
+            'stationery_count'  => $cnt('stationery'),
+            'electronics_count' => $cnt('electronics'),
         ];
 
         $settings = IdeaAccountingController::getInvoiceSettings();
 
-        return view('admin.purchases.index', compact('purchases', 'publishers', 'stats', 'search', 'publisherId', 'paymentStatus', 'dateFrom', 'dateTo', 'category', 'settings'));
+        return view('admin.purchases.index', compact('purchases', 'publishers', 'stats', 'search', 'publisherId', 'paymentStatus', 'dateFrom', 'dateTo', 'category', 'settings', 'period'));
+    }
+
+    /** Quick periods for the list. Bangladesh fiscal year: 1 July – 30 June. */
+    private function periodRange(?string $period, ?string $from, ?string $to): array
+    {
+        $now = now();
+        $fyStart = $now->month >= 7 ? $now->copy()->month(7)->startOfMonth() : $now->copy()->subYear()->month(7)->startOfMonth();
+
+        return match ($period) {
+            'today'      => [$now->toDateString(), $now->toDateString()],
+            'month'      => [$now->copy()->startOfMonth()->toDateString(), $now->copy()->endOfMonth()->toDateString()],
+            'last_month' => [$now->copy()->subMonthNoOverflow()->startOfMonth()->toDateString(), $now->copy()->subMonthNoOverflow()->endOfMonth()->toDateString()],
+            'fy'         => [$fyStart->toDateString(), $fyStart->copy()->addYear()->subDay()->toDateString()],
+            'year'       => [$now->copy()->startOfYear()->toDateString(), $now->copy()->endOfYear()->toDateString()],
+            default      => [
+                $from && strtotime($from) ? date('Y-m-d', strtotime($from)) : null,
+                $to && strtotime($to) ? date('Y-m-d', strtotime($to)) : null,
+            ],
+        };
+    }
+
+    /** Every purchase the filters select, one line each, for Excel (UTF-8 with BOM so Bangla opens correctly). */
+    private function exportPurchasesCsv($query): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $labels = ['books' => 'Books', 'raw_materials' => 'Raw materials', 'other' => 'Other', 'stationery' => 'Stationery', 'electronics' => 'Electronics'];
+        $name = 'purchases-' . now()->format('Y-m-d') . '.csv';
+
+        return response()->streamDownload(function () use ($query, $labels) {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, ['Invoice', 'Memo no', 'Date', 'Type', 'Vendor', 'Phone', 'Items', 'Subtotal', 'Discount', 'Total', 'Paid', 'Due', 'Status', 'Due date', 'Notes']);
+            $sums = [0, 0, 0, 0, 0];
+            $query->with(['publisher:id,name,phone', 'items:id,purchase_id,item_name,book_title,quantity,reams_quantity'])
+                ->orderBy('purchase_date')->orderBy('id')
+                ->chunk(300, function ($rows) use ($out, $labels, &$sums) {
+                    foreach ($rows as $p) {
+                        $items = $p->items->map(fn ($i) => trim(($i->item_name ?: $i->book_title) . ' x' . ((float) $i->reams_quantity > 0 ? rtrim(rtrim(number_format((float) $i->reams_quantity, 3, '.', ''), '0'), '.') : $i->quantity)))->implode('; ');
+                        fputcsv($out, [
+                            $p->purchase_no, $p->publisher_memo_no, optional($p->purchase_date)->format('Y-m-d'),
+                            $labels[$p->purchase_category ?: 'books'] ?? $p->purchase_category, $p->party_name, $p->party_phone,
+                            $items, number_format((float) $p->total_amount, 2, '.', ''), number_format((float) $p->discount_amount, 2, '.', ''),
+                            number_format((float) $p->grand_total, 2, '.', ''), number_format((float) $p->paid_amount, 2, '.', ''),
+                            number_format((float) $p->due_amount, 2, '.', ''), $p->payment_status, optional($p->due_date)->format('Y-m-d'),
+                            preg_replace('/\s+/u', ' ', (string) $p->notes),
+                        ]);
+                        $sums[0] += (float) $p->total_amount; $sums[1] += (float) $p->discount_amount; $sums[2] += (float) $p->grand_total;
+                        $sums[3] += (float) $p->paid_amount; $sums[4] += (float) $p->due_amount;
+                    }
+                });
+            fputcsv($out, ['TOTAL', '', '', '', '', '', '', ...array_map(fn ($v) => number_format($v, 2, '.', ''), $sums), '', '', '']);
+            fclose($out);
+        }, $name, ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
     /**
@@ -392,6 +495,7 @@ class PublisherPurchaseController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        \App\Support\RawMaterialStock::ensureSchema(); // DDL before the transaction
         $validated = $request->validate([
             'purchase_category'           => 'nullable|in:books,raw_materials,other',
             'supplier_name'               => 'nullable|string|max:255',
@@ -660,9 +764,10 @@ class PublisherPurchaseController extends Controller
                 $item->purchase_id = $purchase->id;
                 $item->item_type = $itemData['item_type'] ?? ($purchaseCategory === 'books' ? 'book' : ($purchaseCategory === 'raw_materials' ? 'raw_material' : 'other'));
                 $item->item_name = $itemData['item_name'] ?? $itemData['title'];
-                $item->size_spec = $itemData['size_spec'] ?? ($itemData['book_size'] ?? null);
+                // raw / other rows reuse the Category box for size and the Author box for quality
+                $item->size_spec = $itemData['size_spec'] ?? ($purchaseCategory !== 'books' && $categoryName !== '' ? mb_substr($categoryName, 0, 100) : ($itemData['book_size'] ?? null));
                 $item->unit = $itemData['unit'] ?? ($purchaseCategory === 'books' ? 'কপি' : 'পিস');
-                $item->quality_spec = $itemData['quality_spec'] ?? ($itemData['cover_type'] ?? null);
+                $item->quality_spec = $itemData['quality_spec'] ?? ($purchaseCategory !== 'books' ? ($authorName !== '' ? mb_substr($authorName, 0, 100) : null) : ($itemData['cover_type'] ?? null));
                 $item->item_notes = $itemData['item_notes'] ?? null;
                 $item->book_id = $bookId;
                 $item->book_title = $itemData['title'];
@@ -721,6 +826,7 @@ class PublisherPurchaseController extends Controller
             }
 
             $purchase->recalculate();
+            \App\Support\RawMaterialStock::syncPurchase($purchase); // raw-material stock book
 
             $successMsg = $purchaseCategory === 'books'
                 ? "বই ক্রয় ইনভয়েস #{$purchase->purchase_no} সফলভাবে সংরক্ষিত হয়েছে এবং বইসমূহ স্বয়ংক্রিয়ভাবে বুকশপ ইনভেনটরিতে যুক্ত হয়েছে।"
@@ -830,6 +936,7 @@ class PublisherPurchaseController extends Controller
      */
     public function update(Request $request, PublisherPurchase $purchase): RedirectResponse
     {
+        \App\Support\RawMaterialStock::ensureSchema(); // DDL before the transaction
         $validated = $request->validate([
             'purchase_category'           => 'nullable|in:books,raw_materials,other',
             'supplier_name'               => 'nullable|string|max:255',
@@ -1068,9 +1175,10 @@ class PublisherPurchaseController extends Controller
                 $item->purchase_id = $purchase->id;
                 $item->item_type = $itemData['item_type'] ?? ($purchaseCategory === 'books' ? 'book' : ($purchaseCategory === 'raw_materials' ? 'raw_material' : 'other'));
                 $item->item_name = $itemData['item_name'] ?? $itemData['title'];
-                $item->size_spec = $itemData['size_spec'] ?? ($itemData['book_size'] ?? null);
+                // raw / other rows reuse the Category box for size and the Author box for quality
+                $item->size_spec = $itemData['size_spec'] ?? ($purchaseCategory !== 'books' && $categoryName !== '' ? mb_substr($categoryName, 0, 100) : ($itemData['book_size'] ?? null));
                 $item->unit = $itemData['unit'] ?? ($purchaseCategory === 'books' ? 'কপি' : 'পিস');
-                $item->quality_spec = $itemData['quality_spec'] ?? ($itemData['cover_type'] ?? null);
+                $item->quality_spec = $itemData['quality_spec'] ?? ($purchaseCategory !== 'books' ? ($authorName !== '' ? mb_substr($authorName, 0, 100) : null) : ($itemData['cover_type'] ?? null));
                 $item->item_notes = $itemData['item_notes'] ?? null;
                 $item->book_id = $bookId;
                 $item->book_title = $itemData['title'];
@@ -1098,6 +1206,7 @@ class PublisherPurchaseController extends Controller
 
             // Recalculate paid and due amount
             $purchase->recalculate();
+            \App\Support\RawMaterialStock::syncPurchase($purchase->fresh('items')); // raw-material stock book
 
             return redirect()->route('admin.purchases.show', $purchase->id)
                 ->with('success', "ক্রয় ইনভয়েস #{$purchase->purchase_no} সফলভাবে আপডেট ও সংশোধন করা হয়েছে।");
@@ -1810,6 +1919,7 @@ class PublisherPurchaseController extends Controller
         $purchase->payments()->delete();
         $purchase->items()->delete();
         $purchase->delete();
+        \App\Support\RawMaterialStock::syncPurchase($purchase); // trashed: its stock-in moves go away
 
         return redirect()->route('admin.purchases.index')
             ->with('success', "ক্রয় ইনভয়েস #{$no} সফলভাবে মুছে ফেলা হয়েছে এবং ইনভেন্টরি স্টক সমন্বয় করা হয়েছে।");

@@ -41,10 +41,10 @@
         </div>
 
         {{-- Export / Print Tools --}}
-        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs fw-semibold d-inline-flex align-items-center gap-1.5" onclick="exportPurchasesTableToCSV()" title="Export list to CSV">
+        <a href="{{ request()->fullUrlWithQuery(['export' => 'csv', 'page' => null]) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs fw-semibold d-inline-flex align-items-center gap-1.5" title="ফিল্টার করা সব ক্রয় CSV (Excel) ফাইলে">
             <i class="fa-solid fa-file-csv text-success"></i>
             <span>Export</span>
-        </button>
+        </a>
 
         {{-- Branding / Memo Settings --}}
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs fw-semibold d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Memo branding settings">
@@ -64,6 +64,10 @@
             <span>Ledgers</span>
         </a>
 
+        <a href="{{ route('admin.purchases.raw.index') }}" class="btn btn-warning btn-sm rounded-pill px-3 shadow-xs fw-bold text-dark d-inline-flex align-items-center gap-1.5" title="কাঁচামাল মজুদ ও ব্যবহার হিসাব">
+            <i class="fa-solid fa-warehouse"></i>
+            <span>Raw Stock</span>
+        </a>
         <a href="{{ route('admin.purchases.items.stock') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs fw-semibold">Items</a>
         <a href="{{ route('admin.production.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs fw-semibold">Production</a>
 
@@ -84,7 +88,7 @@
             <div class="btn-group shadow-2xs rounded-pill p-1 bg-light border" role="group">
                 <a href="{{ route('admin.purchases.index') }}" 
                    class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ empty($category) ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">
-                    <i class="fa-solid fa-layer-group me-1"></i> All ({{ $stats['total_invoices'] }})
+                    <i class="fa-solid fa-layer-group me-1"></i> All ({{ $stats['all_invoices'] }})
                 </a>
                 <a href="{{ route('admin.purchases.index', ['category' => 'books']) }}" 
                    class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ $category === 'books' ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">
@@ -121,6 +125,7 @@
                 <div>
                     <span class="text-muted small fw-semibold">Invoices</span>
                     <h3 class="fw-bold mb-0 text-primary mt-1" id="metricTotalInvoices">{{ number_format($stats['total_invoices']) }}</h3>
+                    <div class="kpi-sub">{{ $stats['due_count'] }} বকেয়া · <span class="{{ $stats['overdue_count'] ? 'text-danger fw-bold' : '' }}">{{ $stats['overdue_count'] }} মেয়াদোত্তীর্ণ</span></div>
                 </div>
                 <div class="rounded-circle bg-primary-subtle text-primary p-3"><i class="fa-solid fa-receipt fs-4"></i></div>
             </div>
@@ -132,6 +137,7 @@
                 <div>
                     <span class="text-muted small fw-semibold">Purchases</span>
                     <h3 class="fw-bold mb-0 text-dark mt-1 font-monospace" id="metricTotalPurchases">৳{{ number_format($stats['total_purchase'], 2) }}</h3>
+                    <div class="kpi-sub">ছাড় ৳{{ number_format($stats['total_discount'], 2) }}</div>
                 </div>
                 <div class="rounded-circle bg-dark-subtle text-dark p-3"><i class="fa-solid fa-cart-flatbed fs-4"></i></div>
             </div>
@@ -143,6 +149,8 @@
                 <div>
                     <span class="text-muted small fw-semibold">Paid</span>
                     <h3 class="fw-bold mb-0 text-success mt-1 font-monospace" id="metricTotalPaid">৳{{ number_format($stats['total_paid'], 2) }}</h3>
+                    <div class="kpi-bar" title="পরিশোধিত {{ $stats['paid_ratio'] }}%"><span style="width: {{ min(100, $stats['paid_ratio']) }}%"></span></div>
+                    <div class="kpi-sub">{{ $stats['paid_ratio'] }}% পরিশোধিত</div>
                 </div>
                 <div class="rounded-circle bg-success-subtle text-success p-3"><i class="fa-solid fa-hand-holding-dollar fs-4"></i></div>
             </div>
@@ -154,12 +162,36 @@
                 <div>
                     <span class="text-muted small fw-semibold">Due</span>
                     <h3 class="fw-bold mb-0 text-danger mt-1 font-monospace" id="metricTotalDue">৳{{ number_format($stats['total_due'], 2) }}</h3>
+                    <div class="kpi-sub">মেয়াদোত্তীর্ণ ৳{{ number_format($stats['overdue_due'], 2) }}</div>
                 </div>
                 <div class="rounded-circle bg-danger-subtle text-danger p-3"><i class="fa-solid fa-clock-rotate-left fs-4"></i></div>
             </div>
         </div>
     </div>
 </div>
+
+{{-- Due aging: how old the unpaid bills are --}}
+@php $agingTotal = array_sum($stats['aging']); @endphp
+@if($agingTotal > 0)
+<div class="card border-0 shadow-sm rounded-4 mb-3.5 bg-white" id="dueAging">
+    <div class="card-body p-3">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+            <div class="fw-bold small text-dark"><i class="fa-solid fa-hourglass-half text-danger me-1"></i> বকেয়ার বয়স <span class="text-muted fw-normal">(ক্রয়ের তারিখ থেকে)</span></div>
+            <a href="{{ request()->fullUrlWithQuery(['payment_status' => 'overdue', 'page' => null]) }}" class="small fw-semibold text-danger text-decoration-none">মেয়াদোত্তীর্ণগুলো দেখুন <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+        <div class="aging-bar mb-2">
+            @foreach($stats['aging'] as $k => $v)
+                @if($v > 0)<span class="ag-{{ $loop->index }}" style="width: {{ round($v / $agingTotal * 100, 2) }}%" title="{{ $k }} দিন: ৳{{ number_format($v, 2) }}"></span>@endif
+            @endforeach
+        </div>
+        <div class="row g-2 small">
+            @foreach($stats['aging'] as $k => $v)
+                <div class="col-6 col-md-3"><span class="ag-dot ag-{{ $loop->index }}"></span> {{ $k }} দিন <strong class="font-monospace ms-1">৳{{ number_format($v, 2) }}</strong></div>
+            @endforeach
+        </div>
+    </div>
+</div>
+@endif
 
 {{-- Search & Filters with Live Client Quick Filter --}}
 <div class="card border-0 shadow-sm rounded-4 mb-3.5 bg-white">
@@ -168,14 +200,24 @@
             @if($category)
                 <input type="hidden" name="category" value="{{ $category }}">
             @endif
-            <div class="col-md-3 col-sm-6">
+            <div class="col-12 d-flex flex-wrap gap-1.5 align-items-center period-chips">
+                <span class="small text-muted fw-semibold me-1"><i class="fa-regular fa-calendar"></i> সময়:</span>
+                @foreach(['' => 'সব', 'today' => 'আজ', 'month' => 'এই মাস', 'last_month' => 'গত মাস', 'fy' => 'এই অর্থবছর', 'year' => 'এই বছর'] as $pk => $pl)
+                    <a href="{{ request()->fullUrlWithQuery(['period' => $pk ?: null, 'date_from' => null, 'date_to' => null, 'page' => null]) }}"
+                       class="btn btn-sm rounded-pill px-2.5 py-0.5 {{ ($period ?? '') === $pk && ($pk !== '' || (!$dateFrom && !$dateTo)) ? 'btn-dark' : 'btn-light border' }}">{{ $pl }}</a>
+                @endforeach
+                @if($dateFrom || $dateTo)
+                    <span class="small text-muted ms-1">{{ $dateFrom ? \Carbon\Carbon::parse($dateFrom)->format('d M Y') : '…' }} – {{ $dateTo ? \Carbon\Carbon::parse($dateTo)->format('d M Y') : '…' }}</span>
+                @endif
+            </div>
+            <div class="col-md-3 col-sm-12">
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                     <input type="search" name="search" id="liveSearchInput" class="form-control border-start-0" 
                            placeholder="Live search invoice, vendor, book..." value="{{ request('search') }}" onkeyup="filterPurchasesTableLive()">
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
+            <div class="col-md-2 col-sm-6">
                 <select name="publisher_id" class="form-select" onchange="this.form.submit()">
                     <option value="">All Vendors</option>
                     @foreach($publishers as $id => $name)
@@ -189,14 +231,19 @@
                     <option value="paid" @selected(request('payment_status') === 'paid')>Paid</option>
                     <option value="partial" @selected(request('payment_status') === 'partial')>Partial</option>
                     <option value="due" @selected(request('payment_status') === 'due')>Due</option>
+                    <option value="overdue" @selected(request('payment_status') === 'overdue')>Overdue</option>
                 </select>
             </div>
-            <div class="col-md-2 col-sm-6">
-                <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}" title="Date">
+            <div class="col-md-3 col-sm-12">
+                <div class="input-group">
+                    <input type="date" name="date_from" class="form-control" value="{{ $period ? '' : $dateFrom }}" title="From" aria-label="From">
+                    <span class="input-group-text bg-light px-2">–</span>
+                    <input type="date" name="date_to" class="form-control" value="{{ $period ? '' : $dateTo }}" title="To" aria-label="To">
+                </div>
             </div>
             <div class="col-md-2 col-sm-12 d-flex gap-2">
                 <button type="submit" class="btn btn-primary w-100 fw-semibold rounded-pill"><i class="fa-solid fa-filter me-1"></i> Filter</button>
-                @if(request()->hasAny(['search', 'publisher_id', 'payment_status', 'date_from']))
+                @if(request()->hasAny(['search', 'publisher_id', 'payment_status', 'date_from', 'date_to', 'period']))
                     <a href="{{ route('admin.purchases.index', $category ? ['category' => $category] : []) }}" class="btn btn-light border rounded-pill px-3" title="Reset"><i class="fa-solid fa-rotate-left"></i></a>
                 @endif
             </div>
@@ -305,6 +352,11 @@
                             </td>
                             <td class="small text-muted text-nowrap">
                                 {{ $purchase->purchase_date ? $purchase->purchase_date->format('d M, Y') : '' }}
+                                @if($purchase->due_amount > 0 && $purchase->due_date)
+                                    <div class="{{ $purchase->due_date->isPast() && !$purchase->due_date->isToday() ? 'text-danger fw-bold' : 'text-muted' }}" style="font-size: 10.5px;" title="পরিশোধের শেষ তারিখ">
+                                        <i class="fa-regular fa-calendar-xmark"></i> {{ $purchase->due_date->format('d M') }}{{ $purchase->due_date->isPast() && !$purchase->due_date->isToday() ? ' · মেয়াদোত্তীর্ণ' : '' }}
+                                    </div>
+                                @endif
                             </td>
                             <td class="text-center small text-muted">
                                 <span class="badge bg-light text-dark border rounded-pill px-2.5 py-0.5">
@@ -390,6 +442,24 @@
                         </td>
                     </tr>
                 </tbody>
+                <tfoot class="purchases-foot small">
+                    @if($purchases->hasPages())
+                    <tr>
+                        <td colspan="5" class="ps-3.5 text-muted fw-semibold">এই পাতা ({{ $purchases->count() }}টি)</td>
+                        <td class="text-end font-monospace">৳{{ number_format($purchases->sum('grand_total'), 2) }}</td>
+                        <td class="text-end font-monospace text-success">৳{{ number_format($purchases->sum('paid_amount'), 2) }}</td>
+                        <td class="text-end font-monospace text-danger">৳{{ number_format($purchases->sum('due_amount'), 2) }}</td>
+                        <td colspan="2"></td>
+                    </tr>
+                    @endif
+                    <tr class="fw-bold">
+                        <td colspan="5" class="ps-3.5">মোট (ফিল্টার অনুযায়ী {{ number_format($stats['total_invoices']) }}টি)</td>
+                        <td class="text-end font-monospace">৳{{ number_format($stats['total_purchase'], 2) }}</td>
+                        <td class="text-end font-monospace text-success">৳{{ number_format($stats['total_paid'], 2) }}</td>
+                        <td class="text-end font-monospace text-danger">৳{{ number_format($stats['total_due'], 2) }}</td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
 
@@ -552,6 +622,16 @@
 .quick-status-chip.active {
     box-shadow: 0 2px 6px rgba(0,0,0,0.12);
 }
+.kpi-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+.kpi-bar { height: 4px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-top: 6px; max-width: 160px; }
+.kpi-bar span { display: block; height: 100%; background: #198754; border-radius: 4px; }
+.aging-bar { display: flex; height: 10px; border-radius: 6px; overflow: hidden; background: #f1f5f9; }
+.aging-bar span { display: block; height: 100%; }
+.ag-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; vertical-align: middle; }
+.ag-0 { background: #fbbf24; } .ag-1 { background: #fb923c; } .ag-2 { background: #f87171; } .ag-3 { background: #b91c1c; }
+.purchases-foot td { background: #f8fafc; border-top: 2px solid #e2e8f0; }
+.period-chips .btn { font-size: 12px; }
+@media (max-width: 575.98px) { .stat-card h3 { font-size: 1.05rem; } .stat-card .rounded-circle { display: none; } }
 </style>
 @endpush
 
