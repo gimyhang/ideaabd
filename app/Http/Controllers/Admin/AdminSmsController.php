@@ -78,7 +78,6 @@ class AdminSmsController extends Controller
             'smtpHasPassword'=> $smtp['password'] !== '',
             'counts'         => $this->contactCounts('phone'),
             'emailCounts'    => $this->contactCounts('email'),
-            'codeSamples'    => SmsService::getCodeSamples(null, $credentials['sender_id'] ?? null),
             'templates'      => $this->getTemplatesList(),
             'campaignLogs'   => $this->getCampaignLogsList(),
             'usingDefaultKey'=> ($credentials['api_key'] ?? '') === SmsService::DEFAULT_API_KEY,
@@ -145,82 +144,105 @@ class AdminSmsController extends Controller
     }
 
     /**
-     * Broadcast bulk SMS to a target group or a pasted list of numbers.
+     * Send to many people: SMS, e-mail or both, from one form.
+     * {name} {role} {phone} in the text make every SMS personal; without them one text goes to everyone.
+     * SMS go out through the resumable campaign runner (100 at a time); e-mails are sent right away.
      */
-    public function broadcast(Request $request): RedirectResponse
+    public function campaign(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'target_group'   => 'required|string|in:' . self::GROUPS,
-            'custom_numbers' => 'nullable|string|max:200000',
-            'message'        => 'required|string|max:1000',
+        $v = $request->validate([
+            'channel'      => 'required|in:sms,email,both',
+            'target_group' => 'required|string|in:' . self::GROUPS,
+            'custom_list'  => 'nullable|required_if:target_group,custom|string|max:200000',
+            'message'      => 'required|string|max:1000',
+            'subject'      => 'nullable|required_unless:channel,sms|string|max:255',
+            'action_text'  => 'nullable|string|max:100',
+            'action_url'   => 'nullable|url:http,https|max:255',
+        ], [
+            'subject.required_unless'  => 'ইমেইলের জন্য বিষয় (subject) দিন।',
+            'custom_list.required_if'  => 'নিজের তালিকায় অন্তত একটি নম্বর বা ইমেইল দিন।',
         ]);
 
-        if ($validated['target_group'] === 'custom') {
-            $recipients = preg_split('/[\s,;]+/', (string) ($validated['custom_numbers'] ?? ''), -1, PREG_SPLIT_NO_EMPTY);
-        } else {
-            $recipients = $this->audience($validated['target_group'], 'phone')->pluck('contact')->all();
-        }
+        $channel = $v['channel'];
+        $group   = $v['target_group'];
+        $text    = $v['message'];
 
-        $recipients = $this->uniquePhones($recipients);
-
-        if (empty($recipients)) {
-            return back()->with('error', 'কোনো প্রাপকের মোবাইল নম্বর পাওয়া যায়নি!');
-        }
-
-        $title = 'Bulk SMS Broadcast (' . ucfirst($validated['target_group']) . ')';
-        return $this->startCampaign('broadcast', $recipients, $validated['message'], $validated['target_group'], $title);
-    }
-
-    /**
-     * Personalized Many-to-Many SMS: each person gets their own text with {name}, {role}, {phone}.
-     */
-    public function broadcastMany(Request $request): RedirectResponse
-    {
-        $validated = $request->validate([
-            'target_group'     => 'required|string|in:' . self::GROUPS,
-            'custom_data'      => 'nullable|string|max:200000',
-            'message_template' => 'required|string|max:1000',
-        ]);
-
-        $template = $validated['message_template'];
-        $people   = [];
-
-        if ($validated['target_group'] === 'custom') {
-            foreach (preg_split('/[\r\n]+/', (string) ($validated['custom_data'] ?? ''), -1, PREG_SPLIT_NO_EMPTY) as $line) {
+        // everyone the campaign is for: [phone, email, name, role]
+        $people = [];
+        if ($group === 'custom') {
+            foreach (preg_split('/[\r\n]+/', (string) $v['custom_list'], -1, PREG_SPLIT_NO_EMPTY) as $line) {
                 $parts = array_map('trim', explode('|', $line));
-                if (($parts[0] ?? '') !== '') {
-                    $people[] = ['phone' => $parts[0], 'name' => $parts[1] ?? '', 'role' => $parts[2] ?? ''];
+                $contacts = count($parts) > 1 ? [$parts[0]] : preg_split('/[\s,;]+/', $parts[0], -1, PREG_SPLIT_NO_EMPTY);
+                foreach ($contacts as $c) {
+                    $isMail = str_contains($c, '@');
+                    $people[] = ['phone' => $isMail ? null : $c, 'email' => $isMail ? strtolower($c) : null, 'name' => $parts[1] ?? '', 'role' => $parts[2] ?? ''];
                 }
             }
         } else {
-            foreach ($this->audience($validated['target_group'], 'phone') as $row) {
-                $people[] = ['phone' => $row->contact, 'name' => $row->name, 'role' => $row->role];
+            $field = $channel === 'both' ? 'both' : ($channel === 'email' ? 'email' : 'phone');
+            foreach ($this->audience($group, $field) as $r) {
+                $people[] = ['phone' => $r->phone, 'email' => $r->email, 'name' => (string) $r->name, 'role' => (string) $r->role];
             }
         }
 
-        $messages = [];
+        $fill = fn (array $p) => str_replace(
+            ['{name}', '{role}', '{phone}'],
+            [$p['name'] !== '' ? $p['name'] : 'সম্মানিত গ্রাহক', $p['role'] !== '' ? ucfirst($p['role']) : 'ইউজার', (string) $p['phone']],
+            $text
+        );
+        $labels = ['all' => 'সবাই', 'customers' => 'গ্রাহক', 'authors' => 'লেখক', 'publishers' => 'প্রকাশক', 'sellers' => 'বিক্রেতা', 'libraries' => 'পাঠাগার', 'custom' => 'নিজের তালিকা'];
+        $title = trim(($v['subject'] ?? '') !== '' ? $v['subject'] : mb_substr($text, 0, 40)) . ' (' . ($labels[$group] ?? $group) . ')';
+
+        $smsPeople = array_values(array_filter($people, fn ($p) => !empty($p['phone'])));
+        $mailPeople = [];
         foreach ($people as $p) {
-            $messages[] = [
-                'to'      => $p['phone'],
-                'message' => str_replace(
-                    ['{name}', '{role}', '{phone}'],
-                    [$p['name'] ?: 'সম্মানিত গ্রাহক', $p['role'] ? ucfirst($p['role']) : 'ইউজার', $p['phone']],
-                    $template
-                ),
-            ];
+            if (!empty($p['email']) && filter_var($p['email'], FILTER_VALIDATE_EMAIL)) {
+                $mailPeople[strtolower($p['email'])] = $p;
+            }
         }
 
-        if (empty($messages)) {
-            return back()->with('error', 'কোনো প্রাপকের তথ্য পাওয়া যায়নি!');
+        if ($channel !== 'email' && !$smsPeople && ($channel === 'sms' || !$mailPeople)) {
+            return back()->withInput()->with('error', 'কোনো প্রাপকের মোবাইল নম্বর পাওয়া যায়নি।');
+        }
+        if ($channel === 'email' && !$mailPeople) {
+            return back()->withInput()->with('error', 'কোনো প্রাপকের ইমেইল ঠিকানা পাওয়া যায়নি।');
         }
 
-        $title = 'Personalized SMS (' . ucfirst($validated['target_group']) . ')';
-        return $this->startCampaign('many', $messages, $template, $validated['target_group'], $title);
+        $response = back();
+        // SMS first: it only queues the campaign, so it is quick
+        if ($channel !== 'email' && $smsPeople) {
+            if (preg_match('/\{(name|role|phone)\}/u', $text)) {
+                $messages = [];
+                foreach ($smsPeople as $p) {
+                    $messages[PhoneNormalizer::toE164((string) $p['phone'])] = ['to' => $p['phone'], 'message' => $fill($p)];
+                }
+                $response = $this->startCampaign('many', array_values($messages), $text, $group, 'SMS · ' . $title);
+            } else {
+                $response = $this->startCampaign('broadcast', $this->uniquePhones(array_column($smsPeople, 'phone')), $text, $group, 'SMS · ' . $title);
+            }
+        }
+
+        if ($channel !== 'sms' && $mailPeople) {
+            $this->allowLongRun();
+            // a broadcast e-mail is one text for all: the shortcodes get a neutral word
+            $body = str_replace(['{name}', '{role}', '{phone}'], ['সম্মানিত পাঠক', '', ''], $text);
+            $result = EmailService::sendBroadcast(
+                recipients: array_keys($mailPeople),
+                subject: $v['subject'],
+                body: $body,
+                actionText: $v['action_text'] ?? null,
+                actionUrl: $v['action_url'] ?? null
+            );
+            $this->accessService->log('email_bulk_broadcast', "বাল্ক ইমেইল ({$group}) — সফল: {$result['sent']}/{$result['total']}");
+            $this->logCampaign('email', $group, $result['total'], $result['sent'], $result['failed'], $v['subject'], $body);
+
+            $note = "ইমেইল: {$result['sent']}/{$result['total']} জনকে পাঠানো হয়েছে" . ($result['failed'] > 0 ? " ({$result['failed']}টি ব্যর্থ)" : '') . '।';
+            session()->flash('success', trim($note . ' ' . (string) session('success')));
+        }
+
+        return $response;
     }
 
-    /**
-     * Update SMS gateway settings. A blank API key keeps the saved one.
-     */
     /**
      * Is the gateway working? Built from the last balance answer and the last failed sends, so the page can
      * say what is wrong (wrong key, IP not whitelisted, no balance…) and how to fix it.
@@ -287,6 +309,7 @@ class AdminSmsController extends Controller
         }
     }
 
+    /** Save the SMS gateway settings. A blank API key keeps the saved one. */
     public function updateSettings(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -368,52 +391,6 @@ class AdminSmsController extends Controller
             : back()->with('error', 'ইমেইল পাঠানো যায়নি: ' . $res['message']);
     }
 
-    /**
-     * Broadcast bulk email to target user group or custom email list.
-     */
-    public function broadcastEmail(Request $request): RedirectResponse
-    {
-        $validated = $request->validate([
-            'target_group'  => 'required|string|in:' . self::GROUPS,
-            'custom_emails' => 'nullable|string|max:200000',
-            'subject'       => 'required|string|max:255',
-            'body_content'  => 'required|string|max:10000',
-            'action_text'   => 'nullable|string|max:100',
-            'action_url'    => 'nullable|url:http,https|max:255',
-        ]);
-
-        if ($validated['target_group'] === 'custom') {
-            $recipients = preg_split('/[\s,;]+/', (string) ($validated['custom_emails'] ?? ''), -1, PREG_SPLIT_NO_EMPTY);
-        } else {
-            $recipients = $this->audience($validated['target_group'], 'email')->pluck('contact')->all();
-        }
-
-        $recipients = array_values(array_unique(array_map('strtolower', array_filter(array_map('trim', $recipients)))));
-
-        if (empty($recipients)) {
-            return back()->with('error', 'কোনো প্রাপকের ইমেইল ঠিকানা পাওয়া যায়নি!');
-        }
-
-        $this->allowLongRun();
-        $result = EmailService::sendBroadcast(
-            recipients: $recipients,
-            subject: $validated['subject'],
-            body: $validated['body_content'],
-            actionText: $validated['action_text'] ?? null,
-            actionUrl: $validated['action_url'] ?? null
-        );
-
-        $this->accessService->log('email_bulk_broadcast', "বাল্ক ইমেইল ({$validated['target_group']}) — সফল: {$result['sent']}/{$result['total']}");
-
-        $this->logCampaign('email', $validated['target_group'], $result['total'], $result['sent'], $result['failed'], $validated['subject'], $validated['body_content']);
-
-        $msg = "সফলভাবে {$result['sent']} জন প্রাপকের কাছে ইমেইল পাঠানো হয়েছে।";
-        if ($result['failed'] > 0) {
-            $msg .= " ({$result['failed']} টি ব্যর্থ)";
-        }
-
-        return back()->with('success', $msg);
-    }
 
     /**
      * Update SMTP server settings. A blank password keeps the saved one.
@@ -493,49 +470,6 @@ class AdminSmsController extends Controller
         return $res['success']
             ? back()->with('success', 'টেস্ট ওটিপি সফলভাবে পাঠানো হয়েছে!')
             : back()->with('error', 'ওটিপি পাঠাতে সমস্যা হয়েছে। ফোন বা ইমেইল গেটওয়ে সেটিংস চেক করুন।');
-    }
-
-    /**
-     * Dual-channel campaign: SMS and Email at the same time.
-     */
-    public function broadcastDual(Request $request): RedirectResponse
-    {
-        $validated = $request->validate([
-            'target_group' => 'required|string|in:all,customers,authors,publishers,sellers,libraries',
-            'subject'      => 'required|string|max:255',
-            'message'      => 'required|string|max:1000',
-            'action_text'  => 'nullable|string|max:100',
-            'action_url'   => 'nullable|url:http,https|max:255',
-            'channel'      => 'required|string|in:both,sms,email',
-        ]);
-
-        $recipients = [];
-        foreach ($this->audience($validated['target_group'], 'both') as $row) {
-            $recipients[] = ['phone' => $row->phone, 'email' => $row->email, 'name' => $row->name];
-        }
-
-        if (empty($recipients)) {
-            return back()->with('error', 'কোনো প্রাপক পাওয়া যায়নি!');
-        }
-
-        $this->allowLongRun();
-        $summary = CommunicationService::sendMarketingCampaign(
-            recipients: $recipients,
-            subject: $validated['subject'],
-            message: $validated['message'],
-            actionText: $validated['action_text'] ?? null,
-            actionUrl: $validated['action_url'] ?? null,
-            channel: $validated['channel']
-        );
-
-        $this->accessService->log('dual_broadcast_sent', "যৌথ ক্যাম্পেইন ({$validated['target_group']}) — SMS: {$summary['sms_sent']}, Email: {$summary['email_sent']}");
-
-        $total  = ($validated['channel'] !== 'email' ? $summary['sms_total'] : 0) + ($validated['channel'] !== 'sms' ? $summary['email_total'] : 0);
-        $sent   = $summary['sms_sent'] + $summary['email_sent'];
-
-        $this->logCampaign($validated['channel'], $validated['target_group'], $total, $sent, max(0, $total - $sent), $validated['subject'], $validated['message'], 'dual_marketing');
-
-        return back()->with('success', "ক্যাম্পেইন সম্পন্ন: SMS সফল {$summary['sms_sent']}, Email সফল {$summary['email_sent']}");
     }
 
     /**

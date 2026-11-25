@@ -877,17 +877,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/', 'index')->name('index');
         Route::get('/balance', 'getBalance')->middleware('throttle:30,1')->name('balance');
         Route::post('/send-test', 'sendTest')->middleware('throttle:10,1')->name('send-test');
-        Route::post('/broadcast', 'broadcast')->middleware('throttle:6,1')->name('broadcast');
-        Route::post('/broadcast-many', 'broadcastMany')->middleware('throttle:6,1')->name('broadcast-many');
+        Route::post('/campaign', 'campaign')->middleware('throttle:6,1')->name('campaign');
         Route::post('/campaigns/tick', 'campaignsTick')->middleware('throttle:40,1')->name('campaigns.tick');
         Route::post('/campaigns/{campaign}/action', 'campaignAction')->middleware('throttle:20,1')->name('campaigns.action');
         Route::post('/settings', 'updateSettings')->name('settings');
         Route::post('/settings/verify', 'verifySettings')->middleware('throttle:10,1')->name('settings.verify');
         Route::post('/send-email-test', 'sendEmailTest')->middleware('throttle:10,1')->name('send-email-test');
-        Route::post('/broadcast-email', 'broadcastEmail')->middleware('throttle:6,1')->name('broadcast-email');
         Route::post('/smtp-settings', 'updateSmtpSettings')->name('smtp-settings');
         Route::post('/send-otp-test', 'sendOtpTest')->middleware('throttle:10,1')->name('send-otp-test');
-        Route::post('/broadcast-dual', 'broadcastDual')->middleware('throttle:6,1')->name('broadcast-dual');
         Route::get('/transactions/export', 'exportTransactions')->name('transactions.export');
         Route::post('/restrictions/release', 'releaseNumber')->name('restrictions.release');
         Route::post('/restrictions/block', 'blockNumber')->name('restrictions.block');

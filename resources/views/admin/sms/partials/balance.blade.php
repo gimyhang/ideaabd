@@ -28,12 +28,7 @@
 <div class="row g-3 mb-4">
     <div class="col-12 col-lg-4">
         <div class="sms-panel sms-balance-card h-100">
-            <div class="d-flex justify-content-between align-items-start">
-                <span class="sms-label">গেটওয়ে ব্যালান্স</span>
-                <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="refreshSmsBalance()" title="রিফ্রেশ">
-                    <i class="fa-solid fa-rotate-right" id="refreshIconCard"></i>
-                </button>
-            </div>
+            <span class="sms-label">গেটওয়ে ব্যালান্স</span>
 
             @if($balance !== null)
                 <div class="sms-balance-num" data-sms-balance>{{ number_format($balance) }}</div>
