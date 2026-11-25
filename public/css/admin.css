@@ -2740,3 +2740,8 @@ body.dark-mode .form-control, body.dark-mode .form-select { border-color: #33415
     .table-responsive:has(> #itemsTable) { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
     .table-responsive:has(> #itemsTable):has(.book-search-dropdown[style*="display: block"]) { padding-bottom: 330px; }
 }
+
+/* Recently opened pages (sidebar): hidden until there is history; long names are cut */
+.adm-side__favorites[hidden] { display: none !important; }
+#admRecent .adm-side__fav-chip { max-width: 100%; }
+#admRecent .adm-side__fav-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 9.5rem; }

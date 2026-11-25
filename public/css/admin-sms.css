@@ -306,3 +306,66 @@ a.sms-glance-item:hover { border-color: var(--sms-accent); }
 .sms-camp-nums b { color: var(--sms-ink); font-weight: 600; }
 .sms-camp-note { font-size: 0.78rem; margin-top: 0.3rem; color: #b45309; overflow-wrap: anywhere; }
 @media (max-width: 575.98px) { .sms-camp-actions { margin-left: 0; width: 100%; } }
+
+/* ---------- Gateway health banner ---------- */
+.sms-health {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    padding: 0.95rem 1.1rem;
+    border-radius: var(--sms-radius);
+    border: 1px solid var(--sms-line);
+    background: var(--sms-surface);
+    border-left-width: 4px;
+}
+.sms-health--ok   { border-left-color: #16a34a; }
+.sms-health--warn { border-left-color: #f59e0b; background: #fffbeb; }
+.sms-health--err  { border-left-color: #dc2626; background: #fef2f2; border-color: #fecaca; }
+.sms-health__ic {
+    width: 2.5rem; height: 2.5rem; flex-shrink: 0;
+    display: grid; place-items: center;
+    border-radius: 0.7rem; font-size: 1.15rem;
+}
+.sms-health--ok .sms-health__ic   { background: #dcfce7; color: #16a34a; }
+.sms-health--warn .sms-health__ic { background: #fef3c7; color: #b45309; }
+.sms-health--err .sms-health__ic  { background: #fee2e2; color: #dc2626; }
+.sms-health__body { flex: 1; min-width: 0; }
+.sms-health__title { font-weight: 700; color: var(--sms-ink); display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.sms-health__chip { font-size: 0.72rem; font-weight: 600; padding: 0.1rem 0.55rem; border-radius: 999px; background: #fee2e2; color: #b91c1c; }
+.sms-health__fix { font-size: 0.85rem; color: #475569; margin-top: 0.15rem; }
+.sms-health__note { font-size: 0.78rem; color: #b91c1c; margin-top: 0.35rem; }
+.sms-health__act { display: flex; gap: 0.4rem; flex-shrink: 0; align-items: center; }
+
+/* ---------- Settings: key check ---------- */
+.sms-verify-out:empty { display: none; }
+.sms-verify-out { padding: 0.5rem 0.75rem; border-radius: 0.6rem; }
+.sms-verify-out.is-ok   { background: #f0fdf4; color: #15803d; }
+.sms-verify-out.is-bad  { background: #fef2f2; color: #b91c1c; }
+.sms-verify-out.is-warn { background: #fffbeb; color: #92400e; }
+
+/* ---------- History: status chips + rows ---------- */
+.sms-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.85rem 1.25rem 0; }
+.sms-chip {
+    font-size: 0.78rem; font-weight: 600; padding: 0.3rem 0.8rem; border-radius: 999px;
+    border: 1px solid var(--sms-line); color: var(--sms-muted); text-decoration: none; transition: var(--sms-ease);
+}
+.sms-chip:hover { color: var(--sms-ink); border-color: #cbd5e1; }
+.sms-chip.is-on { background: var(--sms-ink); border-color: var(--sms-ink); color: #fff; }
+.sms-table--tx tbody tr { transition: background 0.12s; }
+.sms-table--tx tr.sms-tx--failed td:first-child { box-shadow: inset 3px 0 0 #ef4444; }
+.sms-table--tx tr.sms-tx--sent td:first-child   { box-shadow: inset 3px 0 0 #22c55e; }
+.sms-kpi, .sms-balance-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.sms-kpi:hover, .sms-balance-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06); }
+
+@media (max-width: 767.98px) {
+    .sms-health { flex-wrap: wrap; }
+    .sms-health__act { width: 100%; justify-content: flex-end; }
+    .sms-table--tx thead { display: none; }
+    .sms-table--tx, .sms-table--tx tbody, .sms-table--tx tr, .sms-table--tx td { display: block; width: 100%; }
+    .sms-table--tx tr { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem 0.8rem; padding: 0.8rem 1rem; border-bottom: 1px solid var(--sms-line); }
+    .sms-table--tx td { border: 0 !important; padding: 0 !important; text-align: left !important; box-shadow: none !important; }
+    .sms-table--tx td[data-l]::before { content: attr(data-l); display: block; font-size: 0.68rem; color: #94a3b8; font-weight: 600; }
+    .sms-table--tx td.sms-msg-cell { grid-column: 1 / -1; max-width: none; }
+    .sms-table--tx tr.sms-tx--failed { border-left: 3px solid #ef4444; }
+    .sms-table--tx tr.sms-tx--sent { border-left: 3px solid #22c55e; }
+}

@@ -391,7 +391,7 @@ class SmsGuard
                         'cost'             => \DB::raw('segments * ' . (float) config('sms.cost_per_sms', 0.35)),
                         'provider'         => $outcome['provider'] ?? null,
                         'response_code'    => isset($outcome['response_code']) ? Str::limit((string) $outcome['response_code'], 10, '') : null,
-                        'gateway_response' => Str::limit((string) ($outcome['message'] ?? ''), 480, ''),
+                        'gateway_response' => Str::limit(SmsService::scrub((string) ($outcome['message'] ?? '')), 480, ''),
                     ]);
                 } else {
                     $query->update([
@@ -399,7 +399,7 @@ class SmsGuard
                         'reason'           => !empty($outcome['uncertain']) ? 'no_answer' : 'gateway_error', // no_answer: may have been delivered
                         'provider'         => $outcome['provider'] ?? null,
                         'response_code'    => isset($outcome['response_code']) ? Str::limit((string) $outcome['response_code'], 10, '') : null,
-                        'gateway_response' => Str::limit((string) ($outcome['message'] ?? $outcome['error'] ?? ''), 480, ''),
+                        'gateway_response' => Str::limit(SmsService::scrub((string) ($outcome['message'] ?? $outcome['error'] ?? '')), 480, ''),
                     ]);
                 }
             }

@@ -4,7 +4,7 @@
 @section('heading', 'বাল্ক মেসেজ')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/admin-sms.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin-sms.css') }}?v={{ @filemtime(public_path('css/admin-sms.css')) ?: 1 }}">
 @endpush
 
 @section('breadcrumb')
@@ -45,6 +45,8 @@
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
+
+    @include('admin.sms.partials.health')
 
     {{-- Bulk SMS campaigns: live progress (filled and refreshed by admin-sms.js) --}}
     <div id="smsCampaigns" class="sms-campaigns mb-4" data-tick-url="{{ route('admin.sms.campaigns.tick') }}" data-action-url="{{ url('admin/sms/campaigns/__ID__/action') }}" @if(empty($liveCampaigns)) hidden @endif>
@@ -98,7 +100,7 @@
                 <a href="#tab-balance" class="sms-glance-item" onclick="switchMessagingTab('tab-balance-btn'); return false;">
                     <span class="sms-label">ব্যালান্স</span>
                     <strong data-sms-balance>{{ $balanceInfo['balance'] !== null ? number_format($balanceInfo['balance']) : '—' }}</strong>
-                    <small class="text-muted" data-sms-balance-status>{{ $balanceInfo['balance'] !== null ? 'SMS' : ($balanceInfo['error'] ?? 'অপ্রাপ্য') }}</small>
+                    <small class="text-muted" data-sms-balance-status>{{ $balanceInfo['balance'] !== null ? 'SMS' : (($health['state'] ?? '') === 'error' ? $health['title'] : 'অপ্রাপ্য') }}</small>
                 </a>
                 <div class="sms-glance-item">
                     <span class="sms-label">আজ পাঠানো</span>
@@ -381,8 +383,13 @@
 
                                         <div class="mb-3">
                                             <label class="form-label fw-semibold text-dark small">API Key / Token</label>
-                                            <input type="password" name="api_key" class="form-control sms-form-control font-monospace" autocomplete="new-password" placeholder="{{ $credentials['api_key_masked'] ?: 'API Key দিন' }}">
-                                            <div class="form-text">খালি রাখলে সংরক্ষিত কী-ই থাকবে। কী কখনো পেজে দেখানো হয় না।</div>
+                                            <div class="input-group">
+                                                <input type="password" name="api_key" id="smsApiKeyInput" class="form-control sms-form-control font-monospace" autocomplete="new-password" placeholder="{{ $credentials['api_key_masked'] ?: 'API Key দিন' }}">
+                                                <button type="button" class="btn btn-outline-secondary" data-sms-toggle-key title="দেখুন / লুকান" aria-label="দেখুন / লুকান"><i class="fa-regular fa-eye"></i></button>
+                                                <button type="button" class="btn btn-outline-primary fw-semibold" id="smsVerifyKey" data-url="{{ route('admin.sms.settings.verify') }}"><i class="fa-solid fa-plug-circle-check me-1"></i>যাচাই</button>
+                                            </div>
+                                            <div class="sms-verify-out small mt-2" id="smsVerifyOut" aria-live="polite"></div>
+                                            <div class="form-text">BulkSMSBD প্যানেল → API Key থেকে কপি করুন। নতুন key সংরক্ষণের আগে স্বয়ংক্রিয়ভাবে যাচাই হয়; ভুল হলে পুরনোটাই থাকবে। খালি রাখলে সংরক্ষিত key-ই থাকবে।</div>
                                         </div>
 
                                         <div class="mb-4">
@@ -391,7 +398,7 @@
                                         </div>
 
                                         <button type="submit" class="btn btn-primary rounded-pill px-4">
-                                            <i class="fa-solid fa-floppy-disk me-1.5"></i> কনফিগারেশন সেভ করুন
+                                            <i class="fa-solid fa-floppy-disk me-1.5"></i> যাচাই ও সংরক্ষণ
                                         </button>
                                     </form>
                                 </div>
@@ -1212,5 +1219,5 @@
     window.smsCostPerSms = {{ (float) $guard['cost'] }};
     window.smsCampaigns = @json($liveCampaigns);
 </script>
-<script src="{{ asset('js/admin-sms.js') }}"></script>
+<script src="{{ asset('js/admin-sms.js') }}?v={{ @filemtime(public_path('js/admin-sms.js')) ?: 1 }}"></script>
 @endpush

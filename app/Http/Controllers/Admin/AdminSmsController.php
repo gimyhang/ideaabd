@@ -67,7 +67,10 @@ class AdminSmsController extends Controller
             ? $this->transactionQuery($filters)->paginate(25, ['*'], 'tx')->withQueryString()
             : null;
 
+        $health = $this->gatewayHealth($balanceInfo, $tablesReady);
+
         return view('admin.sms.index', [
+            'health'         => $health,
             // the key and the SMTP password never leave the server in a page
             'credentials'    => $credentials + ['api_key_masked' => SmsService::maskSecret($credentials['api_key'] ?? '')],
             'balanceInfo'    => $balanceInfo,
@@ -120,6 +123,15 @@ class AdminSmsController extends Controller
         $this->accessService->log('sms_test_sent', 'টেস্ট এসএমএস: ' . $this->maskPhone($request->input('phone')) . ' | স্ট্যাটাস: ' . (!empty($res['success']) ? 'সফল' : 'ব্যর্থ'));
 
         if ($request->wantsJson() || $request->ajax()) {
+            // the raw gateway answer may repeat the API key
+            foreach (['message', 'error', 'raw_response'] as $k) {
+                if (isset($res[$k]) && is_string($res[$k])) {
+                    $res[$k] = SmsService::scrub($res[$k]);
+                }
+            }
+            if (empty($res['success']) && ($why = SmsService::diagnose($res['response_code'] ?? null, (string) ($res['message'] ?? $res['error'] ?? '')))) {
+                $res['message'] = $why[1] . ' — ' . $why[2];
+            }
             return response()->json($res, !empty($res['success']) ? 200 : 422);
         }
 
@@ -127,7 +139,9 @@ class AdminSmsController extends Controller
             return back()->with('success', 'টেস্ট এসএমএস সফলভাবে পাঠানো হয়েছে! গেটওয়ে রেসপন্স: ' . ($res['message'] ?? 'OK'));
         }
 
-        return back()->with('error', 'এসএমএস পাঠাতে সমস্যা হয়েছে: ' . ($res['message'] ?? ($res['error'] ?? 'Unknown Error')));
+        $why = SmsService::diagnose($res['response_code'] ?? null, (string) ($res['message'] ?? $res['error'] ?? ''));
+
+        return back()->with('error', 'এসএমএস পাঠানো যায়নি: ' . ($why ? $why[1] . ' — ' . $why[2] : SmsService::scrub((string) ($res['message'] ?? ($res['error'] ?? 'Unknown Error')))));
     }
 
     /**
@@ -207,6 +221,72 @@ class AdminSmsController extends Controller
     /**
      * Update SMS gateway settings. A blank API key keeps the saved one.
      */
+    /**
+     * Is the gateway working? Built from the last balance answer and the last failed sends, so the page can
+     * say what is wrong (wrong key, IP not whitelisted, no balance…) and how to fix it.
+     */
+    private function gatewayHealth(array $balanceInfo, bool $tablesReady): array
+    {
+        $failed24 = 0;
+        $lastFail = null;
+        $lastSent = null;
+        if ($tablesReady) {
+            try {
+                $failed24 = SmsLog::where('status', 'failed')->where('created_at', '>=', now()->subDay())->count();
+                $lastFail = SmsLog::where('status', 'failed')->where('reason', 'gateway_error')->latest('id')->first(['id', 'response_code', 'gateway_response', 'created_at']);
+                $lastSent = SmsLog::where('status', 'sent')->latest('id')->value('created_at');
+            } catch (\Throwable) {
+            }
+        }
+
+        $diag = $balanceInfo['diagnosis'] ?? SmsService::diagnose($balanceInfo['response_code'] ?? null, (string) ($balanceInfo['error'] ?? ''));
+        // the balance call can pass while sending fails (e.g. sender id): look at the newest failure after the last success
+        if (!$diag && $lastFail && (!$lastSent || $lastFail->created_at > \Illuminate\Support\Carbon::parse($lastSent))) {
+            $diag = SmsService::diagnose($lastFail->response_code, (string) $lastFail->gateway_response);
+        }
+
+        $ok = ($balanceInfo['balance'] ?? null) !== null && !$diag;
+        $low = $ok && (float) $balanceInfo['balance'] < 100;
+
+        return [
+            'state'     => $diag ? 'error' : ($ok ? ($low ? 'warn' : 'ok') : 'unknown'),
+            'kind'      => $diag[0] ?? ($low ? 'balance' : null),
+            'title'     => $diag[1] ?? ($ok ? ($low ? 'ব্যালান্স কম' : 'গেটওয়ে সচল') : 'গেটওয়ের অবস্থা জানা যায়নি'),
+            'fix'       => $diag[2] ?? ($low ? 'শীঘ্রই রিচার্জ করুন, নইলে অর্ডার ও OTP SMS বন্ধ হয়ে যাবে।' : ($ok ? null : SmsService::scrub((string) ($balanceInfo['error'] ?? 'ব্যালান্স রিফ্রেশ করে দেখুন।')))),
+            'failed24'  => $failed24,
+            'last_sent' => $lastSent,
+        ];
+    }
+
+    /** Try a key (or the saved one) against the balance API without saving it. */
+    public function verifySettings(Request $request): JsonResponse
+    {
+        $request->validate(['api_key' => 'nullable|string|max:255']);
+        $key = trim((string) $request->input('api_key')) ?: (SmsService::getCredentials()['api_key'] ?? '');
+
+        return response()->json($this->probeKey($key));
+    }
+
+    private function probeKey(string $key): array
+    {
+        if ($key === '') {
+            return ['ok' => false, 'message' => 'API key দিন।'];
+        }
+        try {
+            $res = \Illuminate\Support\Facades\Http::timeout(6)->asForm()->post(SmsService::DEFAULT_BAL_URL, ['api_key' => $key]);
+            $json = is_array($res->json()) ? $res->json() : [];
+            $bal = $json['balance'] ?? ($json['balance_sms'] ?? null);
+            if (is_numeric($bal)) {
+                return ['ok' => true, 'balance' => (float) $bal, 'message' => 'key সঠিক — ব্যালান্স ' . number_format((float) $bal, 2)];
+            }
+            $diag = SmsService::diagnose($json['response_code'] ?? null, (string) ($json['error_message'] ?? ''));
+
+            return ['ok' => false, 'kind' => $diag[0] ?? null, 'message' => $diag ? $diag[1] . ' — ' . $diag[2] : SmsService::scrub((string) ($json['error_message'] ?? SmsService::getResponseCodeMessage($json['response_code'] ?? null, 'গেটওয়ে থেকে উত্তর পাওয়া যায়নি')))];
+        } catch (\Throwable) {
+            return ['ok' => null, 'message' => 'গেটওয়েতে সংযোগ করা যায়নি — পরে আবার চেষ্টা করুন।'];
+        }
+    }
+
     public function updateSettings(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -219,8 +299,18 @@ class AdminSmsController extends Controller
         $saved = SiteSetting::get('sms_gateway_settings', []);
         $saved = is_array($saved) ? $saved : [];
 
+        // a new BulkSMSBD key is tried first: a wrong key would stop every order / OTP SMS
+        $isBulk = $validated['provider'] === 'bulksmsbd' || str_contains($validated['url'], 'bulksmsbd.net');
+        if (!empty($validated['api_key']) && $isBulk && !$request->boolean('skip_verify')) {
+            $probe = $this->probeKey(trim($validated['api_key']));
+            if ($probe['ok'] === false && in_array($probe['kind'] ?? null, ['key', 'account'], true)) {
+                return back()->with('error', 'সংরক্ষণ করা হয়নি: ' . $probe['message']);
+            }
+        }
+
         // blank = keep the saved key; no saved key = the server keeps using the .env one
         if (!empty($validated['api_key'])) {
+            $validated['api_key'] = trim($validated['api_key']);
             $validated['api_key'] = Secret::seal($validated['api_key']);
         } elseif (!empty($saved['api_key'])) {
             $validated['api_key'] = $saved['api_key'];
@@ -238,7 +328,11 @@ class AdminSmsController extends Controller
 
         $this->accessService->log('sms_settings_updated', "এসএমএস গেটওয়ে কনফিগারেশন আপডেট করা হয়েছে ({$validated['provider']})");
 
-        return back()->with('success', 'এসএমএস গেটওয়ে কনফিগারেশন সংরক্ষিত হয়েছে।');
+        $check = SmsService::checkBalance(true);
+
+        return back()->with($check['balance'] !== null ? 'success' : 'warning', $check['balance'] !== null
+            ? 'গেটওয়ে সংরক্ষিত ও সচল — ব্যালান্স ' . number_format((float) $check['balance'], 2)
+            : 'সংরক্ষিত হয়েছে, কিন্তু গেটওয়ে এখনো সাড়া দিচ্ছে না: ' . ($check['error'] ?? ''));
     }
 
     /**
@@ -562,7 +656,7 @@ class AdminSmsController extends Controller
                 foreach ($rows as $r) {
                     $this->csvRow($out, [
                         $r->created_at?->format('Y-m-d H:i:s'), $r->phone, $r->purpose, $r->source, $r->status, $r->reason,
-                        $r->segments, $r->cost, $r->gateway_response, $r->campaign, $r->message,
+                        $r->segments, $r->cost, SmsService::scrub($r->gateway_response), $r->campaign, $r->message,
                     ]);
                 }
             });

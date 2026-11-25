@@ -882,6 +882,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/campaigns/tick', 'campaignsTick')->middleware('throttle:40,1')->name('campaigns.tick');
         Route::post('/campaigns/{campaign}/action', 'campaignAction')->middleware('throttle:20,1')->name('campaigns.action');
         Route::post('/settings', 'updateSettings')->name('settings');
+        Route::post('/settings/verify', 'verifySettings')->middleware('throttle:10,1')->name('settings.verify');
         Route::post('/send-email-test', 'sendEmailTest')->middleware('throttle:10,1')->name('send-email-test');
         Route::post('/broadcast-email', 'broadcastEmail')->middleware('throttle:6,1')->name('broadcast-email');
         Route::post('/smtp-settings', 'updateSmtpSettings')->name('smtp-settings');
@@ -1099,11 +1100,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::delete('/{translation}', 'destroy')->name('destroy')->middleware('throttle:60,1,tr-delete');
     });
 
-    // Global Communication Hub, Transactional Email & WhatsApp Cloud API
+    // Inquiries from the website contact form (sending SMS / e-mail lives in admin/sms only)
     Route::prefix('communication')->name('communication.')->controller(\App\Http\Controllers\Admin\CommunicationAdminController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::put('/templates/{template}', 'updateTemplate')->name('templates.update');
-        Route::post('/test-send', 'sendTest')->name('test-send');
+        Route::patch('/{log}/status', 'updateStatus')->name('status');
+        Route::delete('/{log}', 'destroy')->name('destroy');
     });
 
     // Admin Profile & Multi-Dimensional Customization Hub

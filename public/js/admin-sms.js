@@ -413,8 +413,8 @@ function escapeHtml(value) {
 /**
  * Refresh Live Gateway SMS Balance via AJAX
  */
-function refreshSmsBalance() {
-    const icons = document.querySelectorAll('#refreshIcon, #refreshIconCard');
+function refreshSmsBalance(reload) {
+    const icons = document.querySelectorAll('#refreshIcon, #refreshIconCard, #refreshIconHealth');
     icons.forEach(i => i.classList.add('fa-spin'));
 
     fetch('/admin/sms/balance?fresh=1', {
@@ -423,6 +423,7 @@ function refreshSmsBalance() {
     .then(r => r.json())
     .then(data => {
         icons.forEach(i => i.classList.remove('fa-spin'));
+        if (reload === true) { location.reload(); return; } // the health banner is built on the server
         const ok = data.balance !== null && data.balance !== undefined;
 
         document.querySelectorAll('[data-sms-balance]').forEach(el => {
@@ -717,4 +718,41 @@ function initAjaxDispatchers() {
             });
         });
     });
+})();
+
+/* Gateway settings: try the key before saving, show / hide it, jump to settings from the health banner */
+(function () {
+    const verify = document.getElementById('smsVerifyKey');
+    const out = document.getElementById('smsVerifyOut');
+    const input = document.getElementById('smsApiKeyInput');
+    if (verify && out) {
+        verify.addEventListener('click', function () {
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            verify.disabled = true;
+            out.className = 'sms-verify-out small mt-2 text-muted';
+            out.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> গেটওয়েতে যাচাই হচ্ছে…';
+            const body = new FormData();
+            body.append('api_key', input ? input.value.trim() : '');
+            fetch(verify.dataset.url, { method: 'POST', body, headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(d => {
+                    out.className = 'sms-verify-out small mt-2 ' + (d.ok ? 'is-ok' : (d.ok === false ? 'is-bad' : 'is-warn'));
+                    out.innerHTML = '<i class="fa-solid ' + (d.ok ? 'fa-circle-check' : 'fa-circle-xmark') + ' me-1"></i>' + escapeHtml(d.message || '') + (input && !input.value.trim() ? ' <span class="text-muted">(সংরক্ষিত key)</span>' : '');
+                })
+                .catch(() => { out.className = 'sms-verify-out small mt-2 is-warn'; out.textContent = 'যাচাই করা যায়নি — আবার চেষ্টা করুন।'; })
+                .finally(() => { verify.disabled = false; });
+        });
+    }
+    document.querySelectorAll('[data-sms-toggle-key]').forEach(btn => btn.addEventListener('click', function () {
+        if (!input) return;
+        input.type = input.type === 'password' ? 'text' : 'password';
+        btn.innerHTML = input.type === 'password' ? '<i class="fa-regular fa-eye"></i>' : '<i class="fa-regular fa-eye-slash"></i>';
+    }));
+    document.querySelectorAll('[data-sms-goto-settings]').forEach(btn => btn.addEventListener('click', function () {
+        const main = document.getElementById('tab-sms-btn');
+        const sub = document.getElementById('pills-sms-settings-tab');
+        if (main && window.bootstrap) bootstrap.Tab.getOrCreateInstance(main).show();
+        if (sub && window.bootstrap) bootstrap.Tab.getOrCreateInstance(sub).show();
+        setTimeout(() => { if (input) { input.scrollIntoView({ behavior: 'smooth', block: 'center' }); input.focus(); } }, 250);
+    }));
 })();

@@ -47,7 +47,7 @@
             @else
                 <div class="sms-balance-num text-muted" data-sms-balance>—</div>
                 <div class="small text-danger" data-sms-balance-status>
-                    <i class="fa-solid fa-triangle-exclamation me-1"></i> {{ $balanceInfo['error'] ?? 'ব্যালান্স পাওয়া যায়নি' }}
+                    <i class="fa-solid fa-triangle-exclamation me-1"></i> {{ ($health['state'] ?? '') === 'error' ? $health['title'] : \App\Services\SmsService::scrub($balanceInfo['error'] ?? 'ব্যালান্স পাওয়া যায়নি') }}
                 </div>
             @endif
 
@@ -94,6 +94,11 @@
             </a>
         </div>
 
+        <div class="sms-chips">
+            @foreach(['' => 'সব', 'sent' => 'সফল', 'failed' => 'ব্যর্থ', 'blocked' => 'সীমিত', 'rejected' => 'বাদ'] as $k => $label)
+                <a href="{{ route('admin.sms.index', array_filter(['status' => $k ?: null] + array_diff_key($filters ?? [], ['status' => 1]))) }}#tab-balance" class="sms-chip {{ ($filters['status'] ?? '') === $k ? 'is-on' : '' }}">{{ $label }}</a>
+            @endforeach
+        </div>
         <form method="GET" action="{{ route('admin.sms.index') }}#tab-balance" class="sms-filters">
             <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" class="form-control form-control-sm" placeholder="নম্বর খুঁজুন">
             <select name="status" class="form-select form-select-sm">
@@ -117,7 +122,7 @@
         </form>
 
         <div class="table-responsive">
-            <table class="table sms-table align-middle mb-0">
+            <table class="table sms-table sms-table--tx align-middle mb-0">
                 <thead>
                     <tr>
                         <th>সময়</th>
@@ -132,25 +137,26 @@
                 <tbody>
                     @forelse($transactions as $tx)
                         @php [$statusLabel, $statusTone] = $statusMap[$tx->status] ?? [$tx->status, 'secondary']; @endphp
-                        <tr>
-                            <td class="text-nowrap small text-muted">{{ $tx->created_at->format('d M, h:i A') }}</td>
-                            <td class="font-monospace text-nowrap">{{ $localPhone($tx->phone) }}</td>
-                            <td>
+                        <tr class="sms-tx sms-tx--{{ $tx->status }}">
+                            <td class="text-nowrap small text-muted" data-l="সময়">{{ $tx->created_at->format('d M, h:i A') }}</td>
+                            <td class="font-monospace text-nowrap" data-l="নম্বর">{{ $localPhone($tx->phone) }}</td>
+                            <td data-l="ধরন">
                                 <span class="small">{{ $purposeMap[$tx->purpose] ?? $tx->purpose }}</span>
                                 <span class="d-block text-muted sms-xs">{{ $tx->source === 'admin' ? 'অ্যাডমিন' : 'সাইট' }}</span>
                             </td>
-                            <td>
+                            <td data-l="স্ট্যাটাস">
                                 <span class="badge rounded-pill text-bg-{{ $statusTone }}">{{ $statusLabel }}</span>
                                 @if($tx->reason)
                                     <span class="d-block text-muted sms-xs">{{ $reasonMap[$tx->reason] ?? $tx->reason }}</span>
                                 @endif
                             </td>
-                            <td class="text-end">{{ $tx->status === 'sent' ? $tx->segments : '—' }}</td>
-                            <td class="text-end">{{ $tx->status === 'sent' ? '৳' . number_format($tx->cost, 2) : '—' }}</td>
+                            <td class="text-end" data-l="পার্ট">{{ $tx->status === 'sent' ? $tx->segments : '—' }}</td>
+                            <td class="text-end" data-l="খরচ">{{ $tx->status === 'sent' ? '৳' . number_format($tx->cost, 2) : '—' }}</td>
                             <td class="sms-msg-cell">
                                 <div class="text-truncate" title="{{ $tx->message }}">{{ $tx->message }}</div>
                                 @if($tx->gateway_response && $tx->status !== 'sent')
-                                    <div class="text-danger sms-xs text-truncate" title="{{ $tx->gateway_response }}">{{ $tx->gateway_response }}</div>
+                                    @php $gw = \App\Services\SmsService::scrub($tx->gateway_response); $why = \App\Services\SmsService::diagnose($tx->response_code, $tx->gateway_response); @endphp
+                                    <div class="text-danger sms-xs text-truncate" title="{{ $gw }}">{{ $why ? $why[1] : $gw }}</div>
                                 @endif
                             </td>
                         </tr>

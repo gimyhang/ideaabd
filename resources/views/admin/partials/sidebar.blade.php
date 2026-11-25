@@ -19,7 +19,8 @@
         $otherPending = DB::selectOne('SELECT '
             . (\App\Support\SchemaCache::has('author_payout_requests') ? "(SELECT COUNT(*) FROM `author_payout_requests` WHERE `status` = 'pending')" : '0') . ' AS `payouts`, '
             . (\App\Support\SchemaCache::has('author_honorariums') ? "(SELECT COUNT(*) FROM `author_honorariums` WHERE `payment_status` = 'pending')" : '0') . ' AS `honorariums`, '
-            . (\App\Support\SchemaCache::has('password_reset_requests') ? "(SELECT COUNT(*) FROM `password_reset_requests` WHERE `status` = 'pending')" : '0') . ' AS `pw_reqs`'
+            . (\App\Support\SchemaCache::has('password_reset_requests') ? "(SELECT COUNT(*) FROM `password_reset_requests` WHERE `status` = 'pending')" : '0') . ' AS `pw_reqs`, '
+            . (\App\Support\SchemaCache::has('communication_logs') ? "(SELECT COUNT(*) FROM `communication_logs` WHERE `channel` = 'inquiry' AND `status` = 'delivered')" : '0') . ' AS `inquiries`'
         );
         return [
             'pending' => $adminPendingRegistrations ?? (int) ($userStats->total_pending ?? 0),
@@ -29,6 +30,7 @@
             'payouts' => (int) ($otherPending->payouts ?? 0),
             'honorariums' => (int) ($otherPending->honorariums ?? 0),
             'password_requests' => (int) ($otherPending->pw_reqs ?? 0),
+            'inquiries' => (int) ($otherPending->inquiries ?? 0),
         ];
     });
 
@@ -39,6 +41,7 @@
     $pendingPayouts = $sidebarBadges['payouts'] ?? 0;
     $pendingHonorariums = $sidebarBadges['honorariums'] ?? 0;
     $pendingPasswordRequests = $sidebarBadges['password_requests'] ?? 0;
+    $newInquiries = $sidebarBadges['inquiries'] ?? 0;
 
     $menu = [
         null => [
@@ -60,20 +63,23 @@
             ['route' => 'admin.subscriptions.index',    'icon' => 'crown',                'label' => 'Club'],
             ['route' => 'admin.ebook-sales-report',     'icon' => 'chart-pie',             'label' => 'Reports'],
             ['route' => 'admin.author-royalties.index', 'icon' => 'scale-balanced',       'label' => 'Royalties'],
-            ['route' => 'admin.author-payouts.index',   'icon' => 'hand-holding-dollar',  'label' => 'Payouts',
+            ['route' => 'admin.author-payouts.index',   'icon' => 'hand-holding-dollar',  'label' => 'Payouts', 'active' => ['admin.royalty-payout-logs'],
              'badge' => $pendingPayouts > 0 ? $pendingPayouts : null, 'badgeClass' => 'bg-warning text-dark'],
-            ['route' => 'admin.royalty-payout-logs',    'icon' => 'file-invoice-dollar',  'label' => 'Logs'],
         ],
+        // 'active' = other routes that light the same link (create / show / edit pages, sub-pages)
         'Purchases' => [
-            ['route' => 'admin.purchases.index',    'icon' => 'cart-flatbed',        'label' => 'Purchases'],
+            ['route' => 'admin.purchases.index',    'icon' => 'cart-flatbed',        'label' => 'Purchases',
+             'active' => ['admin.purchases.create', 'admin.purchases.show', 'admin.purchases.edit']],
             ['route' => 'admin.purchases.payments', 'icon' => 'hand-holding-dollar', 'label' => 'Payments'],
-            ['route' => 'admin.purchases.ledger',   'icon' => 'book-bookmark',       'label' => 'Ledgers'],
+            ['route' => 'admin.purchases.ledger',   'icon' => 'book-bookmark',       'label' => 'Supplier ledger'],
+            ['route' => 'admin.purchases.raw.index', 'icon' => 'scroll',             'label' => 'Raw stock', 'active' => ['admin.purchases.raw.*']],
+            ['route' => 'admin.purchases.items.stock', 'icon' => 'boxes-stacked',    'label' => 'Items',
+             'active' => ['admin.purchases.items.*', 'admin.purchases.stationery', 'admin.purchases.electronics']],
             ['route' => 'admin.purchases.monthly-report', 'icon' => 'chart-pie',     'label' => 'Monthly'],
-            ['route' => 'admin.purchases.stationery', 'icon' => 'pen-ruler',         'label' => 'Stationery'],
-            ['route' => 'admin.purchases.electronics', 'icon' => 'plug',             'label' => 'Electronics'],
-            ['route' => 'admin.purchases.items.stock', 'icon' => 'boxes-stacked',    'label' => 'Items'],
-            ['route' => 'admin.production.index',    'icon' => 'print',              'label' => 'Production'],
+        ],
+        'Inventory' => [
             ['route' => 'admin.inventory.index',     'icon' => 'warehouse',          'label' => 'Stock'],
+            ['route' => 'admin.production.index',    'icon' => 'print',              'label' => 'Production'],
             ['route' => 'admin.inventory.locations', 'icon' => 'location-dot',       'label' => 'Locations'],
             ['route' => 'admin.inventory.transfers', 'icon' => 'truck-ramp-box',     'label' => 'Transfers'],
             ['route' => 'admin.inventory.wastages',  'icon' => 'triangle-exclamation','label' => 'Wastage'],
@@ -85,12 +91,12 @@
             ['route' => 'admin.accounting.invoices.index',         'icon' => 'file-invoice-dollar', 'label' => 'Invoices', 'url' => route('admin.accounting.index', ['stream' => 'invoices'])],
             ['route' => 'admin.accounting.invoices.index',         'icon' => 'file-lines',          'label' => 'Quotations', 'type' => 'quotation', 'url' => route('admin.accounting.index', ['stream' => 'invoices', 'type' => 'quotation'])],
             ['route' => 'admin.accounting.invoices.index',         'icon' => 'calculator',          'label' => 'Calculator', 'type' => 'calculator', 'url' => route('admin.accounting.index', ['stream' => 'invoices', 'type' => 'quotation', 'calculator' => '1'])],
-            ['route' => 'admin.accounting.customer-ledger.index', 'icon' => 'book-bookmark',       'label' => 'Ledger'],
             ['route' => 'admin.receipts.index',                   'icon' => 'receipt',             'label' => 'Receipts'],
-            ['route' => 'admin.accounting.tax-vat-deductions.index', 'icon' => 'receipt',           'label' => 'Tax'],
+            ['route' => 'admin.accounting.customer-ledger.index', 'icon' => 'book-bookmark',       'label' => 'Customer ledger'],
+            ['route' => 'admin.accounting.tax-vat-deductions.index', 'icon' => 'percent',           'label' => 'Tax'],
+            ['route' => 'admin.accounting.reports.index',          'icon' => 'chart-pie',           'label' => 'Finance reports'],
             ['route' => 'admin.accounting.salary.index',           'icon' => 'money-check-dollar',  'label' => 'Payroll'],
             ['route' => 'admin.accounting.employees.index',        'icon' => 'users-gear',          'label' => 'Employees'],
-            ['route' => 'admin.accounting.reports.index',          'icon' => 'chart-pie',           'label' => 'Reports'],
         ],
         'Content' => [
             ['route' => 'admin.blog',                     'icon' => 'newspaper',          'label' => 'Blog'],
@@ -101,23 +107,14 @@
         'Sales' => [
             ['route' => 'admin.pos.index',        'icon' => 'cash-register', 'label' => 'POS'],
             ['route' => 'admin.ecommerce-orders', 'icon' => 'cart-shopping', 'label' => 'Orders'],
-            ['route' => 'admin.affiliates.index', 'icon' => 'bullhorn',      'label' => 'Affiliates'],
-            ['route' => 'admin.gateway-reports',  'icon' => 'receipt',       'label' => 'Receipts'],
-            ['route' => 'admin.payments.index',   'icon' => 'credit-card',   'label' => 'Gateways'],
-            ['route' => 'admin.sms.index',        'icon' => 'comment-sms',   'label' => 'SMS'],
             ['route' => 'admin.orders',           'icon' => 'file-invoice',  'label' => 'Bills'],
+            ['route' => 'admin.gateway-reports',  'icon' => 'credit-card',   'label' => 'Online payments'],
+            ['route' => 'admin.affiliates.index', 'icon' => 'bullhorn',      'label' => 'Affiliates'],
             ['route' => 'admin.book-requests.index', 'icon' => 'code-pull-request', 'label' => 'Requests'],
         ],
         'Users' => [
             ['route' => 'admin.users',                   'icon' => 'users',           'label' => 'Users'],
-            ['route' => 'admin.registrations.authors',   'icon' => 'feather-pointed', 'label' => 'Authors',
-             'badge' => $pendingAuthors > 0 ? $pendingAuthors : null, 'badgeClass' => 'bg-success text-white'],
-            ['route' => 'admin.registrations.publishers','icon' => 'building',        'label' => 'Publishers',
-             'badge' => $pendingPublishers > 0 ? $pendingPublishers : null, 'badgeClass' => 'bg-info text-white'],
-            ['route' => 'admin.registrations.sellers',   'icon' => 'store',           'label' => 'Sellers',
-             'badge' => $pendingSellers > 0 ? $pendingSellers : null, 'badgeClass' => 'bg-primary text-white'],
-            ['route' => 'admin.registrations.customers', 'icon' => 'user-tag',        'label' => 'Customers'],
-            ['route' => 'admin.registrations.approvals', 'icon' => 'user-check',      'label' => 'Approvals',
+            ['route' => 'admin.registrations.index',   'icon' => 'user-check',      'label' => 'Registrations', 'active' => ['admin.registrations.*'],
              'badge' => $pending > 0 ? $pending : null, 'badgeClass' => 'bg-danger text-white'],
             ['route' => 'admin.users.security.index',    'icon' => 'shield-halved',   'label' => 'Security',
              'badge' => $pendingPasswordRequests > 0 ? $pendingPasswordRequests : null, 'badgeClass' => 'bg-danger text-white'],
@@ -125,15 +122,18 @@
             ['route' => 'admin.event-campaigns.index',   'icon' => 'calendar-check',  'label' => 'Campaigns'],
             ['route' => 'admin.libraries.index',         'icon' => 'book-open-reader','label' => 'Libraries'],
             ['route' => 'admin.tickets.index',           'icon' => 'ticket',          'label' => 'Tickets'],
+            ['route' => 'admin.communication.index',     'icon' => 'envelope-open-text', 'label' => 'Inquiries',
+             'badge' => $newInquiries > 0 ? $newInquiries : null, 'badgeClass' => 'bg-warning text-dark'],
         ],
         'System' => [
             ['route' => 'admin.seo.index',           'icon' => 'magnifying-glass-chart', 'label' => 'SEO'],
             ['route' => 'admin.currencies.index',    'icon' => 'coins',           'label' => 'Currencies'],
             ['route' => 'admin.translations.index',  'icon' => 'language',        'label' => 'Translations'],
-            ['route' => 'admin.communication.index', 'icon' => 'paper-plane',      'label' => 'Communication'],
+            ['route' => 'admin.sms.index',           'icon' => 'comment-sms',     'label' => 'SMS'],
             ['route' => 'admin.roles.index',         'icon' => 'key',             'label' => 'Roles'],
             ['route' => 'admin.visitor-reports',     'icon' => 'chart-line',     'label' => 'Visitors'],
             ['route' => 'admin.system-settings',     'icon' => 'sliders',         'label' => 'Settings'],
+            ['route' => 'admin.payments.index',      'icon' => 'credit-card',     'label' => 'Gateways'],
             ['route' => 'admin.cache.manage',        'icon' => 'bolt',            'label' => 'Cache'],
             ['route' => 'admin.media.index',         'icon' => 'images',          'label' => 'Media'],
             ['route' => 'admin.backup.index',        'icon' => 'database',        'label' => 'Backup'],
@@ -142,7 +142,7 @@
         'Seller' => [
             ['route' => 'subadmin.dashboard',    'icon' => 'gauge-high',         'label' => 'Dashboard'],
             ['route' => 'subadmin.bills.create', 'icon' => 'plus-circle',        'label' => 'New'],
-            ['route' => 'subadmin.bills.index',  'icon' => 'file-invoice-dollar', 'label' => 'Bills'],
+            ['route' => 'subadmin.bills.index',  'icon' => 'file-invoice-dollar', 'label' => 'Seller bills'],
             ['route' => 'subadmin.accounts',     'icon' => 'wallet',             'label' => 'Accounts'],
         ],
         'Website' => [
@@ -153,22 +153,23 @@
     // One-word Bangla menu names (the English name is kept in data-label so search still matches it).
     $bn = [
         'Dashboard' => 'ড্যাশবোর্ড', 'Catalog' => 'ক্যাটালগ', 'Books' => 'বই', 'Electronics' => 'ইলেকট্রনিক্স',
-        'Stationery' => 'স্টেশনারি', 'Appliances' => 'যন্ত্রপাতি', 'Bundles' => 'প্যাকেজ', 'Categories' => 'বিভাগ',
+        'Stationery' => 'স্টেশনারি', 'Appliances' => 'যন্ত্রপাতি', 'Bundles' => 'প্যাকেজ', 'Categories' => 'বিভাগ', 'Genres' => 'জনরা',
         'Authors' => 'লেখক', 'Publishers' => 'প্রকাশক', 'Ebooks' => 'ই-বুক', 'Titles' => 'শিরোনাম', 'Club' => 'ক্লাব',
         'Reports' => 'প্রতিবেদন', 'Royalties' => 'রয়্যালটি', 'Payouts' => 'উত্তোলন', 'Logs' => 'লগ',
-        'Purchases' => 'ক্রয়', 'Payments' => 'পরিশোধ', 'Ledgers' => 'খতিয়ান', 'Monthly' => 'মাসিক', 'Items' => 'পণ্য',
+        'Purchases' => 'ক্রয়', 'Payments' => 'পরিশোধ', 'Supplier ledger' => 'সরবরাহকারী খতিয়ান', 'Raw stock' => 'কাঁচামাল', 'Monthly' => 'মাসিক প্রতিবেদন', 'Items' => 'পণ্য ক্রয়',
+        'Inventory' => 'মজুদ ব্যবস্থাপনা',
         'Production' => 'উৎপাদন', 'Stock' => 'মজুদ', 'Locations' => 'অবস্থান', 'Transfers' => 'স্থানান্তর',
         'Wastage' => 'অপচয়', 'Alerts' => 'সতর্কতা', 'Movements' => 'চলাচল',
         'Accounting' => 'হিসাব', 'Transactions' => 'লেনদেন', 'Invoices' => 'ইনভয়েস', 'Quotations' => 'কোটেশন', 'Calculator' => 'ক্যালকুলেটর',
-        'Ledger' => 'বহি', 'Receipts' => 'রসিদ', 'Tax' => 'কর', 'Payroll' => 'বেতন', 'Employees' => 'কর্মী',
+        'Customer ledger' => 'গ্রাহক খতিয়ান', 'Finance reports' => 'আয়-ব্যয় প্রতিবেদন', 'Seller bills' => 'বিক্রেতার বিল', 'Receipts' => 'মানি রসিদ', 'Tax' => 'কর', 'Payroll' => 'বেতন', 'Employees' => 'কর্মী',
         'Content' => 'কনটেন্ট', 'Blog' => 'ব্লগ', 'Honorariums' => 'সম্মানী', 'Webzines' => 'ওয়েবজিন',
-        'Sales' => 'বিক্রয়', 'POS' => 'কাউন্টার', 'Orders' => 'অর্ডার', 'Bills' => 'বিল', 'Affiliates' => 'অ্যাফিলিয়েট', 
-        'Gateways' => 'গেটওয়ে', 'SMS' => 'এসএমএস', 'Requests' => 'অনুরোধ',
+        'Sales' => 'বিক্রয়', 'POS' => 'কাউন্টার', 'Orders' => 'অনলাইন অর্ডার', 'Bills' => 'বিল', 'Affiliates' => 'অ্যাফিলিয়েট', 'Online payments' => 'অনলাইন পেমেন্ট',
+        'Gateways' => 'পেমেন্ট গেটওয়ে', 'SMS' => 'এসএমএস', 'Requests' => 'বইয়ের অনুরোধ',
         'Users' => 'ব্যবহারকারী', 'Sellers' => 'বিক্রেতা', 'Customers' => 'গ্রাহক', 'Approvals' => 'অনুমোদন',
-        'Security' => 'নিরাপত্তা', 'Staff' => 'কর্মকর্তা', 'Campaigns' => 'ক্যাম্পেইন', 'Libraries' => 'গ্রন্থাগার', 'Tickets' => 'টিকিট',
+        'Security' => 'নিরাপত্তা', 'Staff' => 'কর্মকর্তা', 'Campaigns' => 'ক্যাম্পেইন', 'Libraries' => 'গ্রন্থাগার', 'Tickets' => 'টিকিট', 'Registrations' => 'নিবন্ধন', 'Inquiries' => 'যোগাযোগ বার্তা',
         'System' => 'সিস্টেম', 'SEO' => 'এসইও', 'Currencies' => 'মুদ্রা', 'Translations' => 'অনুবাদ', 'Communication' => 'যোগাযোগ',
         'Roles' => 'ভূমিকা', 'Visitors' => 'দর্শক', 'Settings' => 'সেটিংস', 'Cache' => 'ক্যাশ', 'Media' => 'মিডিয়া',
-        'Backup' => 'ব্যাকআপ', 'Audit' => 'নিরীক্ষা', 'Seller' => 'বিক্রেতা', 
+        'Backup' => 'ব্যাকআপ', 'Audit' => 'নিরীক্ষা', 'Seller' => 'বিক্রেতা প্যানেল', 
         'Website' => 'ওয়েবসাইট',
     ];
     $t = fn ($s) => $bn[$s] ?? $s;
@@ -193,6 +194,7 @@
         'admin.purchases.stationery' => 'purchases.manage',
         'admin.purchases.electronics' => 'purchases.manage',
         'admin.purchases.items.stock' => 'purchases.manage',
+        'admin.purchases.raw.index' => 'purchases.manage',
         'admin.production.index' => 'catalog.view',
         'admin.inventory.index' => 'catalog.view',
         'admin.inventory.locations' => 'catalog.view',
@@ -233,7 +235,7 @@
         'admin.seo.index' => 'settings.manage',
         'admin.currencies.index' => 'settings.manage',
         'admin.translations.index' => 'editorial.view',
-        'admin.communication.index' => 'support.broadcast',
+        'admin.communication.index' => 'support.view',
         'admin.visitor-reports' => 'marketing.view',
         'admin.system-settings' => 'settings.manage',
         'admin.cache.manage' => 'settings.manage',
@@ -273,29 +275,8 @@
         </div>
     </div>
 
-    <!-- 2. Quick Access / Favorites Chip Bar -->
-    <div class="adm-side__favorites">
-        <a href="{{ route('admin.pos.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.pos.*') ? 'is-active' : '' }}" title="POS" data-tooltip="POS">
-            
-            <span>POS</span>
-        </a>
-        <a href="{{ route('admin.ecommerce-orders') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.ecommerce-orders*') ? 'is-active' : '' }}" title="Orders" data-tooltip="Orders">
-            
-            <span>Orders</span>
-        </a>
-        <a href="{{ route('admin.books') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.books*') ? 'is-active' : '' }}" title="Books" data-tooltip="Books">
-            
-            <span>Books</span>
-        </a>
-        <a href="{{ route('admin.currencies.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.currencies.*') ? 'is-active' : '' }}" title="Currencies" data-tooltip="Currencies">
-            
-            <span>FX</span>
-        </a>
-        <a href="{{ route('admin.tickets.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.tickets.*') ? 'is-active' : '' }}" title="Tickets" data-tooltip="Tickets">
-            
-            <span>Tickets</span>
-        </a>
-    </div>
+    <!-- 2. Recently opened pages (filled from this browser's history by the script below) -->
+    <div class="adm-side__favorites" id="admRecent" aria-label="সম্প্রতি দেখা" hidden></div>
 
     <!-- 3. Dynamic Collapsible Navigation Tree -->
     <nav class="adm-nav" id="admNavTree">
@@ -305,7 +286,7 @@
                 $items = array_filter($items, function ($i) use ($sidebarAuthUser, $routePermissions) {
                     if (! Route::has($i['route'])) return false;
                     if (! $sidebarAuthUser) return false;
-                    if ($sidebarAuthUser->isAdmin()) return true;
+                    if ($sidebarAuthUser->isAdmin()) return ! str_starts_with($i['route'], 'subadmin.');
 
                     // STRICT EXCLUSIVE LOCK: Core security, system settings, gateways & IAM are Super Admin only
                     $exclusiveAdminRoutes = [
@@ -334,7 +315,7 @@
                 $groupHasActive = false;
                 foreach ($items as $chk) {
                     $chkBase = preg_replace('/\.index$/', '', $chk['route']);
-                    if (request()->routeIs($chk['route']) || request()->routeIs($chkBase . '.*')) {
+                    if (request()->routeIs($chk['route']) || request()->routeIs($chkBase . '.*') || (!empty($chk['active']) && request()->routeIs(...$chk['active']))) {
                         $groupHasActive = true;
                         break;
                     }
@@ -355,7 +336,8 @@
                                     // An *.index link only owns its whole prefix when no sibling link lives under it
                                     // (otherwise Stock/Purchases would stay lit on every sibling page).
                                     $ownsPrefix = collect($items)->filter(fn ($o) => $o['route'] !== $item['route'] && str_starts_with($o['route'], $base . '.'))->isEmpty();
-                                    $isRouteActive = request()->routeIs($item['route']) || request()->routeIs($item['route'] . '.*') || ($ownsPrefix && request()->routeIs($base . '.*'));
+                                    $isRouteActive = request()->routeIs($item['route']) || request()->routeIs($item['route'] . '.*') || ($ownsPrefix && request()->routeIs($base . '.*'))
+                                        || (!empty($item['active']) && request()->routeIs(...$item['active']));
                                     $active = isset($item['category']) ? ($isRouteActive && request('category') === $item['category']) : ($isRouteActive && empty(request('category')));
                                     // Invoices / Quotations / Calculator are views of one hub stream (stream=invoices, type=…)
                                     $onInvoiceStream = (request()->routeIs('admin.accounting.index') && request('stream') === 'invoices')
@@ -433,6 +415,31 @@
     } catch(e) {
         collapsedGroups = [];
     }
+
+    // Recently opened menu pages: the current one is remembered, the others become quick chips
+    (function () {
+        const KEY = 'adm_recent_pages', box = document.getElementById('admRecent');
+        let list = [];
+        try { list = JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) {}
+        const known = new Set(Array.from(document.querySelectorAll('#admNavTree .adm-nav__link')).map(a => a.getAttribute('href')));
+        list = list.filter(x => x && known.has(x.h)); // menu changed or no permission any more
+        const cur = document.getElementById('activeNavItem');
+        if (cur) {
+            const h = cur.getAttribute('href'), t = (cur.querySelector('.adm-nav__text') || cur).textContent.trim();
+            list = [{ h, t }].concat(list.filter(x => x.h !== h)).slice(0, 7);
+            try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {}
+        }
+        if (!box) return;
+        const chips = list.filter(x => !cur || x.h !== cur.getAttribute('href')).slice(0, 5);
+        chips.forEach(x => {
+            const a = document.createElement('a');
+            a.className = 'adm-side__fav-chip';
+            a.href = x.h; a.title = x.t; a.setAttribute('data-tooltip', x.t);
+            const sp = document.createElement('span'); sp.textContent = x.t; a.appendChild(sp);
+            box.appendChild(a);
+        });
+        box.hidden = chips.length === 0;
+    })();
 
     // Apply saved collapsed state (except if the group contains the active item)
     document.querySelectorAll('.adm-nav__group').forEach(group => {

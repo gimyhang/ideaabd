@@ -85,6 +85,53 @@ class SmsService
     }
 
     /**
+     * Hide API keys inside text that came back from a gateway: BulkSMSBD repeats the key in its errors
+     * ("user id not found in this <key> key"), and those messages are stored and shown on admin pages.
+     */
+    public static function scrub(?string $text): string
+    {
+        $text = (string) $text;
+        if ($text === '') {
+            return '';
+        }
+        $keys = array_filter([self::getCredentials()['api_key'] ?? '', self::DEFAULT_API_KEY, (string) env('SMS_GATEWAY_API_KEY', '')], fn ($k) => strlen((string) $k) >= 8);
+        foreach (array_unique($keys) as $k) {
+            $text = str_replace($k, self::maskSecret($k), $text);
+        }
+        // any other key the gateway quotes back
+        return preg_replace_callback('/\b(in this|api[_ ]?key[:=\s]*)\s*([A-Za-z0-9]{12,64})\b/i', fn ($m) => $m[1] . ' ' . self::maskSecret($m[2]), $text);
+    }
+
+    /**
+     * What a gateway answer means for the admin: null when nothing is wrong with the setup, otherwise
+     * [kind, title, fix] — kind is key | ip | balance | sender | account | network.
+     */
+    public static function diagnose(mixed $code, ?string $message = null): ?array
+    {
+        $code = is_numeric($code) ? (int) $code : null;
+        $msg = mb_strtolower((string) $message);
+        $panel = 'BulkSMSBD প্যানেল (bulksmsbd.net) → API Key অংশ';
+
+        if ($code === 1011 || str_contains($msg, 'user id not found') || str_contains($msg, 'invalid api') || str_contains($msg, 'api key is invalid')) {
+            return ['key', 'API key সঠিক নয়', "গেটওয়ে এই API key কোনো অ্যাকাউন্টে খুঁজে পাচ্ছে না (key ভুল, পুরনো বা নতুন করে তৈরি হয়েছে)। {$panel} থেকে বর্তমান key কপি করে SMS → Settings-এ বসিয়ে \"যাচাই ও সংরক্ষণ\" চাপুন।"];
+        }
+        if ($code === 1032 || str_contains($msg, 'whitelist')) {
+            return ['ip', 'সার্ভারের IP অনুমোদিত নয়', 'BulkSMSBD প্যানেলে IP Whitelist-এ ওয়েবসাইটের সার্ভারের IP যোগ করুন (cPanel → Server Information → Shared IP Address)।'];
+        }
+        if (in_array($code, [1006, 1007], true) || str_contains($msg, 'insufficient')) {
+            return ['balance', 'ব্যালান্স শেষ বা মেয়াদোত্তীর্ণ', 'BulkSMSBD অ্যাকাউন্টে রিচার্জ করুন; মেয়াদ (validity) শেষ হলে নতুন প্যাকেজ নিন।'];
+        }
+        if (in_array($code, [1002, 1013, 1014, 1015, 1016, 1017], true) || str_contains($msg, 'sender id')) {
+            return ['sender', 'সেন্ডার আইডি এই key-তে চালু নেই', 'Settings-এ সেন্ডার আইডি (যেমন 8809617…) প্যানেলের সাথে মিলিয়ে দিন, অথবা প্যানেলে সেন্ডার আইডি অনুমোদন করান।'];
+        }
+        if (in_array($code, [1018, 1019, 1020, 1021, 1031], true)) {
+            return ['account', 'গেটওয়ে অ্যাকাউন্ট বন্ধ / যাচাই হয়নি', 'BulkSMSBD সাপোর্টে যোগাযোগ করে অ্যাকাউন্ট সক্রিয় করুন।'];
+        }
+
+        return null;
+    }
+
+    /**
      * Check if a string contains non-ASCII (e.g. Bengali / Unicode) characters.
      */
     public static function isUnicode(string $text): bool
@@ -630,7 +677,8 @@ class SmsService
                 'checked_at'    => now()->toDateTimeString(),
             ];
             if ($balance === null) {
-            $result['error'] = $json['error_message'] ?? self::getResponseCodeMessage($json['response_code'] ?? null, 'গেটওয়ে থেকে ব্যালান্স পাওয়া যায়নি');
+            $result['error'] = self::scrub($json['error_message'] ?? self::getResponseCodeMessage($json['response_code'] ?? null, 'গেটওয়ে থেকে ব্যালান্স পাওয়া যায়নি'));
+            $result['diagnosis'] = self::diagnose($json['response_code'] ?? null, (string) ($json['error_message'] ?? ''));
             Cache::put(self::BALANCE_CACHE_KEY, $result, 60);
 
             return $result;
@@ -682,24 +730,29 @@ class SmsService
     {
         $code = is_numeric($code) ? (int) $code : null;
 
+        // https://bulksmsbd.net — API response codes
         $codes = [
-            200  => 'SMS Submitted Successfully (সফলভাবে প্রেরণ সম্পন্ন)',
-            202  => 'SMS Submitted Successfully (গেটওয়েতে সফলভাবে জমা হয়েছে)',
-            1000 => 'Request Processed Successfully (সফল)',
-            1001 => 'Invalid Mobile Number (ভুল মোবাইল নম্বর ফরম্যাট)',
-            1002 => 'Sender ID Invalid or Not Approved (সেন্ডার আইডি অনুমোদিত নয়)',
-            1003 => 'Insufficient SMS Balance (পর্যাপ্ত এসএমএস ব্যালেন্স নেই)',
-            1004 => 'Invalid Mobile Number Length (মোবাইল নম্বরের দৈর্ঘ্য সঠিক নয়)',
-            1005 => 'Internal Gateway Error (গেটওয়ে ইন্টারনাল সার্ভার সমস্যা)',
-            1006 => 'Missing Required Parameter (প্রয়োজনীয় প্যারামিটার অনুপস্থিত)',
-            1007 => 'Account Not Active (অ্যাকাউন্ট সক্রিয় নয়)',
-            1008 => 'Message Type Mismatch / Unicode Error (ইউনিকোড অথবা টাইপ অমিল)',
-            1009 => 'Inactive Account (অ্যাকাউন্ট নিষ্ক্রিয়)',
-            1010 => 'Max SMS Limit Exceeded (সর্বোচ্চ এসএমএস সীমা অতিক্রম করেছে)',
-            1011 => 'Account Blocked (অ্যাকাউন্ট স্থগিত করা হয়েছে)',
-            1012 => 'IP Not Whitelisted (আইপি অনুমোদিত নয়)',
-            1013 => 'Rate Limit Exceeded (অনুরোধের গতিসীমা ছাড়িয়েছে)',
-            1032 => 'BulkSMSBD IP Whitelist Required: আপনার বর্তমান সার্ভার/ডিভাইস আইপি BulkSMSBD প্যানেলে হোয়াইটলিস্ট করা প্রয়োজন।',
+            200  => 'SMS পাঠানো হয়েছে',
+            202  => 'SMS গেটওয়েতে জমা হয়েছে',
+            1001 => 'নম্বর সঠিক নয়',
+            1002 => 'সেন্ডার আইডি ভুল বা বন্ধ',
+            1003 => 'প্রয়োজনীয় সব তথ্য দেওয়া হয়নি',
+            1005 => 'গেটওয়ের অভ্যন্তরীণ সমস্যা',
+            1006 => 'ব্যালান্সের মেয়াদ শেষ',
+            1007 => 'পর্যাপ্ত ব্যালান্স নেই',
+            1011 => 'API key সঠিক নয় (অ্যাকাউন্ট পাওয়া যায়নি)',
+            1012 => 'মাস্কিং SMS বাংলায় পাঠাতে হবে',
+            1013 => 'এই API key-তে সেন্ডার আইডির গেটওয়ে নেই',
+            1014 => 'এই সেন্ডারের ধরন পাওয়া যায়নি',
+            1015 => 'এই API key-তে সেন্ডার আইডির কোনো সক্রিয় গেটওয়ে নেই',
+            1016 => 'এই সেন্ডার আইডির সক্রিয় মূল্য তথ্য নেই',
+            1017 => 'এই সেন্ডার আইডির মূল্য তথ্য নেই',
+            1018 => 'অ্যাকাউন্ট বন্ধ করা হয়েছে',
+            1019 => 'অ্যাকাউন্টের এই সেন্ডার মূল্য বন্ধ',
+            1020 => 'মূল (parent) অ্যাকাউন্ট পাওয়া যায়নি',
+            1021 => 'মূল অ্যাকাউন্টের সক্রিয় মূল্য নেই',
+            1031 => 'অ্যাকাউন্ট যাচাই হয়নি',
+            1032 => 'সার্ভারের IP হোয়াইটলিস্ট করা নেই',
         ];
 
         return $codes[$code] ?? ($fallback ?: "Response Code: {$code}");

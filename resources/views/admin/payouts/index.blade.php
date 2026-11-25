@@ -4,8 +4,16 @@
 @section('heading', 'Author Payouts')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('admin.payments.index') }}">Payments</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
     <li class="breadcrumb-item active">Author Payouts</li>
+@endsection
+
+@section('actions')
+    @if(Route::has('admin.royalty-payout-logs'))
+        <a href="{{ route('admin.royalty-payout-logs') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold">
+            <i class="fa-solid fa-file-invoice-dollar me-1"></i> পেমেন্ট লগ
+        </a>
+    @endif
 @endsection
 
 @section('content')
