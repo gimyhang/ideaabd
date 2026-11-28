@@ -8,148 +8,206 @@
     <li class="breadcrumb-item active" aria-current="page">Inquiries</li>
 @endsection
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/admin-inbox.css') }}?v={{ @filemtime(public_path('css/admin-inbox.css')) ?: 1 }}">
+@endpush
+
 @section('actions')
-    <a href="{{ route('admin.sms.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
-        <i class="fa-solid fa-paper-plane me-1"></i> SMS / ইমেইল পাঠান
-    </a>
+    <div class="ib-actions">
+        <button type="button" class="ib-btn" data-ib-refresh title="হালনাগাদ (R)"><i class="fa-solid fa-rotate-right"></i><span class="ib-hide-xs">হালনাগাদ</span></button>
+        @if($isAdmin)
+            <a href="{{ route('admin.communication.export') }}" class="ib-btn ib-btn--green" title="CSV ডাউনলোড"><i class="fa-solid fa-file-arrow-down"></i><span class="ib-hide-xs">CSV</span></a>
+        @endif
+        <a href="{{ route('admin.sms.index') }}" class="ib-btn ib-btn--primary"><i class="fa-solid fa-paper-plane"></i> বাল্ক SMS / ইমেইল</a>
+    </div>
 @endsection
 
 @php
-    $P = \App\Http\Controllers\Admin\CommunicationAdminController::class;
-    $tabs = ['' => ['সব', $counts['all']], 'new' => ['নতুন', $counts['new']], 'read' => ['পড়া হয়েছে', $counts['read']], 'replied' => ['উত্তর দেওয়া', $counts['replied']]];
-    $badge = ['new' => ['iq-st--new', 'নতুন'], 'read' => ['iq-st--read', 'পড়া হয়েছে'], 'replied' => ['iq-st--done', 'উত্তর দেওয়া']];
-    $wa = function (?string $p) { $d = preg_replace('/\D+/', '', (string) $p); if ($d === '') return null; if (str_starts_with($d, '01')) $d = '88' . $d; return 'https://wa.me/' . $d; };
+    $folders = [
+        'inbox'    => ['ইনবক্স', 'fa-inbox'],
+        'new'      => ['নতুন', 'fa-envelope'],
+        'starred'  => ['তারকা', 'fa-star'],
+        'replied'  => ['উত্তর দেওয়া', 'fa-reply'],
+        'archived' => ['আর্কাইভ', 'fa-box-archive'],
+        'spam'     => ['স্প্যাম', 'fa-shield-virus'],
+        'trash'    => ['ট্র্যাশ', 'fa-trash-can'],
+    ];
+    $kpis = [
+        ['new', 'new', 'fa-envelope', 'নতুন (পড়া হয়নি)', 'new', 'দেখুন →'],
+        ['week', 'week', 'fa-calendar-week', 'গত ৭ দিনে', 'inbox', 'ইনবক্স →'],
+        ['done', 'replied', 'fa-reply', 'উত্তর দেওয়া', 'replied', 'দেখুন →'],
+        ['spam', 'spam', 'fa-shield-virus', 'স্প্যাম (আটকানো)', 'spam', 'দেখুন →'],
+    ];
 @endphp
 
 @section('content')
-<div class="iq">
-    <div class="row g-3 mb-3">
-        @foreach([['fa-inbox', 'মোট বার্তা', $counts['all'], 'iq-k--a'], ['fa-envelope', 'নতুন', $counts['new'], 'iq-k--n'], ['fa-reply', 'উত্তর দেওয়া', $counts['replied'], 'iq-k--d'], ['fa-calendar-week', 'গত ৭ দিনে', $counts['week'], 'iq-k--w']] as [$ic, $lb, $v, $cls])
-            <div class="col-6 col-lg-3">
-                <div class="iq-kpi {{ $cls }}"><span class="iq-kpi__ic"><i class="fa-solid {{ $ic }}"></i></span>
-                    <div><div class="iq-kpi__lb">{{ $lb }}</div><div class="iq-kpi__v">{{ number_format($v) }}</div></div></div>
-            </div>
+<div class="ib" id="ib"
+     data-list-url="{{ route('admin.communication.list') }}"
+     data-poll-url="{{ route('admin.communication.poll') }}"
+     data-base-url="{{ url('admin/communication') }}"
+     data-bulk-url="{{ route('admin.communication.bulk') }}"
+     data-admin="{{ $isAdmin ? '1' : '0' }}">
+
+    <div class="ib-kpis mb-3">
+        @foreach($kpis as [$cls, $key, $icon, $label, $folder, $hint])
+            <button type="button" class="ib-kpi ib-kpi--{{ $cls }}" data-kpi="{{ $folder }}" aria-label="{{ $label }} — ফোল্ডার খুলুন">
+                <i class="fa-solid {{ $icon }}"></i>
+                <div><span>{{ $label }}</span><b data-count="{{ $key }}">{{ \App\Support\Bn::digits($counts[$key] ?? 0) }}</b></div>
+                <small>{{ $hint }}</small>
+            </button>
         @endforeach
     </div>
 
-    <div class="iq-card mb-3">
-        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
-            <div class="d-flex flex-wrap gap-1.5">
-                @foreach($tabs as $k => [$lb, $n])
-                    <a href="{{ route('admin.communication.index', array_filter(['status' => $k ?: null, 'search' => $search ?: null])) }}" class="iq-chip {{ ($status ?? '') === $k ? 'is-on' : '' }}">{{ $lb }} <span>{{ $n }}</span></a>
-                @endforeach
+    <div class="ib-shell">
+        {{-- folders --}}
+        <nav class="ib-folders" aria-label="ফোল্ডার">
+            <div class="ib-folders__title">ফোল্ডার</div>
+            @foreach($folders as $fk => [$fl, $fi])
+                @if($fk === 'archived')<div class="ib-folders__sep" role="presentation"></div>@endif
+                <button type="button" class="ib-folder {{ $fk === 'inbox' ? 'is-on' : '' }}" data-folder="{{ $fk }}" aria-pressed="{{ $fk === 'inbox' ? 'true' : 'false' }}" title="{{ $fl }}">
+                    <i class="fa-solid {{ $fi }}"></i><span>{{ $fl }}</span><b data-count="{{ $fk }}">{{ $counts[$fk] ? \App\Support\Bn::digits($counts[$fk]) : '' }}</b>
+                </button>
+            @endforeach
+            <div class="ib-folders__foot">
+                <button type="button" class="ib-help-btn" data-ib-help title="কিবোর্ড শর্টকাট (?)"><i class="fa-regular fa-keyboard"></i><span>শর্টকাট</span></button>
             </div>
-            <form method="GET" class="iq-search" role="search">
-                @if($status)<input type="hidden" name="status" value="{{ $status }}">@endif
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="search" name="search" value="{{ $search }}" placeholder="নাম, ফোন, ইমেইল বা বার্তা…" aria-label="খুঁজুন">
-            </form>
-        </div>
+        </nav>
+
+        {{-- list --}}
+        <section class="ib-list" aria-label="বার্তার তালিকা">
+            <div class="ib-list__top">
+                <label class="ib-check" title="এই পাতার সব বাছাই"><input type="checkbox" id="ibAll" aria-label="সব বাছাই"></label>
+                <div class="ib-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="search" id="ibSearch" placeholder="নাম, নম্বর, ইমেইল, বার্তা…" aria-label="খুঁজুন" maxlength="100" autocomplete="off">
+                    <span class="ib-kbd">/</span>
+                    <button type="button" class="ib-search__clear" id="ibSearchX" aria-label="খোঁজা মুছুন" hidden><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+            <div class="ib-list__meta"><span id="ibListInfo">—</span><span class="ib-live" title="প্রতি ৩০ সেকেন্ডে নতুন বার্তা দেখা হয়">লাইভ</span></div>
+            <div class="ib-bulk" id="ibBulk" hidden>
+                <button type="button" class="ib-bulk__x" id="ibBulkX" aria-label="বাছাই বাতিল"><i class="fa-solid fa-xmark"></i></button>
+                <span><b id="ibSelN">০</b>টি বাছাই</span>
+                <div class="ib-bulk__btns" id="ibBulkBtns"></div>
+            </div>
+            <div class="ib-items" id="ibItems" role="list">
+                @for($i = 0; $i < 5; $i++)<div class="ib-skel" aria-hidden="true"><i></i><div><span></span><span></span><span></span></div></div>@endfor
+            </div>
+            <div class="ib-pager" id="ibPager" hidden>
+                <button type="button" class="ib-btn ib-btn--sm" data-page="prev"><i class="fa-solid fa-chevron-left"></i> আগের</button>
+                <span id="ibPageInfo"></span>
+                <button type="button" class="ib-btn ib-btn--sm" data-page="next">পরের <i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </section>
+
+        {{-- message --}}
+        <section class="ib-read" id="ibRead" aria-label="বার্তা" aria-live="polite"></section>
     </div>
 
-    @if(!$ready)
-        <div class="alert alert-warning rounded-4">বার্তার টেবিল এখনো তৈরি হয়নি।</div>
-    @elseif($inquiries->isEmpty())
-        <div class="iq-card text-center py-5">
-            <div class="iq-empty mb-3"><i class="fa-regular fa-envelope-open"></i></div>
-            <h6 class="fw-bold mb-1">কোনো বার্তা নেই</h6>
-            <p class="text-muted small mb-0">ওয়েবসাইটের "যোগাযোগ" ফর্ম থেকে কেউ বার্তা পাঠালে এখানে আসবে।</p>
-        </div>
-    @else
-        <div class="iq-list">
-            @foreach($inquiries as $log)
-                @php $m = $P::parse($log); [$stCls, $stLb] = $badge[$m['status']] ?? ['iq-st--read', $m['status']]; $waUrl = $wa($m['phone']); @endphp
-                <article class="iq-item {{ $m['status'] === 'new' ? 'is-new' : '' }}">
-                    <div class="iq-item__av">{{ mb_substr($m['name'], 0, 1) }}</div>
-                    <div class="iq-item__body">
-                        <div class="iq-item__top">
-                            <strong class="iq-item__name">{{ $m['name'] }}</strong>
-                            <span class="iq-st {{ $stCls }}">{{ $stLb }}</span>
-                            <time class="iq-item__time" datetime="{{ $log->created_at?->toIso8601String() }}" title="{{ $log->created_at?->format('d M Y, h:i A') }}">{{ $log->created_at?->diffForHumans() }}</time>
-                        </div>
-                        <div class="iq-item__subj">{{ $m['subject'] }}</div>
-                        <p class="iq-item__msg" data-iq-msg>{{ $m['message'] }}</p>
-                        <div class="iq-item__meta">
-                            @if($m['phone'])<a href="tel:{{ $m['phone'] }}"><i class="fa-solid fa-phone"></i> {{ $m['phone'] }}</a>@endif
-                            @if($m['email'])<a href="mailto:{{ $m['email'] }}?subject={{ rawurlencode('Re: ' . $m['subject']) }}"><i class="fa-regular fa-envelope"></i> {{ $m['email'] }}</a>@endif
-                        </div>
-                    </div>
-                    <div class="iq-item__act">
-                        @if($waUrl)<a href="{{ $waUrl }}" target="_blank" rel="noopener" class="btn btn-sm btn-success rounded-pill px-2.5" title="WhatsApp-এ উত্তর"><i class="fa-brands fa-whatsapp"></i></a>@endif
-                        @if($m['phone'])<a href="tel:{{ $m['phone'] }}" class="btn btn-sm btn-light border rounded-pill px-2.5" title="কল করুন"><i class="fa-solid fa-phone"></i></a>@endif
-                        <form method="POST" action="{{ route('admin.communication.status', $log->id) }}" class="d-inline">
-                            @csrf @method('PATCH')
-                            @if($m['status'] === 'replied')
-                                <input type="hidden" name="status" value="read"><button class="btn btn-sm btn-light border rounded-pill px-2.5" title="উত্তর-চিহ্ন সরান"><i class="fa-solid fa-rotate-left"></i></button>
-                            @else
-                                <input type="hidden" name="status" value="replied"><button class="btn btn-sm btn-primary rounded-pill px-2.5" title="উত্তর দেওয়া হয়েছে"><i class="fa-solid fa-check-double"></i><span class="d-none d-md-inline ms-1">উত্তর দেওয়া</span></button>
-                            @endif
-                        </form>
-                        @if($m['status'] === 'new')
-                            <form method="POST" action="{{ route('admin.communication.status', $log->id) }}" class="d-inline">
-                                @csrf @method('PATCH')<input type="hidden" name="status" value="read">
-                                <button class="btn btn-sm btn-light border rounded-pill px-2.5" title="পড়া হয়েছে"><i class="fa-regular fa-eye"></i></button>
-                            </form>
-                        @endif
-                        <form method="POST" action="{{ route('admin.communication.destroy', $log->id) }}" class="d-inline" data-confirm="এই বার্তাটি মুছে ফেলবেন?" data-confirm-icon="error">
-                            @csrf @method('DELETE')
-                            <button class="btn btn-sm btn-light border rounded-pill px-2.5 text-danger" title="মুছুন"><i class="fa-regular fa-trash-can"></i></button>
-                        </form>
-                    </div>
-                </article>
-            @endforeach
-        </div>
-        @if($inquiries->hasPages())
-            <div class="mt-3">{{ $inquiries->links('pagination::bootstrap-5') }}</div>
-        @endif
-    @endif
+    <dialog class="ib-dialog" id="ibHelp" aria-label="কিবোর্ড শর্টকাট">
+        <header><span><i class="fa-regular fa-keyboard me-2"></i>কিবোর্ড শর্টকাট</span><button type="button" class="ib-btn ib-btn--sm ib-btn--icon" data-close aria-label="বন্ধ"><i class="fa-solid fa-xmark"></i></button></header>
+        <ul>
+            <li><span>পরের / আগের বার্তা</span><span><kbd class="ib-kbd">J</kbd><kbd class="ib-kbd">K</kbd></span></li>
+            <li><span>খুঁজুন</span><span><kbd class="ib-kbd">/</kbd></span></li>
+            <li><span>উত্তর লিখুন</span><span><kbd class="ib-kbd">R</kbd></span></li>
+            <li><span>উত্তর পাঠান</span><span><kbd class="ib-kbd">Ctrl</kbd><kbd class="ib-kbd">Enter</kbd></span></li>
+            <li><span>তারকা</span><span><kbd class="ib-kbd">S</kbd></span></li>
+            <li><span>আর্কাইভ</span><span><kbd class="ib-kbd">E</kbd></span></li>
+            <li><span>পড়া হয়নি করুন</span><span><kbd class="ib-kbd">U</kbd></span></li>
+            <li><span>ট্র্যাশ</span><span><kbd class="ib-kbd">#</kbd></span></li>
+            <li><span>বন্ধ / ফিরে যান</span><span><kbd class="ib-kbd">Esc</kbd></span></li>
+        </ul>
+    </dialog>
 </div>
+
+<template id="ibEmptyTpl">
+    <div class="ib-placeholder">
+        <div class="ib-placeholder__ic"><i class="fa-regular fa-envelope-open"></i></div>
+        <b>একটি বার্তা বাছাই করুন</b>
+        <small>বার্তা খুললে নিজে থেকেই "পড়া হয়েছে" হয়। দ্রুত চলতে <kbd class="ib-kbd">J</kbd> <kbd class="ib-kbd">K</kbd> চাপুন, সব শর্টকাট দেখতে <kbd class="ib-kbd">?</kbd></small>
+    </div>
+</template>
+
+<template id="ibReadTpl">
+    <div class="ib-read__bar">
+        <button type="button" class="ib-tool d-lg-none" data-act="back" aria-label="ফিরে যান"><i class="fa-solid fa-arrow-left"></i></button>
+        <div class="ib-read__nav">
+            <button type="button" class="ib-tool" data-act="prev" title="আগের বার্তা (K)" aria-label="আগের বার্তা"><i class="fa-solid fa-chevron-up"></i></button>
+            <button type="button" class="ib-tool" data-act="next" title="পরের বার্তা (J)" aria-label="পরের বার্তা"><i class="fa-solid fa-chevron-down"></i></button>
+        </div>
+        <div class="ib-read__tools">
+            <button type="button" class="ib-tool" data-act="star" title="তারকা (S)"><i class="fa-regular fa-star"></i><span>তারকা</span></button>
+            <button type="button" class="ib-tool" data-act="unread" title="পড়া হয়নি করুন (U)"><i class="fa-solid fa-envelope"></i><span>অপঠিত</span></button>
+            <button type="button" class="ib-tool ib-tool--good" data-act="done" title="উত্তর দেওয়া হয়েছে চিহ্নিত করুন"><i class="fa-solid fa-check-double"></i><span>সম্পন্ন</span></button>
+            <span class="ib-tool-sep" role="presentation"></span>
+            <button type="button" class="ib-tool" data-act="archive" title="আর্কাইভ (E)"><i class="fa-solid fa-box-archive"></i><span>আর্কাইভ</span></button>
+            <button type="button" class="ib-tool" data-act="spam" title="স্প্যাম"><i class="fa-solid fa-shield-virus"></i><span>স্প্যাম</span></button>
+            <button type="button" class="ib-tool ib-tool--good" data-act="inbox" title="ইনবক্সে ফেরত" hidden><i class="fa-solid fa-inbox"></i><span>ইনবক্সে</span></button>
+            <button type="button" class="ib-tool ib-tool--good" data-act="restore" title="ফেরত আনুন" hidden><i class="fa-solid fa-rotate-left"></i><span>ফেরত আনুন</span></button>
+            <button type="button" class="ib-tool ib-tool--danger" data-act="trash" title="ট্র্যাশ (#)"><i class="fa-solid fa-trash-can"></i><span>ট্র্যাশ</span></button>
+        </div>
+    </div>
+    <div class="ib-read__scroll">
+        <header class="ib-head">
+            <div class="ib-avatar" data-f="initial"></div>
+            <div class="min-w-0 flex-grow-1">
+                <div class="ib-head__name"><span data-f="name"></span> <span class="ib-badge ib-badge--member" data-f="member" hidden></span> <span class="ib-badge" data-f="status"></span></div>
+                <div class="ib-head__meta"><i class="fa-regular fa-clock me-1"></i><span data-f="date"></span> · <span data-f="ago"></span><span data-f="ipwrap" hidden> · IP <code data-f="ip"></code></span></div>
+            </div>
+        </header>
+        <div class="ib-spam" data-f="spamwarn" hidden><i class="fa-solid fa-triangle-exclamation fs-5"></i><div>সম্ভাব্য স্প্যাম — স্কোর <b data-f="spam"></b>/১০০। বার্তার কোনো লিংকে ক্লিক করবেন না।</div></div>
+        <div class="ib-contact">
+            <a class="ib-chip" data-f="tel" title="কল করুন"><i class="fa-solid fa-phone"></i><span data-f="phone"></span></a>
+            <button type="button" class="ib-chip ib-chip--copy" data-act="copy" title="নম্বর কপি করুন" aria-label="নম্বর কপি করুন"><i class="fa-regular fa-copy" style="background:none;width:auto;height:auto"></i></button>
+            <a class="ib-chip ib-chip--wa" data-f="wa" target="_blank" rel="noopener noreferrer" title="WhatsApp-এ খুলুন"><i class="fa-brands fa-whatsapp"></i>WhatsApp</a>
+            <a class="ib-chip ib-chip--mail" data-f="mail" hidden title="ইমেইল অ্যাপে খুলুন"><i class="fa-regular fa-envelope"></i><span data-f="email"></span></a>
+        </div>
+        <h2 class="ib-subject" data-f="subject"></h2>
+        <div class="ib-message" data-f="message"></div>
+
+        <div class="ib-box ib-reply">
+            <div class="ib-box__head">
+                <span><i class="fa-solid fa-reply"></i>উত্তর দিন</span>
+                <div class="ib-seg" role="radiogroup" aria-label="মাধ্যম">
+                    <input type="radio" class="btn-check" name="ibCh" id="ibChSms" value="sms" checked><label for="ibChSms"><i class="fa-solid fa-comment-sms"></i> SMS</label>
+                    <input type="radio" class="btn-check" name="ibCh" id="ibChMail" value="email"><label for="ibChMail"><i class="fa-regular fa-envelope"></i> ইমেইল</label>
+                </div>
+            </div>
+            <div class="ib-reply__in">
+                <div class="ib-quick" data-f="quick"></div>
+                <input type="text" class="form-control form-control-sm mb-2" data-f="rsubject" maxlength="150" placeholder="ইমেইলের বিষয়" aria-label="ইমেইলের বিষয়" hidden>
+                <textarea class="form-control" data-f="rbody" rows="4" maxlength="5000" placeholder="উত্তর লিখুন… (পাঠাতে Ctrl + Enter)" aria-label="উত্তর"></textarea>
+            </div>
+            <div class="ib-reply__foot">
+                <div>
+                    <button type="button" class="ib-btn ib-btn--sm" data-act="logcall" title="ফোনে কথা হয়েছে — ইতিহাসে লিখে রাখুন"><i class="fa-solid fa-phone"></i> কল করেছি</button>
+                    <button type="button" class="ib-btn ib-btn--sm ib-btn--green" data-act="logwa" title="WhatsApp-এ উত্তর দিয়েছি — ইতিহাসে লিখে রাখুন"><i class="fa-brands fa-whatsapp"></i> WhatsApp-এ দিয়েছি</button>
+                </div>
+                <div>
+                    <span class="ib-meter" data-f="meter"><span class="ib-meter__bar"><i data-f="meterbar"></i></span><span data-f="rcount"></span></span>
+                    <button type="button" class="ib-btn ib-btn--primary" data-act="send"><i class="fa-solid fa-paper-plane"></i><span data-f="sendlbl">পাঠান</span></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="ib-box">
+            <div class="ib-box__head"><span><i class="fa-solid fa-clock-rotate-left"></i>কাজের ইতিহাস</span><small class="text-muted fw-normal" data-f="tlcount"></small></div>
+            <ol class="ib-timeline" data-f="timeline"></ol>
+        </div>
+
+        <div class="ib-box">
+            <div class="ib-box__head"><span><i class="fa-solid fa-note-sticky"></i>ভেতরের নোট <small class="text-muted fw-normal">(গ্রাহক দেখেন না)</small></span><small class="ib-saved" data-f="notestate"></small></div>
+            <textarea class="form-control ib-note" data-f="note" rows="2" maxlength="2000" placeholder="যেমন: অর্ডার #… দেখা হচ্ছে" aria-label="ভেতরের নোট"></textarea>
+        </div>
+
+        <div class="ib-box" data-f="otherswrap" hidden>
+            <div class="ib-box__head"><span><i class="fa-solid fa-layer-group"></i>এই নম্বরের অন্য বার্তা</span></div>
+            <ul class="ib-others" data-f="others"></ul>
+        </div>
+    </div>
+</template>
 @endsection
 
-@push('styles')
-<style>
-.iq-card { background: #fff; border-radius: 16px; box-shadow: 0 1px 3px rgba(15,23,42,.08); padding: 14px 16px; }
-.iq-kpi { display: flex; gap: 12px; align-items: center; background: #fff; border-radius: 16px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(15,23,42,.08); height: 100%; }
-.iq-kpi__ic { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
-.iq-k--a .iq-kpi__ic { background: #eff6ff; color: #2563eb; } .iq-k--n .iq-kpi__ic { background: #fef3c7; color: #b45309; }
-.iq-k--d .iq-kpi__ic { background: #dcfce7; color: #16a34a; } .iq-k--w .iq-kpi__ic { background: #f3e8ff; color: #7c3aed; }
-.iq-kpi__lb { font-size: 12px; color: #64748b; font-weight: 600; } .iq-kpi__v { font-size: 1.35rem; font-weight: 800; color: #0f172a; line-height: 1.2; }
-.iq-chip { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 999px; border: 1px solid #e2e8f0; color: #475569; text-decoration: none; transition: all .15s; }
-.iq-chip span { font-size: 11px; background: #f1f5f9; color: #475569; border-radius: 999px; padding: 0 7px; }
-.iq-chip:hover { border-color: #cbd5e1; color: #0f172a; }
-.iq-chip.is-on { background: #0f172a; border-color: #0f172a; color: #fff; } .iq-chip.is-on span { background: rgba(255,255,255,.18); color: #fff; }
-.iq-search { position: relative; min-width: 260px; flex: 0 1 340px; }
-.iq-search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 13px; }
-.iq-search input { width: 100%; border: 1px solid #e2e8f0; border-radius: 999px; padding: 7px 14px 7px 34px; font-size: 14px; outline: none; }
-.iq-search input:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
-.iq-list { display: flex; flex-direction: column; gap: 10px; }
-.iq-item { display: flex; gap: 14px; background: #fff; border-radius: 16px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(15,23,42,.08); border-left: 4px solid transparent; transition: box-shadow .15s, transform .15s; }
-.iq-item:hover { box-shadow: 0 8px 22px rgba(15,23,42,.08); transform: translateY(-1px); }
-.iq-item.is-new { border-left-color: #f59e0b; background: linear-gradient(90deg, #fffbeb 0, #fff 140px); }
-.iq-item__av { width: 42px; height: 42px; border-radius: 50%; background: #e0e7ff; color: #3730a3; display: grid; place-items: center; font-weight: 800; flex-shrink: 0; }
-.iq-item__body { flex: 1; min-width: 0; }
-.iq-item__top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.iq-item__name { color: #0f172a; }
-.iq-item__time { margin-left: auto; font-size: 12px; color: #94a3b8; }
-.iq-item__subj { font-weight: 600; font-size: 13.5px; color: #334155; margin-top: 2px; }
-.iq-item__msg { margin: 4px 0 6px; font-size: 14px; color: #475569; white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
-.iq-item__msg.is-open { -webkit-line-clamp: unset; }
-.iq-item__meta { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; }
-.iq-item__meta a { color: #2563eb; text-decoration: none; } .iq-item__meta i { margin-right: 3px; }
-.iq-item__act { display: flex; gap: 6px; align-items: flex-start; flex-shrink: 0; }
-.iq-st { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
-.iq-st--new { background: #fef3c7; color: #92400e; } .iq-st--read { background: #f1f5f9; color: #475569; } .iq-st--done { background: #dcfce7; color: #166534; }
-.iq-empty { width: 72px; height: 72px; border-radius: 50%; background: #f1f5f9; display: inline-grid; place-items: center; font-size: 28px; color: #94a3b8; }
-@media (max-width: 767.98px) {
-    .iq-item { flex-wrap: wrap; }
-    .iq-item__act { width: 100%; justify-content: flex-end; }
-    .iq-search { min-width: 100%; }
-}
-</style>
-@endpush
-
 @push('scripts')
-<script>
-document.querySelectorAll('[data-iq-msg]').forEach(function (p) { p.addEventListener('click', function () { p.classList.toggle('is-open'); }); });
-</script>
+<script src="{{ asset('js/admin-inbox.js') }}?v={{ @filemtime(public_path('js/admin-inbox.js')) ?: 1 }}" defer></script>
 @endpush

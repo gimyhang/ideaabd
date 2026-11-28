@@ -3,113 +3,334 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\CommunicationLog;
-use Illuminate\Http\RedirectResponse;
+use App\Models\ContactInquiry;
+use App\Models\ContactInquiryReply;
+use App\Services\EmailService;
+use App\Services\SmsService;
+use App\Support\ContactInbox;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Inquiries: the messages people send from the website's contact form (stored in communication_logs with
- * channel = inquiry by the /contact/submit route). Sending SMS / e-mail lives in one place only: admin/sms.
+ * Inquiries inbox (admin/communication): messages from the website's contact form.
+ * The page is a shell; the list, the message and every action are JSON calls (admin-inbox.js).
  *
- * status: delivered = new, read, replied.
+ * Permissions (RoleMiddleware): read = support.view, act = support.reply; export and "delete for ever" = admin only.
+ * Every change is written to the activity log.
  */
 class CommunicationAdminController extends Controller
 {
-    public function index(Request $request): View
+    private const FOLDERS = ['inbox', 'new', 'starred', 'replied', 'spam', 'archived', 'trash'];
+
+    public function index(): View
     {
-        $status = $request->string('status')->trim()->value();
-        $search = $request->string('search')->trim()->value();
-        $ready = Schema::hasTable('communication_logs');
-        if ($ready) {
-            self::ensureStatusColumn();
-        }
+        ContactInbox::ensureSchema();
+        ContactInbox::purgeTrash();
 
-        $base = fn () => CommunicationLog::query()->where('channel', 'inquiry');
-
-        $inquiries = $ready
-            ? $base()
-                ->when(in_array($status, ['new', 'read', 'replied'], true), fn ($q) => $q->where('status', $status === 'new' ? 'delivered' : $status))
-                ->when($search, function ($q, $term) {
-                    $like = '%' . $term . '%';
-                    $q->where(fn ($w) => $w->where('recipient', 'like', $like)->orWhere('subject', 'like', $like)->orWhere('error_message', 'like', $like));
-                })
-                ->latest('created_at')->latest('id')->paginate(20)->withQueryString()
-            : null;
-
-        $counts = ['all' => 0, 'new' => 0, 'read' => 0, 'replied' => 0, 'week' => 0];
-        if ($ready) {
-            $row = $base()->toBase()->selectRaw("COUNT(*) AS a,
-                COALESCE(SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END), 0) AS n,
-                COALESCE(SUM(CASE WHEN status = 'read' THEN 1 ELSE 0 END), 0) AS r,
-                COALESCE(SUM(CASE WHEN status = 'replied' THEN 1 ELSE 0 END), 0) AS p,
-                COALESCE(SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END), 0) AS w", [now()->subDays(7)])->first();
-            $counts = ['all' => (int) $row->a, 'new' => (int) $row->n, 'read' => (int) $row->r, 'replied' => (int) $row->p, 'week' => (int) $row->w];
-        }
-
-        return view('admin.communication.index', compact('inquiries', 'counts', 'status', 'search', 'ready'));
+        return view('admin.communication.index', [
+            'counts'  => $this->counts(),
+            'isAdmin' => (bool) auth()->user()?->isAdmin(),
+        ]);
     }
 
-    public function updateStatus(Request $request, CommunicationLog $log): RedirectResponse
+    public function list(Request $request): JsonResponse
     {
-        abort_unless($log->channel === 'inquiry', 404);
-        $request->validate(['status' => 'required|in:new,read,replied']);
-        self::ensureStatusColumn();
-        $log->update(['status' => $request->input('status') === 'new' ? 'delivered' : $request->input('status')]);
+        $v = $request->validate([
+            'folder' => 'nullable|in:' . implode(',', self::FOLDERS),
+            'q'      => 'nullable|string|max:100',
+            'page'   => 'nullable|integer|min:1|max:10000',
+        ]);
+        $folder = $v['folder'] ?? 'inbox';
+        $q = trim((string) ($v['q'] ?? ''));
 
-        return back()->with('success', 'বার্তার অবস্থা হালনাগাদ হয়েছে।');
-    }
-
-    public function destroy(CommunicationLog $log): RedirectResponse
-    {
-        abort_unless($log->channel === 'inquiry', 404);
-        $log->delete();
-
-        return back()->with('success', 'বার্তাটি মুছে ফেলা হয়েছে।');
-    }
-
-    /**
-     * The table was made with status enum(sent, delivered, failed); an inbox also needs read / replied.
-     * Done from a web request (the production command line talks to another database), once.
-     */
-    public static function ensureStatusColumn(): void
-    {
-        if (\Illuminate\Support\Facades\Cache::get('inq:status:v1')) {
-            return;
-        }
-        try {
-            $db = \Illuminate\Support\Facades\DB::connection();
-            if (in_array($db->getDriverName(), ['mysql', 'mariadb'], true)) {
-                $type = (string) $db->selectOne("SELECT COLUMN_TYPE AS t FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'communication_logs' AND COLUMN_NAME = 'status'")?->t;
-                if (str_starts_with(strtolower($type), 'enum')) {
-                    $db->statement("ALTER TABLE `communication_logs` MODIFY `status` VARCHAR(20) NOT NULL DEFAULT 'sent'");
+        $query = ContactInquiry::query()->select(['id', 'name', 'phone', 'email', 'subject', 'message', 'status', 'starred', 'spam_score', 'created_at', 'replied_at']);
+        match ($folder) {
+            'trash'    => $query->onlyTrashed(),
+            'new'      => $query->where('status', 'new'),
+            'starred'  => $query->where('starred', true)->where('status', '!=', 'spam'),
+            'replied'  => $query->where('status', 'replied'),
+            'spam'     => $query->where('status', 'spam'),
+            'archived' => $query->where('status', 'archived'),
+            default    => $query->whereIn('status', ['new', 'read', 'replied']),
+        };
+        if ($q !== '') {
+            $like = '%' . addcslashes($q, '%_\\') . '%';
+            $digits = preg_replace('/\D/', '', $q);
+            $query->where(function ($w) use ($like, $digits) {
+                $w->where('name', 'like', $like)->orWhere('email', 'like', $like)->orWhere('subject', 'like', $like)->orWhere('message', 'like', $like);
+                if (strlen($digits) >= 3) {
+                    $w->orWhere('phone', 'like', '%' . substr($digits, -10) . '%');
                 }
-            }
-            \Illuminate\Support\Facades\Cache::forever('inq:status:v1', true);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('Inquiries status column: ' . $e->getMessage());
+            });
         }
+        $page = $query->orderByDesc($folder === 'trash' ? 'deleted_at' : 'created_at')->orderByDesc('id')->paginate(25, ['*'], 'page', $v['page'] ?? 1);
+
+        return response()->json([
+            'items'  => collect($page->items())->map(fn ($i) => [
+                'id'      => $i->id,
+                'name'    => $i->name,
+                'phone'   => $i->localPhone(),
+                'subject' => $i->subject,
+                'snippet' => mb_substr(preg_replace('/\s+/u', ' ', $i->message), 0, 140),
+                'status'  => $i->status,
+                'starred' => $i->starred,
+                'spam'    => $i->spam_score,
+                'email'   => (bool) $i->email, // only whether one exists; the address is shown when opened
+                'time'    => $i->created_at?->diffForHumans(null, true, true),
+                'date'    => $i->created_at?->format('d M Y, h:i A'),
+            ]),
+            'page'   => $page->currentPage(),
+            'pages'  => $page->lastPage(),
+            'total'  => $page->total(),
+            'counts' => $this->counts(),
+        ]);
     }
 
-    /** Split the stored row into name / phone / email / subject / message. */
-    public static function parse(CommunicationLog $log): array
+    public function show(Request $request, int $id): JsonResponse
     {
-        [$phone, $email] = array_pad(array_map('trim', explode(' / ', (string) $log->recipient, 2)), 2, null);
-        $subject = (string) $log->subject;
-        $name = '';
-        if (($p = mb_strrpos($subject, ' — ')) !== false) {
-            $name = trim(mb_substr($subject, $p + 3));
-            $subject = trim(mb_substr($subject, 0, $p));
+        $i = ContactInquiry::withTrashed()->with('replies')->findOrFail($id);
+        if ($i->status === 'new' && !$i->trashed()) {
+            $i->forceFill(['status' => 'read', 'read_at' => now()])->save();
+            Cache::forget('admin_sidebar_pending_badges');
         }
+        $others = ContactInquiry::where('id', '!=', $i->id)->where('phone', $i->phone)->latest('id')->limit(10)
+            ->get(['id', 'subject', 'status', 'created_at']);
+
+        return response()->json([
+            'id'       => $i->id,
+            'name'     => $i->name,
+            'phone'    => $i->localPhone(),
+            'email'    => $i->email,
+            'whatsapp' => $i->whatsappUrl(),
+            'subject'  => $i->subject,
+            'message'  => $i->message,
+            'status'   => $i->status,
+            'starred'  => $i->starred,
+            'spam'     => $i->spam_score,
+            'note'     => (string) $i->note,
+            'trashed'  => $i->trashed(),
+            'member'   => $i->user_id ? optional(\App\Models\User::find($i->user_id, ['id', 'name']))->name : null,
+            'ip'       => auth()->user()?->isAdmin() ? $i->ip : null, // the sender's IP is for the admin only
+            'date'     => $i->created_at?->format('d M Y, h:i A'),
+            'ago'      => $i->created_at?->diffForHumans(),
+            'replies'  => $i->replies->map(fn ($r) => [
+                'channel' => $r->channel, 'body' => (string) $r->body, 'ok' => $r->ok, 'error' => $r->error,
+                'by' => $r->admin_name, 'time' => optional($r->created_at)->format('d M, h:i A'),
+            ]),
+            'others'   => $others->map(fn ($o) => ['id' => $o->id, 'subject' => $o->subject, 'status' => $o->status, 'date' => $o->created_at?->format('d M Y')]),
+            'counts'   => $this->counts(),
+        ]);
+    }
+
+    public function status(Request $request, int $id): JsonResponse
+    {
+        $v = $request->validate(['status' => 'required|in:' . implode(',', array_keys(ContactInbox::STATUSES))]);
+        $i = ContactInquiry::findOrFail($id);
+        $i->forceFill(['status' => $v['status']] + ($v['status'] === 'replied' && !$i->replied_at ? ['replied_at' => now(), 'replied_by' => auth()->id()] : []))->save();
+        $this->audit('inquiry_status', "বার্তা #{$i->id} → {$v['status']}");
+
+        return $this->ok('“' . ContactInbox::STATUSES[$v['status']] . '” করা হয়েছে।');
+    }
+
+    public function star(int $id): JsonResponse
+    {
+        $i = ContactInquiry::findOrFail($id);
+        $i->forceFill(['starred' => !$i->starred])->save();
+
+        return $this->ok($i->starred ? 'তারকা দেওয়া হয়েছে।' : 'তারকা সরানো হয়েছে।', ['starred' => $i->starred]);
+    }
+
+    public function note(Request $request, int $id): JsonResponse
+    {
+        $v = $request->validate(['note' => 'nullable|string|max:2000']);
+        $i = ContactInquiry::findOrFail($id);
+        $i->forceFill(['note' => ContactInbox::clean($v['note'] ?? '', 2000) ?: null])->save();
+
+        return $this->ok('নোট সংরক্ষিত।');
+    }
+
+    /** Answer by SMS or e-mail from the inbox; the answer is kept with the message. */
+    public function reply(Request $request, int $id): JsonResponse
+    {
+        $v = $request->validate([
+            'channel' => 'required|in:sms,email',
+            'body'    => 'required|string|min:2|max:' . ($request->input('channel') === 'sms' ? 600 : 5000),
+            'subject' => 'nullable|string|max:150',
+        ]);
+        $i = ContactInquiry::findOrFail($id);
+        abort_if($i->status === 'spam', 422, 'স্প্যাম বার্তার উত্তর দেওয়া যায় না — আগে "ইনবক্সে ফেরত" দিন।');
+        $body = ContactInbox::clean($v['body'], $v['channel'] === 'sms' ? 600 : 5000);
+
+        if ($v['channel'] === 'sms') {
+            $res = SmsService::send($i->phone, $body, ['source' => 'admin', 'purpose' => 'notification', 'campaign' => 'Inquiry #' . $i->id]);
+            $ok = !empty($res['success']);
+            $why = SmsService::diagnose($res['response_code'] ?? null, (string) ($res['message'] ?? $res['error'] ?? ''));
+            $error = $ok ? null : ($why ? $why[1] : SmsService::scrub((string) ($res['message'] ?? $res['error'] ?? 'SMS যায়নি')));
+        } else {
+            if (!$i->email) {
+                return $this->fail('এই বার্তায় ইমেইল ঠিকানা নেই — SMS-এ উত্তর দিন।');
+            }
+            $subject = ContactInbox::clean($v['subject'] ?? '', 150) ?: ('Re: ' . $i->subject);
+            $res = EmailService::sendSingle(toEmail: $i->email, subject: $subject, body: $body, recipientName: $i->name);
+            $ok = !empty($res['success']);
+            $error = $ok ? null : mb_substr((string) ($res['message'] ?? 'ইমেইল যায়নি'), 0, 250);
+        }
+
+        ContactInquiryReply::create([
+            'inquiry_id' => $i->id, 'channel' => $v['channel'], 'body' => $body, 'ok' => $ok, 'error' => $error,
+            'admin_id' => auth()->id(), 'admin_name' => mb_substr((string) auth()->user()?->name, 0, 100),
+        ]);
+        if ($ok) {
+            $i->forceFill(['status' => 'replied', 'replied_at' => now(), 'replied_by' => auth()->id()])->save();
+        }
+        $this->audit('inquiry_reply', "বার্তা #{$i->id}: {$v['channel']} উত্তর " . ($ok ? 'পাঠানো হয়েছে' : 'ব্যর্থ'));
+
+        return $ok
+            ? $this->ok(($v['channel'] === 'sms' ? 'SMS' : 'ইমেইল') . ' পাঠানো হয়েছে।')
+            : $this->fail('পাঠানো যায়নি: ' . $error);
+    }
+
+    /** "I called" / "I answered on WhatsApp": keeps the history complete. */
+    public function logContact(Request $request, int $id): JsonResponse
+    {
+        $v = $request->validate(['channel' => 'required|in:call,whatsapp', 'body' => 'nullable|string|max:500']);
+        $i = ContactInquiry::findOrFail($id);
+        ContactInquiryReply::create([
+            'inquiry_id' => $i->id, 'channel' => $v['channel'], 'body' => ContactInbox::clean($v['body'] ?? '', 500) ?: null, 'ok' => true,
+            'admin_id' => auth()->id(), 'admin_name' => mb_substr((string) auth()->user()?->name, 0, 100),
+        ]);
+        $i->forceFill(['status' => 'replied', 'replied_at' => $i->replied_at ?? now(), 'replied_by' => auth()->id()])->save();
+
+        return $this->ok($v['channel'] === 'call' ? 'কল লিখে রাখা হয়েছে।' : 'WhatsApp উত্তর লিখে রাখা হয়েছে।');
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $i = ContactInquiry::findOrFail($id);
+        $i->delete();
+        $this->audit('inquiry_trash', "বার্তা #{$i->id} ট্র্যাশে");
+
+        return $this->ok('ট্র্যাশে সরানো হয়েছে (৩০ দিন পর নিজে থেকে মুছবে)।');
+    }
+
+    public function restore(int $id): JsonResponse
+    {
+        $i = ContactInquiry::onlyTrashed()->findOrFail($id);
+        $i->restore();
+        $this->audit('inquiry_restore', "বার্তা #{$i->id} ফেরত");
+
+        return $this->ok('ইনবক্সে ফেরত এসেছে।');
+    }
+
+    public function bulk(Request $request): JsonResponse
+    {
+        $v = $request->validate([
+            'ids'    => 'required|array|min:1|max:200',
+            'ids.*'  => 'integer|min:1',
+            'action' => 'required|in:read,new,replied,spam,archived,inbox,trash,restore,purge',
+        ]);
+        $ids = array_values(array_unique($v['ids']));
+        $a = $v['action'];
+        if ($a === 'purge' && !auth()->user()?->isAdmin()) {
+            return $this->fail('চিরতরে মুছতে পারেন শুধু অ্যাডমিন।', 403);
+        }
+
+        $n = DB::transaction(function () use ($ids, $a) {
+            return match ($a) {
+                'trash'   => ContactInquiry::whereIn('id', $ids)->get()->each->delete()->count(),
+                'restore' => ContactInquiry::onlyTrashed()->whereIn('id', $ids)->get()->each->restore()->count(),
+                'purge'   => (function () use ($ids) {
+                    $rows = ContactInquiry::onlyTrashed()->whereIn('id', $ids)->pluck('id');
+                    ContactInquiryReply::whereIn('inquiry_id', $rows)->delete();
+                    return ContactInquiry::onlyTrashed()->whereIn('id', $rows)->forceDelete();
+                })(),
+                'inbox'   => ContactInquiry::whereIn('id', $ids)->update(['status' => 'read', 'updated_at' => now()]),
+                default   => ContactInquiry::whereIn('id', $ids)->update(['status' => $a, 'updated_at' => now()]
+                    + ($a === 'read' ? ['read_at' => now()] : []) + ($a === 'replied' ? ['replied_at' => now(), 'replied_by' => auth()->id()] : [])),
+            };
+        });
+        Cache::forget('admin_sidebar_pending_badges');
+        $this->audit('inquiry_bulk', "বার্তা ({$a}) — " . count($ids) . 'টি নির্বাচিত, ' . $n . 'টি বদলেছে');
+
+        return $this->ok(\App\Support\Bn::digits($n) . 'টি বার্তা হালনাগাদ হয়েছে।');
+    }
+
+    /** New messages since the page was opened (the open page shows a toast and refreshes the list). */
+    public function poll(Request $request): JsonResponse
+    {
+        $after = (int) $request->input('after', 0);
+
+        return response()->json([
+            'counts' => $this->counts(),
+            'latest' => (int) ContactInquiry::max('id'),
+            'fresh'  => $after > 0 ? ContactInquiry::where('id', '>', $after)->where('status', 'new')->count() : 0,
+        ]);
+    }
+
+    /** Admin only: the export holds everyone's phone and e-mail. */
+    public function export(Request $request): StreamedResponse
+    {
+        abort_unless($request->user()?->isAdmin(), 403, 'এক্সপোর্ট শুধু অ্যাডমিনের জন্য।');
+        $this->audit('inquiry_export', 'যোগাযোগ বার্তা CSV এক্সপোর্ট');
+
+        return response()->streamDownload(function () {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, ['ID', 'Date', 'Name', 'Phone', 'Email', 'Subject', 'Message', 'Status', 'Replied at', 'Note']);
+            ContactInquiry::orderBy('id')->chunk(500, function ($rows) use ($out) {
+                foreach ($rows as $r) {
+                    fputcsv($out, array_map([ContactInbox::class, 'csvSafe'], [
+                        $r->id, $r->created_at?->format('Y-m-d H:i'), $r->name, $r->localPhone(), $r->email, $r->subject,
+                        preg_replace('/\s+/u', ' ', $r->message), $r->status, $r->replied_at?->format('Y-m-d H:i'), $r->note,
+                    ]));
+                }
+            });
+            fclose($out);
+        }, 'inquiries-' . now()->format('Y-m-d') . '.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────────────────────────────
+
+    private function counts(): array
+    {
+        if (!ContactInbox::ready()) {
+            return array_fill_keys(self::FOLDERS, 0);
+        }
+        $r = DB::table('contact_inquiries')->selectRaw("
+            COALESCE(SUM(CASE WHEN deleted_at IS NULL AND status IN ('new','read','replied') THEN 1 ELSE 0 END), 0) AS inbox,
+            COALESCE(SUM(CASE WHEN deleted_at IS NULL AND status = 'new' THEN 1 ELSE 0 END), 0) AS fresh,
+            COALESCE(SUM(CASE WHEN deleted_at IS NULL AND starred = 1 AND status != 'spam' THEN 1 ELSE 0 END), 0) AS starred,
+            COALESCE(SUM(CASE WHEN deleted_at IS NULL AND status = 'replied' THEN 1 ELSE 0 END), 0) AS replied,
+            COALESCE(SUM(CASE WHEN deleted_at IS NULL AND status = 'spam' THEN 1 ELSE 0 END), 0) AS spam,
+            COALESCE(SUM(CASE WHEN deleted_at IS NULL AND status = 'archived' THEN 1 ELSE 0 END), 0) AS archived,
+            COALESCE(SUM(CASE WHEN deleted_at IS NOT NULL THEN 1 ELSE 0 END), 0) AS trash,
+            COALESCE(SUM(CASE WHEN deleted_at IS NULL AND created_at >= ? THEN 1 ELSE 0 END), 0) AS week", [now()->subDays(7)])->first();
 
         return [
-            'name'    => $name ?: 'নাম নেই',
-            'phone'   => $phone ?: null,
-            'email'   => $email ?: null,
-            'subject' => $subject ?: 'সাধারণ বার্তা',
-            'message' => (string) $log->error_message,
-            'status'  => $log->status === 'delivered' ? 'new' : $log->status,
+            'inbox' => (int) $r->inbox, 'new' => (int) $r->fresh, 'starred' => (int) $r->starred, 'replied' => (int) $r->replied,
+            'spam' => (int) $r->spam, 'archived' => (int) $r->archived, 'trash' => (int) $r->trash, 'week' => (int) $r->week,
         ];
+    }
+
+    private function ok(string $message, array $extra = []): JsonResponse
+    {
+        return response()->json(['ok' => true, 'message' => $message] + $extra);
+    }
+
+    private function fail(string $message, int $status = 422): JsonResponse
+    {
+        return response()->json(['ok' => false, 'message' => $message], $status);
+    }
+
+    private function audit(string $action, string $text): void
+    {
+        try {
+            app(\App\Services\AdminAccessService::class)->log($action, $text);
+        } catch (\Throwable) {
+        }
     }
 }

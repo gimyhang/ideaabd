@@ -20,7 +20,7 @@
             . (\App\Support\SchemaCache::has('author_payout_requests') ? "(SELECT COUNT(*) FROM `author_payout_requests` WHERE `status` = 'pending')" : '0') . ' AS `payouts`, '
             . (\App\Support\SchemaCache::has('author_honorariums') ? "(SELECT COUNT(*) FROM `author_honorariums` WHERE `payment_status` = 'pending')" : '0') . ' AS `honorariums`, '
             . (\App\Support\SchemaCache::has('password_reset_requests') ? "(SELECT COUNT(*) FROM `password_reset_requests` WHERE `status` = 'pending')" : '0') . ' AS `pw_reqs`, '
-            . (\App\Support\SchemaCache::has('communication_logs') ? "(SELECT COUNT(*) FROM `communication_logs` WHERE `channel` = 'inquiry' AND `status` = 'delivered')" : '0') . ' AS `inquiries`'
+            . (\App\Support\SchemaCache::has('contact_inquiries') ? "(SELECT COUNT(*) FROM `contact_inquiries` WHERE `status` = 'new' AND `deleted_at` IS NULL)" : '0') . ' AS `inquiries`'
         );
         return [
             'pending' => $adminPendingRegistrations ?? (int) ($userStats->total_pending ?? 0),

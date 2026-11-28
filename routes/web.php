@@ -56,7 +56,7 @@ Route::get('/sitemaps/publishers.xml', [\App\Http\Controllers\SitemapController:
 Route::get('/sitemaps/categories.xml', [\App\Http\Controllers\SitemapController::class, 'categoriesSitemap'])->name('sitemap.categories');
 Route::get('/sitemaps/research.xml', [\App\Http\Controllers\SitemapController::class, 'researchSitemap'])->name('sitemap.research');
 Route::get('/sitemaps/{slug}.xml', [\App\Http\Controllers\SitemapController::class, 'dynamicPageSitemap'])->name('sitemap.dynamic');
-Route::get('/sitemap/ping', [\App\Http\Controllers\SitemapController::class, 'pingSearchEngines'])->middleware(['auth', 'role:admin', 'throttle:6,1'])->name('sitemap.ping');
+Route::get('/sitemap/ping', [\App\Http\Controllers\SitemapController::class, 'pingSearchEngines'])->middleware(['auth', 'role:admin', 'throttle:6,1,sitemap.ping-2ab740'])->name('sitemap.ping');
 Route::get('/feed', [\App\Http\Controllers\SitemapController::class, 'feed'])->name('feed');
 Route::get('/rss.xml', [\App\Http\Controllers\SitemapController::class, 'feed'])->name('rss');
 
@@ -124,7 +124,7 @@ Route::match(['get', 'post'], '/cart/checkout', function (\Illuminate\Http\Reque
 Route::post('/cart/validate-coupon', [CartController::class, 'validateCoupon'])->name('cart.validate-coupon');
 Route::post('/cart/add', fn() => back())->name('cart.add');
 Route::get('/track-order', [\App\Http\Controllers\OrderTrackingController::class, 'show'])->name('order.track');
-Route::post('/track-order', [\App\Http\Controllers\OrderTrackingController::class, 'lookup'])->middleware('throttle:20,1')->name('order.track.lookup');
+Route::post('/track-order', [\App\Http\Controllers\OrderTrackingController::class, 'lookup'])->middleware('throttle:20,1,order.track.lookup-d5f954')->name('order.track.lookup');
 Route::post('/newsletter/subscribe', fn() => back()->with('success', 'Subscribed successfully!'))->name('newsletter.subscribe');
 
 // --- Reviews & Comments (Dynamic, Registered & Guest Safe) -------------------
@@ -273,9 +273,9 @@ Route::prefix('books')->name('book.')->group(function () {
     Route::get('/{id}/quick-view', [BookController::class, 'quickView'])->name('quick-view');
     // Share sheet + wishlist button on the book page (JSON)
     Route::get('/{slug}/share-card.jpg', [\Modules\Book\Http\Controllers\Frontend\BookEngagementController::class, 'shareCard'])->name('share-card');
-    Route::post('/wishlist/sync', [\Modules\Book\Http\Controllers\Frontend\BookEngagementController::class, 'syncWishlist'])->middleware(['auth', 'throttle:20,1'])->name('wishlist.sync');
-    Route::post('/{id}/share', [\Modules\Book\Http\Controllers\Frontend\BookEngagementController::class, 'share'])->whereNumber('id')->middleware('throttle:30,1')->name('share');
-    Route::post('/{id}/wishlist', [\Modules\Book\Http\Controllers\Frontend\BookEngagementController::class, 'toggleWishlist'])->whereNumber('id')->middleware('throttle:60,1')->name('wishlist.toggle');
+    Route::post('/wishlist/sync', [\Modules\Book\Http\Controllers\Frontend\BookEngagementController::class, 'syncWishlist'])->middleware(['auth', 'throttle:20,1,wishlist.sync-7486f3'])->name('wishlist.sync');
+    Route::post('/{id}/share', [\Modules\Book\Http\Controllers\Frontend\BookEngagementController::class, 'share'])->whereNumber('id')->middleware('throttle:30,1,share-0be30d')->name('share');
+    Route::post('/{id}/wishlist', [\Modules\Book\Http\Controllers\Frontend\BookEngagementController::class, 'toggleWishlist'])->whereNumber('id')->middleware('throttle:60,1,wishlist.toggle-040e5e')->name('wishlist.toggle');
 });
 
 // Category Friendly Canonical Routes
@@ -291,7 +291,7 @@ Route::get('/api/recent-orders', [\App\Http\Controllers\SocialProofController::c
 // already registers blog.index / blog.show / blog.category / blog.tag.
 
 // Bengali speech fallback for the audiobook player (browsers without a Bengali voice)
-Route::get('/tts/bn', [\App\Http\Controllers\TtsController::class, 'bengali'])->middleware('throttle:120,1')->name('tts.bn');
+Route::get('/tts/bn', [\App\Http\Controllers\TtsController::class, 'bengali'])->middleware('throttle:120,1,tts.bn-aa00ef')->name('tts.bn');
 
 // Ebook Routes
 Route::prefix('ebooks')->name('ebook.')->group(function () {
@@ -302,7 +302,7 @@ Route::prefix('ebooks')->name('ebook.')->group(function () {
     Route::get('/{slug}/download', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'download'])->name('download');
     Route::post('/{slug}/claim', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'claim'])->name('claim');
     Route::get('/{id}/stream', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'stream'])->name('stream');
-    Route::post('/{id}/progress', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'saveProgress'])->middleware('throttle:90,1')->name('progress');
+    Route::post('/{id}/progress', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'saveProgress'])->middleware('throttle:90,1,progress-eab0c2')->name('progress');
 });
 
 // Webzine routes are defined in the Webzine module (Modules/Webzine/Routes/web.php)
@@ -357,41 +357,7 @@ Route::view('/refund-policy', 'frontend.pages.refund')->name('refund.policy');
 Route::view('/shipping-policy', 'frontend.pages.terms')->name('shipping.policy');
 Route::view('/documents', 'frontend.pages.documents')->name('documents');
 Route::view('/contact', 'frontend.pages.contact')->name('contact');
-Route::post('/contact/submit', function (\Illuminate\Http\Request $request) {
-    $data = $request->validate([
-        'name'    => 'required|string|max:100',
-        'phone'   => 'required|string|max:25',
-        'email'   => 'nullable|email|max:100',
-        'subject' => 'nullable|string|max:150',
-        'message' => 'required|string|max:3000',
-    ]);
-
-    try {
-        if (\Illuminate\Support\Facades\Schema::hasTable('communication_logs')) {
-            \Illuminate\Support\Facades\DB::table('communication_logs')->insert([
-                'channel'       => 'inquiry',
-                'recipient'     => $data['phone'] . (!empty($data['email']) ? ' / ' . $data['email'] : ''),
-                'trigger_event' => 'contact_form_inquiry',
-                'subject'       => ($data['subject'] ?? 'সাধারণ বার্তা') . ' — ' . $data['name'],
-                'status'        => 'delivered',
-                'error_message' => $data['message'],
-                'created_at'    => now(),
-                'updated_at'    => now(),
-            ]);
-        }
-    } catch (\Throwable $e) {
-        \Illuminate\Support\Facades\Log::info('Contact message received: ' . json_encode($data));
-    }
-
-    if ($request->ajax() || $request->wantsJson()) {
-        return response()->json([
-            'success' => true,
-            'message' => 'আপনার বার্তাটি সফলভাবে পাঠানো হয়েছে! আমাদের টিম দ্রুতই আপনার সাথে যোগাযোগ করবে।'
-        ]);
-    }
-
-    return redirect()->back()->with('success', 'আপনার বার্তাটি সফলভাবে পাঠানো হয়েছে! আমাদের টিম দ্রুতই আপনার সাথে যোগাযোগ করবে।');
-})->name('contact.submit');
+Route::post('/contact/submit', [\App\Http\Controllers\ContactController::class, 'submit'])->middleware('throttle:6,10,contact.submit-3fa27a')->name('contact.submit');
 
 // --- Registration & CAPTCHA routes (Consolidated & Throttled) -----------------
 Route::get('/auth/csrf-token', function () {
@@ -405,13 +371,13 @@ Route::get('/register/choose', fn() => redirect('/login?mode=register'))->name('
 Route::get('/register/author', fn() => redirect('/login?mode=register&role=author'))->name('register.author');
 Route::get('/register/publisher', fn() => redirect('/login?mode=register&role=publisher'))->name('register.publisher');
 
-Route::post('/register/complete', [RegistrationController::class, 'completeUnifiedRegistration'])->middleware('throttle:10,1')->name('register.complete');
+Route::post('/register/complete', [RegistrationController::class, 'completeUnifiedRegistration'])->middleware('throttle:10,1,register.complete-5a712f')->name('register.complete');
 Route::get('/register-success', [RegistrationController::class, 'registrationSuccess'])->name('register.success');
-Route::post('/register/send-email-otp', [RegistrationController::class, 'sendEmailOtp'])->middleware('throttle:5,1')->name('register.send-email-otp');
-Route::post('/register/verify-email-otp', [RegistrationController::class, 'verifyEmailOtp'])->middleware('throttle:10,1')->name('register.verify-email-otp');
+Route::post('/register/send-email-otp', [RegistrationController::class, 'sendEmailOtp'])->middleware('throttle:5,1,register.send-email-otp-da2f15')->name('register.send-email-otp');
+Route::post('/register/verify-email-otp', [RegistrationController::class, 'verifyEmailOtp'])->middleware('throttle:10,1,register.verify-email-otp-a80854')->name('register.verify-email-otp');
 Route::post('/register/check-phone', [RegistrationController::class, 'checkPhoneConflict'])->name('register.check-phone');
-Route::post('/register/send-otp', [RegistrationController::class, 'sendOtp'])->middleware('throttle:5,1')->name('register.send-otp');
-Route::post('/register/verify-otp', [RegistrationController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('register.verify-otp');
+Route::post('/register/send-otp', [RegistrationController::class, 'sendOtp'])->middleware('throttle:5,1,register.send-otp-48c2c1')->name('register.send-otp');
+Route::post('/register/verify-otp', [RegistrationController::class, 'verifyOtp'])->middleware('throttle:10,1,register.verify-otp-546ed9')->name('register.verify-otp');
 Route::post('/register/quick-customer', [RegistrationController::class, 'quickCustomerRegister'])->name('register.quick-customer');
 Route::get('/pending-approval', [RegistrationController::class, 'pendingApproval'])->name('pending.approval');
 
@@ -425,7 +391,7 @@ Route::post('/impersonate/leave', [\App\Http\Controllers\Admin\ImpersonationCont
 Route::prefix('my-account')->middleware('auth')->group(function () {
     Route::get('/', [\App\Http\Controllers\UserController::class, 'dashboard'])->name('my-account');
     Route::post('/profile', [\App\Http\Controllers\UserController::class, 'updateProfile'])->name('my-account.profile.update');
-    Route::post('/phone/send-otp', [\App\Http\Controllers\UserController::class, 'sendPhoneOtp'])->middleware('throttle:3,1')->name('my-account.phone.send-otp');
+    Route::post('/phone/send-otp', [\App\Http\Controllers\UserController::class, 'sendPhoneOtp'])->middleware('throttle:3,1,my-account.phone.send-otp-254869')->name('my-account.phone.send-otp');
     Route::post('/address', [\App\Http\Controllers\UserController::class, 'updateAddress'])->name('my-account.address.update');
     Route::post('/password', [\App\Http\Controllers\UserController::class, 'updatePassword'])->name('my-account.password.update');
     Route::post('/kyc', [\App\Http\Controllers\UserController::class, 'updateKyc'])->name('my-account.kyc.update');
@@ -528,9 +494,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/', [AdminController::class, 'index'])->name('index');
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::post('/dashboard/quick-action', [AdminController::class, 'dashboardQuickAction'])->name('dashboard.quick-action');
-    Route::post('/system/database-update', [AdminController::class, 'databaseUpdate'])->middleware('throttle:3,1')->name('system.database-update');
+    Route::post('/system/database-update', [AdminController::class, 'databaseUpdate'])->middleware('throttle:3,1,system.database-update-24079d')->name('system.database-update');
     Route::get('/dashboard/pending-data', [AdminController::class, 'dashboardPendingData'])->name('dashboard.pending-data');
-    Route::get('/dashboard/live-visitors', [AdminController::class, 'dashboardLiveVisitors'])->middleware('throttle:30,1')->name('dashboard.live-visitors');
+    Route::get('/dashboard/live-visitors', [AdminController::class, 'dashboardLiveVisitors'])->middleware('throttle:30,1,dashboard.live-visitors-ab71cc')->name('dashboard.live-visitors');
     Route::post('/settings/toggle-verification', [AdminController::class, 'toggleVerificationSetting'])->name('settings.toggle-verification');
 
     // E-Book Sales Report, Royalty Management & Payouts (KDP Engine)
@@ -559,7 +525,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/books', [AdminController::class, 'books'])->name('books');
     Route::post('/books/sync-serials', [AdminController::class, 'syncBookSerials'])->name('books.sync-serials');
     Route::get('/books/generate-serial', [AdminController::class, 'generateBookSerial'])->name('books.generate-serial');
-    Route::get('/books/code-preview', [AdminController::class, 'bookCodePreview'])->middleware('throttle:180,1')->name('books.code-preview');
+    Route::get('/books/code-preview', [AdminController::class, 'bookCodePreview'])->middleware('throttle:180,1,books.code-preview-3bd7c8')->name('books.code-preview');
     Route::get('/books/print-labels', [AdminController::class, 'printBookLabels'])->name('books.print-labels');
     Route::get('/books/{id}/barcode-data', [AdminController::class, 'getBookBarcodeData'])->name('books.barcode-data');
     Route::post('/books/{id}/toggle-status', [AdminController::class, 'toggleBookStatus'])->name('books.toggle-status');
@@ -756,11 +722,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Visitors & security (admin only: the rows hold IP addresses)
     Route::get('/visitor-reports', [\App\Http\Controllers\Admin\VisitorReportController::class, 'index'])->name('visitor-reports');
     Route::prefix('visitor-reports')->name('visitor-reports.')->controller(\App\Http\Controllers\Admin\VisitorReportController::class)->group(function () {
-        Route::get('/data', 'data')->middleware('throttle:60,1')->name('data');
-        Route::get('/live', 'live')->middleware('throttle:60,1')->name('live');
-        Route::get('/ip', 'ip')->middleware('throttle:60,1')->name('ip');
-        Route::post('/block', 'block')->middleware('throttle:30,1')->name('block');
-        Route::post('/unblock', 'unblock')->middleware('throttle:30,1')->name('unblock');
+        Route::get('/data', 'data')->middleware('throttle:60,1,data-53a2e7')->name('data');
+        Route::get('/live', 'live')->middleware('throttle:60,1,live-86477b')->name('live');
+        Route::get('/ip', 'ip')->middleware('throttle:60,1,ip-e9e7b2')->name('ip');
+        Route::post('/block', 'block')->middleware('throttle:30,1,block-4a710d')->name('block');
+        Route::post('/unblock', 'unblock')->middleware('throttle:30,1,unblock-65675b')->name('unblock');
     });
     Route::get('/reports/print', [AdminController::class, 'printReport'])->name('reports.print');
     Route::post('/books/quick-stock', [AdminController::class, 'quickUpdateStock'])->name('books.quick-stock');
@@ -846,7 +812,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/', 'index')->name('index');
         Route::post('/settings', 'updateSettings')->name('settings');
         Route::get('/export', 'exportCsv')->name('export');
-        Route::post('/bulk', 'bulk')->middleware('throttle:30,1')->name('bulk');
+        Route::post('/bulk', 'bulk')->middleware('throttle:30,1,bulk-2512bc')->name('bulk');
         Route::post('/{registration}/dispatch', 'updateDispatch')->name('dispatch');
         Route::post('/{registration}/acknowledgment', 'updateAcknowledgment')->name('acknowledgment');
         Route::match(['post', 'patch'], '/{registration}/toggle-approval', 'toggleApproval')->name('toggle-approval');
@@ -883,16 +849,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Bulk SMS & Email Management, Live Gateway Balance & Messaging Hub
     Route::prefix('sms')->name('sms.')->controller(\App\Http\Controllers\Admin\AdminSmsController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::get('/balance', 'getBalance')->middleware('throttle:30,1')->name('balance');
-        Route::post('/send-test', 'sendTest')->middleware('throttle:10,1')->name('send-test');
-        Route::post('/campaign', 'campaign')->middleware('throttle:6,1')->name('campaign');
-        Route::post('/campaigns/tick', 'campaignsTick')->middleware('throttle:40,1')->name('campaigns.tick');
-        Route::post('/campaigns/{campaign}/action', 'campaignAction')->middleware('throttle:20,1')->name('campaigns.action');
+        Route::get('/balance', 'getBalance')->middleware('throttle:30,1,balance-07fd05')->name('balance');
+        Route::post('/send-test', 'sendTest')->middleware('throttle:10,1,send-test-7a04ec')->name('send-test');
+        Route::post('/campaign', 'campaign')->middleware('throttle:6,1,campaign-7c4cfc')->name('campaign');
+        Route::post('/campaigns/tick', 'campaignsTick')->middleware('throttle:40,1,campaigns.tick-64f5b8')->name('campaigns.tick');
+        Route::post('/campaigns/{campaign}/action', 'campaignAction')->middleware('throttle:20,1,campaigns.action-23fc27')->name('campaigns.action');
         Route::post('/settings', 'updateSettings')->name('settings');
-        Route::post('/settings/verify', 'verifySettings')->middleware('throttle:10,1')->name('settings.verify');
-        Route::post('/send-email-test', 'sendEmailTest')->middleware('throttle:10,1')->name('send-email-test');
+        Route::post('/settings/verify', 'verifySettings')->middleware('throttle:10,1,settings.verify-dfa244')->name('settings.verify');
+        Route::post('/send-email-test', 'sendEmailTest')->middleware('throttle:10,1,send-email-test-c60780')->name('send-email-test');
         Route::post('/smtp-settings', 'updateSmtpSettings')->name('smtp-settings');
-        Route::post('/send-otp-test', 'sendOtpTest')->middleware('throttle:10,1')->name('send-otp-test');
+        Route::post('/send-otp-test', 'sendOtpTest')->middleware('throttle:10,1,send-otp-test-c625ae')->name('send-otp-test');
         Route::get('/transactions/export', 'exportTransactions')->name('transactions.export');
         Route::post('/restrictions/release', 'releaseNumber')->name('restrictions.release');
         Route::post('/restrictions/block', 'blockNumber')->name('restrictions.block');
@@ -932,18 +898,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/system-settings', [AdminAccessController::class, 'updateSystemSettings'])->name('system-settings.update');
     Route::post('/system-settings/clear-cache', [AdminAccessController::class, 'clearCache'])->name('system-settings.clear-cache');
     Route::get('/system-settings/health', [AdminAccessController::class, 'health'])->name('system-settings.health');
-    Route::get('/system-settings/export', [AdminAccessController::class, 'exportSettings'])->middleware('throttle:10,1')->name('system-settings.export');
-    Route::post('/system-settings/import', [AdminAccessController::class, 'importSettings'])->middleware('throttle:10,1')->name('system-settings.import');
+    Route::get('/system-settings/export', [AdminAccessController::class, 'exportSettings'])->middleware('throttle:10,1,system-settings.export-18e8e5')->name('system-settings.export');
+    Route::post('/system-settings/import', [AdminAccessController::class, 'importSettings'])->middleware('throttle:10,1,system-settings.import-4a4e6e')->name('system-settings.import');
     Route::get('/system-settings/history', [AdminAccessController::class, 'settingsHistory'])->name('system-settings.history');
-    Route::post('/system-settings/history/{id}/restore', [AdminAccessController::class, 'restoreSettings'])->middleware('throttle:10,1')->where('id', '[a-z0-9]{6,16}')->name('system-settings.restore');
+    Route::post('/system-settings/history/{id}/restore', [AdminAccessController::class, 'restoreSettings'])->middleware('throttle:10,1,system-settings.restore-d279f2')->where('id', '[a-z0-9]{6,16}')->name('system-settings.restore');
     Route::post('/theme/update', [AdminAccessController::class, 'updateTheme'])->name('theme.update');
     Route::post('/theme/reset', [AdminAccessController::class, 'resetTheme'])->name('theme.reset');
 
     // Cache management & optimizations
     Route::prefix('cache')->name('cache.')->controller(\App\Http\Controllers\Admin\AdminCacheController::class)->group(function () {
         Route::get('/manage', 'index')->name('manage');
-        Route::get('/storage', 'storage')->middleware('throttle:20,1')->name('storage');
-        Route::post('/storage/clean', 'storageClean')->middleware('throttle:10,1')->name('storage-clean');
+        Route::get('/storage', 'storage')->middleware('throttle:20,1,storage-7c51a6')->name('storage');
+        Route::post('/storage/clean', 'storageClean')->middleware('throttle:10,1,storage-clean-853268')->name('storage-clean');
         Route::post('/clear-all', 'clearAll')->name('clear-all');
         Route::post('/clear-views', 'clearViews')->name('clear-views');
         Route::post('/clear-app', 'clearApp')->name('clear-app');
@@ -951,8 +917,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/clear-routes', 'clearRoutes')->name('clear-routes');
         Route::post('/clear-events', 'clearEvents')->name('clear-events');
         Route::post('/clear-opcache', 'clearOpcache')->name('clear-opcache');
-        Route::post('/clear-images', 'clearImages')->middleware('throttle:6,1')->name('clear-images');
-        Route::post('/scan-images', 'scanImages')->middleware('throttle:10,1')->name('scan-images');
+        Route::post('/clear-images', 'clearImages')->middleware('throttle:6,1,clear-images-5f858c')->name('clear-images');
+        Route::post('/scan-images', 'scanImages')->middleware('throttle:10,1,scan-images-b7e1c3')->name('scan-images');
         Route::post('/restore-images', 'restoreImages')->name('restore-images');
         Route::post('/delete-image-batch', 'deleteImageBatch')->name('delete-image-batch');
         Route::post('/warmup', 'warmup')->name('warmup');
@@ -962,7 +928,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/inspect-key', 'inspectKey')->name('inspect-key');
         Route::get('/stats-json', 'statsJson')->name('stats-json');
         Route::post('/optimize', 'optimize')->name('optimize');
-        Route::post('/run-artisan', 'runArtisan')->middleware('throttle:10,1')->name('run-artisan');
+        Route::post('/run-artisan', 'runArtisan')->middleware('throttle:10,1,run-artisan-bc63a4')->name('run-artisan');
     });
 
     // Money receipts: honorarium paid to writers and bill money received
@@ -977,9 +943,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Enterprise Disaster Recovery & Master ZIP Backup Hub
     Route::prefix('backup')->name('backup.')->controller(\App\Http\Controllers\Admin\AdminBackupController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::post('/create', 'create')->middleware('throttle:6,1')->name('create');
-        Route::post('/upload', 'upload')->middleware('throttle:10,1')->name('upload');
-        Route::post('/optimize', 'optimize')->middleware('throttle:6,1')->name('optimize');
+        Route::post('/create', 'create')->middleware('throttle:6,1,create-48389d')->name('create');
+        Route::post('/upload', 'upload')->middleware('throttle:10,1,upload-c562ac')->name('upload');
+        Route::post('/optimize', 'optimize')->middleware('throttle:6,1,optimize-ce0028')->name('optimize');
         Route::post('/integrity-check', 'integrityCheck')->name('integrity');
         Route::post('/settings', 'updateSettings')->name('settings');
         Route::post('/bulk-delete', 'bulkDelete')->name('bulk-delete');
@@ -987,11 +953,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/inspect/{filename}', 'inspect')->name('inspect');
         Route::get('/diff/{filename}', 'diff')->name('diff');
         Route::post('/dry-run/{filename}', 'dryRun')->name('dry-run');
-        Route::post('/selective-restore/{filename}', 'selectiveRestore')->middleware('throttle:5,1')->name('selective-restore');
-        Route::post('/export-anonymized', 'exportAnonymized')->middleware('throttle:4,1')->name('export-anonymized');
-        Route::post('/test-notification', 'testNotification')->middleware('throttle:10,1')->name('test-notification');
-        Route::post('/email/{filename}', 'sendEmail')->middleware('throttle:6,1')->name('email');
-        Route::post('/restore/{filename}', 'restore')->middleware('throttle:5,1')->name('restore');
+        Route::post('/selective-restore/{filename}', 'selectiveRestore')->middleware('throttle:5,1,selective-restore-913be5')->name('selective-restore');
+        Route::post('/export-anonymized', 'exportAnonymized')->middleware('throttle:4,1,export-anonymized-97cecc')->name('export-anonymized');
+        Route::post('/test-notification', 'testNotification')->middleware('throttle:10,1,test-notification-f5fe93')->name('test-notification');
+        Route::post('/email/{filename}', 'sendEmail')->middleware('throttle:6,1,email-1e73b8')->name('email');
+        Route::post('/restore/{filename}', 'restore')->middleware('throttle:5,1,restore-35a5e4')->name('restore');
         Route::get('/download/{filename}', 'download')->name('download');
         Route::delete('/{filename}', 'destroy')->name('destroy');
     });
@@ -1014,19 +980,19 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Book genres: one list shared by the admin book form, the publisher portal and validation
     Route::prefix('genres')->name('genres.')->controller(\App\Http\Controllers\Admin\GenreAdminController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::post('/', 'store')->middleware('throttle:30,1')->name('store');
-        Route::post('/reorder', 'reorder')->middleware('throttle:60,1')->name('reorder');
-        Route::put('/{genre}', 'update')->middleware('throttle:60,1')->name('update');
-        Route::delete('/{genre}', 'destroy')->middleware('throttle:30,1')->name('destroy');
+        Route::post('/', 'store')->middleware('throttle:30,1,store-d07865')->name('store');
+        Route::post('/reorder', 'reorder')->middleware('throttle:60,1,reorder-48b8f6')->name('reorder');
+        Route::put('/{genre}', 'update')->middleware('throttle:60,1,update-8c7d8c')->name('update');
+        Route::delete('/{genre}', 'destroy')->middleware('throttle:30,1,destroy-aa763d')->name('destroy');
     });
 
     // User Management Security, One-Time Password (OTP) & IP Block Cleaner
     Route::prefix('users/security')->name('users.security.')->controller(\App\Http\Controllers\Admin\UserSecurityAdminController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/live-stats', 'liveStats')->name('live-stats');
-        Route::get('/lookup', 'lookup')->middleware('throttle:60,1')->name('lookup');
-        Route::get('/export', 'export')->middleware('throttle:10,1')->name('export');
-        Route::middleware('throttle:30,1')->group(function () {
+        Route::get('/lookup', 'lookup')->middleware('throttle:60,1,lookup-053511')->name('lookup');
+        Route::get('/export', 'export')->middleware('throttle:10,1,export-d1edef')->name('export');
+        Route::middleware('throttle:30,1,throttle-30-1-d0de05')->group(function () {
             Route::post('/generate-otp', 'generateOtp')->name('generate-otp');
             Route::post('/auto-generate-password', 'autoGeneratePassword')->name('auto-generate-password');
             Route::post('/unblock-ip', 'unblockIp')->name('unblock-ip');
@@ -1108,8 +1074,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Inquiries from the website contact form (sending SMS / e-mail lives in admin/sms only)
     Route::prefix('communication')->name('communication.')->controller(\App\Http\Controllers\Admin\CommunicationAdminController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::patch('/{log}/status', 'updateStatus')->name('status');
-        Route::delete('/{log}', 'destroy')->name('destroy');
+        Route::get('/list', 'list')->middleware('throttle:120,1,list-d476e4')->name('list');
+        Route::get('/poll', 'poll')->middleware('throttle:60,1,poll-2c2b0c')->name('poll');
+        Route::get('/export', 'export')->middleware('throttle:5,1,export-bd1354')->name('export');
+        Route::post('/bulk', 'bulk')->middleware('throttle:30,1,bulk-2512bcx')->name('bulk');
+        Route::get('/{id}', 'show')->whereNumber('id')->middleware('throttle:120,1,show-7eb391')->name('show');
+        Route::post('/{id}/status', 'status')->whereNumber('id')->middleware('throttle:120,1,inbox-status')->name('status');
+        Route::post('/{id}/star', 'star')->whereNumber('id')->middleware('throttle:120,1,inbox-star')->name('star');
+        Route::post('/{id}/note', 'note')->whereNumber('id')->middleware('throttle:120,1,inbox-note')->name('note');
+        Route::post('/{id}/reply', 'reply')->whereNumber('id')->middleware('throttle:20,1,reply-45ffe7')->name('reply');
+        Route::post('/{id}/log', 'logContact')->whereNumber('id')->middleware('throttle:120,1,inbox-log')->name('log');
+        Route::post('/{id}/restore', 'restore')->whereNumber('id')->middleware('throttle:120,1,inbox-restore')->name('restore');
+        Route::delete('/{id}', 'destroy')->whereNumber('id')->middleware('throttle:60,1,inbox-destroy')->name('destroy');
     });
 
     // Admin Profile & Multi-Dimensional Customization Hub
@@ -1175,7 +1151,7 @@ Route::controller(\App\Http\Controllers\PublicEventRegistrationController::class
 
     Route::get('/event-share/{slug}.jpg', 'shareImage')->name('event.share-image')->where('slug', '[a-zA-Z0-9\-_]+');
     Route::get('/event-confirmed/{slug}', 'success')->name('event.success');
-    Route::post('/event-lookup/{slug}', 'lookup')->middleware('throttle:12,1')->name('event.lookup')->where('slug', '[a-zA-Z0-9\-_]+');
+    Route::post('/event-lookup/{slug}', 'lookup')->middleware('throttle:12,1,event.lookup-40df8b')->name('event.lookup')->where('slug', '[a-zA-Z0-9\-_]+');
     Route::get('/{slug}', 'show')->name('event.show')->where('slug', '[a-zA-Z0-9\-_]+');
     Route::post('/{slug}', 'submit')->name('event.submit')->where('slug', '[a-zA-Z0-9\-_]+');
 });

@@ -1282,23 +1282,35 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: formData
                 });
 
-                const data = await response.json();
+                // a refusal (too many tries, server error) may not be JSON: say so, never post the form again
+                let data = {};
+                try { data = await response.json(); } catch (e) { data = {}; }
+                if (response.status === 429) data.message = 'অনেকবার চেষ্টা হয়েছে — কয়েক মিনিট পরে আবার পাঠান।';
+                const showAlert = (ok, text) => {
+                    alertBox.className = ok
+                        ? 'alert alert-success py-3 px-3.5 rounded-4 small mb-4 border-0 bg-emerald-50 text-emerald-800 d-flex align-items-center gap-2'
+                        : 'alert alert-danger py-3 px-3.5 rounded-4 small mb-4 border-0 bg-rose-50 text-rose-800 d-flex align-items-center gap-2';
+                    const icon = document.createElement('i');
+                    icon.className = ok ? 'fa-solid fa-circle-check text-emerald-600 fs-5 flex-shrink-0' : 'fa-solid fa-circle-exclamation text-rose-600 fs-5 flex-shrink-0';
+                    const msg = document.createElement('div');
+                    msg.textContent = text; // server text goes in as text, never as HTML
+                    alertBox.replaceChildren(icon, msg);
+                    alertBox.classList.remove('d-none');
+                };
 
                 if (response.ok && data.success) {
-                    alertBox.className = 'alert alert-success py-3 px-3.5 rounded-4 small mb-4 border-0 bg-emerald-50 text-emerald-800 d-flex align-items-center gap-2';
-                    alertBox.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600 fs-5 flex-shrink-0"></i><div>' + data.message + '</div>';
-                    alertBox.classList.remove('d-none');
+                    showAlert(true, data.message || 'বার্তা পাঠানো হয়েছে।');
                     form.reset();
                     updateCharCount(document.getElementById('contactMessage'));
                     alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 } else {
-                    alertBox.className = 'alert alert-danger py-3 px-3.5 rounded-4 small mb-4 border-0 bg-rose-50 text-rose-800 d-flex align-items-center gap-2';
-                    alertBox.innerHTML = '<i class="fa-solid fa-circle-exclamation text-rose-600 fs-5 flex-shrink-0"></i><div>' + (data.message || 'বার্তা পাঠাতে সমস্যা হয়েছে। অনুগ্রহ করে প্রয়োজনীয় তথ্য পূরণ করুন।') + '</div>';
-                    alertBox.classList.remove('d-none');
+                    showAlert(false, data.message || 'বার্তা পাঠাতে সমস্যা হয়েছে। অনুগ্রহ করে প্রয়োজনীয় তথ্য পূরণ করুন।');
                 }
             } catch (err) {
-                console.warn('Submitting via standard POST fallback:', err);
-                form.submit();
+                // network down: keep what the visitor typed and let them try again (no silent re-post)
+                alertBox.className = 'alert alert-danger py-3 px-3.5 rounded-4 small mb-4 border-0';
+                alertBox.textContent = 'ইন্টারনেট সংযোগে সমস্যা — আবার চেষ্টা করুন।';
+                alertBox.classList.remove('d-none');
             } finally {
                 if (submitBtn) {
                     submitBtn.disabled = false;
