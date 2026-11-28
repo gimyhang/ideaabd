@@ -344,3 +344,6 @@ body.dark-mode .bk-banner.is-good { color: #34d399; } body.dark-mode .bk-banner.
 
 @media (max-width: 1199.98px) { .bk-tools { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: reduce) { .bk-progress-orb, .bk-progress-bar i, .bk-dot, .bk-toast { animation: none; } }
+.bk-fail { display: flex; gap: 6px; align-items: flex-start; margin-top: 4px; padding: 6px 8px; border-radius: 9px; background: var(--bk-red-soft); color: var(--bk-red); font-size: 11.5px; line-height: 1.45; }
+.bk-fail i { margin-top: 2px; }
+.bk-fail span { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow-wrap: anywhere; }

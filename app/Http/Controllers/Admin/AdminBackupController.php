@@ -75,6 +75,7 @@ class AdminBackupController extends Controller
         $mode = $request->validate(['mode' => 'nullable|in:db_only,data_media,full_system'])['mode'] ?? 'db_only';
 
         @set_time_limit(0);
+        @ignore_user_abort(true); // a closed tab or proxy timeout must not leave a half-made backup
         $result = $this->backups->run($mode, 'manual');
 
         if (!$result['ok']) {

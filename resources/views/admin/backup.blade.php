@@ -126,6 +126,9 @@
             @if(!empty($last['at']))
                 <small class="{{ ($last['status'] ?? '') === 'ok' ? '' : 'text-danger' }}">Auto: {{ \Illuminate\Support\Carbon::parse($last['at'])->format('d M, h:i A') }} · {{ ($last['status'] ?? '') === 'ok' ? 'সফল' : 'ব্যর্থ' }}</small>
             @endif
+            @if(($last['status'] ?? '') === 'failed' && !empty($last['message']))
+                <div class="bk-fail" title="{{ $last['message'] }}"><i class="fa-solid fa-circle-info"></i><span>কারণ: {{ \Illuminate\Support\Str::limit($last['message'], 180) }}</span></div>
+            @endif
         </div>
 
         <div class="bk-tile">

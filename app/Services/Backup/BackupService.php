@@ -469,35 +469,57 @@ class BackupService
         }
 
         $stamp = date('Y-m-d_H-i-s');
-        $tmp   = tempnam(sys_get_temp_dir(), 'dump');
         $hash  = hash_init('sha256');
         $bytes = 0;
-        $fh    = fopen($tmp, 'wb');
+        $full  = static fn () => new \RuntimeException('ফাইল লেখা যায়নি — সার্ভারের ডিস্ক বা কোটা ভরে গেছে। পুরনো ব্যাকআপ মুছুন বা cPanel-এ জায়গা দেখুন।');
+        // work files live next to the backups (".part" is never listed), not in the server's small temp folder
+        $tmp   = $this->dir() . "/.dump_{$stamp}_" . bin2hex(random_bytes(3)) . '.part';
+        $part  = null;
+        $fh    = null;
+        $gz    = null;
 
         try {
-            $this->dumpTo(function (string $chunk) use ($fh, $hash, &$bytes) {
-                fwrite($fh, $chunk);
-                hash_update($hash, $chunk);
-                $bytes += strlen($chunk);
-            });
-            fclose($fh);
-
             $mediaCount = 0;
             if ($mode === 'db_only') {
-                if (function_exists('gzopen')) {
-                    $name = "idea_db_{$stamp}.sql.gz";
-                    $out  = gzopen($this->dir() . '/' . $name, 'wb9');
-                    $in   = fopen($tmp, 'rb');
-                    while (!feof($in)) {
-                        gzwrite($out, (string) fread($in, 1048576));
-                    }
-                    fclose($in);
-                    gzclose($out);
-                } else {
-                    $name = "idea_db_{$stamp}.sql";
-                    File::copy($tmp, $this->dir() . '/' . $name);
+                // straight into the compressed file: one pass, no full-size copy on the disk
+                $useGz = function_exists('gzopen');
+                $name  = $useGz ? "idea_db_{$stamp}.sql.gz" : "idea_db_{$stamp}.sql";
+                $part  = $this->dir() . '/' . $name . '.part';
+                $gz    = $useGz ? gzopen($part, 'wb6') : fopen($part, 'wb');
+                if (!$gz) {
+                    throw $full();
                 }
+                $this->dumpTo(function (string $chunk) use ($gz, $useGz, $hash, &$bytes, $full) {
+                    if ($chunk === '') {
+                        return;
+                    }
+                    if (($useGz ? gzwrite($gz, $chunk) : fwrite($gz, $chunk)) === false) {
+                        throw $full();
+                    }
+                    hash_update($hash, $chunk);
+                    $bytes += strlen($chunk);
+                });
+                $closed = $useGz ? gzclose($gz) : fclose($gz);
+                $gz     = null;
+                if (!$closed || !@rename($part, $this->dir() . '/' . $name)) {
+                    throw $full();
+                }
+                $part = null;
             } else {
+                $fh = fopen($tmp, 'wb');
+                if (!$fh) {
+                    throw $full();
+                }
+                $this->dumpTo(function (string $chunk) use ($fh, $hash, &$bytes, $full) {
+                    if ($chunk !== '' && fwrite($fh, $chunk) === false) {
+                        throw $full();
+                    }
+                    hash_update($hash, $chunk);
+                    $bytes += strlen($chunk);
+                });
+                fclose($fh);
+                $fh = null;
+
                 if (!class_exists(ZipArchive::class)) {
                     throw new \RuntimeException('সার্ভারে ZIP সাপোর্ট নেই।');
                 }
@@ -530,7 +552,13 @@ class BackupService
             if (is_resource($fh)) {
                 fclose($fh);
             }
+            if (is_resource($gz)) {
+                @gzclose($gz);
+            }
             @unlink($tmp);
+            if ($part) {
+                @unlink($part); // a failed run leaves no half-written backup behind
+            }
         }
 
         $this->prune();
@@ -555,6 +583,12 @@ class BackupService
     public function prune(?int $retention = null): int
     {
         $retention ??= $this->settings()['retention_days'];
+        // work files of a run that was killed (time limit, server restart) are not backups
+        foreach (array_merge(glob($this->dir() . '/*.part') ?: [], glob($this->dir() . '/.*.part') ?: []) as $stale) {
+            if (@filemtime($stale) < time() - 6 * 3600) {
+                @unlink($stale);
+            }
+        }
         $files   = $this->files(); // newest first
         $deleted = 0;
 
@@ -615,20 +649,55 @@ class BackupService
         foreach ($tables as [$table, $create]) {
             $write("-- {$table}\nDROP TABLE IF EXISTS `{$table}`;\n{$create}\n\n");
 
-            DB::table($table)->orderByRaw('1')->chunk(500, function ($rows) use ($write, $pdo, $table, $rowFilter) {
-                $sql = '';
-                foreach ($rows as $row) {
-                    $row  = $rowFilter ? $rowFilter($table, (array) $row) : (array) $row;
-                    $cols = implode(', ', array_map(fn ($c) => "`{$c}`", array_keys($row)));
-                    $vals = implode(', ', array_map(fn ($v) => $v === null ? 'NULL' : $pdo->quote((string) $v), array_values($row)));
-                    $sql .= "INSERT INTO `{$table}` ({$cols}) VALUES ({$vals});\n";
+            $sql  = '';
+            $emit = function ($row) use (&$sql, $write, $pdo, $table, $rowFilter) {
+                $row  = $rowFilter ? $rowFilter($table, (array) $row) : (array) $row;
+                $cols = implode(', ', array_map(fn ($c) => "`{$c}`", array_keys($row)));
+                $vals = implode(', ', array_map(fn ($v) => $v === null ? 'NULL' : $pdo->quote((string) $v), array_values($row)));
+                $sql .= "INSERT INTO `{$table}` ({$cols}) VALUES ({$vals});\n";
+                if (strlen($sql) > 1048576) {
+                    $write($sql);
+                    $sql = '';
                 }
-                $write($sql);
-            });
-            $write("\n");
+            };
+
+            if ($this->hasIntegerId($table, $driver)) {
+                // WHERE id > last … LIMIT n: every page costs the same, however big the table is
+                foreach (DB::table($table)->lazyById(2000, 'id') as $row) {
+                    $emit($row);
+                }
+            } else {
+                DB::table($table)->orderByRaw('1')->chunk(1000, function ($rows) use ($emit) {
+                    foreach ($rows as $row) {
+                        $emit($row);
+                    }
+                });
+            }
+            $write($sql . "\n");
         }
 
         $write($driver === 'sqlite' ? "PRAGMA foreign_keys = ON;\n" : "SET FOREIGN_KEY_CHECKS=1;\n");
+    }
+
+    /** True when the table has an integer `id` primary key, so rows can be paged by id. */
+    private function hasIntegerId(string $table, string $driver): bool
+    {
+        try {
+            if ($driver === 'sqlite') {
+                foreach (DB::select("PRAGMA table_info(`{$table}`)") as $c) {
+                    if ($c->name === 'id') {
+                        return (int) $c->pk === 1 && str_contains(strtolower((string) $c->type), 'int');
+                    }
+                }
+
+                return false;
+            }
+            $col = DB::selectOne("SHOW COLUMNS FROM `{$table}` WHERE Field = 'id'");
+
+            return $col && ($col->Key ?? '') === 'PRI' && str_contains(strtolower((string) $col->Type), 'int');
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     public function sqlDump(): string
