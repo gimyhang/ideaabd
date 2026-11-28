@@ -810,7 +810,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Library & Book Grant Management (Admin Dedicated Dashboard)
     Route::prefix('libraries')->name('libraries.')->controller(\App\Http\Controllers\Admin\LibraryRegistrationAdminController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::post('/settings', 'updateSettings')->name('settings');
+        Route::post('/settings', 'updateSettings')->middleware('throttle:20,1,backup-settings')->name('settings');
         Route::get('/export', 'exportCsv')->name('export');
         Route::post('/bulk', 'bulk')->middleware('throttle:30,1,bulk-2512bc')->name('bulk');
         Route::post('/{registration}/dispatch', 'updateDispatch')->name('dispatch');
@@ -854,7 +854,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/campaign', 'campaign')->middleware('throttle:6,1,campaign-7c4cfc')->name('campaign');
         Route::post('/campaigns/tick', 'campaignsTick')->middleware('throttle:40,1,campaigns.tick-64f5b8')->name('campaigns.tick');
         Route::post('/campaigns/{campaign}/action', 'campaignAction')->middleware('throttle:20,1,campaigns.action-23fc27')->name('campaigns.action');
-        Route::post('/settings', 'updateSettings')->name('settings');
+        Route::post('/settings', 'updateSettings')->middleware('throttle:20,1,backup-settings')->name('settings');
         Route::post('/settings/verify', 'verifySettings')->middleware('throttle:10,1,settings.verify-dfa244')->name('settings.verify');
         Route::post('/send-email-test', 'sendEmailTest')->middleware('throttle:10,1,send-email-test-c60780')->name('send-email-test');
         Route::post('/smtp-settings', 'updateSmtpSettings')->name('smtp-settings');
@@ -946,20 +946,20 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/create', 'create')->middleware('throttle:6,1,create-48389d')->name('create');
         Route::post('/upload', 'upload')->middleware('throttle:10,1,upload-c562ac')->name('upload');
         Route::post('/optimize', 'optimize')->middleware('throttle:6,1,optimize-ce0028')->name('optimize');
-        Route::post('/integrity-check', 'integrityCheck')->name('integrity');
-        Route::post('/settings', 'updateSettings')->name('settings');
-        Route::post('/bulk-delete', 'bulkDelete')->name('bulk-delete');
-        Route::post('/cleanup-storage', 'cleanupStorage')->name('cleanup-storage');
-        Route::get('/inspect/{filename}', 'inspect')->name('inspect');
-        Route::get('/diff/{filename}', 'diff')->name('diff');
-        Route::post('/dry-run/{filename}', 'dryRun')->name('dry-run');
+        Route::post('/integrity-check', 'integrityCheck')->middleware('throttle:6,1,backup-integrity')->name('integrity');
+        Route::post('/settings', 'updateSettings')->middleware('throttle:20,1,backup-settings')->name('settings');
+        Route::post('/bulk-delete', 'bulkDelete')->middleware('throttle:20,1,backup-bulk-delete')->name('bulk-delete');
+        Route::post('/cleanup-storage', 'cleanupStorage')->middleware('throttle:10,1,backup-cleanup')->name('cleanup-storage');
+        Route::get('/inspect/{filename}', 'inspect')->middleware('throttle:60,1,backup-inspect')->name('inspect');
+        Route::get('/diff/{filename}', 'diff')->middleware('throttle:20,1,backup-diff')->name('diff');
+        Route::post('/dry-run/{filename}', 'dryRun')->middleware('throttle:20,1,backup-dry-run')->name('dry-run');
         Route::post('/selective-restore/{filename}', 'selectiveRestore')->middleware('throttle:5,1,selective-restore-913be5')->name('selective-restore');
         Route::post('/export-anonymized', 'exportAnonymized')->middleware('throttle:4,1,export-anonymized-97cecc')->name('export-anonymized');
         Route::post('/test-notification', 'testNotification')->middleware('throttle:10,1,test-notification-f5fe93')->name('test-notification');
         Route::post('/email/{filename}', 'sendEmail')->middleware('throttle:6,1,email-1e73b8')->name('email');
         Route::post('/restore/{filename}', 'restore')->middleware('throttle:5,1,restore-35a5e4')->name('restore');
-        Route::get('/download/{filename}', 'download')->name('download');
-        Route::delete('/{filename}', 'destroy')->name('destroy');
+        Route::get('/download/{filename}', 'download')->middleware('throttle:30,1,backup-download')->name('download');
+        Route::delete('/{filename}', 'destroy')->middleware('throttle:60,1,backup-destroy')->name('destroy');
     });
 
     // Media & Asset Studio Library

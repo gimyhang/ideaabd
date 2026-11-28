@@ -11,6 +11,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Mail;
@@ -22,6 +23,8 @@ class AdminBackupController extends Controller
 {
     private const TOKEN_RULE = '/^\d{5,}:[A-Za-z0-9_-]{20,}$/';
     private const CHAT_RULE  = '/^(-?\d{4,}|@[A-Za-z0-9_]{4,})$/';
+    private const VERIFIED   = 'backup:verified'; // filename => [ok, at] from the last Verify
+    public const RESTORE_WORD = 'RESTORE';
 
     public function __construct(
         private readonly BackupService $backups,
@@ -62,6 +65,7 @@ class AdminBackupController extends Controller
             'uploadMaxMb'  => (int) floor($phpLimit / 1048576),
             'maxRetention' => (int) config('backup.max_retention', 30),
             'mailMaxMb'    => (int) config('backup.mail_attach_max_mb', 20),
+            'verified'     => array_intersect_key((array) Cache::get(self::VERIFIED, []), array_flip(array_column($files, 'filename'))),
         ]);
     }
 
@@ -125,6 +129,10 @@ class AdminBackupController extends Controller
             return back()->with('error', 'ব্যাকআপ ফাইল পাওয়া যায়নি।');
         }
 
+        if (trim((string) $request->input('confirm')) !== self::RESTORE_WORD) {
+            return back()->with('error', 'নিশ্চিত করতে বক্সে ' . self::RESTORE_WORD . ' লিখুন।');
+        }
+
         @set_time_limit(0);
         try {
             $r = $this->backups->restore($path);
@@ -186,6 +194,7 @@ class AdminBackupController extends Controller
 
         $started = microtime(true);
         $result  = $this->backups->verify($path);
+        $this->remember($filename, (bool) $result['passed']);
         $this->logAction('backup_verified', "যাচাই: {$filename} — " . ($result['passed'] ? 'ঠিক আছে' : 'সমস্যা পাওয়া গেছে'));
 
         return response()->json([
@@ -258,20 +267,24 @@ class AdminBackupController extends Controller
         return response()->json(['success' => $res['ok'], 'message' => $res['message']], $res['ok'] ? 200 : 422);
     }
 
-    public function integrityCheck(): RedirectResponse
+    public function integrityCheck(Request $request): JsonResponse|RedirectResponse
     {
         $started = microtime(true);
+        @set_time_limit(0);
         try {
-            $bad = [];
+            $bad     = [];
+            $checked = 1;
             if (config('database.default') === 'sqlite') {
                 $res = DB::select('PRAGMA integrity_check')[0]->integrity_check ?? 'ok';
                 if (strtolower((string) $res) !== 'ok') {
                     $bad[] = (string) $res;
                 }
             } else {
+                $checked = 0;
                 foreach (DB::select('SHOW FULL TABLES WHERE Table_type = "BASE TABLE"') as $row) {
                     $cells = (array) $row;
                     $t     = (string) reset($cells);
+                    $checked++;
                     $msg   = ((array) DB::select("CHECK TABLE `{$t}`")[0])['Msg_text'] ?? 'OK';
                     if (strtolower((string) $msg) !== 'ok') {
                         $bad[] = "{$t}: {$msg}";
@@ -282,14 +295,21 @@ class AdminBackupController extends Controller
             $msg = $bad ? 'সমস্যা পাওয়া গেছে — ' . implode(', ', array_slice($bad, 0, 3)) : "ডাটাবেজ ঠিক আছে ({$ms} ms)";
             $this->logAction('integrity_check', $msg);
 
+            if ($request->wantsJson()) {
+                return response()->json(['success' => !$bad, 'message' => $msg, 'checked' => $checked, 'bad' => array_slice($bad, 0, 50), 'ms' => $ms], $bad ? 422 : 200);
+            }
+
             return $bad ? back()->with('error', $msg) : back()->with('success', $msg);
         } catch (\Throwable $e) {
-            return back()->with('error', 'পরীক্ষা ব্যর্থ: ' . $e->getMessage());
+            return $this->fail($request, 'পরীক্ষা ব্যর্থ: ' . $e->getMessage(), 500);
         }
     }
 
-    public function optimize(): RedirectResponse
+    public function optimize(Request $request): JsonResponse|RedirectResponse
     {
+        @set_time_limit(0);
+        $started = microtime(true);
+        $before  = $this->backups->dbStats();
         try {
             if (config('database.default') === 'sqlite') {
                 DB::statement('VACUUM');
@@ -304,11 +324,15 @@ class AdminBackupController extends Controller
                     DB::statement('OPTIMIZE TABLE ' . implode(', ', $names));
                 }
             }
-            $this->logAction('optimize_db', 'ডাটাবেজ অপটিমাইজ করা হয়েছে');
+            $after = $this->backups->dbStats();
+            $msg   = "ডাটাবেজ অপটিমাইজ হয়েছে: {$before['size']} → {$after['size']}";
+            $this->logAction('optimize_db', $msg);
 
-            return back()->with('success', 'ডাটাবেজ অপটিমাইজ হয়েছে।');
+            return $request->wantsJson()
+                ? response()->json(['success' => true, 'message' => $msg, 'before' => $before['size'], 'after' => $after['size'], 'tables' => count($after['tables']), 'ms' => round((microtime(true) - $started) * 1000)])
+                : back()->with('success', $msg);
         } catch (\Throwable $e) {
-            return back()->with('error', 'অপটিমাইজ ব্যর্থ: ' . $e->getMessage());
+            return $this->fail($request, 'অপটিমাইজ ব্যর্থ: ' . $e->getMessage(), 500);
         }
     }
 
@@ -381,6 +405,7 @@ class AdminBackupController extends Controller
         }
 
         File::delete($path);
+        $this->forget([$filename]);
         $this->logAction('backup_deleted', "মুছে ফেলা: {$filename}");
         $msg = 'ব্যাকআপ মুছে ফেলা হয়েছে।';
 
@@ -397,6 +422,7 @@ class AdminBackupController extends Controller
                 $deleted += (int) File::delete($path);
             }
         }
+        $this->forget($names);
         $this->logAction('backup_bulk_deleted', "{$deleted}টি ব্যাকআপ মুছে ফেলা হয়েছে");
         $msg = $deleted ? "{$deleted}টি ব্যাকআপ মুছে ফেলা হয়েছে।" : 'মোছার মতো কোনো ফাইল পাওয়া যায়নি।';
 
@@ -416,6 +442,19 @@ class AdminBackupController extends Controller
     private function fail(Request $request, string $message, int $status): JsonResponse|RedirectResponse
     {
         return $request->wantsJson() ? response()->json(['success' => false, 'message' => $message], $status) : back()->with('error', $message);
+    }
+
+    private function remember(string $filename, bool $ok): void
+    {
+        $map            = (array) Cache::get(self::VERIFIED, []);
+        $map[$filename] = ['ok' => $ok, 'at' => time()];
+        Cache::forever(self::VERIFIED, array_slice($map, -200, null, true));
+    }
+
+    private function forget(array $filenames): void
+    {
+        $map = (array) Cache::get(self::VERIFIED, []);
+        Cache::forever(self::VERIFIED, array_diff_key($map, array_flip($filenames)));
     }
 
     private function logAction(string $action, string $details): void

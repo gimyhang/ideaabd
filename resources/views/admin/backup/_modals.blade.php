@@ -1,10 +1,12 @@
 {{-- Progress --}}
 <div class="modal fade" id="progressModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content text-center p-4">
-            <div class="spinner-border text-primary mx-auto mb-3" role="status"></div>
-            <h6 class="mb-1" id="progressTitle">Backup চলছে</h6>
-            <small class="text-muted">পেজটি বন্ধ করবেন না</small>
+        <div class="modal-content text-center p-4 bk-progress">
+            <div class="bk-progress-orb mx-auto mb-3"><i class="fa-solid fa-database" id="progressIcon"></i></div>
+            <h6 class="mb-1 fw-bold" id="progressTitle">Backup চলছে</h6>
+            <small class="text-muted d-block" id="progressNote">পেজটি বন্ধ করবেন না</small>
+            <div class="bk-progress-bar mt-3"><i></i></div>
+            <small class="text-muted d-block mt-2 font-monospace" id="progressTime">০:০০</small>
         </div>
     </div>
 </div>
@@ -55,17 +57,20 @@
             <form id="restoreForm" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h6 class="modal-title mb-0 text-danger">Restore</h6>
+                    <h6 class="modal-title mb-0 text-danger"><i class="fa-solid fa-triangle-exclamation me-2"></i>Restore</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="বন্ধ"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="mb-2">লাইভ ডাটাবেজ (ও মিডিয়া) এই ফাইল থেকে বদলে যাবে:</p>
-                    <div class="font-monospace fw-semibold text-break mb-3" id="restoreFile"></div>
-                    <small class="text-muted"><i class="fa-solid fa-shield-halved me-1 text-success"></i>শুরুর আগে বর্তমান ডাটাবেজের সেফটি কপি নেওয়া হয়।</small>
+                    <p class="mb-2">লাইভ ডাটাবেজ (ও মিডিয়া) এই ফাইল থেকে <b>বদলে যাবে</b>:</p>
+                    <div class="bk-restore-file font-monospace text-break mb-3" id="restoreFile"></div>
+                    <div class="bk-restore-check" id="restoreCheck"></div>
+                    <label class="form-label small mt-3 mb-1" for="restoreConfirm">নিশ্চিত করতে বক্সে <code>{{ \App\Http\Controllers\Admin\AdminBackupController::RESTORE_WORD }}</code> লিখুন</label>
+                    <input type="text" name="confirm" id="restoreConfirm" class="form-control font-monospace" autocomplete="off" spellcheck="false" placeholder="{{ \App\Http\Controllers\Admin\AdminBackupController::RESTORE_WORD }}">
+                    <small class="text-muted d-block mt-2"><i class="fa-solid fa-shield-halved me-1 text-success"></i>শুরুর আগে বর্তমান ডাটাবেজের সেফটি কপি নেওয়া হয় (Safety ট্যাবে থাকবে)।</small>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-rotate-left me-1"></i>Restore</button>
+                    <button type="submit" class="btn btn-danger" id="restoreGo" disabled><i class="fa-solid fa-rotate-left me-1"></i>Restore</button>
                 </div>
             </form>
         </div>
@@ -157,7 +162,10 @@
                                 </div>
                                 <div class="col-md-8">
                                     <label class="form-label small" for="bkEmail">নোটিফিকেশন ইমেইল</label>
-                                    <input type="email" name="backup_email" id="bkEmail" class="form-control" value="{{ $settings['backup_email'] }}" placeholder="খালি রাখলে ইমেইল যাবে না">
+                                    <div class="input-group">
+                                        <input type="email" name="backup_email" id="bkEmail" class="form-control" value="{{ $settings['backup_email'] }}" placeholder="খালি রাখলে ইমেইল যাবে না">
+                                        <button type="button" class="btn btn-outline-primary" id="mailTest" title="এই ঠিকানায় একটি টেস্ট ইমেইল পাঠান"><i class="fa-solid fa-paper-plane me-1"></i>Test</button>
+                                    </div>
                                 </div>
                             </div>
                             <small class="text-muted d-block mt-3">সার্ভারের ক্রনে <code>* * * * * php artisan schedule:run</code> থাকলে অটো-ব্যাকআপ চলে।</small>
@@ -209,7 +217,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i>Save</button>
+                    <button type="submit" class="btn btn-primary" id="settingsSave"><i class="fa-solid fa-check me-1"></i>Save</button>
                 </div>
             </form>
         </div>
